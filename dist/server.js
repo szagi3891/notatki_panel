@@ -28370,6 +28370,7 @@ app.get("/static/client.js", async (req, res) => {
     res.status(500).send(`Co\u015B posz\u0142o nie tak ${err}`);
   }
 });
+console.info("Starting ...");
 app.listen(port, () => {
   console.log(`Server app listening at http://localhost:${port}`);
 });

@@ -51,6 +51,8 @@ app.get('/static/client.js', async (req, res): Promise<void> => {
     }
 });
 
+console.info('Starting ...');
+
 app.listen(port, () => {
     console.log(`Server app listening at http://localhost:${port}`)
 });
