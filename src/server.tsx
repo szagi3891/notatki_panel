@@ -40,12 +40,6 @@ app.get('/', (req, res) => {
     res.send(indexContent());
 });
 
-//https://github.com/szagi3891/notatki_panel/blob/master/dist/client.js?raw=true
-
-console.info("process", process.argv);
-console.info("env", process.env);
-
-
 app.get('/static/client.js', async (req, res): Promise<void> => {
     try {
         const content = await getClientJs();

@@ -28360,8 +28360,6 @@ const port = 3e3;
 app.get("/", (req, res) => {
   res.send(indexContent());
 });
-console.info("process", process.argv);
-console.info("env", process.env);
 app.get("/static/client.js", async (req, res) => {
   try {
     const content = await getClientJs();
