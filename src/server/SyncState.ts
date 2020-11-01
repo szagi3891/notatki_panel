@@ -87,21 +87,6 @@ export class SyncState {
     }
 
     async trySync(): Promise<void> {
-                                                        //Synchronizuj z serwerem co 2s
-        const currentTime = new Date().getTime();
-        if (currentTime - this.lastSync < 5000) {
-            return;
-        }
-        this.lastSync = currentTime;
-
-
-        // const pwd = await this.execCommand('pwd');
-        // console.info(pwd);
-
-        // const lsres = await this.execCommand('ls -al');
-        // console.info(lsres);
-
-
         const currentBranch = await this.getCurrentBranch();
         console.info(`Current branch = ${currentBranch}`);
 
@@ -111,10 +96,8 @@ export class SyncState {
             return;
         }
 
-        // git pull origin master                      --- jeśli się coś konfliktuje to ta operacja się nie powiedzie
-        // git merge --abort
-        //                         wycofujemy sie od razu z potencjalnych konfliktów
-        
+        console.info('Próba pull-a ...');
+
         await this.execCommandAndShow('GitPull', `git pull origin ${currentBranch}`);
         await this.execCommandAndShow('GitPullAbort', 'git merge --abort');
 
@@ -122,8 +105,7 @@ export class SyncState {
             return;
         }
 
-        console.info('Teraz próba rebejsa !!!!!!');
-
+        console.info('Próba rebejsa ...');
 
         await this.execCommandAndShow('GitRebase', `git rebase origin/${currentBranch}`);
         await this.execCommandAndShow('GitRebaseAbort', 'git rebase --abort');
@@ -139,14 +121,11 @@ export class SyncState {
         //jak się nie uda rebase, to trzeba wejść w tryb zawieszenia UI
         //czyli mozna po prostu wyłączyć główny proces synchronizujacy
 
-
-
         // setTimeout(() => {
         //     this.syncEnable = true;
 
         //     console.info('RESTORE....');
         // }, 10000);
-
 
         this.syncEnable = false;
     }
@@ -169,8 +148,14 @@ export class SyncState {
             try {
                 if (this.syncEnable) {
                     await this.syncCommand();
-                    await this.trySync();
+                                                                            //Synchronizuj z serwerem co 5s
+                    const currentTime = new Date().getTime();
+                    if (currentTime - this.lastSync > 5000) {
+                        this.lastSync = currentTime;
+                        await this.trySync();
+                    }
                 }
+
                 await timeout(100);
             } catch (err) {
                 console.error("Wywaliło cały proces synchronizujący - ponawiam", err);
