@@ -1,7 +1,24 @@
 import express from 'express';
 import { getClientJs } from './server/getClientJs';
 import { indexContent } from './server/index.html';
+// import { timeout } from './server/lib/timeout';
+// import { readContentPath } from './server/readFromPath';
 import { SyncState } from './server/SyncState';
+
+// const test = async () => {
+//     while (true) {
+//         const aa = await readContentPath('/Users/grzegorzszeliga/Desktop/notatki_main/notatki_panel/src/1.txt');
+//         console.info(aa);
+
+//         await timeout(3000);
+//     }
+// };
+
+// test().catch((error) => {
+//     console.error(error);
+// });
+
+// return;
 
 const CLIENT_URL = process.env.CLIENT_URL;          //http adres, lub relatywna ścieka
 const GIT_REPO = process.env.GIT_REPO;              //relatwyna ściezka do repo

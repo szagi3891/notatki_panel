@@ -11403,35 +11403,120 @@
     const [state, setState] = React3.useState(false);
     return /* @__PURE__ */ React3.createElement("div", null, /* @__PURE__ */ React3.createElement("div", {
       onClick: () => setState(!state)
-    }, "toogle ", state), state ? /* @__PURE__ */ React3.createElement("div", null, "to jest applikacja ", appState.counter.counter) : null);
+    }, "toogle ", state), state ? /* @__PURE__ */ React3.createElement("div", null, "to jest applikacja ", appState.counterValue) : null);
   });
 
+  // src/client/utils/MobxMapAutoNew.ts
+  class MobxMapAutoNew {
+    constructor(fnBuild) {
+      this.fnBuild = fnBuild;
+      this.data = new Map();
+    }
+    get(key) {
+      const value = this.data.get(key);
+      if (typeof value !== "undefined") {
+        return value;
+      }
+      const newValue = this.fnBuild(key);
+      this.data.set(key, newValue);
+      return newValue;
+    }
+  }
+
+  // src/client/utils/MobxValueConnect.ts
+  class MobxValueConnect {
+    constructor(id, value, onConnect, onDisconnect) {
+      this.subscription = null;
+      this.id = id;
+      this.value = value;
+      this.onConnect = onConnect;
+      this.onDisconnect = onDisconnect;
+      makeObservable(this, {
+        value: observable
+      });
+      onBecomeObserved(this, "value", () => {
+        console.info("value start observe", this.id);
+        if (this.subscription !== null) {
+          throw Error("onBecomeObserved - Nieprawid\u0142owy stan");
+        }
+        this.subscription = this.onConnect(this);
+      });
+      onBecomeUnobserved(this, "value", () => {
+        console.info("value stop observe", this.id);
+        if (this.subscription === null) {
+          throw Error("onBecomeUnobserved - Nieprawid\u0142owy stan");
+        }
+        this.onDisconnect(this.subscription);
+        this.subscription = null;
+      });
+    }
+    setValue(value) {
+      this.value = value;
+    }
+  }
+
+  // src/client/AppState/ContentState.ts
+  const startCounter = (_mobxValue) => {
+    return setInterval(() => {
+    }, 1e3);
+  };
+  const stopCounter = (timer) => {
+    clearInterval(timer);
+  };
+  class ContentState {
+    constructor() {
+      this.data = new MobxMapAutoNew((path) => {
+        return new MobxValueConnect(path, null, startCounter, stopCounter);
+      });
+    }
+  }
+
   // src/client/AppState/CounterState.ts
+  const startCounter2 = (mobxValue) => {
+    return setInterval(() => {
+      mobxValue.setValue(mobxValue.value + 1);
+    }, 1e3);
+  };
+  const stopCounter2 = (timer) => {
+    clearInterval(timer);
+  };
   class CounterState {
     constructor() {
-      this.timer = null;
-      this.counter = 0;
+      this.counter = new MobxValueConnect(void 0, 0, startCounter2, stopCounter2);
+    }
+  }
+
+  // src/client/utils/MobxValue.ts
+  class MobxValue {
+    constructor(value) {
+      this.value = value;
+      makeObservable(this, {
+        value: observable
+      });
+    }
+    setValue(value) {
+      this.value = value;
+    }
+  }
+
+  // src/client/AppState/CurrentPath.ts
+  class CurrentPath {
+    constructor(path, content) {
       makeAutoObservable(this);
-      onBecomeObserved(this, "counter", () => {
-        console.info("timer start");
-        this.timer = setInterval(() => {
-          this.counter++;
-        }, 1e3);
-      });
-      onBecomeUnobserved(this, "counter", () => {
-        console.info("timer stop");
-        if (this.timer !== null) {
-          clearInterval(this.timer);
-          this.timer = null;
-        }
-      });
+      this.path = new MobxValue(path);
+      this.content = content;
     }
   }
 
   // src/client/AppState/AppState.ts
   class AppState {
     constructor() {
+      makeAutoObservable(this);
       this.counter = new CounterState();
+      this.currentPath = new CurrentPath("", new ContentState());
+    }
+    get counterValue() {
+      return this.counter.counter.value;
     }
   }
 

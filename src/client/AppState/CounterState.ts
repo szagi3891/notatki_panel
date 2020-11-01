@@ -1,26 +1,19 @@
-import { makeAutoObservable, onBecomeObserved, onBecomeUnobserved } from 'mobx';
+import { MobxValueConnect } from '../utils/MobxValueConnect';
+
+const startCounter = (mobxValue: MobxValueConnect<void, number, NodeJS.Timer>): NodeJS.Timer => {
+    return setInterval(() => {
+        mobxValue.setValue(mobxValue.value + 1);
+    }, 1000);
+};
+
+const stopCounter = (timer: NodeJS.Timer) => {
+    clearInterval(timer);
+};
 
 export class CounterState {
-
-    private timer: NodeJS.Timer | null = null;
-    counter: number = 0;
+    readonly counter: MobxValueConnect<void, number, NodeJS.Timer>;
 
     constructor() {
-        makeAutoObservable(this);
-
-        onBecomeObserved(this, 'counter', () => {
-            console.info('timer start');
-            this.timer = setInterval(() => {
-                this.counter++;
-            }, 1000);
-        });
-
-        onBecomeUnobserved(this, 'counter', () => {
-            console.info('timer stop');
-            if (this.timer !== null) {
-                clearInterval(this.timer);
-                this.timer = null;
-            }
-        })
+        this.counter = new MobxValueConnect<void, number, NodeJS.Timer>(undefined, 0, startCounter, stopCounter);
     }
 }

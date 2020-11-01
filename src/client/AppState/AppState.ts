@@ -1,16 +1,20 @@
-//import { makeAutoObservable } from "mobx";
+import { makeAutoObservable } from "mobx";
+import { ContentState } from "./ContentState";
 import { CounterState } from "./CounterState";
+import { CurrentPath } from "./CurrentPath";
 
 export class AppState {
-
-    readonly counter: CounterState;
+    private readonly counter: CounterState;
+    readonly currentPath: CurrentPath;
 
     constructor() {
+        makeAutoObservable(this); //for computed
+
         this.counter = new CounterState();
-        // makeAutoObservable(this);
+        this.currentPath = new CurrentPath('', new ContentState())
     }
-    
-    // inc = () => {
-    //     this.counter++;
-    // }
+
+    get counterValue(): number {
+        return this.counter.counter.value;
+    }
 }
