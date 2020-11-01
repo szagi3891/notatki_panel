@@ -28421,6 +28421,14 @@ class SyncState {
     console.info(`EXEC COMMAND: "${command}"`);
     return execCommand(command, this.GIT_REPO);
   }
+  async execCommandAndShow(label, command) {
+    const result = await this.execCommand(command);
+    console.info({
+      label,
+      command,
+      ...result
+    });
+  }
   async execCommandWithSuccess(command) {
     console.info(`EXEC COMMAND: "${command}"`);
     const result = await execCommand(command, this.GIT_REPO);
@@ -28450,12 +28458,13 @@ class SyncState {
   async commitAsSynchronized(currentBranch) {
     const localCommit = await this.getLocalCommit(currentBranch);
     const remoteCommit = await this.getRemoteCommit(currentBranch);
-    console.info({
-      localCommit,
-      remoteCommit,
-      branchSync: localCommit === remoteCommit
-    });
-    return localCommit === remoteCommit;
+    const comitEqual = localCommit === remoteCommit;
+    if (comitEqual) {
+      console.info(`CommitText -> Equal ${localCommit}`);
+    } else {
+      console.info(`CommitText -> NotEqual local="${localCommit}" remoteCommit="${remoteCommit}"`);
+    }
+    return comitEqual;
   }
   async trySync() {
     const currentTime = new Date().getTime();
@@ -28468,19 +28477,20 @@ class SyncState {
     if (await this.commitAsSynchronized(currentBranch)) {
       return;
     }
-    const gitPull = await this.execCommand("git pull origin master");
-    console.info("gitPull", gitPull);
-    const gitPullAbort = await this.execCommand("git merge --abort");
-    console.info("gitPullAbort", gitPullAbort);
+    await this.execCommandAndShow("GitPull", "git pull origin master");
+    await this.execCommandAndShow("GitPullAbort", "git merge --abort");
     if (await this.commitAsSynchronized(currentBranch)) {
       return;
     }
     console.info("Teraz pr\xF3ba rebejsa !!!!!!");
+    await this.execCommandAndShow("GitRebase", "git rebase origin/master");
+    await this.execCommandAndShow("GitRebaseAbort", "git rebase --abort");
+    await this.execCommandAndShow("GitRebasePush", "git push origin master:master");
+    if (await this.commitAsSynchronized(currentBranch)) {
+      return;
+    }
+    console.info("Pr\xF3ba rebejsowania nieudana !!!!! - wy\u0142\u0105czam synchronizacj\u0119");
     this.syncEnable = false;
-    setTimeout(() => {
-      this.syncEnable = true;
-      console.info("RESTORE....");
-    }, 1e4);
   }
   async syncCommand() {
     while (true) {
