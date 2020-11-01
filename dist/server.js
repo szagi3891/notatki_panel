@@ -28460,9 +28460,9 @@ class SyncState {
     const remoteCommit = await this.getRemoteCommit(currentBranch);
     const comitEqual = localCommit === remoteCommit;
     if (comitEqual) {
-      console.info(`CommitText -> Equal ${localCommit}`);
+      console.info(`CommitTest -> Equal ${localCommit}`);
     } else {
-      console.info(`CommitText -> NotEqual local="${localCommit}" remoteCommit="${remoteCommit}"`);
+      console.info(`CommitTest -> NotEqual local="${localCommit}" remoteCommit="${remoteCommit}"`);
     }
     return comitEqual;
   }
@@ -28474,18 +28474,19 @@ class SyncState {
     this.lastSync = currentTime;
     const currentBranch = await this.getCurrentBranch();
     console.info(`Current branch = ${currentBranch}`);
+    await this.execCommand(`git fetch origin ${currentBranch}`);
     if (await this.commitAsSynchronized(currentBranch)) {
       return;
     }
-    await this.execCommandAndShow("GitPull", "git pull origin master");
+    await this.execCommandAndShow("GitPull", `git pull origin ${currentBranch}`);
     await this.execCommandAndShow("GitPullAbort", "git merge --abort");
     if (await this.commitAsSynchronized(currentBranch)) {
       return;
     }
     console.info("Teraz pr\xF3ba rebejsa !!!!!!");
-    await this.execCommandAndShow("GitRebase", "git rebase origin/master");
+    await this.execCommandAndShow("GitRebase", `git rebase origin/${currentBranch}`);
     await this.execCommandAndShow("GitRebaseAbort", "git rebase --abort");
-    await this.execCommandAndShow("GitRebasePush", "git push origin master:master");
+    await this.execCommandAndShow("GitRebasePush", `git push origin ${currentBranch}:${currentBranch}`);
     if (await this.commitAsSynchronized(currentBranch)) {
       return;
     }

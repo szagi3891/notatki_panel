@@ -105,6 +105,7 @@ export class SyncState {
         const currentBranch = await this.getCurrentBranch();
         console.info(`Current branch = ${currentBranch}`);
 
+        await this.execCommand(`git fetch origin ${currentBranch}`);
 
         if (await this.commitAsSynchronized(currentBranch)) {
             return;
@@ -114,7 +115,7 @@ export class SyncState {
         // git merge --abort
         //                         wycofujemy sie od razu z potencjalnych konfliktów
         
-        await this.execCommandAndShow('GitPull', 'git pull origin master');
+        await this.execCommandAndShow('GitPull', `git pull origin ${currentBranch}`);
         await this.execCommandAndShow('GitPullAbort', 'git merge --abort');
 
         if (await this.commitAsSynchronized(currentBranch)) {
@@ -124,9 +125,9 @@ export class SyncState {
         console.info('Teraz próba rebejsa !!!!!!');
 
 
-        await this.execCommandAndShow('GitRebase', 'git rebase origin/master');
+        await this.execCommandAndShow('GitRebase', `git rebase origin/${currentBranch}`);
         await this.execCommandAndShow('GitRebaseAbort', 'git rebase --abort');
-        await this.execCommandAndShow('GitRebasePush', 'git push origin master:master');
+        await this.execCommandAndShow('GitRebasePush', `git push origin ${currentBranch}:${currentBranch}`);
 
         if (await this.commitAsSynchronized(currentBranch)) {
             return;
