@@ -11400,25 +11400,38 @@
   // src/client/App.tsx
   const App = observer3(() => {
     const appState = useAppStateContext();
-    React3.useEffect(() => {
-      const timer = setInterval(() => {
-        appState.inc();
-      }, 1e3);
-      return () => {
-        clearInterval(timer);
-      };
-    });
-    return /* @__PURE__ */ React3.createElement("div", null, "to jest applikacja ", appState.counter);
+    const [state, setState] = React3.useState(false);
+    return /* @__PURE__ */ React3.createElement("div", null, /* @__PURE__ */ React3.createElement("div", {
+      onClick: () => setState(!state)
+    }, "toogle ", state), state ? /* @__PURE__ */ React3.createElement("div", null, "to jest applikacja ", appState.counter.counter) : null);
   });
+
+  // src/client/AppState/CounterState.ts
+  class CounterState {
+    constructor() {
+      this.timer = null;
+      this.counter = 0;
+      makeAutoObservable(this);
+      onBecomeObserved(this, "counter", () => {
+        console.info("timer start");
+        this.timer = setInterval(() => {
+          this.counter++;
+        }, 1e3);
+      });
+      onBecomeUnobserved(this, "counter", () => {
+        console.info("timer stop");
+        if (this.timer !== null) {
+          clearInterval(this.timer);
+          this.timer = null;
+        }
+      });
+    }
+  }
 
   // src/client/AppState/AppState.ts
   class AppState {
     constructor() {
-      this.counter = 0;
-      this.inc = () => {
-        this.counter++;
-      };
-      makeAutoObservable(this);
+      this.counter = new CounterState();
     }
   }
 

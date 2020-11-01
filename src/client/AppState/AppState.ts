@@ -1,14 +1,16 @@
-import { makeAutoObservable } from "mobx";
+//import { makeAutoObservable } from "mobx";
+import { CounterState } from "./CounterState";
 
 export class AppState {
 
-    counter: number = 0;
+    readonly counter: CounterState;
 
     constructor() {
-        makeAutoObservable(this);
+        this.counter = new CounterState();
+        // makeAutoObservable(this);
     }
     
-    inc = () => {
-        this.counter++;
-    }
+    // inc = () => {
+    //     this.counter++;
+    // }
 }

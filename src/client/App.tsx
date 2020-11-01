@@ -4,20 +4,22 @@ import { useAppStateContext } from './Context';
 
 export const App = observer(() => {
     const appState = useAppStateContext();
+    const [ state, setState ] = React.useState(false);
 
-    React.useEffect(() => {
-        const timer = setInterval(() => {
-            appState.inc();
-        }, 1000);
+    // React.useEffect(() => {
+    //     const timer = setInterval(() => {
+    //         appState.inc();
+    //     }, 1000);
 
-        return () => {
-            clearInterval(timer);
-        };
-    });
+    //     return () => {
+    //         clearInterval(timer);
+    //     };
+    // });
 
     return (
         <div>
-            to jest applikacja {appState.counter}
+            <div onClick={() => setState(!state)}>toogle {state}</div>
+            { state ? <div>to jest applikacja {appState.counter.counter}</div> : null }
         </div>
     );
 });
