@@ -1,11 +1,10 @@
-import express from 'express';
 import { getClientJs } from './server/getClientJs';
 import { indexContent } from './server/index.html';
 import { getEnvParams } from './server/lib/getEnvParams';
 import { SyncState } from './server/SyncState';
+import * as http from 'http';
 
-const app = express();
-const port = 3000
+const port = 3000;
 
 const envParams = getEnvParams();
 
@@ -14,24 +13,80 @@ sync.run().catch((error) => {
     console.error(error);
 });
 
-app.get('/', (_req, res) => {
-    res.send(indexContent());
-});
+const getBody = (request: http.IncomingMessage): Promise<string> => {
+    return new Promise((resolve) => {
+        const body: Array<string> = [];
+        request.on('data', chunk => {
+            body.push(chunk.toString());
+        });
+        request.on('end', () => {
+            resolve(body.join(''));
+        });
+    });
+};
 
-app.get('/static/client.js', async (_req, res): Promise<void> => {
+
+http.createServer(async (request, response) => {
     try {
-        const content = await getClientJs(envParams.CLIENT_URL);
-        res.setHeader('Content-Type', 'text/javascript');
-        res.status(200).send(content);
+        const method: string | undefined = request.method;
+        const url: string | undefined = request.url;
+        //const post = request.
+
+        if (url === '/' && method === 'GET') {
+            response.write(indexContent());
+            response.end();
+            return;
+        }
+
+        if (url === '/static/client.js' && method === 'GET') {
+            const content = await getClientJs(envParams.CLIENT_URL);
+            response.writeHead(200, {
+                'Content-Type': 'text/javascript'
+            });
+            response.write(content);
+            response.end();
+            return;
+        }
+
+        if (url === '/api' && method === 'POST') {
+            const body = await getBody(request);
+            console.info('/api body', body);
+
+            response.write(JSON.stringify({}));
+            response.end();
+            return;
+        }
+        console.info(method, url);
+
+
+        // response.writeHead(200, {
+        //     'Content-Type': 'application/json',
+        //     'X-Powered-By': 'bacon'
+        // });
+        // response.write('<html>');
+        // response.write('<body>');
+        // response.write('<h1>Hello, World!</h1>');
+        // response.write('</body>');
+        // response.write('</html>');
+        // response.end();
+
+        response.writeHead(501);
+        response.write(`Nieobsłuzony handler ${method} ${url}`);
+        response.end();
     } catch (err) {
         console.error(err);
-        res.status(500).send(`Coś poszło nie tak ${err}`);
+        response.writeHead(500);
+        response.write(`Coś poszło nie tak ${err}`);
+        response.end();
+        return;
     }
-});
+
+}).listen(port);
+
 
 console.info('Starting ...');
+console.log(`Server app listening at http://localhost:${port}`);
 
-app.listen(port, () => {
-    console.log(`Server app listening at http://localhost:${port}`)
-});
+
+
 

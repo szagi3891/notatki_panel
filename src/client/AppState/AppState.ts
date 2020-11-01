@@ -1,7 +1,8 @@
 import { makeAutoObservable } from "mobx";
 import { ContentState } from "./ContentState";
-import { CounterState } from "./CounterState";
+import { CounterState } from "./inne/CounterState";
 import { CurrentPath } from "./CurrentPath";
+import { apiGetPath } from "../api/apiGetPath";
 
 export class AppState {
     private readonly counter: CounterState;
@@ -11,7 +12,16 @@ export class AppState {
         makeAutoObservable(this); //for computed
 
         this.counter = new CounterState();
-        this.currentPath = new CurrentPath('', new ContentState())
+        this.currentPath = new CurrentPath('', new ContentState());
+
+        (async () => {
+            const resp = await apiGetPath('aaa/ffff');
+
+            console.info('AAAPI', resp);
+
+        })().catch((error) => {
+            console.error(error);
+        });
     }
 
     get counterValue(): number {

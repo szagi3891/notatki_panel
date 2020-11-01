@@ -42,7 +42,6 @@ export type ValidatorResultType<A> = {
 type Validator<A> = (data: unknown) => ValidatorResultType<A>;
 
 export const buildValidator = <A>(decoder: t.Type<A>): Validator<A> => {
-
     return (dataIn: unknown): ValidatorResultType<A> => {
         const decodeResult = decoder.decode(dataIn);
 
@@ -59,6 +58,29 @@ export const buildValidator = <A>(decoder: t.Type<A>): Validator<A> => {
             type: 'error',
             message: errorDecodeInfo
         };
+    };
+};
+
+export const buildValidatorWithUnwrap = <A>(label: string, decoder: t.Type<A>): ((dataIn: unknown) => A) => {
+    const validator = buildValidator(decoder);
+
+    return (dataIn: unknown): A => {
+        const result = validator(dataIn);
+
+        if (result.type === 'ok') {
+            return result.data;
+        }
+
+        console.error({
+            label: `Decoder '${label}'`,
+            dataIn,
+            errorDecodeInfo: result.message
+        });
+
+        throw new Error(JSON.stringify({
+            label: `Decoder '${label}'`,
+            errorDecodeInfo: result.message
+        }));
     };
 };
 
