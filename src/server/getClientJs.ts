@@ -1,26 +1,17 @@
 import * as fs from 'fs';
-import axios from 'axios';
+import { fetchRequest } from 'src/common/fetchRequest';
 
-const TIMEOUT = 10 * 1000;
 
 export const getClientJs = async (CLIENT_URL: string): Promise<string> => {
     if (CLIENT_URL.startsWith('http')) {
-        const resp = await axios.request({
-            method: 'GET',
-            url: CLIENT_URL,
-            //data: bodyParam === undefined ? undefined : JSON.stringify(bodyParam),
-            //headers: getHeaders(backendToken, extraHeaders),
-            transformResponse: [],
-            validateStatus: () => true,
-            timeout: TIMEOUT,
-        });
-    
-        const respText = resp.data;
 
-        if (typeof respText !== 'string') {
-            console.error(respText);
-            throw Error('String expected');
-        }
+        const respText = await fetchRequest('GET', CLIENT_URL, undefined, (status, data) => {
+            if (status === 200 && data.type === 'text') {
+                return data.text;
+            }
+
+            throw Error(`Niespodziewana odpowiedź ${status} ${data.type}`);
+        });
 
         return respText;
     }

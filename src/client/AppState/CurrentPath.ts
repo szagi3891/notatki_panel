@@ -1,5 +1,5 @@
 import { makeAutoObservable } from "mobx";
-import { MobxValue } from "../utils/MobxValue";
+import { MobxValue } from "../../common/MobxValue";
 import { ContentState } from "./ContentState";
 
 export class CurrentPath {
@@ -13,6 +13,11 @@ export class CurrentPath {
         this.content = content;
     }
 
-    //computed
-    // ===> Array<string>
+    get pathChunks(): Array<string> {
+        return this.path.value
+            .split('/')
+            .map((item) => item.trim())
+            .filter(item => item !== '')
+        ;
+    }
 }
