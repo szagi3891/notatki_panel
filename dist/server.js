@@ -28467,23 +28467,19 @@ class SyncState {
     return comitEqual;
   }
   async trySync() {
-    const currentTime = new Date().getTime();
-    if (currentTime - this.lastSync < 5e3) {
-      return;
-    }
-    this.lastSync = currentTime;
     const currentBranch = await this.getCurrentBranch();
     console.info(`Current branch = ${currentBranch}`);
     await this.execCommand(`git fetch origin ${currentBranch}`);
     if (await this.commitAsSynchronized(currentBranch)) {
       return;
     }
+    console.info("Pr\xF3ba pull-a ...");
     await this.execCommandAndShow("GitPull", `git pull origin ${currentBranch}`);
     await this.execCommandAndShow("GitPullAbort", "git merge --abort");
     if (await this.commitAsSynchronized(currentBranch)) {
       return;
     }
-    console.info("Teraz pr\xF3ba rebejsa !!!!!!");
+    console.info("Pr\xF3ba rebejsa ...");
     await this.execCommandAndShow("GitRebase", `git rebase origin/${currentBranch}`);
     await this.execCommandAndShow("GitRebaseAbort", "git rebase --abort");
     await this.execCommandAndShow("GitRebasePush", `git push origin ${currentBranch}:${currentBranch}`);
@@ -28507,7 +28503,11 @@ class SyncState {
       try {
         if (this.syncEnable) {
           await this.syncCommand();
-          await this.trySync();
+          const currentTime = new Date().getTime();
+          if (currentTime - this.lastSync > 5e3) {
+            this.lastSync = currentTime;
+            await this.trySync();
+          }
         }
         await timeout(100);
       } catch (err) {
@@ -28538,10 +28538,10 @@ const sync = new SyncState(GIT_REPO);
 sync.run().catch((error) => {
   console.error(error);
 });
-app.get("/", (req, res) => {
+app.get("/", (_req, res) => {
   res.send(indexContent());
 });
-app.get("/static/client.js", async (req, res) => {
+app.get("/static/client.js", async (_req, res) => {
   try {
     const content = await getClientJs(CLIENT_URL);
     res.setHeader("Content-Type", "text/javascript");

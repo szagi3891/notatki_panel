@@ -31,11 +31,11 @@ sync.run().catch((error) => {
 });
 
 
-app.get('/', (req, res) => {
+app.get('/', (_req, res) => {
     res.send(indexContent());
 });
 
-app.get('/static/client.js', async (req, res): Promise<void> => {
+app.get('/static/client.js', async (_req, res): Promise<void> => {
     try {
         const content = await getClientJs(CLIENT_URL);
         res.setHeader('Content-Type', 'text/javascript');
