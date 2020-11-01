@@ -13036,6 +13036,7 @@
   }
 
   // src/client/AppState/ContentState.ts
+  console.info("modul content state");
   const startCounter = (_mobxValue) => {
     return setInterval(() => {
     }, 1e3);

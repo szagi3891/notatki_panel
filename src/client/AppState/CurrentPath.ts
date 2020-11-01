@@ -1,5 +1,5 @@
 import { makeAutoObservable } from "mobx";
-import { MobxValue } from "../../common/MobxValue";
+import { MobxValue } from "src/common/MobxValue";
 import { ContentState } from "./ContentState";
 
 export class CurrentPath {

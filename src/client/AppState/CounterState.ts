@@ -1,4 +1,4 @@
-import { MobxValueConnect } from '../../common/MobxValueConnect';
+import { MobxValueConnect } from 'src/common/MobxValueConnect';
 
 const startCounter = (mobxValue: MobxValueConnect<void, number, NodeJS.Timer>): NodeJS.Timer => {
     return setInterval(() => {

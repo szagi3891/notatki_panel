@@ -1,5 +1,5 @@
-import { MobxMapAutoNew } from '../../common/MobxMapAutoNew';
-import { MobxValueConnect } from '../../common/MobxValueConnect';
+import { MobxMapAutoNew } from 'src/common/MobxMapAutoNew';
+import { MobxValueConnect } from 'src/common/MobxValueConnect';
 
 type ContentType = {
     type: 'file',
