@@ -10,7 +10,7 @@ export type ResponseType = {
     text: string,
 };
 
-const jsonParse = (body: string): ResponseType => {
+export const jsonParse = (body: string): ResponseType => {
     try {
         const bodyJson = JSON.parse(body);
 
@@ -26,7 +26,7 @@ const jsonParse = (body: string): ResponseType => {
     }
 };
 
-export const fetchRequest = async <P extends Record<string, string | number | boolean>, R>(
+export const fetchRequest = async <P, R>(
     method: 'GET' | 'POST',
     url: string,
     params: P | undefined,

@@ -1647,8 +1647,8 @@ var require_axios = __commonJS((exports, module2) => {
   axios3.Cancel = require_Cancel();
   axios3.CancelToken = require_CancelToken();
   axios3.isCancel = require_isCancel();
-  axios3.all = function all(promises2) {
-    return Promise.all(promises2);
+  axios3.all = function all(promises3) {
+    return Promise.all(promises3);
   };
   axios3.spread = require_spread();
   module2.exports = axios3;
@@ -1752,7 +1752,7 @@ var require_react_production_min = __commonJS((exports) => {
   exports.Profiler = 60114;
   var q = 60109;
   var r = 60110;
-  var t = 60112;
+  var t2 = 60112;
   exports.Suspense = 60113;
   var u = 60115;
   var v = 60116;
@@ -1765,7 +1765,7 @@ var require_react_production_min = __commonJS((exports) => {
     exports.Profiler = w("react.profiler");
     q = w("react.provider");
     r = w("react.context");
-    t = w("react.forward_ref");
+    t2 = w("react.forward_ref");
     exports.Suspense = w("react.suspense");
     u = w("react.memo");
     v = w("react.lazy");
@@ -1994,7 +1994,7 @@ var require_react_production_min = __commonJS((exports) => {
     return {current: null};
   };
   exports.forwardRef = function(a) {
-    return {$$typeof: t, render: a};
+    return {$$typeof: t2, render: a};
   };
   exports.isValidElement = L;
   exports.lazy = function(a) {
@@ -2588,7 +2588,7 @@ var require_react_development = __commonJS((exports) => {
         }
         return index.toString(36);
       }
-      function mapIntoArray(children, array, escapedPrefix, nameSoFar, callback) {
+      function mapIntoArray(children, array2, escapedPrefix, nameSoFar, callback) {
         var type = typeof children;
         if (type === "undefined" || type === "boolean") {
           children = null;
@@ -2619,14 +2619,14 @@ var require_react_development = __commonJS((exports) => {
             if (childKey != null) {
               escapedChildKey = escapeUserProvidedKey(childKey) + "/";
             }
-            mapIntoArray(mappedChild, array, escapedChildKey, "", function(c) {
+            mapIntoArray(mappedChild, array2, escapedChildKey, "", function(c) {
               return c;
             });
           } else if (mappedChild != null) {
             if (isValidElement(mappedChild)) {
               mappedChild = cloneAndReplaceKey(mappedChild, escapedPrefix + (mappedChild.key && (!_child || _child.key !== mappedChild.key) ? escapeUserProvidedKey("" + mappedChild.key) + "/" : "") + childKey);
             }
-            array.push(mappedChild);
+            array2.push(mappedChild);
           }
           return 1;
         }
@@ -2638,7 +2638,7 @@ var require_react_development = __commonJS((exports) => {
           for (var i = 0; i < children.length; i++) {
             child = children[i];
             nextName = nextNamePrefix + getElementKey(child, i);
-            subtreeCount += mapIntoArray(child, array, escapedPrefix, nextName, callback);
+            subtreeCount += mapIntoArray(child, array2, escapedPrefix, nextName, callback);
           }
         } else {
           var iteratorFn = getIteratorFn(children);
@@ -2658,7 +2658,7 @@ var require_react_development = __commonJS((exports) => {
             while (!(step = iterator.next()).done) {
               child = step.value;
               nextName = nextNamePrefix + getElementKey(child, ii++);
-              subtreeCount += mapIntoArray(child, array, escapedPrefix, nextName, callback);
+              subtreeCount += mapIntoArray(child, array2, escapedPrefix, nextName, callback);
             }
           } else if (type === "object") {
             var childrenString = "" + children;
@@ -3769,7 +3769,7 @@ var require_react_dom_server_node_production_min = __commonJS((exports) => {
       }
     return false;
   }
-  function M(a, b, c, d, f, h, t) {
+  function M(a, b, c, d, f, h, t2) {
     this.acceptsBooleans = b === 2 || b === 3 || b === 4;
     this.attributeName = d;
     this.attributeNamespace = f;
@@ -3777,7 +3777,7 @@ var require_react_dom_server_node_production_min = __commonJS((exports) => {
     this.propertyName = a;
     this.type = b;
     this.sanitizeURL = h;
-    this.removeEmptyString = t;
+    this.removeEmptyString = t2;
   }
   var N = {};
   "children dangerouslySetInnerHTML defaultValue defaultChecked innerHTML suppressContentEditableWarning suppressHydrationWarning style".split(" ").forEach(function(a) {
@@ -4114,18 +4114,18 @@ var require_react_dom_server_node_production_min = __commonJS((exports) => {
   }
   function bb(a, b, c) {
     function d(d2, h2) {
-      var e = h2.prototype && h2.prototype.isReactComponent, f2 = oa(h2, b, c, e), t = [], g = false, m = {isMounted: function() {
+      var e = h2.prototype && h2.prototype.isReactComponent, f2 = oa(h2, b, c, e), t2 = [], g = false, m = {isMounted: function() {
         return false;
       }, enqueueForceUpdate: function() {
-        if (t === null)
+        if (t2 === null)
           return null;
       }, enqueueReplaceState: function(a2, b2) {
         g = true;
-        t = [b2];
+        t2 = [b2];
       }, enqueueSetState: function(a2, b2) {
-        if (t === null)
+        if (t2 === null)
           return null;
-        t.push(b2);
+        t2.push(b2);
       }};
       if (e) {
         if (e = new h2(d2.props, f2, m), typeof h2.getDerivedStateFromProps === "function") {
@@ -4143,10 +4143,10 @@ var require_react_dom_server_node_production_min = __commonJS((exports) => {
       m = e.state;
       m === void 0 && (e.state = m = null);
       if (typeof e.UNSAFE_componentWillMount === "function" || typeof e.componentWillMount === "function")
-        if (typeof e.componentWillMount === "function" && typeof h2.getDerivedStateFromProps !== "function" && e.componentWillMount(), typeof e.UNSAFE_componentWillMount === "function" && typeof h2.getDerivedStateFromProps !== "function" && e.UNSAFE_componentWillMount(), t.length) {
-          m = t;
+        if (typeof e.componentWillMount === "function" && typeof h2.getDerivedStateFromProps !== "function" && e.componentWillMount(), typeof e.UNSAFE_componentWillMount === "function" && typeof h2.getDerivedStateFromProps !== "function" && e.UNSAFE_componentWillMount(), t2.length) {
+          m = t2;
           var v = g;
-          t = null;
+          t2 = null;
           g = false;
           if (v && m.length === 1)
             e.state = m[0];
@@ -4161,7 +4161,7 @@ var require_react_dom_server_node_production_min = __commonJS((exports) => {
             e.state = k;
           }
         } else
-          t = null;
+          t2 = null;
       a = e.render();
       ab(a, h2);
       if (typeof e.getChildContext === "function" && (d2 = h2.childContextTypes, typeof d2 === "object")) {
@@ -4226,9 +4226,9 @@ var require_react_dom_server_node_production_min = __commonJS((exports) => {
     b.pushProvider = function(a2) {
       var b2 = ++this.contextIndex, c = a2.type._context, h = this.threadID;
       I(c, h);
-      var t = c[h];
+      var t2 = c[h];
       this.contextStack[b2] = c;
-      this.contextValueStack[b2] = t;
+      this.contextValueStack[b2] = t2;
       c[h] = a2.props.value;
     };
     b.popProvider = function() {
@@ -4250,7 +4250,7 @@ var require_react_dom_server_node_production_min = __commonJS((exports) => {
       var c = Ta.current;
       Ta.current = La;
       try {
-        for (var h = [""], t = false; h[0].length < a2; ) {
+        for (var h = [""], t2 = false; h[0].length < a2; ) {
           if (this.stack.length === 0) {
             this.exhausted = true;
             var g = this.threadID;
@@ -4259,7 +4259,7 @@ var require_react_dom_server_node_production_min = __commonJS((exports) => {
             break;
           }
           var e = this.stack[this.stack.length - 1];
-          if (t || e.childIndex >= e.children.length) {
+          if (t2 || e.childIndex >= e.children.length) {
             var L = e.footer;
             L !== "" && (this.previousWasTextNode = false);
             this.stack.pop();
@@ -4270,8 +4270,8 @@ var require_react_dom_server_node_production_min = __commonJS((exports) => {
             else if (e.type === D) {
               this.suspenseDepth--;
               var G = h.pop();
-              if (t) {
-                t = false;
+              if (t2) {
+                t2 = false;
                 var C = e.fallbackFrame;
                 if (!C)
                   throw Error(p(303));
@@ -5449,8 +5449,8 @@ var require_react_dom_server_node_development = __commonJS((exports) => {
         }
       }
       var matchHtmlRegExp = /["'&<>]/;
-      function escapeHtml(string) {
-        var str = "" + string;
+      function escapeHtml(string2) {
+        var str = "" + string2;
         var match = matchHtmlRegExp.exec(str);
         if (!match) {
           return str;
@@ -6040,8 +6040,8 @@ var require_react_dom_server_node_development = __commonJS((exports) => {
         var warnedStyleValues = {};
         var warnedForNaNValue = false;
         var warnedForInfinityValue = false;
-        var camelize = function(string) {
-          return string.replace(hyphenPattern, function(_, character) {
+        var camelize = function(string2) {
+          return string2.replace(hyphenPattern, function(_, character) {
             return character.toUpperCase();
           });
         };
@@ -7918,6 +7918,2026 @@ var require_server = __commonJS((exports, module2) => {
   module2.exports = require_server_node();
 });
 
+// node_modules/fp-ts/lib/ChainRec.js
+var require_ChainRec = __commonJS((exports) => {
+  "use strict";
+  Object.defineProperty(exports, "__esModule", {value: true});
+  exports.tailRec = void 0;
+  function tailRec(a, f) {
+    var v = f(a);
+    while (v._tag === "Left") {
+      v = f(v.left);
+    }
+    return v.right;
+  }
+  exports.tailRec = tailRec;
+});
+
+// node_modules/fp-ts/lib/function.js
+var require_function = __commonJS((exports) => {
+  "use strict";
+  Object.defineProperty(exports, "__esModule", {value: true});
+  exports.bindTo_ = exports.bind_ = exports.hole = exports.pipe = exports.untupled = exports.tupled = exports.absurd = exports.decrement = exports.increment = exports.tuple = exports.flow = exports.flip = exports.constVoid = exports.constUndefined = exports.constNull = exports.constFalse = exports.constTrue = exports.constant = exports.not = exports.unsafeCoerce = exports.identity = void 0;
+  function identity(a) {
+    return a;
+  }
+  exports.identity = identity;
+  exports.unsafeCoerce = identity;
+  function not(predicate) {
+    return function(a) {
+      return !predicate(a);
+    };
+  }
+  exports.not = not;
+  function constant(a) {
+    return function() {
+      return a;
+    };
+  }
+  exports.constant = constant;
+  exports.constTrue = function() {
+    return true;
+  };
+  exports.constFalse = function() {
+    return false;
+  };
+  exports.constNull = function() {
+    return null;
+  };
+  exports.constUndefined = function() {
+    return;
+  };
+  exports.constVoid = function() {
+    return;
+  };
+  function flip(f) {
+    return function(b, a) {
+      return f(a, b);
+    };
+  }
+  exports.flip = flip;
+  function flow(ab, bc, cd, de, ef, fg, gh, hi, ij) {
+    switch (arguments.length) {
+      case 1:
+        return ab;
+      case 2:
+        return function() {
+          return bc(ab.apply(this, arguments));
+        };
+      case 3:
+        return function() {
+          return cd(bc(ab.apply(this, arguments)));
+        };
+      case 4:
+        return function() {
+          return de(cd(bc(ab.apply(this, arguments))));
+        };
+      case 5:
+        return function() {
+          return ef(de(cd(bc(ab.apply(this, arguments)))));
+        };
+      case 6:
+        return function() {
+          return fg(ef(de(cd(bc(ab.apply(this, arguments))))));
+        };
+      case 7:
+        return function() {
+          return gh(fg(ef(de(cd(bc(ab.apply(this, arguments)))))));
+        };
+      case 8:
+        return function() {
+          return hi(gh(fg(ef(de(cd(bc(ab.apply(this, arguments))))))));
+        };
+      case 9:
+        return function() {
+          return ij(hi(gh(fg(ef(de(cd(bc(ab.apply(this, arguments)))))))));
+        };
+    }
+    return;
+  }
+  exports.flow = flow;
+  function tuple() {
+    var t2 = [];
+    for (var _i = 0; _i < arguments.length; _i++) {
+      t2[_i] = arguments[_i];
+    }
+    return t2;
+  }
+  exports.tuple = tuple;
+  function increment(n) {
+    return n + 1;
+  }
+  exports.increment = increment;
+  function decrement(n) {
+    return n - 1;
+  }
+  exports.decrement = decrement;
+  function absurd(_) {
+    throw new Error("Called `absurd` function which should be uncallable");
+  }
+  exports.absurd = absurd;
+  function tupled(f) {
+    return function(a) {
+      return f.apply(void 0, a);
+    };
+  }
+  exports.tupled = tupled;
+  function untupled(f) {
+    return function() {
+      var a = [];
+      for (var _i = 0; _i < arguments.length; _i++) {
+        a[_i] = arguments[_i];
+      }
+      return f(a);
+    };
+  }
+  exports.untupled = untupled;
+  function pipe(a, ab, bc, cd, de, ef, fg, gh, hi, ij, jk, kl, lm, mn, no, op, pq, qr, rs, st) {
+    switch (arguments.length) {
+      case 1:
+        return a;
+      case 2:
+        return ab(a);
+      case 3:
+        return bc(ab(a));
+      case 4:
+        return cd(bc(ab(a)));
+      case 5:
+        return de(cd(bc(ab(a))));
+      case 6:
+        return ef(de(cd(bc(ab(a)))));
+      case 7:
+        return fg(ef(de(cd(bc(ab(a))))));
+      case 8:
+        return gh(fg(ef(de(cd(bc(ab(a)))))));
+      case 9:
+        return hi(gh(fg(ef(de(cd(bc(ab(a))))))));
+      case 10:
+        return ij(hi(gh(fg(ef(de(cd(bc(ab(a)))))))));
+      case 11:
+        return jk(ij(hi(gh(fg(ef(de(cd(bc(ab(a))))))))));
+      case 12:
+        return kl(jk(ij(hi(gh(fg(ef(de(cd(bc(ab(a)))))))))));
+      case 13:
+        return lm(kl(jk(ij(hi(gh(fg(ef(de(cd(bc(ab(a))))))))))));
+      case 14:
+        return mn(lm(kl(jk(ij(hi(gh(fg(ef(de(cd(bc(ab(a)))))))))))));
+      case 15:
+        return no(mn(lm(kl(jk(ij(hi(gh(fg(ef(de(cd(bc(ab(a))))))))))))));
+      case 16:
+        return op(no(mn(lm(kl(jk(ij(hi(gh(fg(ef(de(cd(bc(ab(a)))))))))))))));
+      case 17:
+        return pq(op(no(mn(lm(kl(jk(ij(hi(gh(fg(ef(de(cd(bc(ab(a))))))))))))))));
+      case 18:
+        return qr(pq(op(no(mn(lm(kl(jk(ij(hi(gh(fg(ef(de(cd(bc(ab(a)))))))))))))))));
+      case 19:
+        return rs(qr(pq(op(no(mn(lm(kl(jk(ij(hi(gh(fg(ef(de(cd(bc(ab(a))))))))))))))))));
+      case 20:
+        return st(rs(qr(pq(op(no(mn(lm(kl(jk(ij(hi(gh(fg(ef(de(cd(bc(ab(a)))))))))))))))))));
+    }
+    return;
+  }
+  exports.pipe = pipe;
+  exports.hole = absurd;
+  exports.bind_ = function(a, name, b) {
+    var _a;
+    return Object.assign({}, a, (_a = {}, _a[name] = b, _a));
+  };
+  exports.bindTo_ = function(name) {
+    return function(b) {
+      var _a;
+      return _a = {}, _a[name] = b, _a;
+    };
+  };
+});
+
+// node_modules/fp-ts/lib/Either.js
+var require_Either = __commonJS((exports) => {
+  "use strict";
+  Object.defineProperty(exports, "__esModule", {value: true});
+  exports.apS = exports.apSW = exports.bind = exports.bindW = exports.bindTo = exports.exists = exports.elem = exports.toError = exports.either = exports.getValidationMonoid = exports.MonadThrow = exports.ChainRec = exports.Extend = exports.Alt = exports.Bifunctor = exports.Traversable = exports.Foldable = exports.Monad = exports.Applicative = exports.Functor = exports.getValidationSemigroup = exports.getValidation = exports.getAltValidation = exports.getApplicativeValidation = exports.getWitherable = exports.getFilterable = exports.getApplyMonoid = exports.getApplySemigroup = exports.getSemigroup = exports.getEq = exports.getShow = exports.URI = exports.throwError = exports.sequence = exports.traverse = exports.reduceRight = exports.foldMap = exports.reduce = exports.duplicate = exports.extend = exports.alt = exports.flatten = exports.chainFirst = exports.chainFirstW = exports.chain = exports.chainW = exports.of = exports.apSecond = exports.apFirst = exports.ap = exports.apW = exports.mapLeft = exports.bimap = exports.map = exports.filterOrElse = exports.orElse = exports.swap = exports.getOrElse = exports.getOrElseW = exports.fold = exports.fromPredicate = exports.fromOption = exports.stringifyJSON = exports.parseJSON = exports.tryCatch = exports.fromNullable = exports.right = exports.left = exports.isRight = exports.isLeft = void 0;
+  var ChainRec_1 = require_ChainRec();
+  var function_1 = require_function();
+  exports.isLeft = function(ma) {
+    return ma._tag === "Left";
+  };
+  exports.isRight = function(ma) {
+    return ma._tag === "Right";
+  };
+  exports.left = function(e) {
+    return {_tag: "Left", left: e};
+  };
+  exports.right = function(a) {
+    return {_tag: "Right", right: a};
+  };
+  function fromNullable(e) {
+    return function(a) {
+      return a == null ? exports.left(e) : exports.right(a);
+    };
+  }
+  exports.fromNullable = fromNullable;
+  function tryCatch(f, onError) {
+    try {
+      return exports.right(f());
+    } catch (e) {
+      return exports.left(onError(e));
+    }
+  }
+  exports.tryCatch = tryCatch;
+  function parseJSON(s, onError) {
+    return tryCatch(function() {
+      return JSON.parse(s);
+    }, onError);
+  }
+  exports.parseJSON = parseJSON;
+  function stringifyJSON(u, onError) {
+    return tryCatch(function() {
+      return JSON.stringify(u);
+    }, onError);
+  }
+  exports.stringifyJSON = stringifyJSON;
+  exports.fromOption = function(onNone) {
+    return function(ma) {
+      return ma._tag === "None" ? exports.left(onNone()) : exports.right(ma.value);
+    };
+  };
+  exports.fromPredicate = function(predicate, onFalse) {
+    return function(a) {
+      return predicate(a) ? exports.right(a) : exports.left(onFalse(a));
+    };
+  };
+  function fold2(onLeft, onRight) {
+    return function(ma) {
+      return exports.isLeft(ma) ? onLeft(ma.left) : onRight(ma.right);
+    };
+  }
+  exports.fold = fold2;
+  exports.getOrElseW = function(onLeft) {
+    return function(ma) {
+      return exports.isLeft(ma) ? onLeft(ma.left) : ma.right;
+    };
+  };
+  exports.getOrElse = exports.getOrElseW;
+  function swap(ma) {
+    return exports.isLeft(ma) ? exports.right(ma.left) : exports.left(ma.right);
+  }
+  exports.swap = swap;
+  function orElse(onLeft) {
+    return function(ma) {
+      return exports.isLeft(ma) ? onLeft(ma.left) : ma;
+    };
+  }
+  exports.orElse = orElse;
+  exports.filterOrElse = function(predicate, onFalse) {
+    return exports.chain(function(a) {
+      return predicate(a) ? exports.right(a) : exports.left(onFalse(a));
+    });
+  };
+  var map_ = function(fa, f) {
+    return function_1.pipe(fa, exports.map(f));
+  };
+  var ap_ = function(fab, fa) {
+    return function_1.pipe(fab, exports.ap(fa));
+  };
+  var chain_ = function(ma, f) {
+    return function_1.pipe(ma, exports.chain(f));
+  };
+  var reduce_ = function(fa, b, f) {
+    return function_1.pipe(fa, exports.reduce(b, f));
+  };
+  var foldMap_ = function(M) {
+    return function(fa, f) {
+      var foldMapM = exports.foldMap(M);
+      return function_1.pipe(fa, foldMapM(f));
+    };
+  };
+  var reduceRight_ = function(fa, b, f) {
+    return function_1.pipe(fa, exports.reduceRight(b, f));
+  };
+  var traverse_ = function(F) {
+    var traverseF = exports.traverse(F);
+    return function(ta, f) {
+      return function_1.pipe(ta, traverseF(f));
+    };
+  };
+  var bimap_ = function(fa, f, g) {
+    return function_1.pipe(fa, exports.bimap(f, g));
+  };
+  var mapLeft_ = function(fa, f) {
+    return function_1.pipe(fa, exports.mapLeft(f));
+  };
+  var alt_ = function(fa, that) {
+    return function_1.pipe(fa, exports.alt(that));
+  };
+  var extend_ = function(wa, f) {
+    return function_1.pipe(wa, exports.extend(f));
+  };
+  var chainRec_ = function(a, f) {
+    return ChainRec_1.tailRec(f(a), function(e) {
+      return exports.isLeft(e) ? exports.right(exports.left(e.left)) : exports.isLeft(e.right) ? exports.left(f(e.right.left)) : exports.right(exports.right(e.right.right));
+    });
+  };
+  exports.map = function(f) {
+    return function(fa) {
+      return exports.isLeft(fa) ? fa : exports.right(f(fa.right));
+    };
+  };
+  exports.bimap = function(f, g) {
+    return function(fa) {
+      return exports.isLeft(fa) ? exports.left(f(fa.left)) : exports.right(g(fa.right));
+    };
+  };
+  exports.mapLeft = function(f) {
+    return function(fa) {
+      return exports.isLeft(fa) ? exports.left(f(fa.left)) : fa;
+    };
+  };
+  exports.apW = function(fa) {
+    return function(fab) {
+      return exports.isLeft(fab) ? fab : exports.isLeft(fa) ? fa : exports.right(fab.right(fa.right));
+    };
+  };
+  exports.ap = exports.apW;
+  exports.apFirst = function(fb) {
+    return function_1.flow(exports.map(function(a) {
+      return function() {
+        return a;
+      };
+    }), exports.ap(fb));
+  };
+  exports.apSecond = function(fb) {
+    return function_1.flow(exports.map(function() {
+      return function(b) {
+        return b;
+      };
+    }), exports.ap(fb));
+  };
+  exports.of = exports.right;
+  exports.chainW = function(f) {
+    return function(ma) {
+      return exports.isLeft(ma) ? ma : f(ma.right);
+    };
+  };
+  exports.chain = exports.chainW;
+  exports.chainFirstW = function(f) {
+    return function(ma) {
+      return function_1.pipe(ma, exports.chainW(function(a) {
+        return function_1.pipe(f(a), exports.map(function() {
+          return a;
+        }));
+      }));
+    };
+  };
+  exports.chainFirst = exports.chainFirstW;
+  exports.flatten = /* @__PURE__ */ exports.chain(function_1.identity);
+  exports.alt = function(that) {
+    return function(fa) {
+      return exports.isLeft(fa) ? that() : fa;
+    };
+  };
+  exports.extend = function(f) {
+    return function(wa) {
+      return exports.isLeft(wa) ? wa : exports.right(f(wa));
+    };
+  };
+  exports.duplicate = /* @__PURE__ */ exports.extend(function_1.identity);
+  exports.reduce = function(b, f) {
+    return function(fa) {
+      return exports.isLeft(fa) ? b : f(b, fa.right);
+    };
+  };
+  exports.foldMap = function(M) {
+    return function(f) {
+      return function(fa) {
+        return exports.isLeft(fa) ? M.empty : f(fa.right);
+      };
+    };
+  };
+  exports.reduceRight = function(b, f) {
+    return function(fa) {
+      return exports.isLeft(fa) ? b : f(fa.right, b);
+    };
+  };
+  exports.traverse = function(F) {
+    return function(f) {
+      return function(ta) {
+        return exports.isLeft(ta) ? F.of(exports.left(ta.left)) : F.map(f(ta.right), exports.right);
+      };
+    };
+  };
+  exports.sequence = function(F) {
+    return function(ma) {
+      return exports.isLeft(ma) ? F.of(exports.left(ma.left)) : F.map(ma.right, exports.right);
+    };
+  };
+  exports.throwError = exports.left;
+  exports.URI = "Either";
+  function getShow(SE, SA) {
+    return {
+      show: function(ma) {
+        return exports.isLeft(ma) ? "left(" + SE.show(ma.left) + ")" : "right(" + SA.show(ma.right) + ")";
+      }
+    };
+  }
+  exports.getShow = getShow;
+  function getEq(EL, EA) {
+    return {
+      equals: function(x, y) {
+        return x === y || (exports.isLeft(x) ? exports.isLeft(y) && EL.equals(x.left, y.left) : exports.isRight(y) && EA.equals(x.right, y.right));
+      }
+    };
+  }
+  exports.getEq = getEq;
+  function getSemigroup(S) {
+    return {
+      concat: function(x, y) {
+        return exports.isLeft(y) ? x : exports.isLeft(x) ? y : exports.right(S.concat(x.right, y.right));
+      }
+    };
+  }
+  exports.getSemigroup = getSemigroup;
+  function getApplySemigroup(S) {
+    return {
+      concat: function(x, y) {
+        return exports.isLeft(x) ? x : exports.isLeft(y) ? y : exports.right(S.concat(x.right, y.right));
+      }
+    };
+  }
+  exports.getApplySemigroup = getApplySemigroup;
+  function getApplyMonoid(M) {
+    return {
+      concat: getApplySemigroup(M).concat,
+      empty: exports.right(M.empty)
+    };
+  }
+  exports.getApplyMonoid = getApplyMonoid;
+  function getFilterable(M) {
+    var empty = exports.left(M.empty);
+    var compact = function(ma) {
+      return exports.isLeft(ma) ? ma : ma.right._tag === "None" ? empty : exports.right(ma.right.value);
+    };
+    var separate = function(ma) {
+      return exports.isLeft(ma) ? {left: ma, right: ma} : exports.isLeft(ma.right) ? {left: exports.right(ma.right.left), right: empty} : {left: empty, right: exports.right(ma.right.right)};
+    };
+    var partitionMap = function(ma, f) {
+      if (exports.isLeft(ma)) {
+        return {left: ma, right: ma};
+      }
+      var e = f(ma.right);
+      return exports.isLeft(e) ? {left: exports.right(e.left), right: empty} : {left: empty, right: exports.right(e.right)};
+    };
+    var partition = function(ma, p) {
+      return exports.isLeft(ma) ? {left: ma, right: ma} : p(ma.right) ? {left: empty, right: exports.right(ma.right)} : {left: exports.right(ma.right), right: empty};
+    };
+    var filterMap = function(ma, f) {
+      if (exports.isLeft(ma)) {
+        return ma;
+      }
+      var ob = f(ma.right);
+      return ob._tag === "None" ? empty : exports.right(ob.value);
+    };
+    var filter = function(ma, predicate) {
+      return exports.isLeft(ma) ? ma : predicate(ma.right) ? ma : empty;
+    };
+    return {
+      URI: exports.URI,
+      _E: void 0,
+      map: map_,
+      compact,
+      separate,
+      filter,
+      filterMap,
+      partition,
+      partitionMap
+    };
+  }
+  exports.getFilterable = getFilterable;
+  function getWitherable(M) {
+    var F_ = getFilterable(M);
+    var wither = function(F) {
+      var traverseF = traverse_(F);
+      return function(ma, f) {
+        return F.map(traverseF(ma, f), F_.compact);
+      };
+    };
+    var wilt = function(F) {
+      var traverseF = traverse_(F);
+      return function(ma, f) {
+        return F.map(traverseF(ma, f), F_.separate);
+      };
+    };
+    return {
+      URI: exports.URI,
+      _E: void 0,
+      map: map_,
+      compact: F_.compact,
+      separate: F_.separate,
+      filter: F_.filter,
+      filterMap: F_.filterMap,
+      partition: F_.partition,
+      partitionMap: F_.partitionMap,
+      traverse: traverse_,
+      sequence: exports.sequence,
+      reduce: reduce_,
+      foldMap: foldMap_,
+      reduceRight: reduceRight_,
+      wither,
+      wilt
+    };
+  }
+  exports.getWitherable = getWitherable;
+  function getApplicativeValidation(SE) {
+    return {
+      URI: exports.URI,
+      _E: void 0,
+      map: map_,
+      ap: function(fab, fa) {
+        return exports.isLeft(fab) ? exports.isLeft(fa) ? exports.left(SE.concat(fab.left, fa.left)) : fab : exports.isLeft(fa) ? fa : exports.right(fab.right(fa.right));
+      },
+      of: exports.of
+    };
+  }
+  exports.getApplicativeValidation = getApplicativeValidation;
+  function getAltValidation(SE) {
+    return {
+      URI: exports.URI,
+      _E: void 0,
+      map: map_,
+      alt: function(me, that) {
+        if (exports.isRight(me)) {
+          return me;
+        }
+        var ea = that();
+        return exports.isLeft(ea) ? exports.left(SE.concat(me.left, ea.left)) : ea;
+      }
+    };
+  }
+  exports.getAltValidation = getAltValidation;
+  function getValidation(SE) {
+    var applicativeValidation = getApplicativeValidation(SE);
+    var altValidation = getAltValidation(SE);
+    return {
+      URI: exports.URI,
+      _E: void 0,
+      map: map_,
+      of: exports.of,
+      chain: chain_,
+      bimap: bimap_,
+      mapLeft: mapLeft_,
+      reduce: reduce_,
+      foldMap: foldMap_,
+      reduceRight: reduceRight_,
+      extend: extend_,
+      traverse: traverse_,
+      sequence: exports.sequence,
+      chainRec: chainRec_,
+      throwError: exports.throwError,
+      ap: applicativeValidation.ap,
+      alt: altValidation.alt
+    };
+  }
+  exports.getValidation = getValidation;
+  function getValidationSemigroup(SE, SA) {
+    return {
+      concat: function(x, y) {
+        return exports.isLeft(x) ? exports.isLeft(y) ? exports.left(SE.concat(x.left, y.left)) : x : exports.isLeft(y) ? y : exports.right(SA.concat(x.right, y.right));
+      }
+    };
+  }
+  exports.getValidationSemigroup = getValidationSemigroup;
+  exports.Functor = {
+    URI: exports.URI,
+    map: map_
+  };
+  exports.Applicative = {
+    URI: exports.URI,
+    map: map_,
+    ap: ap_,
+    of: exports.of
+  };
+  exports.Monad = {
+    URI: exports.URI,
+    map: map_,
+    ap: ap_,
+    of: exports.of,
+    chain: chain_
+  };
+  exports.Foldable = {
+    URI: exports.URI,
+    reduce: reduce_,
+    foldMap: foldMap_,
+    reduceRight: reduceRight_
+  };
+  exports.Traversable = {
+    URI: exports.URI,
+    map: map_,
+    reduce: reduce_,
+    foldMap: foldMap_,
+    reduceRight: reduceRight_,
+    traverse: traverse_,
+    sequence: exports.sequence
+  };
+  exports.Bifunctor = {
+    URI: exports.URI,
+    bimap: bimap_,
+    mapLeft: mapLeft_
+  };
+  exports.Alt = {
+    URI: exports.URI,
+    map: map_,
+    alt: alt_
+  };
+  exports.Extend = {
+    URI: exports.URI,
+    map: map_,
+    extend: extend_
+  };
+  exports.ChainRec = {
+    URI: exports.URI,
+    map: map_,
+    ap: ap_,
+    chain: chain_,
+    chainRec: chainRec_
+  };
+  exports.MonadThrow = {
+    URI: exports.URI,
+    map: map_,
+    ap: ap_,
+    of: exports.of,
+    chain: chain_,
+    throwError: exports.throwError
+  };
+  function getValidationMonoid(SE, SA) {
+    return {
+      concat: getValidationSemigroup(SE, SA).concat,
+      empty: exports.right(SA.empty)
+    };
+  }
+  exports.getValidationMonoid = getValidationMonoid;
+  exports.either = {
+    URI: exports.URI,
+    map: map_,
+    of: exports.of,
+    ap: ap_,
+    chain: chain_,
+    reduce: reduce_,
+    foldMap: foldMap_,
+    reduceRight: reduceRight_,
+    traverse: traverse_,
+    sequence: exports.sequence,
+    bimap: bimap_,
+    mapLeft: mapLeft_,
+    alt: alt_,
+    extend: extend_,
+    chainRec: chainRec_,
+    throwError: exports.throwError
+  };
+  function toError(e) {
+    return e instanceof Error ? e : new Error(String(e));
+  }
+  exports.toError = toError;
+  function elem(E) {
+    return function(a, ma) {
+      return exports.isLeft(ma) ? false : E.equals(a, ma.right);
+    };
+  }
+  exports.elem = elem;
+  function exists(predicate) {
+    return function(ma) {
+      return exports.isLeft(ma) ? false : predicate(ma.right);
+    };
+  }
+  exports.exists = exists;
+  exports.bindTo = function(name) {
+    return exports.map(function_1.bindTo_(name));
+  };
+  exports.bindW = function(name, f) {
+    return exports.chainW(function(a) {
+      return function_1.pipe(f(a), exports.map(function(b) {
+        return function_1.bind_(a, name, b);
+      }));
+    });
+  };
+  exports.bind = exports.bindW;
+  exports.apSW = function(name, fb) {
+    return function_1.flow(exports.map(function(a) {
+      return function(b) {
+        return function_1.bind_(a, name, b);
+      };
+    }), exports.apW(fb));
+  };
+  exports.apS = exports.apSW;
+});
+
+// node_modules/io-ts/lib/index.js
+var require_lib = __commonJS((exports) => {
+  "use strict";
+  var __extends = exports && exports.__extends || function() {
+    var extendStatics = function(d, b) {
+      extendStatics = Object.setPrototypeOf || {__proto__: []} instanceof Array && function(d2, b2) {
+        d2.__proto__ = b2;
+      } || function(d2, b2) {
+        for (var p in b2)
+          if (Object.prototype.hasOwnProperty.call(b2, p))
+            d2[p] = b2[p];
+      };
+      return extendStatics(d, b);
+    };
+    return function(d, b) {
+      extendStatics(d, b);
+      function __() {
+        this.constructor = d;
+      }
+      d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+  }();
+  var __assign = exports && exports.__assign || function() {
+    __assign = Object.assign || function(t2) {
+      for (var s, i = 1, n = arguments.length; i < n; i++) {
+        s = arguments[i];
+        for (var p in s)
+          if (Object.prototype.hasOwnProperty.call(s, p))
+            t2[p] = s[p];
+      }
+      return t2;
+    };
+    return __assign.apply(this, arguments);
+  };
+  var __spreadArrays = exports && exports.__spreadArrays || function() {
+    for (var s = 0, i = 0, il = arguments.length; i < il; i++)
+      s += arguments[i].length;
+    for (var r = Array(s), k = 0, i = 0; i < il; i++)
+      for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
+        r[k] = a[j];
+    return r;
+  };
+  Object.defineProperty(exports, "__esModule", {value: true});
+  exports.getIndex = exports.getTags = exports.emptyTags = exports.alias = exports.clean = exports.StrictType = exports.dictionary = exports.Integer = exports.refinement = exports.object = exports.ObjectType = exports.Dictionary = exports.any = exports.AnyType = exports.never = exports.NeverType = exports.getDefaultContext = exports.getValidationError = exports.void = exports.interface = exports.Array = exports.undefined = exports.null = exports.exact = exports.ExactType = exports.taggedUnion = exports.TaggedUnionType = exports.strict = exports.readonlyArray = exports.ReadonlyArrayType = exports.readonly = exports.ReadonlyType = exports.tuple = exports.TupleType = exports.intersection = exports.IntersectionType = exports.union = exports.UnionType = exports.record = exports.getDomainKeys = exports.DictionaryType = exports.partial = exports.PartialType = exports.type = exports.InterfaceType = exports.array = exports.ArrayType = exports.recursion = exports.RecursiveType = exports.keyof = exports.KeyofType = exports.literal = exports.LiteralType = exports.Int = exports.brand = exports.RefinementType = exports.Function = exports.FunctionType = exports.UnknownRecord = exports.AnyDictionaryType = exports.UnknownArray = exports.AnyArrayType = exports.boolean = exports.BooleanType = exports.bigint = exports.BigIntType = exports.number = exports.NumberType = exports.string = exports.StringType = exports.unknown = exports.UnknownType = exports.voidType = exports.VoidType = exports.UndefinedType = exports.nullType = exports.NullType = exports.success = exports.failure = exports.failures = exports.appendContext = exports.getContextEntry = exports.getFunctionName = exports.identity = exports.Type = void 0;
+  var Either_1 = require_Either();
+  var Type = function() {
+    function Type2(name, is, validate, encode) {
+      this.name = name;
+      this.is = is;
+      this.validate = validate;
+      this.encode = encode;
+      this.decode = this.decode.bind(this);
+    }
+    Type2.prototype.pipe = function(ab, name) {
+      var _this = this;
+      if (name === void 0) {
+        name = "pipe(" + this.name + ", " + ab.name + ")";
+      }
+      return new Type2(name, ab.is, function(i, c) {
+        var e = _this.validate(i, c);
+        if (Either_1.isLeft(e)) {
+          return e;
+        }
+        return ab.validate(e.right, c);
+      }, this.encode === exports.identity && ab.encode === exports.identity ? exports.identity : function(b) {
+        return _this.encode(ab.encode(b));
+      });
+    };
+    Type2.prototype.asDecoder = function() {
+      return this;
+    };
+    Type2.prototype.asEncoder = function() {
+      return this;
+    };
+    Type2.prototype.decode = function(i) {
+      return this.validate(i, [{key: "", type: this, actual: i}]);
+    };
+    return Type2;
+  }();
+  exports.Type = Type;
+  exports.identity = function(a) {
+    return a;
+  };
+  exports.getFunctionName = function(f) {
+    return f.displayName || f.name || "<function" + f.length + ">";
+  };
+  exports.getContextEntry = function(key, decoder) {
+    return {key, type: decoder};
+  };
+  exports.appendContext = function(c, key, decoder, actual) {
+    var len = c.length;
+    var r = Array(len + 1);
+    for (var i = 0; i < len; i++) {
+      r[i] = c[i];
+    }
+    r[len] = {key, type: decoder, actual};
+    return r;
+  };
+  exports.failures = Either_1.left;
+  exports.failure = function(value, context, message) {
+    return exports.failures([{value, context, message}]);
+  };
+  exports.success = Either_1.right;
+  var pushAll = function(xs, ys) {
+    var l = ys.length;
+    for (var i = 0; i < l; i++) {
+      xs.push(ys[i]);
+    }
+  };
+  var NullType = function(_super) {
+    __extends(NullType2, _super);
+    function NullType2() {
+      var _this = _super.call(this, "null", function(u) {
+        return u === null;
+      }, function(u, c) {
+        return _this.is(u) ? exports.success(u) : exports.failure(u, c);
+      }, exports.identity) || this;
+      _this._tag = "NullType";
+      return _this;
+    }
+    return NullType2;
+  }(Type);
+  exports.NullType = NullType;
+  exports.nullType = new NullType();
+  exports.null = exports.nullType;
+  var UndefinedType = function(_super) {
+    __extends(UndefinedType2, _super);
+    function UndefinedType2() {
+      var _this = _super.call(this, "undefined", function(u) {
+        return u === void 0;
+      }, function(u, c) {
+        return _this.is(u) ? exports.success(u) : exports.failure(u, c);
+      }, exports.identity) || this;
+      _this._tag = "UndefinedType";
+      return _this;
+    }
+    return UndefinedType2;
+  }(Type);
+  exports.UndefinedType = UndefinedType;
+  var undefinedType = new UndefinedType();
+  exports.undefined = undefinedType;
+  var VoidType = function(_super) {
+    __extends(VoidType2, _super);
+    function VoidType2() {
+      var _this = _super.call(this, "void", undefinedType.is, undefinedType.validate, exports.identity) || this;
+      _this._tag = "VoidType";
+      return _this;
+    }
+    return VoidType2;
+  }(Type);
+  exports.VoidType = VoidType;
+  exports.voidType = new VoidType();
+  exports.void = exports.voidType;
+  var UnknownType = function(_super) {
+    __extends(UnknownType2, _super);
+    function UnknownType2() {
+      var _this = _super.call(this, "unknown", function(_) {
+        return true;
+      }, exports.success, exports.identity) || this;
+      _this._tag = "UnknownType";
+      return _this;
+    }
+    return UnknownType2;
+  }(Type);
+  exports.UnknownType = UnknownType;
+  exports.unknown = new UnknownType();
+  var StringType = function(_super) {
+    __extends(StringType2, _super);
+    function StringType2() {
+      var _this = _super.call(this, "string", function(u) {
+        return typeof u === "string";
+      }, function(u, c) {
+        return _this.is(u) ? exports.success(u) : exports.failure(u, c);
+      }, exports.identity) || this;
+      _this._tag = "StringType";
+      return _this;
+    }
+    return StringType2;
+  }(Type);
+  exports.StringType = StringType;
+  exports.string = new StringType();
+  var NumberType = function(_super) {
+    __extends(NumberType2, _super);
+    function NumberType2() {
+      var _this = _super.call(this, "number", function(u) {
+        return typeof u === "number";
+      }, function(u, c) {
+        return _this.is(u) ? exports.success(u) : exports.failure(u, c);
+      }, exports.identity) || this;
+      _this._tag = "NumberType";
+      return _this;
+    }
+    return NumberType2;
+  }(Type);
+  exports.NumberType = NumberType;
+  exports.number = new NumberType();
+  var BigIntType = function(_super) {
+    __extends(BigIntType2, _super);
+    function BigIntType2() {
+      var _this = _super.call(this, "bigint", function(u) {
+        return typeof u === "bigint";
+      }, function(u, c) {
+        return _this.is(u) ? exports.success(u) : exports.failure(u, c);
+      }, exports.identity) || this;
+      _this._tag = "BigIntType";
+      return _this;
+    }
+    return BigIntType2;
+  }(Type);
+  exports.BigIntType = BigIntType;
+  exports.bigint = new BigIntType();
+  var BooleanType = function(_super) {
+    __extends(BooleanType2, _super);
+    function BooleanType2() {
+      var _this = _super.call(this, "boolean", function(u) {
+        return typeof u === "boolean";
+      }, function(u, c) {
+        return _this.is(u) ? exports.success(u) : exports.failure(u, c);
+      }, exports.identity) || this;
+      _this._tag = "BooleanType";
+      return _this;
+    }
+    return BooleanType2;
+  }(Type);
+  exports.BooleanType = BooleanType;
+  exports.boolean = new BooleanType();
+  var AnyArrayType = function(_super) {
+    __extends(AnyArrayType2, _super);
+    function AnyArrayType2() {
+      var _this = _super.call(this, "UnknownArray", Array.isArray, function(u, c) {
+        return _this.is(u) ? exports.success(u) : exports.failure(u, c);
+      }, exports.identity) || this;
+      _this._tag = "AnyArrayType";
+      return _this;
+    }
+    return AnyArrayType2;
+  }(Type);
+  exports.AnyArrayType = AnyArrayType;
+  exports.UnknownArray = new AnyArrayType();
+  exports.Array = exports.UnknownArray;
+  var AnyDictionaryType = function(_super) {
+    __extends(AnyDictionaryType2, _super);
+    function AnyDictionaryType2() {
+      var _this = _super.call(this, "UnknownRecord", function(u) {
+        var s = Object.prototype.toString.call(u);
+        return s === "[object Object]" || s === "[object Window]";
+      }, function(u, c) {
+        return _this.is(u) ? exports.success(u) : exports.failure(u, c);
+      }, exports.identity) || this;
+      _this._tag = "AnyDictionaryType";
+      return _this;
+    }
+    return AnyDictionaryType2;
+  }(Type);
+  exports.AnyDictionaryType = AnyDictionaryType;
+  exports.UnknownRecord = new AnyDictionaryType();
+  var FunctionType = function(_super) {
+    __extends(FunctionType2, _super);
+    function FunctionType2() {
+      var _this = _super.call(this, "Function", function(u) {
+        return typeof u === "function";
+      }, function(u, c) {
+        return _this.is(u) ? exports.success(u) : exports.failure(u, c);
+      }, exports.identity) || this;
+      _this._tag = "FunctionType";
+      return _this;
+    }
+    return FunctionType2;
+  }(Type);
+  exports.FunctionType = FunctionType;
+  exports.Function = new FunctionType();
+  var RefinementType = function(_super) {
+    __extends(RefinementType2, _super);
+    function RefinementType2(name, is, validate, encode, type, predicate) {
+      var _this = _super.call(this, name, is, validate, encode) || this;
+      _this.type = type;
+      _this.predicate = predicate;
+      _this._tag = "RefinementType";
+      return _this;
+    }
+    return RefinementType2;
+  }(Type);
+  exports.RefinementType = RefinementType;
+  exports.brand = function(codec, predicate, name) {
+    return refinement(codec, predicate, name);
+  };
+  exports.Int = exports.brand(exports.number, function(n) {
+    return Number.isInteger(n);
+  }, "Int");
+  var LiteralType = function(_super) {
+    __extends(LiteralType2, _super);
+    function LiteralType2(name, is, validate, encode, value) {
+      var _this = _super.call(this, name, is, validate, encode) || this;
+      _this.value = value;
+      _this._tag = "LiteralType";
+      return _this;
+    }
+    return LiteralType2;
+  }(Type);
+  exports.LiteralType = LiteralType;
+  exports.literal = function(value, name) {
+    if (name === void 0) {
+      name = JSON.stringify(value);
+    }
+    var is = function(u) {
+      return u === value;
+    };
+    return new LiteralType(name, is, function(u, c) {
+      return is(u) ? exports.success(value) : exports.failure(u, c);
+    }, exports.identity, value);
+  };
+  var KeyofType = function(_super) {
+    __extends(KeyofType2, _super);
+    function KeyofType2(name, is, validate, encode, keys) {
+      var _this = _super.call(this, name, is, validate, encode) || this;
+      _this.keys = keys;
+      _this._tag = "KeyofType";
+      return _this;
+    }
+    return KeyofType2;
+  }(Type);
+  exports.KeyofType = KeyofType;
+  var hasOwnProperty = Object.prototype.hasOwnProperty;
+  exports.keyof = function(keys, name) {
+    if (name === void 0) {
+      name = Object.keys(keys).map(function(k) {
+        return JSON.stringify(k);
+      }).join(" | ");
+    }
+    var is = function(u) {
+      return exports.string.is(u) && hasOwnProperty.call(keys, u);
+    };
+    return new KeyofType(name, is, function(u, c) {
+      return is(u) ? exports.success(u) : exports.failure(u, c);
+    }, exports.identity, keys);
+  };
+  var RecursiveType = function(_super) {
+    __extends(RecursiveType2, _super);
+    function RecursiveType2(name, is, validate, encode, runDefinition) {
+      var _this = _super.call(this, name, is, validate, encode) || this;
+      _this.runDefinition = runDefinition;
+      _this._tag = "RecursiveType";
+      return _this;
+    }
+    return RecursiveType2;
+  }(Type);
+  exports.RecursiveType = RecursiveType;
+  Object.defineProperty(RecursiveType.prototype, "type", {
+    get: function() {
+      return this.runDefinition();
+    },
+    enumerable: true,
+    configurable: true
+  });
+  exports.recursion = function(name, definition) {
+    var cache;
+    var runDefinition = function() {
+      if (!cache) {
+        cache = definition(Self);
+        cache.name = name;
+      }
+      return cache;
+    };
+    var Self = new RecursiveType(name, function(u) {
+      return runDefinition().is(u);
+    }, function(u, c) {
+      return runDefinition().validate(u, c);
+    }, function(a) {
+      return runDefinition().encode(a);
+    }, runDefinition);
+    return Self;
+  };
+  var ArrayType = function(_super) {
+    __extends(ArrayType2, _super);
+    function ArrayType2(name, is, validate, encode, type) {
+      var _this = _super.call(this, name, is, validate, encode) || this;
+      _this.type = type;
+      _this._tag = "ArrayType";
+      return _this;
+    }
+    return ArrayType2;
+  }(Type);
+  exports.ArrayType = ArrayType;
+  exports.array = function(item, name) {
+    if (name === void 0) {
+      name = "Array<" + item.name + ">";
+    }
+    return new ArrayType(name, function(u) {
+      return exports.UnknownArray.is(u) && u.every(item.is);
+    }, function(u, c) {
+      var e = exports.UnknownArray.validate(u, c);
+      if (Either_1.isLeft(e)) {
+        return e;
+      }
+      var us = e.right;
+      var len = us.length;
+      var as = us;
+      var errors = [];
+      for (var i = 0; i < len; i++) {
+        var ui = us[i];
+        var result = item.validate(ui, exports.appendContext(c, String(i), item, ui));
+        if (Either_1.isLeft(result)) {
+          pushAll(errors, result.left);
+        } else {
+          var ai = result.right;
+          if (ai !== ui) {
+            if (as === us) {
+              as = us.slice();
+            }
+            as[i] = ai;
+          }
+        }
+      }
+      return errors.length > 0 ? exports.failures(errors) : exports.success(as);
+    }, item.encode === exports.identity ? exports.identity : function(a) {
+      return a.map(item.encode);
+    }, item);
+  };
+  var InterfaceType = function(_super) {
+    __extends(InterfaceType2, _super);
+    function InterfaceType2(name, is, validate, encode, props) {
+      var _this = _super.call(this, name, is, validate, encode) || this;
+      _this.props = props;
+      _this._tag = "InterfaceType";
+      return _this;
+    }
+    return InterfaceType2;
+  }(Type);
+  exports.InterfaceType = InterfaceType;
+  var getNameFromProps = function(props) {
+    return Object.keys(props).map(function(k) {
+      return k + ": " + props[k].name;
+    }).join(", ");
+  };
+  var useIdentity = function(codecs) {
+    for (var i = 0; i < codecs.length; i++) {
+      if (codecs[i].encode !== exports.identity) {
+        return false;
+      }
+    }
+    return true;
+  };
+  var getInterfaceTypeName = function(props) {
+    return "{ " + getNameFromProps(props) + " }";
+  };
+  exports.type = function(props, name) {
+    if (name === void 0) {
+      name = getInterfaceTypeName(props);
+    }
+    var keys = Object.keys(props);
+    var types = keys.map(function(key) {
+      return props[key];
+    });
+    var len = keys.length;
+    return new InterfaceType(name, function(u) {
+      if (exports.UnknownRecord.is(u)) {
+        for (var i = 0; i < len; i++) {
+          var k = keys[i];
+          var uk = u[k];
+          if (uk === void 0 && !hasOwnProperty.call(u, k) || !types[i].is(uk)) {
+            return false;
+          }
+        }
+        return true;
+      }
+      return false;
+    }, function(u, c) {
+      var e = exports.UnknownRecord.validate(u, c);
+      if (Either_1.isLeft(e)) {
+        return e;
+      }
+      var o = e.right;
+      var a = o;
+      var errors = [];
+      for (var i = 0; i < len; i++) {
+        var k = keys[i];
+        var ak = a[k];
+        var type_1 = types[i];
+        var result = type_1.validate(ak, exports.appendContext(c, k, type_1, ak));
+        if (Either_1.isLeft(result)) {
+          pushAll(errors, result.left);
+        } else {
+          var vak = result.right;
+          if (vak !== ak || vak === void 0 && !hasOwnProperty.call(a, k)) {
+            if (a === o) {
+              a = __assign({}, o);
+            }
+            a[k] = vak;
+          }
+        }
+      }
+      return errors.length > 0 ? exports.failures(errors) : exports.success(a);
+    }, useIdentity(types) ? exports.identity : function(a) {
+      var s = __assign({}, a);
+      for (var i = 0; i < len; i++) {
+        var k = keys[i];
+        var encode = types[i].encode;
+        if (encode !== exports.identity) {
+          s[k] = encode(a[k]);
+        }
+      }
+      return s;
+    }, props);
+  };
+  exports.interface = exports.type;
+  var PartialType = function(_super) {
+    __extends(PartialType2, _super);
+    function PartialType2(name, is, validate, encode, props) {
+      var _this = _super.call(this, name, is, validate, encode) || this;
+      _this.props = props;
+      _this._tag = "PartialType";
+      return _this;
+    }
+    return PartialType2;
+  }(Type);
+  exports.PartialType = PartialType;
+  var getPartialTypeName = function(inner) {
+    return "Partial<" + inner + ">";
+  };
+  exports.partial = function(props, name) {
+    if (name === void 0) {
+      name = getPartialTypeName(getInterfaceTypeName(props));
+    }
+    var keys = Object.keys(props);
+    var types = keys.map(function(key) {
+      return props[key];
+    });
+    var len = keys.length;
+    return new PartialType(name, function(u) {
+      if (exports.UnknownRecord.is(u)) {
+        for (var i = 0; i < len; i++) {
+          var k = keys[i];
+          var uk = u[k];
+          if (uk !== void 0 && !props[k].is(uk)) {
+            return false;
+          }
+        }
+        return true;
+      }
+      return false;
+    }, function(u, c) {
+      var e = exports.UnknownRecord.validate(u, c);
+      if (Either_1.isLeft(e)) {
+        return e;
+      }
+      var o = e.right;
+      var a = o;
+      var errors = [];
+      for (var i = 0; i < len; i++) {
+        var k = keys[i];
+        var ak = a[k];
+        var type_2 = props[k];
+        var result = type_2.validate(ak, exports.appendContext(c, k, type_2, ak));
+        if (Either_1.isLeft(result)) {
+          if (ak !== void 0) {
+            pushAll(errors, result.left);
+          }
+        } else {
+          var vak = result.right;
+          if (vak !== ak) {
+            if (a === o) {
+              a = __assign({}, o);
+            }
+            a[k] = vak;
+          }
+        }
+      }
+      return errors.length > 0 ? exports.failures(errors) : exports.success(a);
+    }, useIdentity(types) ? exports.identity : function(a) {
+      var s = __assign({}, a);
+      for (var i = 0; i < len; i++) {
+        var k = keys[i];
+        var ak = a[k];
+        if (ak !== void 0) {
+          s[k] = types[i].encode(ak);
+        }
+      }
+      return s;
+    }, props);
+  };
+  var DictionaryType = function(_super) {
+    __extends(DictionaryType2, _super);
+    function DictionaryType2(name, is, validate, encode, domain, codomain) {
+      var _this = _super.call(this, name, is, validate, encode) || this;
+      _this.domain = domain;
+      _this.codomain = codomain;
+      _this._tag = "DictionaryType";
+      return _this;
+    }
+    return DictionaryType2;
+  }(Type);
+  exports.DictionaryType = DictionaryType;
+  function enumerableRecord(keys, domain, codomain, name) {
+    if (name === void 0) {
+      name = "{ [K in " + domain.name + "]: " + codomain.name + " }";
+    }
+    var len = keys.length;
+    return new DictionaryType(name, function(u) {
+      return exports.UnknownRecord.is(u) && keys.every(function(k) {
+        return codomain.is(u[k]);
+      });
+    }, function(u, c) {
+      var e = exports.UnknownRecord.validate(u, c);
+      if (Either_1.isLeft(e)) {
+        return e;
+      }
+      var o = e.right;
+      var a = {};
+      var errors = [];
+      var changed = false;
+      for (var i = 0; i < len; i++) {
+        var k = keys[i];
+        var ok = o[k];
+        var codomainResult = codomain.validate(ok, exports.appendContext(c, k, codomain, ok));
+        if (Either_1.isLeft(codomainResult)) {
+          pushAll(errors, codomainResult.left);
+        } else {
+          var vok = codomainResult.right;
+          changed = changed || vok !== ok;
+          a[k] = vok;
+        }
+      }
+      return errors.length > 0 ? exports.failures(errors) : exports.success(changed || Object.keys(o).length !== len ? a : o);
+    }, codomain.encode === exports.identity ? exports.identity : function(a) {
+      var s = {};
+      for (var i = 0; i < len; i++) {
+        var k = keys[i];
+        s[k] = codomain.encode(a[k]);
+      }
+      return s;
+    }, domain, codomain);
+  }
+  function getDomainKeys(domain) {
+    var _a;
+    if (isLiteralC(domain)) {
+      var literal_1 = domain.value;
+      if (exports.string.is(literal_1)) {
+        return _a = {}, _a[literal_1] = null, _a;
+      }
+    } else if (isKeyofC(domain)) {
+      return domain.keys;
+    } else if (isUnionC(domain)) {
+      var keys = domain.types.map(function(type) {
+        return getDomainKeys(type);
+      });
+      return keys.some(undefinedType.is) ? void 0 : Object.assign.apply(Object, __spreadArrays([{}], keys));
+    }
+    return void 0;
+  }
+  exports.getDomainKeys = getDomainKeys;
+  function nonEnumerableRecord(domain, codomain, name) {
+    if (name === void 0) {
+      name = "{ [K in " + domain.name + "]: " + codomain.name + " }";
+    }
+    return new DictionaryType(name, function(u) {
+      if (exports.UnknownRecord.is(u)) {
+        return Object.keys(u).every(function(k) {
+          return domain.is(k) && codomain.is(u[k]);
+        });
+      }
+      return isAnyC(codomain) && Array.isArray(u);
+    }, function(u, c) {
+      if (exports.UnknownRecord.is(u)) {
+        var a = {};
+        var errors = [];
+        var keys = Object.keys(u);
+        var len = keys.length;
+        var changed = false;
+        for (var i = 0; i < len; i++) {
+          var k = keys[i];
+          var ok = u[k];
+          var domainResult = domain.validate(k, exports.appendContext(c, k, domain, k));
+          if (Either_1.isLeft(domainResult)) {
+            pushAll(errors, domainResult.left);
+          } else {
+            var vk = domainResult.right;
+            changed = changed || vk !== k;
+            k = vk;
+            var codomainResult = codomain.validate(ok, exports.appendContext(c, k, codomain, ok));
+            if (Either_1.isLeft(codomainResult)) {
+              pushAll(errors, codomainResult.left);
+            } else {
+              var vok = codomainResult.right;
+              changed = changed || vok !== ok;
+              a[k] = vok;
+            }
+          }
+        }
+        return errors.length > 0 ? exports.failures(errors) : exports.success(changed ? a : u);
+      }
+      if (isAnyC(codomain) && Array.isArray(u)) {
+        return exports.success(u);
+      }
+      return exports.failure(u, c);
+    }, domain.encode === exports.identity && codomain.encode === exports.identity ? exports.identity : function(a) {
+      var s = {};
+      var keys = Object.keys(a);
+      var len = keys.length;
+      for (var i = 0; i < len; i++) {
+        var k = keys[i];
+        s[String(domain.encode(k))] = codomain.encode(a[k]);
+      }
+      return s;
+    }, domain, codomain);
+  }
+  function record(domain, codomain, name) {
+    var keys = getDomainKeys(domain);
+    return keys ? enumerableRecord(Object.keys(keys), domain, codomain, name) : nonEnumerableRecord(domain, codomain, name);
+  }
+  exports.record = record;
+  var UnionType = function(_super) {
+    __extends(UnionType2, _super);
+    function UnionType2(name, is, validate, encode, types) {
+      var _this = _super.call(this, name, is, validate, encode) || this;
+      _this.types = types;
+      _this._tag = "UnionType";
+      return _this;
+    }
+    return UnionType2;
+  }(Type);
+  exports.UnionType = UnionType;
+  var getUnionName = function(codecs) {
+    return "(" + codecs.map(function(type) {
+      return type.name;
+    }).join(" | ") + ")";
+  };
+  exports.union = function(codecs, name) {
+    if (name === void 0) {
+      name = getUnionName(codecs);
+    }
+    var index = getIndex(codecs);
+    if (index !== void 0 && codecs.length > 0) {
+      var tag_1 = index[0], groups_1 = index[1];
+      var len_1 = groups_1.length;
+      var find_1 = function(value) {
+        for (var i = 0; i < len_1; i++) {
+          if (groups_1[i].indexOf(value) !== -1) {
+            return i;
+          }
+        }
+        return void 0;
+      };
+      return new TaggedUnionType(name, function(u) {
+        if (exports.UnknownRecord.is(u)) {
+          var i = find_1(u[tag_1]);
+          return i !== void 0 ? codecs[i].is(u) : false;
+        }
+        return false;
+      }, function(u, c) {
+        var e = exports.UnknownRecord.validate(u, c);
+        if (Either_1.isLeft(e)) {
+          return e;
+        }
+        var r = e.right;
+        var i = find_1(r[tag_1]);
+        if (i === void 0) {
+          return exports.failure(u, c);
+        }
+        var codec = codecs[i];
+        return codec.validate(r, exports.appendContext(c, String(i), codec, r));
+      }, useIdentity(codecs) ? exports.identity : function(a) {
+        var i = find_1(a[tag_1]);
+        if (i === void 0) {
+          throw new Error("no codec found to encode value in union codec " + name);
+        } else {
+          return codecs[i].encode(a);
+        }
+      }, codecs, tag_1);
+    } else {
+      return new UnionType(name, function(u) {
+        return codecs.some(function(type) {
+          return type.is(u);
+        });
+      }, function(u, c) {
+        var errors = [];
+        for (var i = 0; i < codecs.length; i++) {
+          var codec = codecs[i];
+          var result = codec.validate(u, exports.appendContext(c, String(i), codec, u));
+          if (Either_1.isLeft(result)) {
+            pushAll(errors, result.left);
+          } else {
+            return exports.success(result.right);
+          }
+        }
+        return exports.failures(errors);
+      }, useIdentity(codecs) ? exports.identity : function(a) {
+        for (var _i = 0, codecs_1 = codecs; _i < codecs_1.length; _i++) {
+          var codec = codecs_1[_i];
+          if (codec.is(a)) {
+            return codec.encode(a);
+          }
+        }
+        throw new Error("no codec found to encode value in union type " + name);
+      }, codecs);
+    }
+  };
+  var IntersectionType = function(_super) {
+    __extends(IntersectionType2, _super);
+    function IntersectionType2(name, is, validate, encode, types) {
+      var _this = _super.call(this, name, is, validate, encode) || this;
+      _this.types = types;
+      _this._tag = "IntersectionType";
+      return _this;
+    }
+    return IntersectionType2;
+  }(Type);
+  exports.IntersectionType = IntersectionType;
+  var mergeAll = function(base, us) {
+    var equal = true;
+    var primitive = true;
+    for (var _i = 0, us_1 = us; _i < us_1.length; _i++) {
+      var u = us_1[_i];
+      if (u !== base) {
+        equal = false;
+      }
+      if (exports.UnknownRecord.is(u)) {
+        primitive = false;
+      }
+    }
+    if (equal) {
+      return base;
+    } else if (primitive) {
+      return us[us.length - 1];
+    }
+    var r = {};
+    for (var _a = 0, us_2 = us; _a < us_2.length; _a++) {
+      var u = us_2[_a];
+      for (var k in u) {
+        if (u[k] !== base[k] || !r.hasOwnProperty(k)) {
+          r[k] = u[k];
+        }
+      }
+    }
+    return r;
+  };
+  function intersection(codecs, name) {
+    if (name === void 0) {
+      name = "(" + codecs.map(function(type) {
+        return type.name;
+      }).join(" & ") + ")";
+    }
+    var len = codecs.length;
+    return new IntersectionType(name, function(u) {
+      return codecs.every(function(type) {
+        return type.is(u);
+      });
+    }, codecs.length === 0 ? exports.success : function(u, c) {
+      var us = [];
+      var errors = [];
+      for (var i = 0; i < len; i++) {
+        var codec = codecs[i];
+        var result = codec.validate(u, exports.appendContext(c, String(i), codec, u));
+        if (Either_1.isLeft(result)) {
+          pushAll(errors, result.left);
+        } else {
+          us.push(result.right);
+        }
+      }
+      return errors.length > 0 ? exports.failures(errors) : exports.success(mergeAll(u, us));
+    }, codecs.length === 0 ? exports.identity : function(a) {
+      return mergeAll(a, codecs.map(function(codec) {
+        return codec.encode(a);
+      }));
+    }, codecs);
+  }
+  exports.intersection = intersection;
+  var TupleType = function(_super) {
+    __extends(TupleType2, _super);
+    function TupleType2(name, is, validate, encode, types) {
+      var _this = _super.call(this, name, is, validate, encode) || this;
+      _this.types = types;
+      _this._tag = "TupleType";
+      return _this;
+    }
+    return TupleType2;
+  }(Type);
+  exports.TupleType = TupleType;
+  function tuple(codecs, name) {
+    if (name === void 0) {
+      name = "[" + codecs.map(function(type) {
+        return type.name;
+      }).join(", ") + "]";
+    }
+    var len = codecs.length;
+    return new TupleType(name, function(u) {
+      return exports.UnknownArray.is(u) && u.length === len && codecs.every(function(type, i) {
+        return type.is(u[i]);
+      });
+    }, function(u, c) {
+      var e = exports.UnknownArray.validate(u, c);
+      if (Either_1.isLeft(e)) {
+        return e;
+      }
+      var us = e.right;
+      var as = us.length > len ? us.slice(0, len) : us;
+      var errors = [];
+      for (var i = 0; i < len; i++) {
+        var a = us[i];
+        var type_3 = codecs[i];
+        var result = type_3.validate(a, exports.appendContext(c, String(i), type_3, a));
+        if (Either_1.isLeft(result)) {
+          pushAll(errors, result.left);
+        } else {
+          var va = result.right;
+          if (va !== a) {
+            if (as === us) {
+              as = us.slice();
+            }
+            as[i] = va;
+          }
+        }
+      }
+      return errors.length > 0 ? exports.failures(errors) : exports.success(as);
+    }, useIdentity(codecs) ? exports.identity : function(a) {
+      return codecs.map(function(type, i) {
+        return type.encode(a[i]);
+      });
+    }, codecs);
+  }
+  exports.tuple = tuple;
+  var ReadonlyType = function(_super) {
+    __extends(ReadonlyType2, _super);
+    function ReadonlyType2(name, is, validate, encode, type) {
+      var _this = _super.call(this, name, is, validate, encode) || this;
+      _this.type = type;
+      _this._tag = "ReadonlyType";
+      return _this;
+    }
+    return ReadonlyType2;
+  }(Type);
+  exports.ReadonlyType = ReadonlyType;
+  exports.readonly = function(codec, name) {
+    if (name === void 0) {
+      name = "Readonly<" + codec.name + ">";
+    }
+    return new ReadonlyType(name, codec.is, codec.validate, codec.encode, codec);
+  };
+  var ReadonlyArrayType = function(_super) {
+    __extends(ReadonlyArrayType2, _super);
+    function ReadonlyArrayType2(name, is, validate, encode, type) {
+      var _this = _super.call(this, name, is, validate, encode) || this;
+      _this.type = type;
+      _this._tag = "ReadonlyArrayType";
+      return _this;
+    }
+    return ReadonlyArrayType2;
+  }(Type);
+  exports.ReadonlyArrayType = ReadonlyArrayType;
+  exports.readonlyArray = function(item, name) {
+    if (name === void 0) {
+      name = "ReadonlyArray<" + item.name + ">";
+    }
+    var codec = exports.array(item);
+    return new ReadonlyArrayType(name, codec.is, codec.validate, codec.encode, item);
+  };
+  exports.strict = function(props, name) {
+    return exports.exact(exports.type(props), name);
+  };
+  var TaggedUnionType = function(_super) {
+    __extends(TaggedUnionType2, _super);
+    function TaggedUnionType2(name, is, validate, encode, codecs, tag) {
+      var _this = _super.call(this, name, is, validate, encode, codecs) || this;
+      _this.tag = tag;
+      return _this;
+    }
+    return TaggedUnionType2;
+  }(UnionType);
+  exports.TaggedUnionType = TaggedUnionType;
+  exports.taggedUnion = function(tag, codecs, name) {
+    if (name === void 0) {
+      name = getUnionName(codecs);
+    }
+    var U = exports.union(codecs, name);
+    if (U instanceof TaggedUnionType) {
+      return U;
+    } else {
+      console.warn("[io-ts] Cannot build a tagged union for " + name + ", returning a de-optimized union");
+      return new TaggedUnionType(name, U.is, U.validate, U.encode, codecs, tag);
+    }
+  };
+  var ExactType = function(_super) {
+    __extends(ExactType2, _super);
+    function ExactType2(name, is, validate, encode, type) {
+      var _this = _super.call(this, name, is, validate, encode) || this;
+      _this.type = type;
+      _this._tag = "ExactType";
+      return _this;
+    }
+    return ExactType2;
+  }(Type);
+  exports.ExactType = ExactType;
+  var getProps = function(codec) {
+    switch (codec._tag) {
+      case "RefinementType":
+      case "ReadonlyType":
+        return getProps(codec.type);
+      case "InterfaceType":
+      case "StrictType":
+      case "PartialType":
+        return codec.props;
+      case "IntersectionType":
+        return codec.types.reduce(function(props, type) {
+          return Object.assign(props, getProps(type));
+        }, {});
+    }
+  };
+  var stripKeys = function(o, props) {
+    var keys = Object.getOwnPropertyNames(o);
+    var shouldStrip = false;
+    var r = {};
+    for (var i = 0; i < keys.length; i++) {
+      var key = keys[i];
+      if (!hasOwnProperty.call(props, key)) {
+        shouldStrip = true;
+      } else {
+        r[key] = o[key];
+      }
+    }
+    return shouldStrip ? r : o;
+  };
+  var getExactTypeName = function(codec) {
+    if (isTypeC(codec)) {
+      return "{| " + getNameFromProps(codec.props) + " |}";
+    } else if (isPartialC(codec)) {
+      return getPartialTypeName("{| " + getNameFromProps(codec.props) + " |}");
+    }
+    return "Exact<" + codec.name + ">";
+  };
+  exports.exact = function(codec, name) {
+    if (name === void 0) {
+      name = getExactTypeName(codec);
+    }
+    var props = getProps(codec);
+    return new ExactType(name, codec.is, function(u, c) {
+      var e = exports.UnknownRecord.validate(u, c);
+      if (Either_1.isLeft(e)) {
+        return e;
+      }
+      var ce = codec.validate(u, c);
+      if (Either_1.isLeft(ce)) {
+        return ce;
+      }
+      return Either_1.right(stripKeys(ce.right, props));
+    }, function(a) {
+      return codec.encode(stripKeys(a, props));
+    }, codec);
+  };
+  exports.getValidationError = function(value, context) {
+    return {
+      value,
+      context
+    };
+  };
+  exports.getDefaultContext = function(decoder) {
+    return [
+      {key: "", type: decoder}
+    ];
+  };
+  var NeverType = function(_super) {
+    __extends(NeverType2, _super);
+    function NeverType2() {
+      var _this = _super.call(this, "never", function(_) {
+        return false;
+      }, function(u, c) {
+        return exports.failure(u, c);
+      }, function() {
+        throw new Error("cannot encode never");
+      }) || this;
+      _this._tag = "NeverType";
+      return _this;
+    }
+    return NeverType2;
+  }(Type);
+  exports.NeverType = NeverType;
+  exports.never = new NeverType();
+  var AnyType = function(_super) {
+    __extends(AnyType2, _super);
+    function AnyType2() {
+      var _this = _super.call(this, "any", function(_) {
+        return true;
+      }, exports.success, exports.identity) || this;
+      _this._tag = "AnyType";
+      return _this;
+    }
+    return AnyType2;
+  }(Type);
+  exports.AnyType = AnyType;
+  exports.any = new AnyType();
+  exports.Dictionary = exports.UnknownRecord;
+  var ObjectType = function(_super) {
+    __extends(ObjectType2, _super);
+    function ObjectType2() {
+      var _this = _super.call(this, "object", function(u) {
+        return u !== null && typeof u === "object";
+      }, function(u, c) {
+        return _this.is(u) ? exports.success(u) : exports.failure(u, c);
+      }, exports.identity) || this;
+      _this._tag = "ObjectType";
+      return _this;
+    }
+    return ObjectType2;
+  }(Type);
+  exports.ObjectType = ObjectType;
+  exports.object = new ObjectType();
+  function refinement(codec, predicate, name) {
+    if (name === void 0) {
+      name = "(" + codec.name + " | " + exports.getFunctionName(predicate) + ")";
+    }
+    return new RefinementType(name, function(u) {
+      return codec.is(u) && predicate(u);
+    }, function(i, c) {
+      var e = codec.validate(i, c);
+      if (Either_1.isLeft(e)) {
+        return e;
+      }
+      var a = e.right;
+      return predicate(a) ? exports.success(a) : exports.failure(a, c);
+    }, codec.encode, codec, predicate);
+  }
+  exports.refinement = refinement;
+  exports.Integer = refinement(exports.number, Number.isInteger, "Integer");
+  exports.dictionary = record;
+  var StrictType = function(_super) {
+    __extends(StrictType2, _super);
+    function StrictType2(name, is, validate, encode, props) {
+      var _this = _super.call(this, name, is, validate, encode) || this;
+      _this.props = props;
+      _this._tag = "StrictType";
+      return _this;
+    }
+    return StrictType2;
+  }(Type);
+  exports.StrictType = StrictType;
+  function clean(codec) {
+    return codec;
+  }
+  exports.clean = clean;
+  function alias(codec) {
+    return function() {
+      return codec;
+    };
+  }
+  exports.alias = alias;
+  var isNonEmpty = function(as) {
+    return as.length > 0;
+  };
+  exports.emptyTags = {};
+  function intersect(a, b) {
+    var r = [];
+    for (var _i = 0, a_1 = a; _i < a_1.length; _i++) {
+      var v = a_1[_i];
+      if (b.indexOf(v) !== -1) {
+        r.push(v);
+      }
+    }
+    return r;
+  }
+  function mergeTags(a, b) {
+    if (a === exports.emptyTags) {
+      return b;
+    }
+    if (b === exports.emptyTags) {
+      return a;
+    }
+    var r = Object.assign({}, a);
+    for (var k in b) {
+      if (a.hasOwnProperty(k)) {
+        var intersection_1 = intersect(a[k], b[k]);
+        if (isNonEmpty(intersection_1)) {
+          r[k] = intersection_1;
+        } else {
+          r = exports.emptyTags;
+          break;
+        }
+      } else {
+        r[k] = b[k];
+      }
+    }
+    return r;
+  }
+  function intersectTags(a, b) {
+    if (a === exports.emptyTags || b === exports.emptyTags) {
+      return exports.emptyTags;
+    }
+    var r = exports.emptyTags;
+    for (var k in a) {
+      if (b.hasOwnProperty(k)) {
+        var intersection_2 = intersect(a[k], b[k]);
+        if (intersection_2.length === 0) {
+          if (r === exports.emptyTags) {
+            r = {};
+          }
+          r[k] = a[k].concat(b[k]);
+        }
+      }
+    }
+    return r;
+  }
+  function isAnyC(codec) {
+    return codec._tag === "AnyType";
+  }
+  function isLiteralC(codec) {
+    return codec._tag === "LiteralType";
+  }
+  function isKeyofC(codec) {
+    return codec._tag === "KeyofType";
+  }
+  function isTypeC(codec) {
+    return codec._tag === "InterfaceType";
+  }
+  function isPartialC(codec) {
+    return codec._tag === "PartialType";
+  }
+  function isStrictC(codec) {
+    return codec._tag === "StrictType";
+  }
+  function isExactC(codec) {
+    return codec._tag === "ExactType";
+  }
+  function isRefinementC(codec) {
+    return codec._tag === "RefinementType";
+  }
+  function isIntersectionC(codec) {
+    return codec._tag === "IntersectionType";
+  }
+  function isUnionC(codec) {
+    return codec._tag === "UnionType";
+  }
+  function isRecursiveC(codec) {
+    return codec._tag === "RecursiveType";
+  }
+  var lazyCodecs = [];
+  function getTags(codec) {
+    if (lazyCodecs.indexOf(codec) !== -1) {
+      return exports.emptyTags;
+    }
+    if (isTypeC(codec) || isStrictC(codec)) {
+      var index = exports.emptyTags;
+      for (var k in codec.props) {
+        var prop = codec.props[k];
+        if (isLiteralC(prop)) {
+          if (index === exports.emptyTags) {
+            index = {};
+          }
+          index[k] = [prop.value];
+        }
+      }
+      return index;
+    } else if (isExactC(codec) || isRefinementC(codec)) {
+      return getTags(codec.type);
+    } else if (isIntersectionC(codec)) {
+      return codec.types.reduce(function(tags2, codec2) {
+        return mergeTags(tags2, getTags(codec2));
+      }, exports.emptyTags);
+    } else if (isUnionC(codec)) {
+      return codec.types.slice(1).reduce(function(tags2, codec2) {
+        return intersectTags(tags2, getTags(codec2));
+      }, getTags(codec.types[0]));
+    } else if (isRecursiveC(codec)) {
+      lazyCodecs.push(codec);
+      var tags = getTags(codec.type);
+      lazyCodecs.pop();
+      return tags;
+    }
+    return exports.emptyTags;
+  }
+  exports.getTags = getTags;
+  function getIndex(codecs) {
+    var tags = getTags(codecs[0]);
+    var keys = Object.keys(tags);
+    var len = codecs.length;
+    var _loop_1 = function(k2) {
+      var all = tags[k2].slice();
+      var index = [tags[k2]];
+      for (var i = 1; i < len; i++) {
+        var codec = codecs[i];
+        var ctags = getTags(codec);
+        var values = ctags[k2];
+        if (values === void 0) {
+          return "continue-keys";
+        } else {
+          if (values.some(function(v) {
+            return all.indexOf(v) !== -1;
+          })) {
+            return "continue-keys";
+          } else {
+            all.push.apply(all, values);
+            index.push(values);
+          }
+        }
+      }
+      return {value: [k2, index]};
+    };
+    keys:
+      for (var _i = 0, keys_1 = keys; _i < keys_1.length; _i++) {
+        var k = keys_1[_i];
+        var state_1 = _loop_1(k);
+        if (typeof state_1 === "object")
+          return state_1.value;
+        switch (state_1) {
+          case "continue-keys":
+            continue keys;
+        }
+      }
+    return void 0;
+  }
+  exports.getIndex = getIndex;
+});
+
 // src/server/getClientJs.ts
 const fs = __toModule(require("fs"));
 
@@ -8182,12 +10202,8 @@ class SyncState {
 
 // src/server.tsx
 const http = __toModule(require("http"));
-const port = 3e3;
-const envParams = getEnvParams();
-const sync = new SyncState(envParams.GIT_REPO);
-sync.run().catch((error) => {
-  console.error(error);
-});
+
+// src/server/lib/getBody.ts
 const getBody = (request) => {
   return new Promise((resolve) => {
     const body = [];
@@ -8199,6 +10215,117 @@ const getBody = (request) => {
     });
   });
 };
+
+// src/server/readFromPath.ts
+const fs2 = __toModule(require("fs"));
+const readContentPath = async (path2) => {
+  try {
+    const state = await fs2.promises.stat(path2);
+    if (state.isFile()) {
+      return {
+        type: "file",
+        lastWrite: state.mtimeMs
+      };
+    }
+    if (state.isDirectory()) {
+      const list = await fs2.promises.readdir(path2);
+      return {
+        type: "dir",
+        list: list.map((dirItem) => `${path2}/${dirItem}`)
+      };
+    }
+  } catch (error) {
+    if (error.code === "ENOENT" && error.syscall === "stat") {
+      return null;
+    }
+    throw error;
+  }
+  throw Error("Nieprawid\u0142owy branch");
+};
+
+// src/client/api/apiGetPath.ts
+const t = __toModule(require_lib());
+
+// src/common/buildValidator.ts
+const Either = __toModule(require_Either());
+const getContextPath = (context) => context.map(({key}, index) => {
+  if (index === 0 && key === "") {
+    return ".";
+  }
+  return key;
+}).join("/");
+const failure = (es) => es.map((e) => {
+  const lastTypeName = e.context[e.context.length - 1].type.name;
+  return {
+    path: getContextPath(e.context),
+    value: e.value,
+    expected: lastTypeName
+  };
+});
+const success = () => {
+  return [];
+};
+const buildValidator = (decoder) => {
+  return (dataIn) => {
+    const decodeResult = decoder.decode(dataIn);
+    if (Either.isRight(decodeResult)) {
+      return {
+        type: "ok",
+        data: decodeResult.right
+      };
+    }
+    const errorDecodeInfo = Either.fold(failure, success)(decodeResult);
+    return {
+      type: "error",
+      message: errorDecodeInfo
+    };
+  };
+};
+const buildValidatorWithUnwrap = (label, decoder) => {
+  const validator = buildValidator(decoder);
+  return (dataIn) => {
+    const result = validator(dataIn);
+    if (result.type === "ok") {
+      return result.data;
+    }
+    console.error({
+      label: `Decoder '${label}'`,
+      dataIn,
+      errorDecodeInfo: result.message
+    });
+    throw new Error(JSON.stringify({
+      label: `Decoder '${label}'`,
+      errorDecodeInfo: result.message
+    }));
+  };
+};
+
+// src/client/api/apiGetPath.ts
+const ApiGetPathParamsIO = t.interface({
+  path: t.string
+});
+const decodeApiGetPathParams = buildValidatorWithUnwrap("ApiGetPathParamsIO", ApiGetPathParamsIO);
+const ApiGetPathResponseIO = t.union([
+  t.interface({
+    type: t.literal("file"),
+    lastWrite: t.number
+  }),
+  t.interface({
+    type: t.literal("dir"),
+    list: t.array(t.string)
+  }),
+  t.null
+]);
+const decodeApiGetPathResponse = buildValidatorWithUnwrap("ApiGetPathResponseIO", ApiGetPathResponseIO);
+
+// src/server.tsx
+const port = 3e3;
+const envParams = getEnvParams();
+console.info("Starting ...");
+const sync = new SyncState(envParams.GIT_REPO);
+sync.run().catch((error) => {
+  console.error(error);
+});
 http.createServer(async (request, response) => {
   try {
     const method = request.method;
@@ -8217,14 +10344,24 @@ http.createServer(async (request, response) => {
       response.end();
       return;
     }
-    if (url === "/api" && method === "POST") {
+    if (typeof url === "string" && url.startsWith("/api") && method === "POST") {
       const body = await getBody(request);
-      console.info("/api body", body);
-      response.write(JSON.stringify({}));
-      response.end();
-      return;
+      const bodyJson = jsonParse(body);
+      console.info("/api/get-path body", body);
+      if (bodyJson.type === "text") {
+        response.writeHead(400);
+        response.write(`Oczekiwano jsona na wej\u015Bciu ${method} ${url}`);
+        response.end();
+        return;
+      }
+      if (url === "/api/get-path") {
+        const methodAndParams = decodeApiGetPathParams(bodyJson.json);
+        const data = await readContentPath(methodAndParams.path);
+        response.write(JSON.stringify(data));
+        response.end();
+        return;
+      }
     }
-    console.info(method, url);
     response.writeHead(501);
     response.write(`Nieobs\u0142uzony handler ${method} ${url}`);
     response.end();
@@ -8236,5 +10373,4 @@ http.createServer(async (request, response) => {
     return;
   }
 }).listen(port);
-console.info("Starting ...");
 console.log(`Server app listening at http://localhost:${port}`);

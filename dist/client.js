@@ -14054,7 +14054,7 @@
       this.content = content;
     }
     get pathChunks() {
-      return this.path.value.split("/").map((item) => item.trim()).filter((item) => item !== "");
+      return this.path.value;
     }
   }
 
@@ -15006,6 +15006,10 @@
   };
 
   // src/client/api/apiGetPath.ts
+  const ApiGetPathParamsIO = type({
+    path: string
+  });
+  const decodeApiGetPathParams = buildValidatorWithUnwrap("ApiGetPathParamsIO", ApiGetPathParamsIO);
   const ApiGetPathResponseIO = union([
     type({
       type: literal("file"),
@@ -15014,15 +15018,15 @@
     type({
       type: literal("dir"),
       list: array2(string)
-    })
+    }),
+    nullType
   ]);
   const decodeApiGetPathResponse = buildValidatorWithUnwrap("ApiGetPathResponseIO", ApiGetPathResponseIO);
   const apiGetPath = async (path) => {
     const params = {
-      mathod: "getPath",
       path
     };
-    return await fetchRequest("POST", "/api", params, (status, data) => {
+    return await fetchRequest("POST", "/api/get-path", params, (status, data) => {
       if (status === 200 && data.type === "json") {
         return decodeApiGetPathResponse(data.json);
       }
@@ -15035,7 +15039,7 @@
     constructor() {
       makeAutoObservable(this);
       this.counter = new CounterState();
-      this.currentPath = new CurrentPath("", new ContentState());
+      this.currentPath = new CurrentPath([], new ContentState());
       (async () => {
         const resp = await apiGetPath("aaa/ffff");
         console.info("AAAPI", resp);

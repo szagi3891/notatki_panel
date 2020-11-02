@@ -1,5 +1,6 @@
 import { MobxMapAutoNew } from 'src/common/MobxMapAutoNew';
 import { MobxValueConnect } from 'src/common/MobxValueConnect';
+import { apiGetPath, ApiGetPathResponseType } from '../api/apiGetPath';
 
 type ContentType = {
     type: 'file',
@@ -10,10 +11,35 @@ type ContentType = {
     list: Array<string>,
 };
 
+const convert = (data: ApiGetPathResponseType): ContentType | null => {
+    if (data === null) {
+        return null;
+    }
+
+    if (data.type === 'dir') {
+        return data;
+    }
+
+    return {
+        ...data,
+        content: '',                            //TODO - temporary
+    }
+};
+
 type PathValueType = MobxValueConnect<string, ContentType | null, NodeJS.Timer>;
 
-const startCounter = (_mobxValue: PathValueType): NodeJS.Timer => {
+const startCounter = (mobxValue: PathValueType): NodeJS.Timer => {
     return setInterval(() => {
+
+        const path = mobxValue.id;
+
+        apiGetPath(path).then((response) => {
+            console.info('response', response);
+
+            mobxValue.setValue(convert(response));
+        }).catch((error) => {
+            console.error(error);
+        });
 
         //mobxValue.setValue(mobxValue.value + 1);
 
@@ -36,7 +62,7 @@ const startCounter = (_mobxValue: PathValueType): NodeJS.Timer => {
 
         //....
 
-    }, 1000);
+    }, 3000);
 };
 
 const stopCounter = (timer: NodeJS.Timer) => {
@@ -50,5 +76,9 @@ export class ContentState {
         this.data = new MobxMapAutoNew((path: string): PathValueType => {
             return new MobxValueConnect<string, ContentType | null, NodeJS.Timer>(path, null, startCounter, stopCounter);
         });
+    }
+
+    getPath(path: string): ContentType | null {
+        return this.data.get(path).value;
     }
 }
