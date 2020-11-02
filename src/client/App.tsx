@@ -36,9 +36,21 @@ const ListWrapper = styled('div')`
 
 const List = observer(() => {
     const appState = useAppStateContext();
+    const listDir = appState.listDir;
+
+    if (listDir === null) {
+        return (
+            <div>Loading ...</div>
+        );
+    }
+
 
     return (
-        <ListWrapper>lista plików todo</ListWrapper>
+        <ListWrapper>{
+            listDir.map((item) => (
+                <div>{item}</div>
+            ))
+        }</ListWrapper>
     );
 });
 

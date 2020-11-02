@@ -54,7 +54,13 @@ http.createServer(async (request, response) => {
 
             if (url === '/api/get-path') {
                 const methodAndParams = decodeApiGetPathParams(bodyJson.json);
-                const data: ApiGetPathResponseType = await readContentPath(methodAndParams.path);
+                const data: ApiGetPathResponseType = await readContentPath(`${envParams.GIT_REPO}/${methodAndParams.path}`);
+    
+                console.info('data', {
+                    path: methodAndParams.path,
+                    data
+                });
+
                 response.write(JSON.stringify(data));
                 response.end();
                 return;
