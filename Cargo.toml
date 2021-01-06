@@ -1,0 +1,17 @@
+[workspace]
+
+members = [
+    "panel/client",
+]
+
+#"panel/common",
+#"panel/server",
+
+[profile.release]
+lto = true
+
+#for speed
+opt-level = 's'
+
+#for size
+#opt-level = 'z'
