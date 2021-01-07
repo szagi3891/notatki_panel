@@ -5,6 +5,10 @@ use serde::Deserialize;
 use std::sync::Arc;
 
 mod gitdb;
+mod utils;
+mod sync;
+
+use sync::start_sync;
 
 use gitdb::GitDB;
 
@@ -12,6 +16,7 @@ use gitdb::GitDB;
 struct Config {
     http_host: Ipv4Addr,
     http_port: u16,
+    git_sync: String,
     git_notes: String,
 }
 
@@ -54,6 +59,8 @@ async fn main() {
     let git_db = GitDB::new(config.git_notes);
     let _app_state = AppState::new(git_db);
 
+    let task_synchronize = start_sync(config.git_sync);
+
     //TODO - dorobić obsługę app_state
 
     /*
@@ -78,4 +85,5 @@ async fn main() {
         .run((config.http_host, config.http_port))
         .await;
 
+    task_synchronize.off();
 }

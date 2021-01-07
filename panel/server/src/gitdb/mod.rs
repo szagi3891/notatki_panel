@@ -72,6 +72,7 @@ fn test_decode_timestamp() {
     assert_eq!(decode_timestamp(vec!(b'9', b'9', b'9', b'5', b'1')), 99951);
     assert_eq!(decode_timestamp(vec!(b'9', b'5', b'1')), 951);
     assert_eq!(decode_timestamp(vec!(b'0')), 0);
+    assert_eq!(decode_timestamp(vec!()), 0);
 }
 
 fn encode_timestamp(mut timestamp: u64) -> Vec<u8> {

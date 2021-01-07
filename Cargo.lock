@@ -2191,6 +2191,7 @@ name = "server"
 version = "0.1.0"
 dependencies = [
  "envy",
+ "futures",
  "log",
  "pretty_env_logger",
  "serde",
