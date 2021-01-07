@@ -10,7 +10,18 @@ struct Config {
 }
 
 async fn handler_index() -> Result<impl Reply, Infallible> {
-    Ok(Response::new("To jest index routing"))
+    Ok(Response::new(r##"<!DOCTYPE html>
+    <html>
+        <head>
+            <meta charset="utf-8"/>
+            <script type="module">
+                import init from "/build/app.js";
+                init();
+            </script>
+        </head>
+        <body></body>
+    </html>
+"##))
 }
 
 #[tokio::main]
@@ -24,13 +35,13 @@ async fn main() {
 
     let routes_default = warp::any().map(|| "Websocket server index");
 
-    let route_index = warp::path!("index")
+    let route_build = warp::path("build").and(warp::fs::dir("build"));
+
+    let route_index = warp::path::end()
         .and_then(handler_index);
     
     let routes = route_index
-        // .or(route_ws_index_http)
-        // .or(route_prometheus)
-        // .or(route_cos)
+        .or(route_build)
         .or(routes_default)
     ;
 
