@@ -2,10 +2,11 @@
 
 members = [
     "panel/client",
+    "panel/server",
 ]
 
 #"panel/common",
-#"panel/server",
+#,
 
 [profile.release]
 lto = true

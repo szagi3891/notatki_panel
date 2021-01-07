@@ -1,0 +1,17 @@
+[package]
+name = "server"
+version = "0.1.0"
+authors = ["Grzegorz Szeliga <grzegorz.szeliga@twoupdigital.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde = { version = "1.0.114", features = ["derive", "rc"] }
+serde_json = "1.0.55"
+log = "0.4.11"
+envy = "0.4"
+pretty_env_logger = "0.3"
+
+tokio = { version = "0.2", features = ["full"] }
+warp = "0.2"

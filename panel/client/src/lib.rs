@@ -8,7 +8,7 @@ use vertigo::{
 
 use browserdriver::DomDriverBrowser;
 
-mod state;
+mod app;
 
 #[cfg(feature = "wee_alloc")]
 #[global_allocator]
@@ -24,9 +24,9 @@ pub async fn start_app() {
     let driver = DomDriverBrowser::new();
 
     let root: Dependencies = Dependencies::default();
-    let app_state = state::State::new(&root, &driver);
+    let app_state = app::State::new(&root, &driver);
 
-    let app = App::new(driver.clone(), VDomComponent::new(app_state, state::render));
+    let app = App::new(driver.clone(), VDomComponent::new(app_state, app::render));
 
     app.start_app().await;
 }
