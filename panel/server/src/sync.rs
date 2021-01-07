@@ -137,6 +137,7 @@ pub fn start_sync(git_sync: String) -> SpawnOwner {
             ).await;
 
             if has_commit_synchronized(&exec, &current_branch).await {
+                log::info!("Sync ok...");
                 continue;
             }
 
@@ -156,6 +157,7 @@ pub fn start_sync(git_sync: String) -> SpawnOwner {
             ).await;
 
             if has_commit_synchronized(&exec, &current_branch).await {
+                log::info!("Sync ok...");
                 continue;
             }
 
@@ -182,6 +184,7 @@ pub fn start_sync(git_sync: String) -> SpawnOwner {
             ).await;
 
             if has_commit_synchronized(&exec, &current_branch).await {
+                log::info!("Sync ok...");
                 continue;
             }
 
