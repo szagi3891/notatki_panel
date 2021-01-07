@@ -2,11 +2,29 @@ use warp::{Filter, Reply, http::Response};
 use std::convert::Infallible;
 use std::net::Ipv4Addr;
 use serde::Deserialize;
+use std::sync::Arc;
+
+mod gitdb;
+
+use gitdb::GitDB;
 
 #[derive(Deserialize)]
 struct Config {
     http_host: Ipv4Addr,
     http_port: u16,
+    git_notes: String,
+}
+
+struct AppState {
+    git: GitDB,
+}
+
+impl AppState {
+    pub fn new(git: GitDB) -> Arc<AppState> {
+        Arc::new(AppState {
+            git
+        })
+    }
 }
 
 async fn handler_index() -> Result<impl Reply, Infallible> {
@@ -32,6 +50,11 @@ async fn main() {
         Ok(config) => config,
         Err(error) => panic!("Service started with invalid environment variables {:#?}", error)
     };
+
+    let git_db = GitDB::new(config.git_notes);
+    let _app_state = AppState::new(git_db);
+
+    //TODO - dorobić obsługę app_state
 
     let routes_default = warp::any().map(|| "Websocket server index");
 
