@@ -105,7 +105,7 @@ pub fn start_sync(git_sync: String) -> SpawnOwner {
         loop {
             delay_for(Duration::from_millis(3000)).await;
 
-            log::info!("start sync ...");
+            log::info!("Start sync ...");
 
             let res = exec.exec_command(Command::new("git").arg("status").arg("--short")).await;
 
@@ -124,6 +124,7 @@ pub fn start_sync(git_sync: String) -> SpawnOwner {
             log::info!("current branch = {}", current_branch);
 
             if has_commit_synchronized(&exec, &current_branch).await {
+                log::info!("Sync ok...");
                 continue;
             }
 
