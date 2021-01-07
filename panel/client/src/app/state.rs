@@ -21,3 +21,17 @@ impl State {
         })
     }
 }
+
+
+/*
+dodać zakładki
+
+
+    zakładka1: notatki
+    zakładka2: parsowanie urla ...
+
+    zakładka - zarządzanie gitem
+        menu pozwalające usuwać niepotrzebne gałęzie gita ...
+    
+        pozwoli np. ta funkcja na uruchomienie polecenia rebejsującego
+*/
