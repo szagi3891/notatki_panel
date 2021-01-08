@@ -103,9 +103,11 @@ pub fn start_sync(git_sync: String) -> SpawnOwner {
     SpawnOwner::new(async move {
 
         loop {
-            delay_for(Duration::from_millis(3000)).await;
+            delay_for(Duration::from_millis(5000)).await;
 
-            log::info!("Start sync ...");
+            let current_branch = get_current_branch(&exec).await;
+            log::info!("Start sync {} ...", current_branch);
+
 
             let res = exec.exec_command(Command::new("git").arg("status").arg("--short")).await;
 
@@ -118,16 +120,6 @@ pub fn start_sync(git_sync: String) -> SpawnOwner {
                 log::info!("Commit result:");
                 log::info!("{}", res_commit.join(""));
             }
-
-
-            let current_branch = get_current_branch(&exec).await;
-            log::info!("current branch = {}", current_branch);
-
-            if has_commit_synchronized(&exec, &current_branch).await {
-                log::info!("Sync ok...");
-                continue;
-            }
-
 
             log::info!("Try git fetch origin");
             exec.exec_command_ignore_error(
