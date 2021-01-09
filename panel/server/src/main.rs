@@ -81,7 +81,17 @@ async fn main() {
 
     log::info!("Start - {}:{}", config.http_host, config.http_port);
 
-    warp::serve(routes)
+    let logger = warp::filters::log::custom(|info| {
+        log::info!(
+            "Request {} {} {} - elapsed: {:?}",
+            info.status(),
+            info.method(),
+            info.path(),
+            info.elapsed()
+        );
+    });
+
+    warp::serve(routes.with(logger))
         .run((config.http_host, config.http_port))
         .await;
 
