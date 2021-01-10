@@ -2,7 +2,7 @@ use tokio::task;
 use std::future::Future;
 use futures::future::{Abortable, AbortHandle};
 
-fn spawnFutureWithAbort(fut: impl Future<Output=()> + Send + 'static) -> AbortHandle {
+fn spawn_future_with_abort(fut: impl Future<Output=()> + Send + 'static) -> AbortHandle {
     let (abort_handle, abort_registration) = AbortHandle::new_pair();
     let future = Abortable::new(fut, abort_registration);
 
@@ -11,42 +11,23 @@ fn spawnFutureWithAbort(fut: impl Future<Output=()> + Send + 'static) -> AbortHa
     abort_handle
 }
 
-struct Task {
-    abortHandle: AbortHandle,
-}
-
-impl Task {
-    pub fn new(fut: impl Future<Output=()> + Send + 'static) -> Task {
-        Task {
-            abortHandle: spawnFutureWithAbort(fut),
-        }
-    }
-}
-
-impl Drop for Task {
-    fn drop(&mut self) {
-        self.abortHandle.abort();
-    }
-}
-
 pub struct SpawnOwner {
-    child: Vec<Task>,
+    abort_handle: AbortHandle,
 }
 
 impl SpawnOwner {
     pub fn new(fut: impl Future<Output=()> + Send + 'static) -> SpawnOwner {
-        let task = Task::new(fut);
-
         SpawnOwner {
-            child: vec!(task),
+            abort_handle: spawn_future_with_abort(fut),
         }
-    }
-
-    pub fn add_child(&mut self, mut spawn: SpawnOwner) {
-        self.child.append(&mut spawn.child);
     }
 
     pub fn off(self) {
     }
 }
 
+impl Drop for SpawnOwner {
+    fn drop(&mut self) {
+        self.abort_handle.abort();
+    }
+}

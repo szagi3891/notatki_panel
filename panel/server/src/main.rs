@@ -47,6 +47,10 @@ async fn handler_index() -> Result<impl Reply, Infallible> {
 "##))
 }
 
+fn inject_state<T: Clone + Sized + Send>(state: T) -> impl Filter<Extract = (T,), Error = Infallible> + Clone {
+    warp::any().map(move || state.clone())
+}
+
 #[tokio::main]
 async fn main() {
     pretty_env_logger::init();

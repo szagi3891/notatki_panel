@@ -2,6 +2,7 @@ use tokio::time::delay_for;
 use std::time::Duration;
 use crate::utils::SpawnOwner;
 use tokio::process::Command;
+use tokio::time::timeout;
 
 fn convert_to_lines(data: Vec<u8>) -> Vec<String> {
     let data = String::from_utf8(data).unwrap();
@@ -24,10 +25,13 @@ impl Executor {
         command.current_dir(&self.git_sync);
 
         let command_text = format!("{:?}", command);
-        let output = match command.output().await {
-            Ok(data) => data,
-            Err(err) => {
+        let output = match timeout(Duration::from_secs(7), command.output()).await {
+            Ok(Ok(data)) => data,
+            Ok(Err(err)) => {
                 panic!("Niepowodzenie0 ==> {} ==> {}", command_text, err);
+            },
+            Err(_err) => {
+                panic!("timeout");
             }
         };
 
