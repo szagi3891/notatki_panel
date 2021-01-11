@@ -9,16 +9,30 @@ use vertigo::{
 
 #[derive(PartialEq)]
 pub struct State {
-    driver: DomDriver,
-    current_path: Value<Vec<String>>,
+    pub driver: DomDriver,
+    pub current_path: Value<Vec<String>>,
 }
 
 impl State {
     pub fn new(root: &Dependencies, driver: &DomDriver) -> Computed<State> {
         root.new_computed_from(State {
             driver: driver.clone(),
-            current_path: root.new_value(Vec::new()),
+            current_path: root.new_value(vec!("aaa".into(), "bbb".into())),
         })
+    }
+
+    //TODO - do celow testowych
+
+    pub fn push_path(&self) {
+
+        //TODO - dorobić do Value funkcję change ...
+
+        //self.current_path.change
+        let mut current = (&*self.current_path.get_value()).clone();
+        
+        current.push("cokolwiek".into());
+
+        self.current_path.set_value(current);
     }
 }
 
