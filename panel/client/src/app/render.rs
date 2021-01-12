@@ -30,7 +30,7 @@ fn css_wrapper() -> Css {
 
 fn css_header() -> Css {
     Css::one("
-        height: 25px;
+        flex-shrink: 0;
         border-bottom: 1px solid black;
         line-height: 25px;
         padding: 0 5px;
@@ -104,6 +104,7 @@ pub fn render_content(state: &Computed<State>) -> VDomNode {
 
 fn css_footer() -> Css {
     Css::one("
+        flex-shrink: 0;
         line-height: 25px;
         padding: 0 5px;
     ")
