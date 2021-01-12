@@ -1,5 +1,5 @@
 use vertigo::{
-    VDomNode,
+    VDomElement,
     node_attr,
     Css,
     computed::{
@@ -37,7 +37,7 @@ fn css_header() -> Css {
     ")
 }
 
-pub fn render_header(state: &Computed<State>) -> VDomNode {
+pub fn render_header(state: &Computed<State>) -> VDomElement {
     let state = state.get_value();
     let current_path = state.current_path.get_value();
 
@@ -77,7 +77,7 @@ fn css_content_content() -> Css {
     ")
 }
 
-pub fn render_content(state: &Computed<State>) -> VDomNode {
+pub fn render_content(state: &Computed<State>) -> VDomElement {
     use node_attr::{build_node, text, css, node, on_click};
 
     let content_click = {
@@ -110,7 +110,7 @@ fn css_footer() -> Css {
     ")
 }
 
-pub fn render_footer(state: &Computed<State>) -> VDomNode {
+pub fn render_footer(state: &Computed<State>) -> VDomElement {
     use node_attr::{build_node, text, css, node};
     build_node("div", vec!(
         css(css_footer()),
@@ -124,7 +124,7 @@ pub fn render_footer(state: &Computed<State>) -> VDomNode {
     zmodyfikowane sciezki - stopka, pliki które są zmodyfikowane
 */
 
-pub fn render(state: &Computed<State>) -> VDomNode {
+pub fn render(state: &Computed<State>) -> VDomElement {
     use node_attr::{build_node, text, css, node, component};
     build_node("div", vec!(
         node("style", vec!(
