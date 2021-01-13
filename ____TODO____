@@ -1,0 +1,29 @@
+    //TODO - dorobić proces supervizora, który obserwuje czy proces synchronizujacy sie wysypal. jak sie wysypal to wznawiac synchronizacje
+
+
+
+
+/*
+<div css={css_content()}>
+    <div css={css_content_list()}>lista plikow</div>
+    <div css={css_content_content()} on_click={content_click}>content ...</div>
+</div>
+*/
+
+
+
+
+    //TODO - dorobić obsługę app_state
+
+
+    odpalić proces w tle, który będzie chodził co 10 sekund, sprawdzał status, i robił komita i na serwer wysyłał
+    to moze byc ogolny mechanizm w SpawnOwner
+
+
+w ten sposób moemy zrobic prostego supervizora sprawdzajacego czy sie task podrzedny nie wysypal
+
+loop {
+    let task = SpawnOwner::new(async move || {});
+
+    task.wait;
+}

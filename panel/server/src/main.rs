@@ -65,12 +65,6 @@ async fn main() {
 
     let task_synchronize = start_sync(config.git_sync);
 
-    //TODO - dorobić obsługę app_state
-
-    /*
-        odpalić proces w tle, który będzie chodził co 10 sekund, sprawdzał status, i robił komita i na serwer wysyłał
-    */
-
     let routes_default = warp::any().map(|| "Websocket server index");
 
     let route_build = warp::path("build").and(warp::fs::dir("build"));

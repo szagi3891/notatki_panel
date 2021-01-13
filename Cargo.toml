@@ -1,12 +1,10 @@
 [workspace]
 
 members = [
+    "panel/common",
     "panel/client",
     "panel/server",
 ]
-
-#"panel/common",
-#,
 
 [profile.release]
 lto = true
