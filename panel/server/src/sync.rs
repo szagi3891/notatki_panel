@@ -1,6 +1,6 @@
 use tokio::time::delay_for;
 use std::time::Duration;
-use crate::utils::SpawnOwner;
+use crate::utils::{SpawnOwner, spawn_and_wait};
 use tokio::process::Command;
 use tokio::time::timeout;
 
@@ -102,92 +102,108 @@ async fn has_commit_synchronized(exec: &Executor, branch: &String) -> bool {
 }
 
 pub fn start_sync(git_sync: String) -> SpawnOwner {
-    let exec = Executor::new(git_sync);
-
     SpawnOwner::new(async move {
-
         loop {
+            let sync_process = spawn_and_wait({
+                let git_sync = git_sync.clone();
+                async move {
+                    start_sync_iter(git_sync).await;
+                }
+            });
+
+            sync_process.await;
+
             delay_for(Duration::from_millis(5000)).await;
 
-            let current_branch = get_current_branch(&exec).await;
-            log::info!("Start sync {} ...", current_branch);
-
-
-            let res = exec.exec_command(Command::new("git").arg("status").arg("--short")).await;
-
-            if res.len() > 0 {
-                log::info!("Start commit ...");
-                let res_add = exec.exec_command(Command::new("git").arg("add").arg(".")).await;
-                assert_eq!(res_add.len(), 0);
-
-                let res_commit = exec.exec_command(Command::new("git").arg("commit").arg("-am").arg(r#"save"#)).await;
-                log::info!("Commit result:");
-                log::info!("{}", res_commit.join(""));
-            }
-
-            log::info!("Try git fetch origin");
-            exec.exec_command_ignore_error(
-                Command::new("git")
-                .arg("fetch")
-                .arg("origin")
-                .arg(&current_branch)
-            ).await;
-
-            if has_commit_synchronized(&exec, &current_branch).await {
-                log::info!("Sync ok...");
-                continue;
-            }
-
-
-            log::info!("Try git pull origin");
-            exec.exec_command_ignore_error(
-                Command::new("git")
-                .arg("pull")
-                .arg("origin")
-                .arg(&current_branch)
-            ).await;
-
-            exec.exec_command_ignore_error(
-                Command::new("git")
-                .arg("merge")
-                .arg("--abort")
-            ).await;
-
-            if has_commit_synchronized(&exec, &current_branch).await {
-                log::info!("Sync ok...");
-                continue;
-            }
-
-
-            log::info!("Try git rebase and push");
-
-            exec.exec_command_ignore_error(
-                Command::new("git")
-                .arg("rebase")
-                .arg(format!("origin/{}", &current_branch))
-            ).await;
-
-            exec.exec_command_ignore_error(
-                Command::new("git")
-                .arg("rebase")
-                .arg("--abort")
-            ).await;
-
-            exec.exec_command_ignore_error(
-                Command::new("git")
-                .arg("push")
-                .arg("origin")
-                .arg(format!("{}:{}", &current_branch, &current_branch))
-            ).await;
-
-            if has_commit_synchronized(&exec, &current_branch).await {
-                log::info!("Sync ok...");
-                continue;
-            }
-
-
-            panic!("Dalsze kroki synchronizacyjne");
-        }
+            log::info!("Restart sync process ...");
+        }        
     })
+}
+
+async fn start_sync_iter(git_sync: String) {
+    let exec = Executor::new(git_sync);
+
+    loop {
+        delay_for(Duration::from_millis(5000)).await;
+
+        let current_branch = get_current_branch(&exec).await;
+        log::info!("Start sync {} ...", current_branch);
+
+
+        let res = exec.exec_command(Command::new("git").arg("status").arg("--short")).await;
+
+        if res.len() > 0 {
+            log::info!("Start commit ...");
+            let res_add = exec.exec_command(Command::new("git").arg("add").arg(".")).await;
+            assert_eq!(res_add.len(), 0);
+
+            let res_commit = exec.exec_command(Command::new("git").arg("commit").arg("-am").arg(r#"save"#)).await;
+            log::info!("Commit result:");
+            log::info!("{}", res_commit.join(""));
+        }
+
+        log::info!("Try git fetch origin");
+        exec.exec_command_ignore_error(
+            Command::new("git")
+            .arg("fetch")
+            .arg("origin")
+            .arg(&current_branch)
+        ).await;
+
+        if has_commit_synchronized(&exec, &current_branch).await {
+            log::info!("Sync ok...");
+            continue;
+        }
+
+
+        log::info!("Try git pull origin");
+        exec.exec_command_ignore_error(
+            Command::new("git")
+            .arg("pull")
+            .arg("origin")
+            .arg(&current_branch)
+        ).await;
+
+        exec.exec_command_ignore_error(
+            Command::new("git")
+            .arg("merge")
+            .arg("--abort")
+        ).await;
+
+        if has_commit_synchronized(&exec, &current_branch).await {
+            log::info!("Sync ok...");
+            continue;
+        }
+
+
+        log::info!("Try git rebase and push");
+
+        exec.exec_command_ignore_error(
+            Command::new("git")
+            .arg("rebase")
+            .arg(format!("origin/{}", &current_branch))
+        ).await;
+
+        exec.exec_command_ignore_error(
+            Command::new("git")
+            .arg("rebase")
+            .arg("--abort")
+        ).await;
+
+        exec.exec_command_ignore_error(
+            Command::new("git")
+            .arg("push")
+            .arg("origin")
+            .arg(format!("{}:{}", &current_branch, &current_branch))
+        ).await;
+
+        if has_commit_synchronized(&exec, &current_branch).await {
+            log::info!("Sync ok...");
+            continue;
+        }
+
+
+        panic!("Dalsze kroki synchronizacyjne");
+    }
 }
 
