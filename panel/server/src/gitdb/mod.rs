@@ -8,85 +8,16 @@ use common::{
     DataNode,
 };
 
-fn get_path_chunks(dir_path: &String, id: &DataNodeIdType) -> Vec<String> {
-    let mut id = *id as u64;
+mod item;
+mod dir;
 
-    if id == 0 {
-        return vec!(dir_path.clone(), "f000".into());
-    }
+use item::ItemInfo;
 
-    let mut chunks: Vec<String> = Vec::new();
-    let mut is_first_exec = false;
-
-    while id > 0 {
-        let prefix = if is_first_exec == false {
-            is_first_exec = true;
-            "f"
-        } else {
-            "d"
-        };
-    
-        chunks.push(format!("{}{:03}", prefix, id % 1000));
-        id = id / 1000;
-    }
-
-    let mut result: Vec<String> = Vec::new();
-
-    result.push(dir_path.clone());
-
-    for item in chunks.iter().rev() {
-        result.push(item.clone());
-    }
-
-    result
-}
-
-fn get_dir(dir_path: &String, id: &DataNodeIdType) -> String {
-    let mut result: Vec<String> = get_path_chunks(dir_path, id);
-    result.pop();
-    result.join("/")
-}
-
-fn get_path(dir_path: &String, id: &DataNodeIdType) -> String {
-    let mut result: Vec<String> = get_path_chunks(dir_path, id);
-    result.join("/")
-}
-
-#[test]
-fn test_get_path() {
-    assert_eq!(get_path(&"/bazowy/katalog".into(), &(0 as DataNodeIdType)), String::from("/bazowy/katalog/f000"));
-    assert_eq!(get_path(&"/bazowy/katalog".into(), &(43 as DataNodeIdType)), String::from("/bazowy/katalog/f043"));
-    assert_eq!(get_path(&"/bazowy/katalog".into(), &(234222 as DataNodeIdType)), String::from("/bazowy/katalog/d234/f222"));
-}
-
-struct ItemInfoInner {
-    _last_modification: Option<TimestampType>,
-}
-
-impl ItemInfoInner {
-    pub fn new() -> ItemInfoInner {
-        ItemInfoInner {
-            _last_modification: None,
-        }
-    }
-}
-
-#[derive(Clone)]
-struct ItemInfo {
-    data: Arc<RwLock<ItemInfoInner>>,
-}
-
-impl ItemInfo {
-    pub fn new() -> ItemInfo {
-        ItemInfo {
-            data: Arc::new(RwLock::new(ItemInfoInner::new()))
-        }
-    }
-}
-
+#[derive(Debug)]
 pub enum SaveError {
     Error(std::io::Error),
     OutdatedTimestamp,
+    IncorrectRootNode
 }
 
 impl From<std::io::Error> for SaveError {
@@ -104,15 +35,16 @@ impl From<serde_json::error::Error> for SaveError {
 
 // SaveError
 
+#[derive(Clone)]
 pub struct GitDB {
-    dir_path: String,
+    dir_path: Arc<String>,
     data: Arc<RwLock<BTreeMap<DataNodeIdType, ItemInfo>>>,
 }
 
 impl GitDB {
     pub fn new(dir_path: String) -> GitDB {
         GitDB {
-            dir_path,
+            dir_path: Arc::new(dir_path),
             data: Arc::new(RwLock::new(BTreeMap::new()))
         }
     }
@@ -124,53 +56,43 @@ impl GitDB {
             return item.clone();
         }
 
-        let new_item = ItemInfo::new();
+        let new_item = ItemInfo::new(self.dir_path.clone(), id);
         lock.insert(id, new_item.clone());
         new_item
     }
 
     pub async fn get(&self, id: DataNodeIdType) -> Result<DataPost, std::io::Error> {
         let item = self.get_or_create(id).await;
-        let lock = item.data.write().await;
-        
-        let file_path = get_path(&self.dir_path, &id);
-
-        let data = tokio::fs::read(file_path).await?;
-
-        let result: Result<DataPost, _> = serde_json::from_slice(data.as_ref());
-        let result = result?;
-
-        std::mem::forget(lock);
-
+        let lock = item.lock().await;
+        let result = lock.get().await?;
         Ok(result)
     }
 
-    pub async fn save(&self, id: DataNodeIdType, timestamp: TimestampType, mut node: DataNode) -> Result<(), SaveError> {
-        let item = self.get_or_create(id).await;
-        let lock = item.data.write().await;
-
+    pub async fn save(&self, id: DataNodeIdType, timestamp: TimestampType, node: DataNode) -> Result<(), SaveError> {
         let data_post = self.get(id).await?;
+
+        let item = self.get_or_create(id).await;
+        let lock = item.lock().await;
 
         if data_post.timestamp != timestamp {
             return Err(SaveError::OutdatedTimestamp);
         }
 
-        let dir = get_dir(&self.dir_path, &id);
-        let file = get_path(&self.dir_path, &id);
+        lock.create_base_dir().await?;
+        lock.save(node).await?;
 
-        tokio::fs::create_dir_all(dir).await?;
+        Ok(())
+    }
 
+    pub async fn check_root(&self) -> Result<(), SaveError> {
+        let root_id = 1;
+    
+        let item = self.get_or_create(root_id).await;
+        let inner = item.lock().await;
 
-        let data_to_save = DataPost {
-            timestamp,
-            node,
-        };
+        inner.create_base_dir().await?;
+        inner.create_empty_dir_if_not_exist("root").await?;
 
-        let data_to_save = serde_json::to_string(&data_to_save)?;
-
-        tokio::fs::write(file, data_to_save).await?;
-
-        std::mem::forget(lock);
         Ok(())
     }
 }

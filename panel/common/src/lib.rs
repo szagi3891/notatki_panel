@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 
-pub type TimestampType = u64;
+pub type TimestampType = u128;
 pub type DataNodeIdType = u64;
 
 

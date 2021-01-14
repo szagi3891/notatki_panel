@@ -1,3 +1,5 @@
+#![feature(async_closure)]
+
 use warp::{Filter, Reply, http::Response};
 use std::convert::Infallible;
 use std::net::Ipv4Addr;
@@ -51,6 +53,26 @@ fn inject_state<T: Clone + Sized + Send>(state: T) -> impl Filter<Extract = (T,)
     warp::any().map(move || state.clone())
 }
 
+async fn handler_get(id: u64, app_state: Arc<AppState>) -> Result<impl warp::Reply, Infallible> {
+    let style = "";
+    let body = "";
+    let response = warp::http::Response::builder()
+    .header("content-type", "application/json; charset=utf-8")
+    .body(format!("<html><head><style>{}</style></head><body>{}</body></html>", style, body));
+
+    Ok(response)
+}
+
+// async fn handler_save(id: u64, app_state: Arc<AppState>) -> Result<impl warp::Reply, Infallible> {
+//     let style = "";
+//     let body = "";
+//     let response = warp::http::Response::builder()
+//     .header("content-type", "text/html; charset=utf-8")
+//     .body(format!("<html><head><style>{}</style></head><body>{}</body></html>", style, body));
+
+//     Ok(response)
+// }
+
 #[tokio::main]
 async fn main() {
     pretty_env_logger::init();
@@ -61,9 +83,13 @@ async fn main() {
     };
 
     let git_db = GitDB::new(config.git_notes);
-    let _app_state = AppState::new(git_db);
+    let app_state = AppState::new(git_db);
 
-    let task_synchronize = start_sync(config.git_sync);
+    let task_synchronize = start_sync(config.git_sync).await;
+
+
+    app_state.git.check_root().await.unwrap();           //sprawdź czy istnieje węzeł główny
+
 
     let routes_default = warp::any().map(|| "Websocket server index");
 
@@ -71,9 +97,14 @@ async fn main() {
 
     let route_index = warp::path::end()
         .and_then(handler_index);
+
+    let route_node_get = warp::path!("node" / u64)
+        .and(inject_state(app_state.clone()))
+        .and_then(handler_get);
     
     let routes = route_index
         .or(route_build)
+        .or(route_node_get)
         .or(routes_default)
     ;
 
