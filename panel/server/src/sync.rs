@@ -1,4 +1,4 @@
-use tokio::time::delay_for;
+use tokio::time::sleep;
 use std::time::Duration;
 use crate::utils::{SpawnOwner, spawn_and_wait};
 use tokio::process::Command;
@@ -112,13 +112,13 @@ pub async fn start_sync(git_sync: String) -> SpawnOwner {
                 let git_sync = git_sync.clone();
                 async move {
                     loop {
-                        delay_for(Duration::from_millis(5000)).await;
+                        sleep(Duration::from_millis(5000)).await;
                         sync(git_sync.clone()).await;
                     }
                 }
             }).await;
 
-            delay_for(Duration::from_millis(5000)).await;
+            sleep(Duration::from_millis(5000)).await;
 
             log::info!("Restart sync process ...");
         }
