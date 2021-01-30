@@ -6,6 +6,7 @@ use vertigo::{
         Computed,
     }
 };
+use vertigo_html::{Inline, html_component, html_element};
 
 use super::state::State;
 
@@ -87,18 +88,24 @@ pub fn render_content(state: &Computed<State>) -> VDomElement {
         }
     };
 
-    build_node("div", vec!(
-        css(css_content()),
-        node("div", vec!(
-            css(css_content_list()),
-            text("lista plikow")
-        )),
-        node("div", vec!(
-            css(css_content_content()),
-            on_click(content_click),
-            text("content ...")
-        )),
-    ))
+    html_component! {
+        <div>
+            Cos
+        </div>
+    }
+    
+    // build_node("div", vec!(
+    //     css(css_content()),
+    //     node("div", vec!(
+    //         css(css_content_list()),
+    //         text("lista plikow")
+    //     )),
+    //     node("div", vec!(
+    //         css(css_content_content()),
+    //         on_click(content_click),
+    //         text("content ...")
+    //     )),
+    // ))
 }
 
 fn css_footer() -> Css {
