@@ -140,7 +140,7 @@ async fn sync(git_sync: String) {
         let res_add = exec.exec_command(Command::new("git").arg("add").arg(".")).await;
         assert_eq!(res_add.len(), 0);
 
-        let res_commit = exec.exec_command(Command::new("git").arg("commit").arg("-am").arg(r#"save"#)).await;
+        let res_commit = exec.exec_command(Command::new("git").arg("commit").arg("-am").arg("save")).await;
         log::info!("Commit result:");
         log::info!("{}", res_commit.join(""));
     }

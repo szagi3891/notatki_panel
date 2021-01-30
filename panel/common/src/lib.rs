@@ -1,9 +1,7 @@
 use serde::{Deserialize, Serialize};
 
-
 pub type TimestampType = u128;
 pub type DataNodeIdType = u64;
-
 
 #[derive(Deserialize, Serialize)]
 pub enum DataNode {
@@ -26,11 +24,10 @@ pub struct DataPost {
     pub node: DataNode,
 }
 
-/*
 
+/*
 domyślny korzeń od którego się zaczyna wszystko
 main ---> 1
-
 
 baza danych typu klucz wartość (git jako nośnik danych)
 
@@ -45,8 +42,6 @@ collections /
         fajnie byłoby mieć jakiś atomowy zapis ...
 
 
-
-
     element:
         ostatni timestamp zmiany ...
         data: ....      dane binarne
@@ -56,13 +51,9 @@ collections /
     Z - moze byc markerem oznaczajacym koniec daty.
     ALbo, mozna wybrac inna literke
 
-    
+
     zapis mozliwy bylby tylko pod warunkiem ze w request podalismy timestamp aktualnej tresci
     nowy timestamp musi byc wiekszy od tego ktory jest obecnie
-
-    
-
-
 
 
     GET /get/:id        - pobranie elementu

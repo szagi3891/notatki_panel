@@ -10,25 +10,6 @@ use vertigo_html::{html_component, Inline};
 
 use super::state::State;
 
-const GLOBAL_RESET: &'static str = "html, body {
-    margin: 0;
-    padding: 0;
-    border: 0;
-}";
-
-fn css_wrapper() -> Css {
-    Css::one("
-        display: flex;
-        flex-direction: column;
-        border: 1px solid black;
-        background-color: #e0e0e0;
-        padding: 0;
-        width: 100vw;
-        height: 100vh;
-        box-sizing: border-box;
-    ")
-}
-
 fn css_header() -> Css {
     Css::one("
         flex-shrink: 0;
@@ -120,15 +101,35 @@ pub fn render_footer(state: &Computed<State>) -> VDomElement {
     zmodyfikowane sciezki - stopka, pliki które są zmodyfikowane
 */
 
+fn css_wrapper() -> Css {
+    Css::one("
+        display: flex;
+        flex-direction: column;
+        border: 1px solid black;
+        background-color: #e0e0e0;
+        padding: 0;
+        width: 100vw;
+        height: 100vh;
+        box-sizing: border-box;
+    ")
+}
+
 pub fn render(state: &Computed<State>) -> VDomElement {
+    let reset: &str = "html, body {
+        margin: 0;
+        padding: 0;
+        border: 0;
+    }";
+
     html_component! {
         <div css={css_wrapper()}>
             <style>
-                { GLOBAL_RESET }
+                { reset }
             </style>
             <component {render_header} data={state.clone()} />
-            <component {render_content} data={state.clone()}  />
-            <component {render_footer} data={state.clone()}  />
+            <component {render_content} data={state.clone()} />
+            <component {render_footer} data={state.clone()} />
         </div>
     }
 }
+
