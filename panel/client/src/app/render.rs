@@ -1,12 +1,12 @@
 use vertigo::{
     VDomElement,
-    node_attr,
     Css,
     computed::{
         Computed,
     }
 };
-use vertigo_html::{Inline, html_component, html_element};
+
+use vertigo_html::{html_component, Inline};
 
 use super::state::State;
 
@@ -48,11 +48,11 @@ pub fn render_header(state: &Computed<State>) -> VDomElement {
     }
     let path_for_view = path_chunks.join(" / ");
 
-    use node_attr::{build_node, text, css};
-    build_node("div", vec!(
-        css(css_header()),
-        text(path_for_view)
-    ))
+    html_component! {
+        <div css={css_header()}>
+            { path_for_view }
+        </div>
+    }
 }
 
 fn css_content() -> Css {
@@ -79,8 +79,6 @@ fn css_content_content() -> Css {
 }
 
 pub fn render_content(state: &Computed<State>) -> VDomElement {
-    // use node_attr::{build_node, text, css, node, on_click};
-
     let content_click = {
         let state = state.get_value();
         move || {
@@ -93,24 +91,11 @@ pub fn render_content(state: &Computed<State>) -> VDomElement {
             <div css={css_content_list()}>
                 lista plikow
             </div>
-            <div css={css_content_content()} on_click={content_click}>
+            <div css={css_content_content()} onClick={content_click}>
                 content ...
             </div>
         </div>
     }
-
-    // build_node("div", vec!(
-    //     css(css_content()),
-    //     node("div", vec!(
-    //         css(css_content_list()),
-    //         text("lista plikow")
-    //     )),
-    //     node("div", vec!(
-    //         css(css_content_content()),
-    //         on_click(content_click),
-    //         text("content ...")
-    //     )),
-    // ))
 }
 
 fn css_footer() -> Css {
@@ -122,11 +107,11 @@ fn css_footer() -> Css {
 }
 
 pub fn render_footer(state: &Computed<State>) -> VDomElement {
-    use node_attr::{build_node, text, css, node};
-    build_node("div", vec!(
-        css(css_footer()),
-        text("lista plików które zostały zmodyfikowane ale nie zapisane")
-    ))
+    html_component! {
+        <div css={css_footer()}>
+            Lista plików które zostały zmodyfikowane ale nie zapisane
+        </div>
+    }
 }
 
 /*
@@ -136,14 +121,14 @@ pub fn render_footer(state: &Computed<State>) -> VDomElement {
 */
 
 pub fn render(state: &Computed<State>) -> VDomElement {
-    use node_attr::{build_node, text, css, node, component};
-    build_node("div", vec!(
-        node("style", vec!(
-            text(GLOBAL_RESET)
-        )),
-        css(css_wrapper()),
-        component(state.clone(), render_header),
-        component(state.clone(), render_content),
-        component(state.clone(), render_footer),
-    ))
+    html_component! {
+        <div css={css_wrapper()}>
+            <style>
+                { GLOBAL_RESET }
+            </style>
+            <component {render_header} data={state.clone()} />
+            <component {render_content} data={state.clone()}  />
+            <component {render_footer} data={state.clone()}  />
+        </div>
+    }
 }
