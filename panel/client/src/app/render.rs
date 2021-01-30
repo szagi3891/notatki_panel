@@ -79,7 +79,7 @@ fn css_content_content() -> Css {
 }
 
 pub fn render_content(state: &Computed<State>) -> VDomElement {
-    use node_attr::{build_node, text, css, node, on_click};
+    // use node_attr::{build_node, text, css, node, on_click};
 
     let content_click = {
         let state = state.get_value();
@@ -89,11 +89,16 @@ pub fn render_content(state: &Computed<State>) -> VDomElement {
     };
 
     html_component! {
-        <div>
-            Cos
+        <div css={css_content()}>
+            <div css={css_content_list()}>
+                lista plikow
+            </div>
+            <div css={css_content_content()} on_click={content_click}>
+                content ...
+            </div>
         </div>
     }
-    
+
     // build_node("div", vec!(
     //     css(css_content()),
     //     node("div", vec!(
