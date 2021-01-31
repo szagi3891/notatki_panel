@@ -36,7 +36,6 @@ pub struct DataPost {
     pub node: DataNode,
 }
 
-
 #[derive(Deserialize, Serialize, Debug)]
 pub struct ServerFetchNodePost {
     pub node_id: DataNodeIdType
