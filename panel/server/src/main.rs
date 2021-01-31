@@ -54,16 +54,36 @@ fn inject_state<T: Clone + Sized + Send>(state: T) -> impl Filter<Extract = (T,)
     warp::any().map(move || state.clone())
 }
 
+// let style = "";
+// let body = "";
+// let response = warp::http::Response::builder()
+// .header("content-type", "application/json; charset=utf-8")
+// .body(format!("<html><head><style>{}</style></head><body>{}</body></html>", style, body));
+
+// println!("Przyszedł request {:?}", body_request);
+
 async fn fetch_node(app_state: Arc<AppState>, body_request: ServerFetchNodePost) -> Result<impl warp::Reply, Infallible> {
-    let style = "";
-    let body = "";
-    let response = warp::http::Response::builder()
-    .header("content-type", "application/json; charset=utf-8")
-    .body(format!("<html><head><style>{}</style></head><body>{}</body></html>", style, body));
+    let node_id = body_request.node_id;
 
-    println!("Przyszedł request {:?}", body_request);
+    let data = app_state.git.get(node_id).await;
 
-    Ok(response)
+    match data {
+        Ok(data) => {
+            let a = serde_json::to_string(&data).unwrap();
+
+            let response = Response::builder()
+                .status(200)
+                .body(a);
+            Ok(response)
+        },
+        Err(err) => {
+            let response = Response::builder()
+                .status(500)
+                .body(format!("error = {}", err));
+
+            Ok(response)
+        }
+    }
 }
 
 // async fn handler_save(id: u64, app_state: Arc<AppState>) -> Result<impl warp::Reply, Infallible> {
@@ -92,12 +112,13 @@ async fn main() {
 
     app_state.git.check_root().await.unwrap();           //sprawdź czy istnieje węzeł główny
 
-    let routes_default = warp::any().map(|| "Websocket server index");
-
-    let route_build = warp::path("build").and(warp::fs::dir("build"));
-
-    let route_index = warp::path::end()
+    let route_index =
+        warp::path::end()
         .and_then(handler_index);
+
+    let route_build =
+        warp::path("build")
+        .and(warp::fs::dir("build"));
 
     let route_node_get =
         warp::path!("fetch_node")
@@ -106,7 +127,16 @@ async fn main() {
         .and(warp::body::json())
         .and_then(fetch_node);
     
-    let routes = route_index
+    let routes_default =
+        warp::any()
+        .map(|| {
+            warp::http::Response::builder()
+                .status(404)
+                .body("sdas")
+        });
+
+    let routes =
+        route_index
         .or(route_build)
         .or(route_node_get)
         .or(routes_default)

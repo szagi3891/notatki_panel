@@ -1,4 +1,4 @@
-use common::{DataNode, DataNodeIdType, ServerFetchNodePost};
+use common::{DataNode, DataPost, DataNodeIdType, ServerFetchNodePost};
 use vertigo::{
     DomDriver,
     FetchMethod,
@@ -26,7 +26,7 @@ impl NodeFetch {
         }
     }
 
-    async fn get(&self) -> Result<DataNode, String> {
+    async fn get(&self) -> Result<DataPost, String> {
         let url = format!("/fetch_node");
         let body = ServerFetchNodePost {
             node_id: self.node_id,
@@ -43,7 +43,7 @@ impl NodeFetch {
 
         match response {
             Ok(response) => {
-                match serde_json::from_str::<DataNode>(response.as_str()) {
+                match serde_json::from_str::<DataPost>(response.as_str()) {
                     Ok(data_node) => {
                         log::info!("odpowiedź z serwera {:?}", data_node);
                         Ok(data_node)
@@ -71,13 +71,13 @@ pub enum Resource<T: PartialEq> {
 
 #[derive(PartialEq)]
 struct Node {
-    data: Value<DataNode>,
+    data: Value<DataPost>,
     fetch: NodeFetch,
     flag: Value<bool>,
 }
 
 impl Node {
-    fn new(data: Value<DataNode>, fetch: NodeFetch, flag: Value<bool>) -> Node {
+    fn new(data: Value<DataPost>, fetch: NodeFetch, flag: Value<bool>) -> Node {
         Node {
             data,
             fetch,
@@ -109,7 +109,7 @@ impl Node {
 
     fn title(&self) -> Rc<String> {
         let node = self.data.get_value();
-        Rc::new(node.title())
+        Rc::new(node.node.title())
     }
 }
 /*

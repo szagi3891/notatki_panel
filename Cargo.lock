@@ -506,7 +506,7 @@ dependencies = [
 [[package]]
 name = "browserdriver"
 version = "0.1.0"
-source = "git+https://github.com/vertigo-web/vertigo#e1cfd2915ebb99a072ec095f2c9718400256eeea"
+source = "git+https://github.com/vertigo-web/vertigo#ebe6cec1441ff4d7c6c432dbcefa0ee0d6ffc004"
 dependencies = [
  "log",
  "vertigo",
@@ -3120,7 +3120,7 @@ checksum = "b5a972e5669d67ba988ce3dc826706fb0a8b01471c088cb0b6110b805cc36aed"
 [[package]]
 name = "vertigo"
 version = "0.1.0-alpha.0"
-source = "git+https://github.com/vertigo-web/vertigo#e1cfd2915ebb99a072ec095f2c9718400256eeea"
+source = "git+https://github.com/vertigo-web/vertigo#ebe6cec1441ff4d7c6c432dbcefa0ee0d6ffc004"
 dependencies = [
  "log",
 ]
@@ -3128,7 +3128,7 @@ dependencies = [
 [[package]]
 name = "vertigo-html"
 version = "0.1.0-alpha.0"
-source = "git+https://github.com/vertigo-web/vertigo#e1cfd2915ebb99a072ec095f2c9718400256eeea"
+source = "git+https://github.com/vertigo-web/vertigo#ebe6cec1441ff4d7c6c432dbcefa0ee0d6ffc004"
 dependencies = [
  "vertigo",
  "vertigo-html-macro",
@@ -3137,7 +3137,7 @@ dependencies = [
 [[package]]
 name = "vertigo-html-macro"
 version = "0.1.0-alpha.0"
-source = "git+https://github.com/vertigo-web/vertigo#e1cfd2915ebb99a072ec095f2c9718400256eeea"
+source = "git+https://github.com/vertigo-web/vertigo#ebe6cec1441ff4d7c6c432dbcefa0ee0d6ffc004"
 dependencies = [
  "log",
  "pest",

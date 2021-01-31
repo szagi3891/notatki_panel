@@ -30,7 +30,7 @@ impl DataNode {
 }
 
 //Ta struktura będzie latać na handlerach http ...
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Debug, PartialEq)]
 pub struct DataPost {
     pub timestamp: TimestampType,
     pub node: DataNode,
