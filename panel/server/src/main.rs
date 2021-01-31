@@ -35,6 +35,10 @@ impl AppState {
     }
 }
 
+fn inject_state<T: Clone + Sized + Send>(state: T) -> impl Filter<Extract = (T,), Error = Infallible> + Clone {
+    warp::any().map(move || state.clone())
+}
+
 async fn handler_index() -> Result<impl Reply, Infallible> {
     Ok(Response::new(r##"<!DOCTYPE html>
     <html>
@@ -49,18 +53,6 @@ async fn handler_index() -> Result<impl Reply, Infallible> {
     </html>
 "##))
 }
-
-fn inject_state<T: Clone + Sized + Send>(state: T) -> impl Filter<Extract = (T,), Error = Infallible> + Clone {
-    warp::any().map(move || state.clone())
-}
-
-// let style = "";
-// let body = "";
-// let response = warp::http::Response::builder()
-// .header("content-type", "application/json; charset=utf-8")
-// .body(format!("<html><head><style>{}</style></head><body>{}</body></html>", style, body));
-
-// println!("Przyszedł request {:?}", body_request);
 
 async fn fetch_node(app_state: Arc<AppState>, body_request: ServerFetchNodePost) -> Result<impl warp::Reply, Infallible> {
     let node_id = body_request.node_id;
@@ -85,16 +77,6 @@ async fn fetch_node(app_state: Arc<AppState>, body_request: ServerFetchNodePost)
         }
     }
 }
-
-// async fn handler_save(id: u64, app_state: Arc<AppState>) -> Result<impl warp::Reply, Infallible> {
-//     let style = "";
-//     let body = "";
-//     let response = warp::http::Response::builder()
-//     .header("content-type", "text/html; charset=utf-8")
-//     .body(format!("<html><head><style>{}</style></head><body>{}</body></html>", style, body));
-
-//     Ok(response)
-// }
 
 #[tokio::main]
 async fn main() {
@@ -132,7 +114,7 @@ async fn main() {
         .map(|| {
             warp::http::Response::builder()
                 .status(404)
-                .body("sdas")
+                .body("error 404")
         });
 
     let routes =
@@ -160,45 +142,3 @@ async fn main() {
 
     task_synchronize.off();
 }
-
-
-/*
-use serde::{Deserialize, Serialize};
-
-pub type DataNodeIdType = u64;
-
-#[derive(Deserialize, Serialize, Debug)]
-pub enum DataNode {
-    File {
-        id: DataNodeIdType,
-        title: String,
-        content: String,
-    },
-    Dir {
-        id: DataNodeIdType,
-        title: String,
-        child: Vec<DataNodeIdType>,         //rozjazdowka na kolejne dzieci z trescia
-    }
-}
-
-fn main() {
-    let g = DataNode::File {
-        id: 444,
-        title: "Moj plik".into(),
-        content: "Dsdasd".into(),
-    };
-
-    println!("dddd... {:?}", g);
-    
-    let gg = serde_json::to_string(&g).unwrap();
-    println!("dsasda ... {:?}", gg);
-    
-    let fff: DataNode = serde_json::from_str(&gg).unwrap();
-    
-    if let DataNode::File { title, .. } = &fff {
-        println!("plik, title={}", title);
-    }
-}
-*/
-
-
