@@ -1,5 +1,5 @@
-use std::sync::Arc;
 use std::rc::Rc;
+use common::DataNodeIdType;
 use vertigo::{
     VDomElement,
     Css,
@@ -55,13 +55,26 @@ fn css_item(is_active: bool) -> Css {
     css
 }
 
-fn create_link(state: &Rc<State>, name: &str, create_css: fn(bool) -> Css, path: Vec<Arc<String>>, is_active: bool) -> NodeAttr {
+fn create_link(state: &Rc<State>, node_id: DataNodeIdType, create_css: fn(bool) -> Css, is_active: bool) -> NodeAttr {
+    let title = state.node_title(&node_id);
+
+
+    // let title: Rc<String> = match title {
+    //     Some(title) => title.clone(),
+    //     None => Rc::new("loading ...".into())
+    // };
+
+    let title: String = match title {
+        Some(title) => (&*title.clone()).clone(),
+        None => "loading ...".into()
+    };
+
     if is_active {
         let css = create_css(true);
 
         return html_element! {
             <div css={css}>
-                { name }
+                { title }
             </div>
         };
     }
@@ -69,7 +82,7 @@ fn create_link(state: &Rc<State>, name: &str, create_css: fn(bool) -> Css, path:
     let on_click = {
         let state = state.clone();
         move || {
-            state.set_path(&path);
+            state.set_path(node_id);
         }
     };
 
@@ -77,7 +90,7 @@ fn create_link(state: &Rc<State>, name: &str, create_css: fn(bool) -> Css, path:
 
     html_element! {
         <div css={css} onClick={on_click}>
-            { name }
+            { title }
         </div>
     }
 }
@@ -91,16 +104,11 @@ pub fn render_header(state: &Computed<State>) -> VDomElement {
     let mut out: Vec<NodeAttr> = Vec::new();
 
     let root_is_active = all_items == 0;
-    out.push(create_link(&state, "root", css_root, Vec::new(), root_is_active));
-
-
-    let mut path_redirect = Vec::<Arc<String>>::new();
+    out.push(create_link(&state, 1, css_root, root_is_active));
 
     for (index, item) in current_path.iter().enumerate() {
-        path_redirect.push(item.clone());
-
         let is_active = index == all_items - 1;
-        out.push(create_link(&state, item.as_str(), css_item, path_redirect.clone(), is_active));
+        out.push(create_link(&state, item.clone(), css_item, is_active));
     }
 
     html_component! {

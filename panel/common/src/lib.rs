@@ -3,6 +3,9 @@ use serde::{Deserialize, Serialize};
 pub type TimestampType = u128;
 pub type DataNodeIdType = u64;
 
+                                  //TODO - po stronie serwera pasowałoby zeby string byl opakowany w Arc
+                                  //TODO - a po stronie przegladarki w Rc
+
 #[derive(Deserialize, Serialize, PartialEq, Debug)]
 pub enum DataNode {
     File {
@@ -17,6 +20,15 @@ pub enum DataNode {
     }
 }
 
+impl DataNode {
+    pub fn title(&self) -> String {
+        match self {
+            DataNode::File { title, .. } => title.clone(),
+            DataNode::Dir { title, .. } => title.clone(),
+        }
+    }
+}
+
 //Ta struktura będzie latać na handlerach http ...
 #[derive(Deserialize, Serialize)]
 pub struct DataPost {
@@ -27,7 +39,7 @@ pub struct DataPost {
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct ServerFetchNodePost {
-    pub path: Vec<String>
+    pub node_id: DataNodeIdType
 }
 
 

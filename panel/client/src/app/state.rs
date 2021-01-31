@@ -1,4 +1,4 @@
-use common::{DataNode, ServerFetchNodePost};
+use common::{DataNode, DataNodeIdType, ServerFetchNodePost};
 use vertigo::{
     DomDriver,
     FetchMethod,
@@ -10,18 +10,18 @@ use vertigo::{
     },
     // utils::BoxRefCell,
 };
-use std::sync::Arc;
+use std::rc::Rc;
 
 #[derive(PartialEq)]
 struct NodeFetch {
-    path: Vec<String>,
+    node_id: DataNodeIdType,
     driver: DomDriver
 }
 
 impl NodeFetch {
-    fn new(path: Vec<String>, driver: DomDriver) -> NodeFetch {
+    fn new(node_id: DataNodeIdType, driver: DomDriver) -> NodeFetch {
         NodeFetch {
-            path,
+            node_id,
             driver
         }
     }
@@ -29,12 +29,17 @@ impl NodeFetch {
     async fn get(&self) -> Result<DataNode, String> {
         let url = format!("/fetch_node");
         let body = ServerFetchNodePost {
-            path: self.path.clone(),
+            node_id: self.node_id,
         };
         
         let body_str = serde_json::to_string(&body).unwrap();
 
-        let response = self.driver.fetch(FetchMethod::GET, url, None, Some(body_str)).await;
+        let response = self.driver.fetch(
+            FetchMethod::POST,
+            url,
+            None,
+            Some(body_str)
+        ).await;
 
         match response {
             Ok(response) => {
@@ -68,20 +73,43 @@ pub enum Resource<T: PartialEq> {
 struct Node {
     data: Value<DataNode>,
     fetch: NodeFetch,
-    // flag: BoxRefCell<bool>,
+    flag: Value<bool>,
 }
 
 impl Node {
-    fn new(data: Value<DataNode>, fetch: NodeFetch) -> Node {
+    fn new(data: Value<DataNode>, fetch: NodeFetch, flag: Value<bool>) -> Node {
         Node {
             data,
             fetch,
+            flag,
         }
     }
 
     async fn refresh(&self) {
-        //TODO - tutaj trzeba zrobić odświeenie tego elementu
+        let flag = self.flag.get_value();
+        if *flag {
+            return;
+        }
+
+        self.flag.set_value(true);
+
         let new_data = self.fetch.get().await;
+
+        match new_data {
+            Ok(new_data) => {
+                self.data.set_value(new_data);
+            },
+            Err(err) => {
+                log::error!("Refresh error: {}", err);
+            }
+        }
+
+        self.flag.set_value(false);
+    }
+
+    fn title(&self) -> Rc<String> {
+        let node = self.data.get_value();
+        Rc::new(node.title())
     }
 }
 /*
@@ -92,11 +120,9 @@ impl Node {
     
     Vec<numerki>
 
-
     current node --> DataNodeIdType
 
     jesli nie jest wybrana zadna sciezka, to zwracaj 1
-
 
     przestawienie sciezki, to tak naprawde odrzucenie wszystkiego co jest za wskazanym elementem z prawej strony
 */
@@ -104,8 +130,8 @@ impl Node {
 #[derive(PartialEq)]
 pub struct State {
     pub driver: DomDriver,
-    pub current_path: Value<Vec<Arc<String>>>,
-    data: AutoMap<Vec<String>, Resource<Node>>,
+    pub current_path: Value<Vec<DataNodeIdType>>,
+    data: AutoMap<DataNodeIdType, Resource<Node>>,
 }
 
 impl State {
@@ -114,7 +140,7 @@ impl State {
             let root = root.clone();
             let driver = driver.clone();
 
-            move |path: &Vec<String>| -> Computed<Resource<Node>> {
+            move |path: &DataNodeIdType| -> Computed<Resource<Node>> {
                 let value = root.new_value(Resource::Loading);
                 let result = value.to_computed();
     
@@ -129,7 +155,8 @@ impl State {
                         match result {
                             Ok(data_node) => {
                                 let inner_value = root.new_value(data_node);
-                                let node = Node::new(inner_value, node_fetch);
+                                let flag = root.new_value(false);
+                                let node = Node::new(inner_value, node_fetch, flag);
                                 value.set_value(Resource::Ready(node));
                             },
                             Err(err) => {
@@ -143,17 +170,28 @@ impl State {
             }
         };
 
-        let start_path = Vec::new();
-
         root.new_computed_from(State {
             driver: driver.clone(),
-            current_path: root.new_value(start_path),
+            current_path: root.new_value(Vec::new()),
             data: AutoMap::new(feth_node)
         })
     }
 
-    pub fn set_path(&self, new_path: &Vec<Arc<String>>) {
-        self.current_path.set_value(new_path.clone());
+    pub fn node_title(&self, node_id: &DataNodeIdType) -> Option<Rc<String>> {
+        let item = self.data.get_value(node_id);
+        let value = item.get_value();
+
+        if let Resource::Ready(value_resource) = &*value {
+            return Some(value_resource.title());
+        }
+
+        None
+    }
+
+    pub fn set_path(&self, node_id: DataNodeIdType) {
+        let mut current = (*self.current_path.get_value()).clone();
+        current.push(node_id);
+        self.current_path.set_value(current);
     }
 
     //TODO - do celow testowych
@@ -165,7 +203,7 @@ impl State {
         //self.current_path.change
         let mut current = (&*self.current_path.get_value()).clone();
         
-        current.push(Arc::new("cokolwiek".into()));
+        current.push(1);
 
         self.current_path.set_value(current);
     }
