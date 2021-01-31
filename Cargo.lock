@@ -669,6 +669,7 @@ name = "client"
 version = "0.1.0"
 dependencies = [
  "browserdriver",
+ "common",
  "console_error_panic_hook",
  "log",
  "serde",

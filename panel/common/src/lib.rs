@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 pub type TimestampType = u128;
 pub type DataNodeIdType = u64;
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, PartialEq, Debug)]
 pub enum DataNode {
     File {
         id: DataNodeIdType,
@@ -22,6 +22,12 @@ pub enum DataNode {
 pub struct DataPost {
     pub timestamp: TimestampType,
     pub node: DataNode,
+}
+
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct ServerFetchNodePost {
+    pub path: Vec<String>
 }
 
 

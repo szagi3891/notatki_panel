@@ -96,7 +96,7 @@ impl ItemInfo {
         }
     }
 
-    pub async fn lock(&self) -> RwLockWriteGuard<'_, ItemInner> {
+    pub async fn lock<'a>(&'a self) -> RwLockWriteGuard<'a, ItemInner> {
         let lock = self.data.write().await;
         lock
     }

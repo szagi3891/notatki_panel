@@ -1,5 +1,6 @@
 #![feature(async_closure)]
 
+use common::ServerFetchNodePost;
 use warp::{Filter, Reply, http::Response};
 use std::convert::Infallible;
 use std::net::Ipv4Addr;
@@ -53,12 +54,14 @@ fn inject_state<T: Clone + Sized + Send>(state: T) -> impl Filter<Extract = (T,)
     warp::any().map(move || state.clone())
 }
 
-async fn handler_get(id: u64, app_state: Arc<AppState>) -> Result<impl warp::Reply, Infallible> {
+async fn fetch_node(app_state: Arc<AppState>, body_request: ServerFetchNodePost) -> Result<impl warp::Reply, Infallible> {
     let style = "";
     let body = "";
     let response = warp::http::Response::builder()
     .header("content-type", "application/json; charset=utf-8")
     .body(format!("<html><head><style>{}</style></head><body>{}</body></html>", style, body));
+
+    println!("Przyszedł request {:?}", body_request);
 
     Ok(response)
 }
@@ -87,9 +90,7 @@ async fn main() {
 
     let task_synchronize = start_sync(config.git_sync).await;
 
-
     app_state.git.check_root().await.unwrap();           //sprawdź czy istnieje węzeł główny
-
 
     let routes_default = warp::any().map(|| "Websocket server index");
 
@@ -98,9 +99,12 @@ async fn main() {
     let route_index = warp::path::end()
         .and_then(handler_index);
 
-    let route_node_get = warp::path!("node" / u64)
+    let route_node_get =
+        warp::path!("fetch_node")
+        .and(warp::post())
         .and(inject_state(app_state.clone()))
-        .and_then(handler_get);
+        .and(warp::body::json())
+        .and_then(fetch_node);
     
     let routes = route_index
         .or(route_build)
@@ -126,3 +130,45 @@ async fn main() {
 
     task_synchronize.off();
 }
+
+
+/*
+use serde::{Deserialize, Serialize};
+
+pub type DataNodeIdType = u64;
+
+#[derive(Deserialize, Serialize, Debug)]
+pub enum DataNode {
+    File {
+        id: DataNodeIdType,
+        title: String,
+        content: String,
+    },
+    Dir {
+        id: DataNodeIdType,
+        title: String,
+        child: Vec<DataNodeIdType>,         //rozjazdowka na kolejne dzieci z trescia
+    }
+}
+
+fn main() {
+    let g = DataNode::File {
+        id: 444,
+        title: "Moj plik".into(),
+        content: "Dsdasd".into(),
+    };
+
+    println!("dddd... {:?}", g);
+    
+    let gg = serde_json::to_string(&g).unwrap();
+    println!("dsasda ... {:?}", gg);
+    
+    let fff: DataNode = serde_json::from_str(&gg).unwrap();
+    
+    if let DataNode::File { title, .. } = &fff {
+        println!("plik, title={}", title);
+    }
+}
+*/
+
+

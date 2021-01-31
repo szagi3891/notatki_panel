@@ -1,23 +1,49 @@
-use vertigo::{
-    DomDriver,
-    computed::{
+use common::{DataNode, ServerFetchNodePost};
+use vertigo::{DomDriver, FetchMethod, computed::{
         Value,
         Computed,
-        Dependencies
-    }
-};
+        Dependencies,
+        AutoMap
+    }};
+
+#[derive(PartialEq)]
+pub enum Resource<T: PartialEq> {
+    Loading,
+    Ready(T),
+    Failed(String),
+}
+
 
 #[derive(PartialEq)]
 pub struct State {
     pub driver: DomDriver,
     pub current_path: Value<Vec<String>>,
+    data: AutoMap<Vec<String>, Resource<DataNode>>,
 }
 
 impl State {
     pub fn new(root: &Dependencies, driver: &DomDriver) -> Computed<State> {
+        let feth_node = {
+            let root = root.clone();
+            let driver = driver.clone();
+
+            move |path: &Vec<String>| -> Computed<Resource<DataNode>> {
+                let value = root.new_value(Resource::Loading);
+                let result = value.to_computed();
+    
+                fetch_path(&path, value, &driver);
+    
+                result
+            }
+        };
+
+        // let start_path = vec!("aaa".into(), "bbb".into());
+        let start_path = Vec::new();
+
         root.new_computed_from(State {
             driver: driver.clone(),
-            current_path: root.new_value(vec!("aaa".into(), "bbb".into())),
+            current_path: root.new_value(start_path),
+            data: AutoMap::new(feth_node)
         })
     }
 
@@ -34,6 +60,40 @@ impl State {
 
         self.current_path.set_value(current);
     }
+}
+
+fn fetch_path(path: &Vec<String>, value: Value<Resource<DataNode>>, driver: &DomDriver) {
+
+    let url = format!("/fetch_node");
+    let body = ServerFetchNodePost {
+        path: path.clone(),
+    };
+
+    let body_str = serde_json::to_string(&body).unwrap();
+
+    let driver_fetch = driver.clone();
+    driver.spawn_local(async move {
+        let response = driver_fetch.fetch(FetchMethod::GET, url, None, Some(body_str)).await;
+
+        match response {
+            Ok(response) => {
+                match serde_json::from_str::<DataNode>(response.as_str()) {
+                    Ok(branch) => {
+                        log::info!("odpowiedź z serwera {:?}", branch);
+                        value.set_value(Resource::Ready(branch));
+                    },
+                    Err(err) => {
+                        log::error!("Error parsing response: {}", err);
+                        value.set_value(Resource::Failed(err.to_string()));
+                    }
+                }
+            },
+            Err(_) => {
+                log::error!("Error fetch");
+                value.set_value(Resource::Failed("Error fetch".into()));
+            }
+        }
+    });
 }
 
 

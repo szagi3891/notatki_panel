@@ -19,9 +19,25 @@ fn css_header() -> Css {
     ")
 }
 
+fn css_empty_path() -> Css {
+    Css::one("
+        color: blue;
+    ")
+}
+
 pub fn render_header(state: &Computed<State>) -> VDomElement {
     let state = state.get_value();
     let current_path = state.current_path.get_value();
+
+    if current_path.len() == 0 {
+        return html_component! {
+            <div css={css_header()}>
+                <div css={css_empty_path()}>
+                    root
+                </div>
+            </div>
+        };
+    }
 
     let mut path_chunks: Vec<&str> = Vec::new();
     for path_item in current_path.iter() {
