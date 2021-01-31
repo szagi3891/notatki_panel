@@ -1,10 +1,15 @@
 use common::{DataNode, ServerFetchNodePost};
-use vertigo::{DomDriver, FetchMethod, computed::{
+use vertigo::{
+    DomDriver,
+    FetchMethod,
+    computed::{
         Value,
         Computed,
         Dependencies,
         AutoMap
-    }};
+    }
+};
+use std::sync::Arc;
 
 #[derive(PartialEq)]
 pub enum Resource<T: PartialEq> {
@@ -17,7 +22,7 @@ pub enum Resource<T: PartialEq> {
 #[derive(PartialEq)]
 pub struct State {
     pub driver: DomDriver,
-    pub current_path: Value<Vec<String>>,
+    pub current_path: Value<Vec<Arc<String>>>,
     data: AutoMap<Vec<String>, Resource<DataNode>>,
 }
 
@@ -47,6 +52,10 @@ impl State {
         })
     }
 
+    pub fn set_path(&self, new_path: &Vec<Arc<String>>) {
+        self.current_path.set_value(new_path.clone());
+    }
+
     //TODO - do celow testowych
 
     pub fn push_path(&self) {
@@ -56,7 +65,7 @@ impl State {
         //self.current_path.change
         let mut current = (&*self.current_path.get_value()).clone();
         
-        current.push("cokolwiek".into());
+        current.push(Arc::new("cokolwiek".into()));
 
         self.current_path.set_value(current);
     }

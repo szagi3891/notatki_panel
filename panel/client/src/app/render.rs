@@ -9,48 +9,8 @@ use vertigo::{
 use vertigo_html::{html_component, Inline};
 
 use super::state::State;
+use super::render_header::render_header;
 
-fn css_header() -> Css {
-    Css::one("
-        flex-shrink: 0;
-        border-bottom: 1px solid black;
-        line-height: 25px;
-        padding: 0 5px;
-    ")
-}
-
-fn css_empty_path() -> Css {
-    Css::one("
-        color: blue;
-    ")
-}
-
-pub fn render_header(state: &Computed<State>) -> VDomElement {
-    let state = state.get_value();
-    let current_path = state.current_path.get_value();
-
-    if current_path.len() == 0 {
-        return html_component! {
-            <div css={css_header()}>
-                <div css={css_empty_path()}>
-                    root
-                </div>
-            </div>
-        };
-    }
-
-    let mut path_chunks: Vec<&str> = Vec::new();
-    for path_item in current_path.iter() {
-        path_chunks.push(path_item);
-    }
-    let path_for_view = path_chunks.join(" / ");
-
-    html_component! {
-        <div css={css_header()}>
-            { path_for_view }
-        </div>
-    }
-}
 
 fn css_content() -> Css {
     Css::one("
