@@ -85,6 +85,9 @@ impl NodeState {
         }
     }
 
+    /*
+        mozemy bezpiecznie wielokrotnie wywolać tą funkcję. Nieświeze dane zostaną odrzucone
+    */
     pub async fn refresh(&self) {
         let flag = self.flag.get_value();
         if *flag {
@@ -97,7 +100,13 @@ impl NodeState {
 
         match new_data {
             Ok(new_data) => {
-                self.data.set_value(new_data);
+                let current = self.data.get_value();
+
+                if new_data.timestamp > current.timestamp {
+                    self.data.set_value(new_data);
+                } else {
+                    log::warn!("I reject the data on the node because it is stale");
+                }
             },
             Err(err) => {
                 log::error!("Refresh error: {}", err);
