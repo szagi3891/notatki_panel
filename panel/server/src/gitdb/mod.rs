@@ -12,8 +12,11 @@ use crate::utils::time::get_current;
 
 mod item;
 mod dir;
+mod disk;
 
 use item::ItemInfo;
+
+use self::disk::save_node;
 
 #[derive(Debug)]
 pub struct NodeError {
@@ -155,9 +158,12 @@ impl GitDB {
             child: Vec::new(),
         };
 
-        let timestamp = get_current();
+        save_node(&self.dir_path, &next_id, node).await;
 
-        self.save(next_id, timestamp, node).await?;
+        let item = self.get_or_create(parent_id).await;
+        let lock = item.lock().await;
+
+        lock.add_child(next_id).await?;
 
         Ok(next_id)
     }

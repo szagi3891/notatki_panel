@@ -7,13 +7,8 @@ use common::{
     TimestampType,
 };
 
-use super::{NodeError, dir::{get_dir, get_path}};
+use super::{NodeError, dir::{get_dir, get_path}, disk::save_node};
 use tokio::sync::RwLockWriteGuard;
-
-fn get_timestamp() -> u128 {
-    use std::time::{SystemTime};
-    SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_millis()
-}
 
 
 pub struct ItemInner {
@@ -59,15 +54,25 @@ impl ItemInner {
         Ok(result)
     }
 
+    pub async fn add_child(&self, child_id: DataNodeIdType) -> Result<(), NodeError> {
+        let mut data = self.get().await?.node;
+
+        match &mut data {
+            DataNode::Dir { child, .. } => {
+                child.push(child_id);
+            },
+            DataNode::File { .. } => {
+                panic!("nie mozna dodac dziecka do pliku");
+            }
+        }
+
+        self.save(data).await;
+
+        Ok(())
+    }
+
     pub async fn save(&self, node: DataNode) {
-        let file = get_path(&self.dir_path, &self.id);
-
-        let data_to_save = serde_json::to_string(&DataPost {
-            timestamp: get_timestamp(),
-            node,
-        }).unwrap();
-
-        tokio::fs::write(file, data_to_save).await.unwrap();
+        save_node(&self.dir_path, &self.id, node).await;
     }
 
     pub async fn create_empty_dir_if_not_exist(&self, name: &str) {
