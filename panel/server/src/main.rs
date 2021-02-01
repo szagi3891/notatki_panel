@@ -71,7 +71,7 @@ async fn handler_fetch_node(app_state: Arc<AppState>, body_request: PostParamsFe
         Err(err) => {
             let response = Response::builder()
                 .status(500)
-                .body(format!("error = {}", err));
+                .body(format!("error = {:?}", err));
 
             Ok(response)
         }
@@ -113,7 +113,7 @@ async fn main() {
 
     let task_synchronize = start_sync(config.git_sync).await;
 
-    app_state.git.check_root().await.unwrap();           //sprawdź czy istnieje węzeł główny
+    app_state.git.check_root().await;           //sprawdź czy istnieje węzeł główny
 
     let route_index =
         warp::path::end()

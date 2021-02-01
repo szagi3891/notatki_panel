@@ -20,6 +20,7 @@ pub struct State {
     pub driver: DomDriver,
     pub current_path: Value<Vec<DataNodeIdType>>,
     data: AutoMap<DataNodeIdType, Resource<NodeState>>,
+    current_node: Computed<DataNodeIdType>,
 }
 
 impl State {
@@ -42,9 +43,7 @@ impl State {
 
                         match result {
                             Ok(data_node) => {
-                                let inner_value = root.new_value(data_node);
-                                let flag = root.new_value(false);
-                                let node = NodeState::new(inner_value, node_fetch, flag);
+                                let node = NodeState::new(root, node_fetch, data_node);
                                 value.set_value(Resource::Ready(node));
                             },
                             Err(err) => {
@@ -58,10 +57,28 @@ impl State {
             }
         };
 
+        let current_path = root.new_value(Vec::<DataNodeIdType>::new());
+
+        let current_node = {
+            let current_path = current_path.to_computed();
+            root.from::<DataNodeIdType, _>(move || -> DataNodeIdType {
+                let current_path = current_path.get_value();
+                let inner = &*current_path;
+                let last = inner.last();
+
+                if let Some(last) = last {
+                    return *last;
+                }
+
+                return 1;
+            })
+        };
+
         root.new_computed_from(State {
             driver: driver.clone(),
-            current_path: root.new_value(Vec::new()),
-            data: AutoMap::new(feth_node)
+            current_path,
+            data: AutoMap::new(feth_node),
+            current_node
         })
     }
 
@@ -81,12 +98,23 @@ impl State {
         current.push(node_id);
         self.current_path.set_value(current);
     }
+
+    pub fn create_dir(&self, name: String) {
+        let node = self.current_node.get_value();
+        let item = self.data.get_value(&*node).get_value();
+        
+        self.driver.spawn_local(async move {
+            if let Resource::Ready(item) = &*item {
+                item.create_dir(name).await;
+            } else {
+                log::error!("Błąd przy tworzeniu katalogu");
+            }
+        });
+    }
 }
 
 /*
 dodać zakładki
-
-
     zakładka1: notatki
     zakładka2: parsowanie urla ...
 

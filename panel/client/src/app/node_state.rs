@@ -1,15 +1,5 @@
-use common::{
-    DataPost,
-    DataNodeIdType,
-    PostParamsFetchNodePost
-};
-use vertigo::{
-    DomDriver,
-    FetchMethod,
-    computed::{
-        Value,
-    },
-};
+use common::{DataNodeIdType, DataPost, PostParamsCreateDir, PostParamsFetchNodePost};
+use vertigo::{DomDriver, FetchMethod, computed::{Dependencies, Value}};
 use std::rc::Rc;
 
 #[derive(PartialEq)]
@@ -60,6 +50,39 @@ impl NodeFetch {
             }
         }
     }
+
+    pub async fn create_dir(&self, name: String) {
+        let url = format!("/create_dir");
+        let body = PostParamsCreateDir {
+            parent_node: self.node_id,
+            name,
+        };
+        
+        let body_str = serde_json::to_string(&body).unwrap();
+
+        let response = self.driver.fetch(
+            FetchMethod::POST,
+            url,
+            None,
+            Some(body_str)
+        ).await;
+
+        match response {
+            Ok(response) => {
+                match serde_json::from_str::<DataNodeIdType>(response.as_str()) {
+                    Ok(new_id) => {
+                        log::info!("Utworzono katalog {:?}", new_id);
+                    },
+                    Err(err) => {
+                        log::error!("Error parsing response: {}", err);
+                    }
+                }
+            },
+            Err(_) => {
+                log::error!("Error fetch");
+            }
+        }
+    }
 }
 
 #[derive(PartialEq)]
@@ -70,32 +93,33 @@ pub enum Resource<T: PartialEq> {
 }
 
 #[derive(PartialEq)]
+pub enum CurrentAction {
+    CreateDir,
+}
+
+#[derive(PartialEq)]
 pub struct NodeState {
     data: Value<DataPost>,
     fetch: NodeFetch,
-    flag: Value<bool>,
+    action: Value<Option<CurrentAction>>,
 }
 
 impl NodeState {
-    pub fn new(data: Value<DataPost>, fetch: NodeFetch, flag: Value<bool>) -> NodeState {
+    pub fn new(root: Dependencies, fetch: NodeFetch, data: DataPost) -> NodeState {
+        let data = root.new_value(data);
+        let action = root.new_value(None);
+
         NodeState {
             data,
             fetch,
-            flag,
+            action,
         }
     }
 
     /*
         mozemy bezpiecznie wielokrotnie wywolać tą funkcję. Nieświeze dane zostaną odrzucone
     */
-    pub async fn refresh(&self) {
-        let flag = self.flag.get_value();
-        if *flag {
-            return;
-        }
-
-        self.flag.set_value(true);
-
+    async fn refresh(&self) {
         let new_data = self.fetch.get().await;
 
         match new_data {
@@ -112,12 +136,23 @@ impl NodeState {
                 log::error!("Refresh error: {}", err);
             }
         }
-
-        self.flag.set_value(false);
     }
 
     pub fn title(&self) -> Rc<String> {
         let node = self.data.get_value();
         Rc::new(node.node.title())
+    }
+
+    pub async fn create_dir(&self, name: String) {
+        if self.action.get_value().is_some() {
+            return;
+        }
+
+        self.action.set_value(Some(CurrentAction::CreateDir));
+
+        self.fetch.create_dir(name).await;
+        self.refresh().await;
+
+        self.action.set_value(None);
     }
 }

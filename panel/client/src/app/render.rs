@@ -36,10 +36,18 @@ fn css_content_content() -> Css {
 }
 
 pub fn render_content(state: &Computed<State>) -> VDomElement {
+    let on_create = {
+        let state = state.clone();
+        move || {
+            state.get_value().create_dir("Jakiś".into());
+        }
+    };
+
     html_component! {
         <div css={css_content()}>
             <div css={css_content_list()}>
-                lista plikow
+                <div onClick={on_create}>utwórz katalog</div>
+                <div>lista plikow</div>
             </div>
             <div css={css_content_content()}>
                 content ...

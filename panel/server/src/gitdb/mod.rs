@@ -16,23 +16,20 @@ mod dir;
 use item::ItemInfo;
 
 #[derive(Debug)]
-pub enum SaveError {
-    Error(std::io::Error),
-    OutdatedTimestamp,
-    IncorrectRootNode
+pub struct NodeError {
+    path: String,
+    message: String,
 }
 
-impl From<std::io::Error> for SaveError {
-    fn from(error: std::io::Error) -> Self {
-        SaveError::Error(error)
+impl NodeError {
+    pub fn new<T: Into<String>>(path: String, message: T) -> NodeError {
+        NodeError {
+            path,
+            message: message.into(),
+        }
     }
 }
 
-impl From<serde_json::error::Error> for SaveError {
-    fn from(error: serde_json::error::Error) -> Self {
-        SaveError::Error(error.into())
-    }
-}
 
 struct Autoid {
     path: String,
@@ -100,42 +97,40 @@ impl GitDB {
         new_item
     }
 
-    pub async fn get(&self, id: DataNodeIdType) -> Result<DataPost, std::io::Error> {
+    pub async fn get(&self, id: DataNodeIdType) -> Result<DataPost, NodeError> {
         let item = self.get_or_create(id).await;
         let lock = item.lock().await;
         let result = lock.get().await?;
         Ok(result)
     }
 
-    pub async fn save(&self, id: DataNodeIdType, timestamp: TimestampType, node: DataNode) -> Result<(), SaveError> {
+    pub async fn save(&self, id: DataNodeIdType, timestamp: TimestampType, node: DataNode) -> Result<(), NodeError> {
         let data_post = self.get(id).await?;
 
         let item = self.get_or_create(id).await;
         let lock = item.lock().await;
 
         if data_post.timestamp != timestamp {
-            return Err(SaveError::OutdatedTimestamp);
+            return Err(NodeError::new(format!("node: {}", id), "OutdatedTimestamp"));
         }
 
-        lock.create_base_dir().await?;
-        lock.save(node).await?;
+        lock.create_base_dir().await;
+        lock.save(node).await;
 
         Ok(())
     }
 
-    pub async fn check_root(&self) -> Result<(), SaveError> {
+    pub async fn check_root(&self) {
         let root_id = 1;
     
         let item = self.get_or_create(root_id).await;
         let inner = item.lock().await;
 
-        inner.create_base_dir().await?;
-        inner.create_empty_dir_if_not_exist("root").await?;
-
-        Ok(())
+        inner.create_base_dir().await;
+        inner.create_empty_dir_if_not_exist("root").await;
     }
 
-    pub async fn create_file(&self, parent_id: DataNodeIdType, name: String) -> Result<DataNodeIdType, SaveError> {
+    pub async fn create_file(&self, parent_id: DataNodeIdType, name: String) -> Result<DataNodeIdType, NodeError> {
         let next_id = self.get_next_id().await;
 
         let node = DataNode::File {
@@ -151,7 +146,7 @@ impl GitDB {
         Ok(next_id)
     }
 
-    pub async fn create_dir(&self, parent_id: DataNodeIdType, name: String) -> Result<DataNodeIdType, SaveError> {
+    pub async fn create_dir(&self, parent_id: DataNodeIdType, name: String) -> Result<DataNodeIdType, NodeError> {
         let next_id = self.get_next_id().await;
 
         let node = DataNode::Dir {
