@@ -37,10 +37,15 @@ pub struct DataPost {
 }
 
 #[derive(Deserialize, Serialize, Debug)]
-pub struct ServerFetchNodePost {
+pub struct PostParamsFetchNodePost {
     pub node_id: DataNodeIdType
 }
 
+#[derive(Deserialize, Serialize, Debug)]
+pub struct PostParamsCreateDir {
+    pub parent_node: DataNodeIdType,
+    pub name: String,
+}
 
 /*
 domyślny korzeń od którego się zaczyna wszystko

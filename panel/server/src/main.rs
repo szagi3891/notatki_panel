@@ -1,6 +1,6 @@
 #![feature(async_closure)]
 
-use common::ServerFetchNodePost;
+use common::{PostParamsCreateDir, PostParamsFetchNodePost};
 use warp::{Filter, Reply, http::Response};
 use std::convert::Infallible;
 use std::net::Ipv4Addr;
@@ -54,7 +54,7 @@ async fn handler_index() -> Result<impl Reply, Infallible> {
 "##))
 }
 
-async fn fetch_node(app_state: Arc<AppState>, body_request: ServerFetchNodePost) -> Result<impl warp::Reply, Infallible> {
+async fn handler_fetch_node(app_state: Arc<AppState>, body_request: PostParamsFetchNodePost) -> Result<impl warp::Reply, Infallible> {
     let node_id = body_request.node_id;
 
     let data = app_state.git.get(node_id).await;
@@ -78,6 +78,27 @@ async fn fetch_node(app_state: Arc<AppState>, body_request: ServerFetchNodePost)
     }
 }
 
+async fn handler_create_dir(app_state: Arc<AppState>, body: PostParamsCreateDir) -> Result<impl warp::Reply, Infallible> {
+    let new_id = app_state.git.create_dir(body.parent_node, body.name).await;
+
+    match new_id {
+        Ok(new_id) => {
+            let message = serde_json::to_string(&new_id).unwrap();
+
+            let response = Response::builder()
+                .status(200)
+                .body(message);
+            Ok(response)
+        },
+        Err(err) => {
+            let response = Response::builder()
+                .status(500)
+                .body(format!("error dir create = {:?}", err));
+
+            Ok(response)
+        }
+    }
+}
 #[tokio::main]
 async fn main() {
     pretty_env_logger::init();
@@ -102,12 +123,19 @@ async fn main() {
         warp::path("build")
         .and(warp::fs::dir("build"));
 
-    let route_node_get =
+    let filter_fetch_node =
         warp::path!("fetch_node")
         .and(warp::post())
         .and(inject_state(app_state.clone()))
         .and(warp::body::json())
-        .and_then(fetch_node);
+        .and_then(handler_fetch_node);
+
+    let filter_create_dir =
+        warp::path!("create_dir")
+        .and(warp::post())
+        .and(inject_state(app_state.clone()))
+        .and(warp::body::json())
+        .and_then(handler_create_dir);
     
     let routes_default =
         warp::any()
@@ -120,7 +148,8 @@ async fn main() {
     let routes =
         route_index
         .or(route_build)
-        .or(route_node_get)
+        .or(filter_fetch_node)
+        .or(filter_create_dir)
         .or(routes_default)
     ;
 

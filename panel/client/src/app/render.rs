@@ -36,19 +36,12 @@ fn css_content_content() -> Css {
 }
 
 pub fn render_content(state: &Computed<State>) -> VDomElement {
-    let content_click = {
-        let state = state.get_value();
-        move || {
-            state.push_path();
-        }
-    };
-
     html_component! {
         <div css={css_content()}>
             <div css={css_content_list()}>
                 lista plikow
             </div>
-            <div css={css_content_content()} onClick={content_click}>
+            <div css={css_content_content()}>
                 content ...
             </div>
         </div>

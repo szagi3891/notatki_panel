@@ -135,7 +135,7 @@ impl GitDB {
         Ok(())
     }
 
-    pub async fn create_file(&self, parent_id: DataNodeIdType, name: String) -> Result<(), SaveError> {
+    pub async fn create_file(&self, parent_id: DataNodeIdType, name: String) -> Result<DataNodeIdType, SaveError> {
         let next_id = self.get_next_id().await;
 
         let node = DataNode::File {
@@ -146,6 +146,24 @@ impl GitDB {
 
         let timestamp = get_current();
 
-        self.save(next_id, timestamp, node).await
+        self.save(next_id, timestamp, node).await?;
+
+        Ok(next_id)
+    }
+
+    pub async fn create_dir(&self, parent_id: DataNodeIdType, name: String) -> Result<DataNodeIdType, SaveError> {
+        let next_id = self.get_next_id().await;
+
+        let node = DataNode::Dir {
+            id: next_id,
+            title: name,
+            child: Vec::new(),
+        };
+
+        let timestamp = get_current();
+
+        self.save(next_id, timestamp, node).await?;
+
+        Ok(next_id)
     }
 }
