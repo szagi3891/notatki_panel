@@ -17,7 +17,7 @@ pub struct ItemInner {
 }
 
 impl ItemInner {    
-    pub async fn save(&self, node: DataNode) {
+    async fn save(&self, node: DataNode) {
         save_node(&self.dir_path, &self.id, node).await;
     }
 
@@ -48,6 +48,18 @@ impl ItemInner {
         };
 
         Ok(result)
+    }
+
+    pub async fn save_with_check_timestamp(&self, timestamp: TimestampType, node: DataNode) -> Result<(), NodeError> {
+        let data_post = self.get().await?;
+
+        if data_post.timestamp != timestamp {
+            return Err(NodeError::new(format!("node: {}", self.id), "OutdatedTimestamp"));
+        }
+
+        self.save(node).await;
+
+        Ok(())
     }
 
     pub async fn add_child(&self, child_id: DataNodeIdType) -> Result<(), NodeError> {

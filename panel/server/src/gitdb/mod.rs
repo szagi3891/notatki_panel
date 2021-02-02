@@ -47,6 +47,7 @@ impl Autoid {
         }
     }
 
+    //musi być mut
     pub async fn get_next_id(&mut self) -> DataNodeIdType {
         let data = fs::read_to_string(&self.path).await.unwrap();
 
@@ -87,7 +88,7 @@ impl GitDB {
         let next_id = (*lock).get_next_id().await;
         next_id
     }
-
+ 
     async fn get_or_create(&self, id: DataNodeIdType) -> ItemInfo {
         let mut lock = self.data.write().await;
 
@@ -108,26 +109,16 @@ impl GitDB {
     }
 
     pub async fn save(&self, id: DataNodeIdType, timestamp: TimestampType, node: DataNode) -> Result<(), NodeError> {
-        let data_post = self.get(id).await?;
-
         let item = self.get_or_create(id).await;
         let lock = item.lock().await;
-
-        if data_post.timestamp != timestamp {
-            return Err(NodeError::new(format!("node: {}", id), "OutdatedTimestamp"));
-        }
-
-        lock.save(node).await;
-
+        lock.save_with_check_timestamp(timestamp, node).await?;
         Ok(())
     }
 
     pub async fn check_root(&self) {
         let root_id = 1;
-    
         let item = self.get_or_create(root_id).await;
         let inner = item.lock().await;
-
         inner.create_empty_dir_if_not_exist("root").await;
     }
 
