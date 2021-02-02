@@ -5,7 +5,7 @@ use common::{
     DataPost,
 };
 
-use crate::utils::time::get_current;
+use crate::utils::time::get_current_timestamp;
 use super::dir::{get_path, get_dir};
 
 pub async fn save_node(dir_path: &Arc<String>, id: &DataNodeIdType, node: DataNode) {
@@ -15,7 +15,7 @@ pub async fn save_node(dir_path: &Arc<String>, id: &DataNodeIdType, node: DataNo
     let file = get_path(&dir_path, &id);
 
     let data_to_save = serde_json::to_string(&DataPost {
-        timestamp: get_current(),
+        timestamp: get_current_timestamp(),
         node,
     }).unwrap();
 

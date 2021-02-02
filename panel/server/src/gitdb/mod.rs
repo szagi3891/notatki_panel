@@ -8,7 +8,7 @@ use common::{
     DataPost,
     DataNode,
 };
-use crate::utils::time::get_current;
+use crate::utils::time::get_current_timestamp;
 
 mod item;
 mod dir;
@@ -140,7 +140,7 @@ impl GitDB {
             content: "".into(),
         };
 
-        let timestamp = get_current();
+        let timestamp = get_current_timestamp();
 
         self.save(next_id, timestamp, node).await?;
 
