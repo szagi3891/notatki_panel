@@ -117,7 +117,6 @@ impl GitDB {
             return Err(NodeError::new(format!("node: {}", id), "OutdatedTimestamp"));
         }
 
-        lock.create_base_dir().await;
         lock.save(node).await;
 
         Ok(())
@@ -129,7 +128,6 @@ impl GitDB {
         let item = self.get_or_create(root_id).await;
         let inner = item.lock().await;
 
-        inner.create_base_dir().await;
         inner.create_empty_dir_if_not_exist("root").await;
     }
 

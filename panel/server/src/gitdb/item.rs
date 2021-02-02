@@ -7,7 +7,7 @@ use common::{
     TimestampType,
 };
 
-use super::{NodeError, dir::{get_dir, get_path}, disk::save_node};
+use super::{NodeError, dir::get_path, disk::save_node};
 use tokio::sync::RwLockWriteGuard;
 
 
@@ -16,25 +16,21 @@ pub struct ItemInner {
     id: DataNodeIdType,
 }
 
-impl ItemInner {
-    pub async fn create_base_dir(&self) {
-        let dir = get_dir(&self.dir_path, &self.id);
-        tokio::fs::create_dir_all(dir).await.unwrap();
+impl ItemInner {    
+    pub async fn save(&self, node: DataNode) {
+        save_node(&self.dir_path, &self.id, node).await;
     }
 
     pub async fn get(&self) -> Result<DataPost, NodeError> {
         let file_path = get_path(&self.dir_path, &self.id);
 
-        let file_path1 = file_path.clone();
-        let file_path2 = file_path.clone();
-
-        let data = tokio::fs::read(file_path).await;
+        let data = tokio::fs::read(&file_path).await;
 
         let data = match data {
             Ok(data) => data,
             Err(err) => {
                 return Err(NodeError::new(
-                    format!("read path: {}", file_path1),
+                    format!("read path: {}", file_path),
                     format!("{}", err))
                 );
             }
@@ -45,7 +41,7 @@ impl ItemInner {
             Ok(result) => result,
             Err(err) => {
                 return Err(NodeError::new(
-                    format!("path: {}", file_path2),
+                    format!("path: {}", file_path),
                     format!("{}", err))
                 );
             }
@@ -69,10 +65,6 @@ impl ItemInner {
         self.save(data).await;
 
         Ok(())
-    }
-
-    pub async fn save(&self, node: DataNode) {
-        save_node(&self.dir_path, &self.id, node).await;
     }
 
     pub async fn create_empty_dir_if_not_exist(&self, name: &str) {
