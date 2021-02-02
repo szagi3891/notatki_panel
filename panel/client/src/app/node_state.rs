@@ -1,4 +1,4 @@
-use common::{DataNodeIdType, DataPost, PostParamsCreateDir, PostParamsFetchNodePost};
+use common::{DataNodeIdType, DataNode, DataPost, PostParamsCreateDir, PostParamsFetchNodePost};
 use vertigo::{DomDriver, FetchMethod, computed::{Dependencies, Value}};
 use std::rc::Rc;
 
@@ -92,6 +92,16 @@ pub enum Resource<T: PartialEq> {
     Failed(String),
 }
 
+impl<T: PartialEq> Resource<T> {
+    pub fn map<K: PartialEq, F: Fn(T) -> K>(self, map: F) -> Resource<K> {
+        match self {
+            Resource::Loading => Resource::Loading,
+            Resource::Ready(data) => Resource::Ready(map(data)),
+            Resource::Failed(error) => Resource::Failed(error),
+        }
+    }
+}
+
 #[derive(PartialEq)]
 pub enum CurrentAction {
     CreateDir,
@@ -141,6 +151,17 @@ impl NodeState {
     pub fn title(&self) -> Rc<String> {
         let node = self.data.get_value();
         Rc::new(node.node.title())
+    }
+
+    pub fn child(&self) -> Option<Vec<DataNodeIdType>> {
+        let node = self.data.get_value();
+
+        let data_node = &node.node;
+        
+        match &data_node {
+            DataNode::Dir { child, .. } => Some(child.clone()),
+            DataNode::File { .. } => None,
+        }
     }
 
     pub async fn create_dir(&self, name: String) {

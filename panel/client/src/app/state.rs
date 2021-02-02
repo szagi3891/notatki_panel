@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use common::DataNodeIdType;
 use vertigo::{
     DomDriver,
@@ -15,12 +16,15 @@ use super::node_state::{
     NodeFetch
 };
 
+static ROOT_ID: u64 = 1;
+
 #[derive(PartialEq)]
 pub struct State {
     pub driver: DomDriver,
     pub current_path: Value<Vec<DataNodeIdType>>,
-    data: AutoMap<DataNodeIdType, Resource<NodeState>>,
-    current_node: Computed<DataNodeIdType>,
+    data: Arc<AutoMap<DataNodeIdType, Resource<NodeState>>>,
+    current_node: Computed<DataNodeIdType>,                         //id aktualnie wybranego węzła
+    pub list: Computed<Resource<Vec<DataNodeIdType>>>,                  //lista plików i katalogów w lewym panelu
 }
 
 impl State {
@@ -57,6 +61,8 @@ impl State {
             }
         };
 
+        let data = Arc::new(AutoMap::new(feth_node));
+
         let current_path = root.new_value(Vec::<DataNodeIdType>::new());
 
         let current_node = {
@@ -70,15 +76,78 @@ impl State {
                     return *last;
                 }
 
-                return 1;
+                return ROOT_ID;
+            })
+        };
+
+        let list = {
+            let current_path = current_path.to_computed();
+            let data = data.clone();
+
+            let get_child = move |node: &u64| -> Resource<Option<Vec<DataNodeIdType>>> {
+                let current_item = data.get_value(node).get_value();
+
+                match current_item.as_ref() {
+                    Resource::Loading => {
+                        return Resource::Loading;
+                    },
+                    Resource::Ready(data) => {
+                        match data.child() {
+                            Some(data) => Resource::Ready(Some(data)),
+                            None => Resource::Ready(None),
+                        }
+                    },
+                    Resource::Failed(mess) => {
+                        return Resource::Failed(mess.clone());
+                    }
+                }
+            };
+
+            root.from::<Resource<Vec<DataNodeIdType>>, _>(move || -> Resource<Vec<DataNodeIdType>> {
+                let current_path = current_path.get_value();
+
+                if current_path.len() == 0 {
+                    return get_child(&ROOT_ID).map(|item| {
+                        match item {
+                            Some(list) => list,
+                            None => Vec::new()
+                        }
+                    });
+                }
+
+                for item in current_path.iter().rev() {
+                    let child = get_child(item);
+
+                    match child {
+                        Resource::Loading => {
+                            return Resource::Loading;
+                        }
+                        Resource::Ready(data) => {
+                            match data {
+                                Some(data) => {
+                                    return Resource::Ready(data);
+                                },
+                                None => {
+                                    continue;
+                                }
+                            }
+                        },
+                        Resource::Failed(mess) => {
+                            return Resource::Failed(mess);
+                        }
+                    }
+                }
+
+                return Resource::Failed("Empty path (2)".into());
             })
         };
 
         root.new_computed_from(State {
             driver: driver.clone(),
             current_path,
-            data: AutoMap::new(feth_node),
-            current_node
+            data,
+            current_node,
+            list
         })
     }
 
