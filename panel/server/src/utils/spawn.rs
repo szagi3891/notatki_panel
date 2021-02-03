@@ -1,25 +1,15 @@
-use tokio::task;
+use tokio::task::{self, JoinHandle};
 use std::future::Future;
-use futures::future::{Abortable, AbortHandle};
 use tokio::sync::oneshot::channel;
 
-fn spawn_future_with_abort(fut: impl Future<Output=()> + Send + 'static) -> AbortHandle {
-    let (abort_handle, abort_registration) = AbortHandle::new_pair();
-    let future = Abortable::new(fut, abort_registration);
-
-    task::spawn(future);
-
-    abort_handle
-}
-
 pub struct SpawnOwner {
-    abort_handle: AbortHandle,
+    handler: JoinHandle<()>,
 }
 
 impl SpawnOwner {
-    pub fn new(fut: impl Future<Output=()> + Send + 'static) -> SpawnOwner {
+    pub fn new(future: impl Future<Output=()> + Send + 'static) -> SpawnOwner {
         SpawnOwner {
-            abort_handle: spawn_future_with_abort(fut),
+            handler: task::spawn(future)
         }
     }
 
@@ -29,7 +19,7 @@ impl SpawnOwner {
 
 impl Drop for SpawnOwner {
     fn drop(&mut self) {
-        self.abort_handle.abort();
+        self.handler.abort();
     }
 }
 

@@ -1,4 +1,3 @@
-#![feature(async_closure)]
 
 use common::{PostParamsCreateDir, PostParamsFetchNodePost};
 use warp::{Filter, Reply, http::Response};
