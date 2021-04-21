@@ -6,11 +6,11 @@ use vertigo::{
     }
 };
 
-use vertigo_html::{html_component};
+use vertigo_html::{html, css};
 use super::state::State;
 
 fn css_footer() -> Css {
-    Css::one("
+    css!("
         flex-shrink: 0;
         line-height: 25px;
         padding: 0 5px;
@@ -18,9 +18,9 @@ fn css_footer() -> Css {
 }
 
 pub fn render_footer(state: &Computed<State>) -> VDomElement {
-    html_component! {
+    html! {"
         <div css={css_footer()}>
             Lista plików które zostały zmodyfikowane ale nie zapisane
         </div>
-    }
+    "}
 }

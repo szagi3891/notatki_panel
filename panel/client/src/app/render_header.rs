@@ -3,16 +3,15 @@ use common::DataNodeIdType;
 use vertigo::{
     VDomElement,
     Css,
-    node_attr::NodeAttr,
     computed::{
         Computed,
     }
 };
-use vertigo_html::{html_component, Inline, html_element};
+use vertigo_html::{html, css};
 use super::state::State;
 
 fn css_header() -> Css {
-    Css::one("
+    css!("
         flex-shrink: 0;
         display: flex;
         border-bottom: 1px solid black;
@@ -34,28 +33,28 @@ fn css_active(is_active: bool) -> &'static str {
 }
 
 fn css_root(is_active: bool) -> Css {
-    let mut css = Css::one("
+    let css = css!("
         color: blue;
         margin-right: 5px;
     ");
 
-    css.str(css_active(is_active));
+    let css = css.push_str(css_active(is_active));
 
     css
 }
 
 fn css_item(is_active: bool) -> Css {
-    let mut css = Css::one("
+    let css = css!("
         color: black;
         margin-right: 5px;
     ");
 
-    css.str(css_active(is_active));
+    let css = css.push_str(css_active(is_active));
 
     css
 }
 
-fn create_link(state: &Rc<State>, node_id: DataNodeIdType, create_css: fn(bool) -> Css, is_active: bool) -> NodeAttr {
+fn create_link(state: &Rc<State>, node_id: DataNodeIdType, create_css: fn(bool) -> Css, is_active: bool) -> VDomElement {
     let title = state.node_title(&node_id);
 
 
@@ -72,11 +71,11 @@ fn create_link(state: &Rc<State>, node_id: DataNodeIdType, create_css: fn(bool) 
     if is_active {
         let css = create_css(true);
 
-        return html_element! {
+        return html! {"
             <div css={css}>
                 { title }
             </div>
-        };
+        "};
     }
 
     let on_click = {
@@ -88,11 +87,11 @@ fn create_link(state: &Rc<State>, node_id: DataNodeIdType, create_css: fn(bool) 
 
     let css = create_css(false);
 
-    html_element! {
+    html! {"
         <div css={css} onClick={on_click}>
             { title }
         </div>
-    }
+    "}
 }
 
 pub fn render_header(state: &Computed<State>) -> VDomElement {
@@ -101,7 +100,7 @@ pub fn render_header(state: &Computed<State>) -> VDomElement {
     let current_path = state.current_path.get_value();
     let all_items = current_path.len();
 
-    let mut out: Vec<NodeAttr> = Vec::new();
+    let mut out: Vec<VDomElement> = Vec::new();
 
     let root_is_active = all_items == 0;
     out.push(create_link(&state, 1, css_root, root_is_active));
@@ -111,9 +110,9 @@ pub fn render_header(state: &Computed<State>) -> VDomElement {
         out.push(create_link(&state, item.clone(), css_item, is_active));
     }
 
-    html_component! {
+    html! {"
         <div css={css_header()}>
             { ..out }
         </div>
-    }
+    "}
 }

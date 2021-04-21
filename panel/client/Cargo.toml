@@ -11,27 +11,26 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 console_error_panic_hook = "0.1.6"
-log = "0.4.11"
-wasm-bindgen = {version = "0.2.70", features = ["nightly"]}
-wasm-bindgen-futures = "0.4.20"
+log = "0.4.14"
+wasm-bindgen = {version = "0.2.73", features = ["nightly"]}
+wasm-bindgen-futures = "0.4.23"
 wasm-logger = "0.2.0"
 wee_alloc = "0.4.5"
 
-vertigo = { git="https://github.com/vertigo-web/vertigo" }
-browserdriver = { git = "https://github.com/vertigo-web/vertigo" }
-vertigo-html = { git = "https://github.com/vertigo-web/vertigo" }
+#vertigo = { git="https://github.com/vertigo-web/vertigo" }
+#browserdriver = { git = "https://github.com/vertigo-web/vertigo" }
+#vertigo-html = { git = "https://github.com/vertigo-web/vertigo" }
 
-#vertigo = { path = "../../../../Projekty/vertigo/crates/vertigo" }
-#browserdriver = { path = "../../../../Projekty/vertigo/crates/browserdriver" }
-#vertigo-html = { path = "../../../../Projekty/vertigo/crates/vertigo-html" }
+vertigo = { path = "../../../vertigo/crates/vertigo" }
+vertigo-browserdriver = { path = "../../../vertigo/crates/vertigo-browserdriver" }
+vertigo-html = { path = "../../../vertigo/crates/vertigo-html" }
 
-serde = { version = "1.0.80", features = ["derive"] }
-serde_json = "1.0.60"
+serde = { version = "1.0.125", features = ["derive"] }
+serde_json = "1.0.64"
 
-
-common={path="../common"}
+common={ path="../common" }
 
 #for run
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-structopt = "0.3"
+structopt = "0.3.21"
 wasm-run = "0.8.1"

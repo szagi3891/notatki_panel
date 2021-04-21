@@ -1,12 +1,11 @@
 use vertigo::{
     VDomElement,
-    Css,
     computed::{
         Computed,
     }
 };
 
-use vertigo_html::{html_component, Inline};
+use vertigo_html::html;
 
 use super::{node_state::Resource, state::State};
 
@@ -22,11 +21,11 @@ fn render_list_33(state: &Computed<State>) -> VDomElement {
 
     match &*list {
         Resource::Loading => {
-            html_component! {
+            html! {"
                 <div>
                     Loading ...
                 </div>
-            }
+            "}
         },
         Resource::Ready(data) => {
             let ids = data
@@ -35,11 +34,11 @@ fn render_list_33(state: &Computed<State>) -> VDomElement {
                 .collect::<Vec<String>>()
                 .join(",");
 
-            html_component! {
+            html! {"
                 <div>
                     ready ==== TODO {ids}
                 </div>
-            }
+            "}
         },
         Resource::Failed(err) => {
             todo!();
@@ -59,11 +58,11 @@ pub fn render_list(state: &Computed<State>) -> VDomElement {
     let state_value = state.get_value();
 
     // state_value.
-    html_component! {
+    html! {"
         <div>
             <div onClick={on_create}>utwórz katalog</div>
             <div>lista plikow</div>
             <component {render_list_33} data={state.clone()} />
         </div>
-    }
+    "}
 }

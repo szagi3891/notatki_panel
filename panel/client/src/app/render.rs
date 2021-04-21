@@ -6,7 +6,7 @@ use vertigo::{
     }
 };
 
-use vertigo_html::{html_component, Inline};
+use vertigo_html::{html, css};
 
 use super::state::State;
 use super::render_header::render_header;
@@ -14,7 +14,7 @@ use super::render_list::render_list;
 use super::render_footer::render_footer;
 
 fn css_wrapper() -> Css {
-    Css::one("
+    css!("
         display: flex;
         flex-direction: column;
         border: 1px solid black;
@@ -27,7 +27,7 @@ fn css_wrapper() -> Css {
 }
 
 fn css_content() -> Css {
-    Css::one("
+    css!("
         flex-grow: 1;
         display: flex;
         border-bottom: 1px solid black;
@@ -35,7 +35,7 @@ fn css_content() -> Css {
 }
 
 fn css_content_list() -> Css {
-    Css::one("
+    css!("
         flex-grow: 1;
         border-right: 1px solid black;
         padding: 5px;
@@ -43,7 +43,7 @@ fn css_content_list() -> Css {
 }
 
 fn css_content_content() -> Css {
-    Css::one("
+    css!("
         flex-grow: 1;
         padding: 5px;
     ")
@@ -56,7 +56,7 @@ pub fn render(state: &Computed<State>) -> VDomElement {
         border: 0;
     }";
 
-    html_component! {
+    html! {"
         <div css={css_wrapper()}>
             <style>
                 { reset }
@@ -72,5 +72,5 @@ pub fn render(state: &Computed<State>) -> VDomElement {
             </div>
             <component {render_footer} data={state.clone()} />
         </div>
-    }
+    "}
 }

@@ -6,7 +6,7 @@ use vertigo::{
     computed::Dependencies,
 };
 
-use browserdriver::DomDriverBrowser;
+use vertigo_browserdriver::DomDriverBrowser;
 
 mod app;
 
