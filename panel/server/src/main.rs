@@ -45,7 +45,7 @@ async fn handler_index() -> Result<impl Reply, Infallible> {
             <meta charset="utf-8"/>
             <script type="module">
                 import init from "/build/app.js";
-                init();
+                init("/build/app_bg.wasm");
             </script>
         </head>
         <body></body>
