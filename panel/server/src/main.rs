@@ -1,17 +1,20 @@
 
 use common::{PostParamsCreateDir, PostParamsFetchNodePost};
+use utils::SpawnOwner;
 use warp::{Filter, Reply, http::Response};
 use std::convert::Infallible;
 use std::net::Ipv4Addr;
 use serde::Deserialize;
 use std::sync::Arc;
 
+mod git;
 mod gitdb;
 mod utils;
 mod sync;
 
 use sync::start_sync;
 
+use git::Git;
 use gitdb::GitDB;
 
 #[derive(Deserialize)]
@@ -98,6 +101,19 @@ async fn handler_create_dir(app_state: Arc<AppState>, body: PostParamsCreateDir)
         }
     }
 }
+
+fn start_git_test(git_sync: String) -> SpawnOwner {
+    SpawnOwner::new(async move {
+        println!("start git test: {}", git_sync);
+
+        let git = Git::new(git_sync);
+
+        let command = git.command().await;
+
+        command.test()
+    })
+}
+
 #[tokio::main]
 async fn main() {
     pretty_env_logger::init();
@@ -110,7 +126,9 @@ async fn main() {
     let git_db = GitDB::new(config.git_notes);
     let app_state = AppState::new(git_db);
 
-    let task_synchronize = start_sync(config.git_sync).await;
+    let task_synchronize = start_sync(config.git_sync.clone()).await;
+
+    let task_test = start_git_test(config.git_sync);
 
     app_state.git.check_root().await;           //sprawdź czy istnieje węzeł główny
 
@@ -169,4 +187,5 @@ async fn main() {
         .await;
 
     task_synchronize.off();
+    task_test.off();
 }
