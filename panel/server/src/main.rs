@@ -106,11 +106,15 @@ fn start_git_test(git_sync: String) -> SpawnOwner {
     SpawnOwner::new(async move {
         println!("start git test: {}", git_sync);
 
-        let git = Git::new(git_sync);
+        let git = Git::new(git_sync, "master".into());
 
-        let command = git.command().await;
+        let main_commit = git.get_main_commit().await;
 
-        command.test()
+        println!("main commit: {}", main_commit);
+
+        let blob = git.get_from_id("3b698708d95096267a93d1f7130c08949e69de4a".into()).await; //mobx
+
+        println!("mobx ----> {:?}", blob);
     })
 }
 
