@@ -115,6 +115,9 @@ fn start_git_test(git_sync: String) -> SpawnOwner {
         let blob = git.get_from_id("3b698708d95096267a93d1f7130c08949e69de4a".into()).await; //mobx
 
         println!("mobx ----> {:?}", blob);
+
+        let blob2 = git.get_from_id("d3900aaf8c7bfe3639d046b915aa34d5c7503519".into()).await;//js
+        println!("js ----> {:?}", blob2);
     })
 }
 

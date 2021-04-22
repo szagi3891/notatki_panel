@@ -70,6 +70,7 @@ impl Git {
             };
             
             while let Some(command) = receiver.blocking_recv() {
+                println!("command ... {:?}", &command);
 
                 match command {
                     Command::FindMainCommit { branch, response } => {
@@ -85,7 +86,7 @@ impl Git {
                             Err(err) => {
                                 println!("error id {}", err);
                                 response.send(None).unwrap();
-                                return;
+                                continue;
                             }
                         };
 
@@ -120,7 +121,7 @@ impl Git {
                             }
 
                             response.send(Some(GitBlob::Tree { list })).unwrap();
-                            return;
+                            continue;
                         }
 
                         if let Ok(blob) = repo.find_blob(oid) {
@@ -128,7 +129,7 @@ impl Git {
                             let content = Vec::from(content);
 
                             response.send(Some(GitBlob::Blob { content })).unwrap();
-                            return;
+                            continue;
                         }
 
                         response.send(None).unwrap();
