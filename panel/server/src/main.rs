@@ -1,5 +1,4 @@
-
-use common::{PostParamsCreateDir, PostParamsFetchNodePost};
+use common::{PostParamsFetchNodePost};
 use utils::SpawnOwner;
 use warp::{Filter, Reply, http::Response};
 use std::convert::Infallible;
@@ -8,29 +7,26 @@ use serde::Deserialize;
 use std::sync::Arc;
 
 mod git;
-mod gitdb;
 mod utils;
 mod sync;
 
-use sync::start_sync;
+// use sync::start_sync;
 
 use git::Git;
-use gitdb::GitDB;
 
 #[derive(Deserialize)]
 struct Config {
     http_host: Ipv4Addr,
     http_port: u16,
-    git_sync: String,
-    git_notes: String,
+    git_repo: String,
 }
 
 struct AppState {
-    git: GitDB,
+    git: Git,
 }
 
 impl AppState {
-    pub fn new(git: GitDB) -> Arc<AppState> {
+    pub fn new(git: Git) -> Arc<AppState> {
         Arc::new(AppState {
             git
         })
@@ -59,10 +55,10 @@ async fn handler_index() -> Result<impl Reply, Infallible> {
 async fn handler_fetch_node(app_state: Arc<AppState>, body_request: PostParamsFetchNodePost) -> Result<impl warp::Reply, Infallible> {
     let node_id = body_request.node_id;
 
-    let data = app_state.git.get(node_id).await;
+    let data = app_state.git.get_from_id(node_id.clone()).await;
 
     match data {
-        Ok(data) => {
+        Some(data) => {
             let a = serde_json::to_string(&data).unwrap();
 
             let response = Response::builder()
@@ -70,53 +66,49 @@ async fn handler_fetch_node(app_state: Arc<AppState>, body_request: PostParamsFe
                 .body(a);
             Ok(response)
         },
-        Err(err) => {
+        None => {
             let response = Response::builder()
-                .status(500)
-                .body(format!("error = {:?}", err));
+                .status(404)
+                .body(format!("missing {}", node_id));
 
             Ok(response)
         }
     }
 }
 
-async fn handler_create_dir(app_state: Arc<AppState>, body: PostParamsCreateDir) -> Result<impl warp::Reply, Infallible> {
-    let new_id = app_state.git.create_dir(body.parent_node, body.name).await;
+// async fn handler_create_dir(app_state: Arc<AppState>, body: PostParamsCreateDir) -> Result<impl warp::Reply, Infallible> {
+//     let new_id = app_state.git.create_dir(body.parent_node, body.name).await;
 
-    match new_id {
-        Ok(new_id) => {
-            let message = serde_json::to_string(&new_id).unwrap();
+//     match new_id {
+//         Ok(new_id) => {
+//             let message = serde_json::to_string(&new_id).unwrap();
 
-            let response = Response::builder()
-                .status(200)
-                .body(message);
-            Ok(response)
-        },
-        Err(err) => {
-            let response = Response::builder()
-                .status(500)
-                .body(format!("error dir create = {:?}", err));
+//             let response = Response::builder()
+//                 .status(200)
+//                 .body(message);
+//             Ok(response)
+//         },
+//         Err(err) => {
+//             let response = Response::builder()
+//                 .status(500)
+//                 .body(format!("error dir create = {:?}", err));
 
-            Ok(response)
-        }
-    }
-}
+//             Ok(response)
+//         }
+//     }
+// }
 
-fn start_git_test(git_sync: String) -> SpawnOwner {
+fn start_git_test(git: Git) -> SpawnOwner {
     SpawnOwner::new(async move {
-        println!("start git test: {}", git_sync);
-
-        let git = Git::new(git_sync, "master".into());
-
         let main_commit = git.get_main_commit().await;
 
         println!("main commit: {}", main_commit);
 
-        let blob = git.get_from_id("3b698708d95096267a93d1f7130c08949e69de4a".into()).await; //mobx
+        let blob = git.get_from_id(Arc::new("3b698708d95096267a93d1f7130c08949e69de4a".into())).await; //mobx
 
         println!("mobx ----> {:?}", blob);
 
-        let blob2 = git.get_from_id("d3900aaf8c7bfe3639d046b915aa34d5c7503519".into()).await;//js
+        let blob2 = git.get_from_id(Arc::new("d3900aaf8c7bfe3639d046b915aa34d5c7503519".into())).await;//js
         println!("js ----> {:?}", blob2);
     })
 }
@@ -130,14 +122,16 @@ async fn main() {
         Err(error) => panic!("Service started with invalid environment variables {:#?}", error)
     };
 
-    let git_db = GitDB::new(config.git_notes);
-    let app_state = AppState::new(git_db);
+    println!("start git test: {}", &config.git_repo);
+    let git = Git::new(config.git_repo, "master".into());
 
-    let task_synchronize = start_sync(config.git_sync.clone()).await;
+    //let git_db = GitDB::new(config.git_notes);
+    let app_state = AppState::new(git.clone());
 
-    let task_test = start_git_test(config.git_sync);
+    //chwilowo wyłączamy synchronizację
+    // let task_synchronize = start_sync(config.git_repo.clone()).await;
 
-    app_state.git.check_root().await;           //sprawdź czy istnieje węzeł główny
+    let task_test = start_git_test(git);
 
     let route_index =
         warp::path::end()
@@ -154,12 +148,12 @@ async fn main() {
         .and(warp::body::json())
         .and_then(handler_fetch_node);
 
-    let filter_create_dir =
-        warp::path!("create_dir")
-        .and(warp::post())
-        .and(inject_state(app_state.clone()))
-        .and(warp::body::json())
-        .and_then(handler_create_dir);
+    // let filter_create_dir =
+    //     warp::path!("create_dir")
+    //     .and(warp::post())
+    //     .and(inject_state(app_state.clone()))
+    //     .and(warp::body::json())
+    //     .and_then(handler_create_dir);
     
     let routes_default =
         warp::any()
@@ -173,7 +167,7 @@ async fn main() {
         route_index
         .or(route_build)
         .or(filter_fetch_node)
-        .or(filter_create_dir)
+        // .or(filter_create_dir)
         .or(routes_default)
     ;
 
@@ -193,6 +187,6 @@ async fn main() {
         .run((config.http_host, config.http_port))
         .await;
 
-    task_synchronize.off();
+    // task_synchronize.off();
     task_test.off();
 }

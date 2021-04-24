@@ -80,6 +80,7 @@ fn create_link(state: &Rc<State>, node_id: DataNodeIdType, create_css: fn(bool) 
 
     let on_click = {
         let state = state.clone();
+        let node_id = node_id.clone();
         move || {
             state.set_path(node_id);
         }

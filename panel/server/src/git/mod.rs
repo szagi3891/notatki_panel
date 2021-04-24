@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use tokio::sync::{
     oneshot::{
         self,
@@ -16,14 +17,14 @@ use git2::{
     Oid,
 };
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct TreeItem {
     dir: bool,
     id: String,
     name: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum GitBlob {
     Blob {
         content: Vec<u8>,
@@ -40,7 +41,7 @@ pub enum Command {
         response: oneshot::Sender<String>,
     },
     FindBlob {
-        id: String,
+        id: Arc<String>,
         response: oneshot::Sender<Option<GitBlob>>,
     }
 }
@@ -165,7 +166,7 @@ impl Git {
         response
     }
 
-    pub async fn get_from_id(&self, id: String) -> Option<GitBlob> {
+    pub async fn get_from_id(&self, id: Arc<String>) -> Option<GitBlob> {
         let (sender, receiver) = oneshot::channel();
 
         let command = Command::FindBlob {

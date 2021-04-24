@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 
 pub type TimestampType = u128;
-pub type DataNodeIdType = u64;
+pub type DataNodeIdType = Arc<String>;           //40chars
 
                                   //TODO - po stronie serwera pasowałoby zeby string byl opakowany w Arc
                                   //TODO - a po stronie przegladarki w Rc

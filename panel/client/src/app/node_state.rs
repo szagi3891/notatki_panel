@@ -19,7 +19,7 @@ impl NodeFetch {
     pub async fn get(&self) -> Result<DataPost, String> {
         let url = format!("/fetch_node");
         let body = PostParamsFetchNodePost {
-            node_id: self.node_id,
+            node_id: self.node_id.clone(),
         };
         
         let body_str = serde_json::to_string(&body).unwrap();
@@ -51,38 +51,38 @@ impl NodeFetch {
         }
     }
 
-    pub async fn create_dir(&self, name: String) {
-        let url = format!("/create_dir");
-        let body = PostParamsCreateDir {
-            parent_node: self.node_id,
-            name,
-        };
+    // pub async fn create_dir(&self, name: String) {
+    //     let url = format!("/create_dir");
+    //     let body = PostParamsCreateDir {
+    //         parent_node: self.node_id,
+    //         name,
+    //     };
         
-        let body_str = serde_json::to_string(&body).unwrap();
+    //     let body_str = serde_json::to_string(&body).unwrap();
 
-        let response = self.driver.fetch(
-            FetchMethod::POST,
-            url,
-            None,
-            Some(body_str)
-        ).await;
+    //     let response = self.driver.fetch(
+    //         FetchMethod::POST,
+    //         url,
+    //         None,
+    //         Some(body_str)
+    //     ).await;
 
-        match response {
-            Ok(response) => {
-                match serde_json::from_str::<DataNodeIdType>(response.as_str()) {
-                    Ok(new_id) => {
-                        log::info!("Utworzono katalog {:?}", new_id);
-                    },
-                    Err(err) => {
-                        log::error!("Error parsing response: {}", err);
-                    }
-                }
-            },
-            Err(_) => {
-                log::error!("Error fetch");
-            }
-        }
-    }
+    //     match response {
+    //         Ok(response) => {
+    //             match serde_json::from_str::<DataNodeIdType>(response.as_str()) {
+    //                 Ok(new_id) => {
+    //                     log::info!("Utworzono katalog {:?}", new_id);
+    //                 },
+    //                 Err(err) => {
+    //                     log::error!("Error parsing response: {}", err);
+    //                 }
+    //             }
+    //         },
+    //         Err(_) => {
+    //             log::error!("Error fetch");
+    //         }
+    //     }
+    // }
 }
 
 #[derive(PartialEq)]
@@ -164,16 +164,16 @@ impl NodeState {
         }
     }
 
-    pub async fn create_dir(&self, name: String) {
-        if self.action.get_value().is_some() {
-            return;
-        }
+    // pub async fn create_dir(&self, name: String) {
+    //     if self.action.get_value().is_some() {
+    //         return;
+    //     }
 
-        self.action.set_value(Some(CurrentAction::CreateDir));
+    //     self.action.set_value(Some(CurrentAction::CreateDir));
 
-        self.fetch.create_dir(name).await;
-        self.refresh().await;
+    //     self.fetch.create_dir(name).await;
+    //     self.refresh().await;
 
-        self.action.set_value(None);
-    }
+    //     self.action.set_value(None);
+    // }
 }

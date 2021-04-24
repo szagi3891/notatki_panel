@@ -21,7 +21,7 @@ static ROOT_ID: u64 = 1;
 #[derive(PartialEq)]
 pub struct State {
     pub driver: DomDriver,
-    pub current_path: Value<Vec<DataNodeIdType>>,
+    pub current_path: Value<Vec<Arc<String>>>,
     data: Arc<AutoMap<DataNodeIdType, Resource<NodeState>>>,
     current_node: Computed<DataNodeIdType>,                         //id aktualnie wybranego węzła
     pub list: Computed<Resource<Vec<DataNodeIdType>>>,                  //lista plików i katalogów w lewym panelu
