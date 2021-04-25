@@ -9,9 +9,9 @@ use vertigo::{
 use vertigo_html::{html, css};
 
 use super::state::State;
-use super::render_header::render_header;
-use super::render_list::render_list;
-use super::render_footer::render_footer;
+// use super::render_header::render_header;
+// use super::render_list::render_list;
+// use super::render_footer::render_footer;
 
 fn css_wrapper() -> Css {
     css!("
@@ -49,6 +49,33 @@ fn css_content_content() -> Css {
     ")
 }
 
+// pub fn render(state: &Computed<State>) -> VDomElement {
+//     let reset: &str = "html, body {
+//         margin: 0;
+//         padding: 0;
+//         border: 0;
+//     }";
+
+//     html! {"
+//         <div css={css_wrapper()}>
+//             <style>
+//                 { reset }
+//             </style>
+//             <component {render_header} data={state.clone()} />
+//             <div css={css_content()}>
+//                 <div css={css_content_list()}>
+//                     <component {render_list} data={state.clone()} />
+//                 </div>
+//                 <div css={css_content_content()}>
+//                     content ...
+//                 </div>
+//             </div>
+//             <component {render_footer} data={state.clone()} />
+//         </div>
+//     "}
+// }
+
+
 pub fn render(state: &Computed<State>) -> VDomElement {
     let reset: &str = "html, body {
         margin: 0;
@@ -56,21 +83,25 @@ pub fn render(state: &Computed<State>) -> VDomElement {
         border: 0;
     }";
 
+    let state = state.get_value();
+    let current_hash = state.state_root.get_hash_view();
+
+
     html! {"
         <div css={css_wrapper()}>
             <style>
                 { reset }
             </style>
-            <component {render_header} data={state.clone()} />
+            <div>TODO - header {current_hash}</div>
             <div css={css_content()}>
                 <div css={css_content_list()}>
-                    <component {render_list} data={state.clone()} />
+                    <div>TODO - list</div>
                 </div>
                 <div css={css_content_content()}>
                     content ...
                 </div>
             </div>
-            <component {render_footer} data={state.clone()} />
+            <div>TODO - footer</div>
         </div>
     "}
 }

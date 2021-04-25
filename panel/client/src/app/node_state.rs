@@ -1,4 +1,4 @@
-use common::{DataNodeIdType, DataNode, DataPost, PostParamsCreateDir, PostParamsFetchNodePost};
+use common::{DataNodeIdType, DataNode, DataPost, /*PostParamsCreateDir,*/ PostParamsFetchNodePost};
 use vertigo::{DomDriver, FetchMethod, computed::{Dependencies, Value}};
 use std::rc::Rc;
 
@@ -24,29 +24,16 @@ impl NodeFetch {
         
         let body_str = serde_json::to_string(&body).unwrap();
 
-        let response = self.driver.fetch(
-            FetchMethod::POST,
-            url,
-            None,
-            Some(body_str)
-        ).await;
+        let response = self.driver.fetch(url).set_body(body_str).post().await?;
 
-        match response {
-            Ok(response) => {
-                match serde_json::from_str::<DataPost>(response.as_str()) {
-                    Ok(data_node) => {
-                        log::info!("odpowiedź z serwera {:?}", data_node);
-                        Ok(data_node)
-                    },
-                    Err(err) => {
-                        log::error!("Error parsing response: {}", err);
-                        Err(err.to_string())
-                    }
-                }
+        match serde_json::from_str::<DataPost>(response.as_str()) {
+            Ok(data_node) => {
+                log::info!("odpowiedź z serwera {:?}", data_node);
+                Ok(data_node)
             },
-            Err(_) => {
-                log::error!("Error fetch");
-                Err("Error fetch".into())
+            Err(err) => {
+                log::error!("Error parsing response: {}", err);
+                Err(err.to_string())
             }
         }
     }
@@ -102,27 +89,27 @@ impl<T: PartialEq> Resource<T> {
     }
 }
 
-#[derive(PartialEq)]
-pub enum CurrentAction {
-    CreateDir,
-}
+// #[derive(PartialEq)]
+// pub enum CurrentAction {
+//     CreateDir,
+// }
 
 #[derive(PartialEq)]
 pub struct NodeState {
     data: Value<DataPost>,
     fetch: NodeFetch,
-    action: Value<Option<CurrentAction>>,
+    //action: Value<Option<CurrentAction>>,
 }
 
 impl NodeState {
     pub fn new(root: Dependencies, fetch: NodeFetch, data: DataPost) -> NodeState {
         let data = root.new_value(data);
-        let action = root.new_value(None);
+        //let action = root.new_value(None);
 
         NodeState {
             data,
             fetch,
-            action,
+            //action,
         }
     }
 
