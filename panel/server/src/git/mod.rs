@@ -65,7 +65,7 @@ impl Git {
 
             println!("test z watku ... start");
 
-            let repo = match Repository::init(path) {
+            let repo = match Repository::open(path) {
                 Ok(repo) => repo,
                 Err(e) => panic!("failed to init: {}", e),
             };

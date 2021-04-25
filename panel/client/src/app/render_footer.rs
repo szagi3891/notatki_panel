@@ -7,7 +7,7 @@ use vertigo::{
 };
 
 use vertigo_html::{html, css};
-use super::state::State;
+use create::app::state::State;
 
 fn css_footer() -> Css {
     css!("

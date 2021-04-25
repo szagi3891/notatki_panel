@@ -52,6 +52,15 @@ async fn handler_index() -> Result<impl Reply, Infallible> {
 "##))
 }
 
+async fn handler_fetch_root(app_state: Arc<AppState>) -> Result<impl warp::Reply, Infallible> {
+    let root = app_state.git.get_main_commit().await;
+
+    let response = Response::builder()
+        .status(200)
+        .body(root);
+    Ok(response)
+}
+
 async fn handler_fetch_node(app_state: Arc<AppState>, body_request: PostParamsFetchNodePost) -> Result<impl warp::Reply, Infallible> {
     let node_id = body_request.node_id;
 
@@ -141,12 +150,18 @@ async fn main() {
         warp::path("build")
         .and(warp::fs::dir("build"));
 
-    let filter_fetch_node =
-        warp::path!("fetch_node")
-        .and(warp::post())
+    let filter_fetch_root =
+        warp::path!("fetch_root")
+        .and(warp::get())
         .and(inject_state(app_state.clone()))
-        .and(warp::body::json())
-        .and_then(handler_fetch_node);
+        .and_then(handler_fetch_root);
+
+    // let filter_fetch_node =
+    //     warp::path!("fetch_node")
+    //     .and(warp::post())
+    //     .and(inject_state(app_state.clone()))
+    //     .and(warp::body::json())
+    //     .and_then(handler_fetch_node);
 
     // let filter_create_dir =
     //     warp::path!("create_dir")
@@ -166,7 +181,8 @@ async fn main() {
     let routes =
         route_index
         .or(route_build)
-        .or(filter_fetch_node)
+        .or(filter_fetch_root)
+        // .or(filter_fetch_node)
         // .or(filter_create_dir)
         .or(routes_default)
     ;
