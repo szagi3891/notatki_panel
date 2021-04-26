@@ -1,4 +1,5 @@
-use common::{PostParamsFetchNodePost};
+use common::{GitTreeItem, HandlerHetchDirBody, HandlerRoot};
+// use common::{PostParamsFetchNodePost};
 use utils::SpawnOwner;
 use warp::{Filter, Reply, http::Response};
 use std::convert::Infallible;
@@ -55,35 +56,65 @@ async fn handler_index() -> Result<impl Reply, Infallible> {
 async fn handler_fetch_root(app_state: Arc<AppState>) -> Result<impl warp::Reply, Infallible> {
     let root = app_state.git.get_main_commit().await;
 
+    let body = HandlerRoot {
+        root,
+    };
+
+    let body = serde_json::to_string(&body).unwrap();
+
     let response = Response::builder()
         .status(200)
-        .body(root);
+        .body(body);
     Ok(response)
 }
 
-async fn handler_fetch_node(app_state: Arc<AppState>, body_request: PostParamsFetchNodePost) -> Result<impl warp::Reply, Infallible> {
-    let node_id = body_request.node_id;
+async fn handler_fetch_dir(app_state: Arc<AppState>, body_request: HandlerHetchDirBody) -> Result<impl warp::Reply, Infallible> {
+    let root = app_state.git.get_from_id(body_request.id).await;
 
-    let data = app_state.git.get_from_id(node_id.clone()).await;
-
-    match data {
-        Some(data) => {
-            let a = serde_json::to_string(&data).unwrap();
-
-            let response = Response::builder()
-                .status(200)
-                .body(a);
-            Ok(response)
-        },
-        None => {
-            let response = Response::builder()
-                .status(404)
-                .body(format!("missing {}", node_id));
-
-            Ok(response)
+    if let Some(git::GitBlob::Tree { list }) = root {
+        let mut out = Vec::<GitTreeItem>::new();
+        for item in list {
+            out.push(item.into());
         }
+
+        let out_str = serde_json::to_string(&out).unwrap();
+
+        let response = Response::builder()
+            .status(200)
+            .body(out_str);
+        return Ok(response)
     }
+
+    let response = Response::builder()
+        .status(404)
+        .body("missing".into());
+    Ok(response)
 }
+
+
+// async fn handler_fetch_node(app_state: Arc<AppState>, body_request: PostParamsFetchNodePost) -> Result<impl warp::Reply, Infallible> {
+//     let node_id = body_request.node_id;
+
+//     let data = app_state.git.get_from_id(node_id.clone()).await;
+
+//     match data {
+//         Some(data) => {
+//             let a = serde_json::to_string(&data).unwrap();
+
+//             let response = Response::builder()
+//                 .status(200)
+//                 .body(a);
+//             Ok(response)
+//         },
+//         None => {
+//             let response = Response::builder()
+//                 .status(404)
+//                 .body(format!("missing {}", node_id));
+
+//             Ok(response)
+//         }
+//     }
+// }
 
 // async fn handler_create_dir(app_state: Arc<AppState>, body: PostParamsCreateDir) -> Result<impl warp::Reply, Infallible> {
 //     let new_id = app_state.git.create_dir(body.parent_node, body.name).await;
@@ -156,6 +187,16 @@ async fn main() {
         .and(inject_state(app_state.clone()))
         .and_then(handler_fetch_root);
 
+
+    let filter_fetch_dir =
+        warp::path!("fetch_tree_item")
+        .and(warp::post())
+        .and(inject_state(app_state.clone()))
+        .and(warp::body::json())
+        .and_then(handler_fetch_dir);
+
+
+
     // let filter_fetch_node =
     //     warp::path!("fetch_node")
     //     .and(warp::post())
@@ -182,6 +223,7 @@ async fn main() {
         route_index
         .or(route_build)
         .or(filter_fetch_root)
+        .or(filter_fetch_dir)
         // .or(filter_fetch_node)
         // .or(filter_create_dir)
         .or(routes_default)

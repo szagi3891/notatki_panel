@@ -1,27 +1,25 @@
-use std::sync::Arc;
-use common::DataNodeIdType;
 use vertigo::{
     DomDriver,
     computed::{
-        Value,
         Computed,
         Dependencies,
-        AutoMap
     },
 };
-use std::rc::Rc;
 // use super::node_state::{
 //     Resource,
 //     NodeState,
 //     NodeFetch
 // };
 
-use super::StateRoot;
+use crate::request::Request;
+
+use super::{StateNodeDir, StateRoot};
 
 #[derive(PartialEq)]
 pub struct State {
     pub driver: DomDriver,
     pub state_root: StateRoot,
+    pub state_node_dir: StateNodeDir,
     //pub current_path: Value<Vec<Arc<String>>>,
     //data: Arc<AutoMap<DataNodeIdType, Resource<NodeState>>>,
     //current_node: Computed<DataNodeIdType>,                         //id aktualnie wybranego węzła
@@ -30,14 +28,11 @@ pub struct State {
 
 impl State {
     pub fn new(root: &Dependencies, driver: &DomDriver) -> Computed<State> {
-        let state_root = StateRoot::new(driver.clone(), root);
+        let request = Request::new(driver);
 
+        let state_root = StateRoot::new(&request, root);
 
-        //TODO - zaimplementować wyświetlanie tego hasha zeby zobaczyc czy dobrze komunikacja przebiega ....
-
-
-
-
+        let state_node_dir = StateNodeDir::new(&request, root);
 
         // let feth_node = {
         //     let root = root.clone();
@@ -155,6 +150,7 @@ impl State {
         root.new_computed_from(State {
             driver: driver.clone(),
             state_root,
+            state_node_dir,
             // current_path,
             // data,
             // current_node,
