@@ -1,3 +1,4 @@
+use common::GitTreeItem;
 use serde::{Deserialize, Serialize};
 use tokio::sync::{
     oneshot::{
@@ -22,6 +23,17 @@ pub struct TreeItem {
     dir: bool,
     id: String,
     name: String,
+}
+
+impl Into<GitTreeItem> for TreeItem {
+    fn into(self) -> GitTreeItem {
+        let TreeItem { dir, id, name } = self;
+        GitTreeItem {
+            dir,
+            id,
+            name,
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
