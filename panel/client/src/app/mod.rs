@@ -1,4 +1,3 @@
-pub mod fetch;
 pub mod state;
 pub mod render;
 
