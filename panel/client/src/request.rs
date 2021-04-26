@@ -61,7 +61,7 @@ impl RequestBuilder {
     pub fn body<B: Serialize>(self, body: B) -> RequestBuilder {
         let body_str = serde_json::to_string(&body);
 
-        let RequestBuilder { driver ,url, headers, body } = self;
+        let RequestBuilder { driver , url, headers, .. } = self;
 
         match body_str {
             Ok(body) => {
@@ -83,6 +83,7 @@ impl RequestBuilder {
         }
     }
 
+    #[allow(dead_code)]
     pub fn headers(self, headers: HashMap<String, String>) -> RequestBuilder {
         let RequestBuilder { driver, url, body, .. } = self;
 
