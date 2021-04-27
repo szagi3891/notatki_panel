@@ -1,3 +1,4 @@
+use std::{ops::Deref, rc::Rc};
 use common::HandlerRoot;
 use vertigo::{
     computed::{
@@ -6,7 +7,7 @@ use vertigo::{
         Computed,
     },
 };
-use crate::request::{Request, Resource};
+use crate::request::{Request, Resource, ResourceError};
 
 use super::StateNodeDir;
 
@@ -18,7 +19,7 @@ pub struct RootNode {
 
 impl RootNode {
     fn new(request: &Request, dependencies: &Dependencies, state_node_dir: StateNodeDir) -> RootNode {
-        let value = dependencies.new_value(Resource::Loading);
+        let value = dependencies.new_value(Err(ResourceError::Loading));
         let value_read = value.to_computed();
         let response = request.fetch("/fetch_root").get::<HandlerRoot>();
 
@@ -81,9 +82,8 @@ impl StateRoot {
         let resource = value.value.get_value();
 
         match &*resource {
-            Resource::Loading => None,
-            Resource::Ready(value) => Some(value.root.clone()),
-            Resource::Error(_) => None,
+            Err(_) => None,
+            Ok(value) => Some(value.root.clone()),
         }
     }
 
@@ -96,4 +96,33 @@ impl StateRoot {
 
     //path --> ...
         //bierzemy z kilku rootow path o ktory pytamy ...
+    
+    pub fn get_current_root(&self) -> CurrentRoot {
+        let current = self.current.get_value();
+        let handler_root = current.value.get_value();
+        CurrentRoot::new(handler_root)
+    }
+}
+
+pub struct CurrentRoot {
+    value: Rc<Result<HandlerRoot, ResourceError>>,
+}
+
+impl CurrentRoot {
+    fn new(value: Rc<Result<HandlerRoot, ResourceError>>) -> CurrentRoot {
+        CurrentRoot {
+            value,
+        }
+    }
+
+    pub fn get(&self) -> Result<&String, ResourceError> {
+        let inner = match &*self.value {
+            Ok(inner) => inner,
+            Err(err) => return Err(err.clone()),
+        };
+
+        let a = &inner.root;
+
+        Ok(a)
+    }
 }

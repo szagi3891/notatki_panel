@@ -1,4 +1,4 @@
-use std::{collections::HashMap, ops::Try};
+use std::{collections::HashMap};
 use std::rc::Rc;
 use vertigo::{
     DomDriver,
@@ -8,7 +8,7 @@ use vertigo::{
         Value
     }
 };
-use crate::request::{Request, Resource};
+use crate::request::{Request, Resource, ResourceError};
 use super::{StateNodeDir, StateRoot, TreeItem};
 
 #[derive(PartialEq)]
@@ -18,29 +18,22 @@ pub struct CurrentView {
 }
 
 
-fn move_pointer(current_wsk: &mut Rc<HashMap<String, TreeItem>>, state_node_dir: &StateNodeDir, path_item: &String) -> Result<(), Resource<CurrentView>> {
+fn move_pointer(current_wsk: &mut Rc<HashMap<String, TreeItem>>, state_node_dir: &StateNodeDir, path_item: &String) -> Result<(), ResourceError> {
 
     let wsk_child = current_wsk.get(path_item);
-    //.into_result().map_err(|_| {});
 
     let wsk_child = match wsk_child {
         Some(wsk_child) => wsk_child,
         None => {
-            return Err(Resource::Error(format!("missing tree_item {}", path_item)));
+            return Err(ResourceError::Error(format!("missing tree_item {}", path_item)));
         }
     };
 
     if !wsk_child.dir {
-        return Err(Resource::Error(format!("Dir expected {}", path_item)));
+        return Err(ResourceError::Error(format!("Dir expected {}", path_item)));
     }
 
-    let node = match &*state_node_dir.get(&wsk_child.id).get() {
-        Resource::Ready(node) => node.clone(),
-        Resource::Error(err) => return Err(Resource::Error(err.clone())),
-        Resource::Loading => return Err(Resource::Loading),
-    };
-
-    *current_wsk = node;
+    *current_wsk = state_node_dir.get_list(&wsk_child.id)?;
 
     Ok(())
 }
@@ -53,49 +46,29 @@ fn create_list(
 ) -> Computed<Resource<CurrentView>> {
 
     root.from(move || -> Resource<CurrentView> {
+        let root_wsk = state_root.get_current_root();
+        let root_wsk = root_wsk.get()?;
 
-        let current = state_root.current.get_value();
-        let handler_root = &*current.value.get_value();
+        let mut current_wsk = state_node_dir.get_list(root_wsk)?;
 
-        let handler_root = match handler_root {
-            Resource::Ready(value) => value,
-            Resource::Loading => return Resource::Loading,
-            Resource::Error(err) => return Resource::Error(err.clone()),
-            //a @ _ => return *a,
-        };
-
-        let root_dir = state_node_dir.get(&handler_root.root);
-        let root_list = root_dir.get();
-
-        let root_list = match &*root_list {
-            Resource::Ready(root_list) => root_list.clone(),
-            Resource::Loading => return Resource::Loading,
-            Resource::Error(err) => return Resource::Error(err.clone()),
-        };
-
-        let mut current_path = (*current_path.get_value()).clone();
+        let current_path = current_path.get_value();
+        let mut current_path = (*current_path).clone();
         let content_item = current_path.pop();
 
         let content_item = match content_item {
             Some(content_item) => content_item,
             None => {
-                return Resource::Ready(CurrentView {
-                    list: root_list,
+                return Ok(CurrentView {
+                    list: current_wsk,
                     content: None,
                 });
             }
         };
 
-
-        let mut current_wsk = root_list;
-
         for path_item in current_path {
-            let result = move_pointer(&mut current_wsk, &state_node_dir, &path_item);
-
-            if let Err(result_err) = result {
-                return result_err;
-            }
+            let _ = move_pointer(&mut current_wsk, &state_node_dir, &path_item)?;
         }
+
 
 
         //jak przeszlismy przez wszystkie current_path, to teraz odczytujemy wskaźnik na treść i zwracamy wynik
