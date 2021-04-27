@@ -49,11 +49,11 @@ pub enum GitBlob {
 #[derive(Debug)]
 pub enum Command {
     FindMainCommit {
-        branch: Arc<String>,
+        branch: String,
         response: oneshot::Sender<String>,
     },
     FindBlob {
-        id: Arc<String>,
+        id: String,
         response: oneshot::Sender<Option<GitBlob>>,
     }
 }
@@ -62,7 +62,7 @@ pub enum Command {
 
 #[derive(Clone)]
 pub struct Git {
-    branch: Arc<String>,
+    branch: String,
     sender: Sender<Command>,
     _thread: Arc<std::thread::JoinHandle<()>>,
 }
@@ -158,7 +158,7 @@ impl Git {
         });
 
         Git {
-            branch: Arc::new(branch),
+            branch: branch,
             sender,
             _thread: Arc::new(thread),
         }
@@ -178,11 +178,11 @@ impl Git {
         response
     }
 
-    pub async fn get_from_id(&self, id: Arc<String>) -> Option<GitBlob> {
+    pub async fn get_from_id(&self, id: &String) -> Option<GitBlob> {
         let (sender, receiver) = oneshot::channel();
 
         let command = Command::FindBlob {
-            id,
+            id: id.clone(),
             response: sender,
         };
         self.sender.send(command).await.unwrap();

@@ -8,13 +8,16 @@ use vertigo::{
 };
 use crate::request::{Request, Resource};
 
+use super::StateNodeDir;
+
 #[derive(PartialEq)]
-struct RootNode {
-    value: Computed<Resource<HandlerRoot>>,
+pub struct RootNode {
+    state_node_dir: StateNodeDir,
+    pub value: Computed<Resource<HandlerRoot>>,
 }
 
 impl RootNode {
-    fn new(request: &Request, dependencies: &Dependencies) -> RootNode {
+    fn new(request: &Request, dependencies: &Dependencies, state_node_dir: StateNodeDir) -> RootNode {
         let value = dependencies.new_value(Resource::Loading);
         let value_read = value.to_computed();
         let response = request.fetch("/fetch_root").get::<HandlerRoot>();
@@ -24,28 +27,29 @@ impl RootNode {
             value.set_value(response);
         });
 
-        RootNode { 
+        RootNode {
+            state_node_dir,
             value: value_read,
         }
     }
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 pub struct StateRoot {
     request: Request,
     dependencies: Dependencies,
-    current: Value<RootNode>,
+    pub current: Value<RootNode>,
     //list: Value<VecDeque<RootNode>>,      //todo zaimplementowach historie, zeby zniwelowac ilosc migań
 }
 
 impl StateRoot {
-    pub fn new(request: &Request, dependencies: &Dependencies) -> StateRoot {
+    pub fn new(request: &Request, dependencies: &Dependencies, state_node_dir: StateNodeDir) -> StateRoot {
         // let mut list = VecDeque::new();
         // list.push_back(RootNode::new(&driver, dependencies));
 
         // let list = dependencies.new_value(list);
 
-        let current = RootNode::new(request, dependencies);
+        let current = RootNode::new(request, dependencies, state_node_dir);
         let current = dependencies.new_value(current);
        
         StateRoot {
@@ -89,4 +93,7 @@ impl StateRoot {
             None => "none".into(),
         }
     }
+
+    //path --> ...
+        //bierzemy z kilku rootow path o ktory pytamy ...
 }

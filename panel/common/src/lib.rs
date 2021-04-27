@@ -1,8 +1,6 @@
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
 
 pub type TimestampType = u128;
-pub type HashIdType = Arc<String>;           //40chars
 
                                   //TODO - po stronie serwera pasowałoby zeby string byl opakowany w Arc
                                   //TODO - a po stronie przegladarki w Rc
@@ -63,5 +61,5 @@ pub struct GitTreeItem {
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct HandlerHetchDirBody {
-    pub id: Arc<String>,
+    pub id: String,
 }

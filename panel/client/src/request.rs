@@ -12,6 +12,16 @@ pub enum Resource<T: PartialEq> {
     Error(String),
 }
 
+impl<T: PartialEq> Resource<T> {
+    pub fn map<K: PartialEq>(self, fn_map: fn(T) -> K) -> Resource<K> {
+        match self {
+            Resource::Loading => Resource::Loading,
+            Resource::Ready(value) => Resource::Ready(fn_map(value)),
+            Resource::Error(err) => Resource::Error(err),
+        }
+    }
+}
+
 #[derive(Clone, PartialEq)]
 pub struct Request {
     driver: DomDriver,

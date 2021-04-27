@@ -1,4 +1,5 @@
-use common::{GitTreeItem, HandlerHetchDirBody, HashIdType};
+use std::{collections::HashMap, rc::Rc};
+use common::{GitTreeItem, HandlerHetchDirBody};
 use vertigo::{
     computed::{
         Computed,
@@ -9,13 +10,30 @@ use vertigo::{
 
 use crate::request::{Request, Resource};
 
+#[derive(PartialEq)]
+pub struct TreeItem {
+    pub dir: bool,
+    pub id: String,
+}
+
+fn convert(list: Vec<GitTreeItem>) -> HashMap<String, TreeItem> {
+    let mut out: HashMap<String, TreeItem> = HashMap::new();
+
+    for item in list.into_iter() {
+        let GitTreeItem {id, dir, name} = item;
+        out.insert(name, TreeItem { dir, id });
+    }
+
+    out
+}
+
 #[derive(PartialEq, Clone)]
-struct NodeDir {
-    value: Computed<Resource<Vec<GitTreeItem>>>,
+pub struct NodeDir {
+    value: Computed<Resource<HashMap<String, TreeItem>>>,
 }
 
 impl NodeDir {
-    pub fn new(request: &Request, dependencies: &Dependencies, id: &HashIdType) -> NodeDir {
+    pub fn new(request: &Request, dependencies: &Dependencies, id: &String) -> NodeDir {
         let value = dependencies.new_value(Resource::Loading);
         let value_read = value.to_computed();
 
@@ -28,18 +46,22 @@ impl NodeDir {
 
         request.spawn_local(async move {
             let response = response.await;
-            value.set_value(response);
+            value.set_value(response.map(convert));
         });
 
         NodeDir {
             value: value_read,
         }
     }
+
+    pub fn get(&self) -> Rc<Resource<HashMap<String, TreeItem>>> {
+        self.value.get_value()
+    }
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 pub struct StateNodeDir {
-    data: AutoMapBox<HashIdType, NodeDir>,
+    data: AutoMapBox<String, NodeDir>,
 }
 
 impl StateNodeDir {
@@ -48,15 +70,15 @@ impl StateNodeDir {
             let request = request.clone();
             let dependencies = dependencies.clone();
 
-            let feth_node = move |id: &HashIdType| -> NodeDir {
-                NodeDir::new(&request, &dependencies, id)
-            };
-    
-            AutoMapBox::new(feth_node)
+            AutoMapBox::new(move |id: &String| NodeDir::new(&request, &dependencies, id))
         };
 
         StateNodeDir {
             data
         }
+    }
+
+    pub fn get(&self, id: &String) -> NodeDir {
+        self.data.get_value(id)
     }
 }
