@@ -84,7 +84,6 @@ pub fn render(state: &Computed<State>) -> VDomElement {
     }";
 
     let state = state.get_value();
-    let current_hash = state.state_root.get_hash_view();
 
 
     html! {"
@@ -92,7 +91,7 @@ pub fn render(state: &Computed<State>) -> VDomElement {
             <style>
                 { reset }
             </style>
-            <div>TODO - header {current_hash}</div>
+            <div>TODO - header</div>
             <div css={css_content()}>
                 <div css={css_content_list()}>
                     <div>TODO - list</div>

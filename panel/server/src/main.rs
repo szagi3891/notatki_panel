@@ -69,7 +69,7 @@ async fn handler_fetch_root(app_state: Arc<AppState>) -> Result<impl warp::Reply
 }
 
 async fn handler_fetch_dir(app_state: Arc<AppState>, body_request: HandlerHetchDirBody) -> Result<impl warp::Reply, Infallible> {
-    let root = app_state.git.get_from_id(body_request.id).await;
+    let root = app_state.git.get_from_id(&body_request.id).await;
 
     if let Some(git::GitBlob::Tree { list }) = root {
         let mut out = Vec::<GitTreeItem>::new();
@@ -144,11 +144,11 @@ fn start_git_test(git: Git) -> SpawnOwner {
 
         println!("main commit: {}", main_commit);
 
-        let blob = git.get_from_id(Arc::new("3b698708d95096267a93d1f7130c08949e69de4a".into())).await; //mobx
+        let blob = git.get_from_id(&String::from("3b698708d95096267a93d1f7130c08949e69de4a")).await; //mobx
 
         println!("mobx ----> {:?}", blob);
 
-        let blob2 = git.get_from_id(Arc::new("d3900aaf8c7bfe3639d046b915aa34d5c7503519".into())).await;//js
+        let blob2 = git.get_from_id(&String::from("d3900aaf8c7bfe3639d046b915aa34d5c7503519")).await;//js
         println!("js ----> {:?}", blob2);
     })
 }
