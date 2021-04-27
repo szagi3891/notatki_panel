@@ -4,4 +4,4 @@ mod state_node_dir;
 
 pub use state_root::StateRoot;
 pub use state::State;
-pub use state_node_dir::StateNodeDir;
+pub use state_node_dir::{StateNodeDir, TreeItem};

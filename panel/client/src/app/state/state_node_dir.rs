@@ -10,13 +10,13 @@ use vertigo::{
 
 use crate::request::{Request, Resource};
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 pub struct TreeItem {
     pub dir: bool,
     pub id: String,
 }
 
-fn convert(list: Vec<GitTreeItem>) -> HashMap<String, TreeItem> {
+fn convert(list: Vec<GitTreeItem>) -> Rc<HashMap<String, TreeItem>> {
     let mut out: HashMap<String, TreeItem> = HashMap::new();
 
     for item in list.into_iter() {
@@ -24,12 +24,12 @@ fn convert(list: Vec<GitTreeItem>) -> HashMap<String, TreeItem> {
         out.insert(name, TreeItem { dir, id });
     }
 
-    out
+    Rc::new(out)
 }
 
 #[derive(PartialEq, Clone)]
 pub struct NodeDir {
-    value: Computed<Resource<HashMap<String, TreeItem>>>,
+    value: Computed<Resource<Rc<HashMap<String, TreeItem>>>>,
 }
 
 impl NodeDir {
@@ -54,7 +54,7 @@ impl NodeDir {
         }
     }
 
-    pub fn get(&self) -> Rc<Resource<HashMap<String, TreeItem>>> {
+    pub fn get(&self) -> Rc<Resource<Rc<HashMap<String, TreeItem>>>> {
         self.value.get_value()
     }
 }
