@@ -8,7 +8,7 @@ use vertigo::{
     },
 };
 
-use crate::request::{Request, Resource};
+use crate::request::{Request, Resource, ResourceError};
 
 #[derive(PartialEq, Clone)]
 pub struct TreeItem {
@@ -34,7 +34,7 @@ pub struct NodeDir {
 
 impl NodeDir {
     pub fn new(request: &Request, dependencies: &Dependencies, id: &String) -> NodeDir {
-        let value = dependencies.new_value(Resource::Loading);
+        let value = dependencies.new_value(Err(ResourceError::Loading));
         let value_read = value.to_computed();
 
         let response = request
@@ -56,6 +56,17 @@ impl NodeDir {
 
     pub fn get(&self) -> Rc<Resource<Rc<HashMap<String, TreeItem>>>> {
         self.value.get_value()
+    }
+
+    pub fn get_list(&self) -> Result<Rc<HashMap<String, TreeItem>>, ResourceError> {
+        let list = self.get();
+
+        let value = match &*list {
+            Ok(inner) => inner,
+            Err(err) => return Err(err.clone()),
+        };
+
+        Ok(value.clone())
     }
 }
 
@@ -80,5 +91,9 @@ impl StateNodeDir {
 
     pub fn get(&self, id: &String) -> NodeDir {
         self.data.get_value(id)
+    }
+
+    pub fn get_list(&self, id: &String) -> Result<Rc<HashMap<String, TreeItem>>, ResourceError> {
+        self.data.get_value(id).get_list()
     }
 }

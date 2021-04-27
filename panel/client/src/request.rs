@@ -1,26 +1,17 @@
 use serde::ser::Serialize;
 use serde::de::DeserializeOwned;
-use std::collections::HashMap;
+use std::{collections::HashMap};
 use vertigo::DomDriver;
 use std::future::Future;
 use std::fmt::Debug;
 
-#[derive(PartialEq, Debug)]
-pub enum Resource<T: PartialEq> {
+#[derive(PartialEq, Debug, Clone)]
+pub enum ResourceError {
     Loading,
-    Ready(T),
     Error(String),
 }
 
-impl<T: PartialEq> Resource<T> {
-    pub fn map<K: PartialEq>(self, fn_map: fn(T) -> K) -> Resource<K> {
-        match self {
-            Resource::Loading => Resource::Loading,
-            Resource::Ready(value) => Resource::Ready(fn_map(value)),
-            Resource::Error(err) => Resource::Error(err),
-        }
-    }
-}
+pub type Resource<T> = Result<T, ResourceError>;
 
 #[derive(Clone, PartialEq)]
 pub struct Request {
@@ -105,7 +96,7 @@ impl RequestBuilder {
         }
     }
 
-    async fn call<T: PartialEq + DeserializeOwned>(self, method: Method) -> Resource<T> {
+    async fn call<T: PartialEq + DeserializeOwned>(self, method: Method) -> Result<T, String> {
         let RequestBuilder { driver, url, body, headers } = self;
 
         let builder = driver.fetch(url);
@@ -118,7 +109,7 @@ impl RequestBuilder {
                 builder.set_body(body)
             },
             Body::Error(err) => {
-                return Resource::Error(err);
+                return Err(err);
             }
         };
 
@@ -135,35 +126,32 @@ impl RequestBuilder {
         let result = match result {
             Ok(result) => result,
             Err(err) => {
-                return Resource::Error(err);
+                return Err(err);
             }
         };
 
         match serde_json::from_str::<T>(result.as_str()) {
             Ok(result) => {
-                Resource::Ready(result)
+                Ok(result)
             },
             Err(err) => {
-                Resource::Error(format!("{}", err))
+                Err(format!("{}", err))
             }
         }
     }
 
     async fn call_wrapper<T: PartialEq + Debug + DeserializeOwned>(self, method: Method) -> Resource<T> {
         let result = self.call::<T>(method).await;
-        match &result {
-            Resource::Loading => {
-                panic!("should never occur");
-            },
-            Resource::Ready(value) => {
+        match result {
+            Ok(value) => {
                 log::info!("Response ok - {:?}", value);
+                Ok(value)
             },
-            Resource::Error(err) => {
+            Err(err) => {
                 log::error!("Response err - {:?}", err);
+                Err(ResourceError::Error(err))
             },
-        };
-
-        result
+        }
     }
 
     pub async fn get<T: PartialEq + Debug + DeserializeOwned>(self) -> Resource<T> {
