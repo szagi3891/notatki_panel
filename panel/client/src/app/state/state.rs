@@ -1,4 +1,5 @@
-use common::GitTreeItem;
+use std::{collections::HashMap, ops::Try};
+use std::rc::Rc;
 use vertigo::{
     DomDriver,
     computed::{
@@ -8,17 +9,50 @@ use vertigo::{
     }
 };
 use crate::request::{Request, Resource};
-use super::{StateNodeDir, StateRoot};
+use super::{StateNodeDir, StateRoot, TreeItem};
 
+#[derive(PartialEq)]
+pub struct CurrentView {
+    list: Rc<HashMap<String, TreeItem>>,
+    content: Option<String>,        //wskaźnik na content który jest plikiem jakimś
+}
+
+
+fn move_pointer(current_wsk: &mut Rc<HashMap<String, TreeItem>>, state_node_dir: &StateNodeDir, path_item: &String) -> Result<(), Resource<CurrentView>> {
+
+    let wsk_child = current_wsk.get(path_item);
+    //.into_result().map_err(|_| {});
+
+    let wsk_child = match wsk_child {
+        Some(wsk_child) => wsk_child,
+        None => {
+            return Err(Resource::Error(format!("missing tree_item {}", path_item)));
+        }
+    };
+
+    if !wsk_child.dir {
+        return Err(Resource::Error(format!("Dir expected {}", path_item)));
+    }
+
+    let node = match &*state_node_dir.get(&wsk_child.id).get() {
+        Resource::Ready(node) => node.clone(),
+        Resource::Error(err) => return Err(Resource::Error(err.clone())),
+        Resource::Loading => return Err(Resource::Loading),
+    };
+
+    *current_wsk = node;
+
+    Ok(())
+}
 
 fn create_list(
     root: &Dependencies,
     current_path: Computed<Vec<String>>,
     state_root: StateRoot,
     state_node_dir: StateNodeDir
-) -> Computed<Resource<Vec<GitTreeItem>>> {
+) -> Computed<Resource<CurrentView>> {
 
-    root.from(move || -> Resource<Vec<GitTreeItem>> {
+    root.from(move || -> Resource<CurrentView> {
 
         let current = state_root.current.get_value();
         let handler_root = &*current.value.get_value();
@@ -30,30 +64,43 @@ fn create_list(
             //a @ _ => return *a,
         };
 
-        let current_path = &*current_path.get_value();
+        let root_dir = state_node_dir.get(&handler_root.root);
+        let root_list = root_dir.get();
 
-        let mut current_wsk = handler_root.root.clone();
+        let root_list = match &*root_list {
+            Resource::Ready(root_list) => root_list.clone(),
+            Resource::Loading => return Resource::Loading,
+            Resource::Error(err) => return Resource::Error(err.clone()),
+        };
+
+        let mut current_path = (*current_path.get_value()).clone();
+        let content_item = current_path.pop();
+
+        let content_item = match content_item {
+            Some(content_item) => content_item,
+            None => {
+                return Resource::Ready(CurrentView {
+                    list: root_list,
+                    content: None,
+                });
+            }
+        };
+
+
+        let mut current_wsk = root_list;
 
         for path_item in current_path {
-            let node = &*state_node_dir.get(path_item).get();
+            let result = move_pointer(&mut current_wsk, &state_node_dir, &path_item);
 
-            let node = match node {
-                Resource::Ready(node) => node,
-                Resource::Error(err) => return Resource::Error(err.clone()),
-                Resource::Loading => return Resource::Loading,
-            };
-
-            let tree_item = node.get(path_item);
-
-            let tree_item = match tree_item {
-                Some(tree_item) => tree_item,
-                None => {
-                    return Resource::Error(format!("missing tree_item {}", path_item));
-                }
-            };
-
-            
+            if let Err(result_err) = result {
+                return result_err;
+            }
         }
+
+
+        //jak przeszlismy przez wszystkie current_path, to teraz odczytujemy wskaźnik na treść i zwracamy wynik
+
+        //moemy dostać katalog ale równie plik ...
 
 
         todo!()
@@ -62,6 +109,12 @@ fn create_list(
     // let root = state_root.get_hash();
 
     // todo!()
+
+    /*
+        zwracamy
+            vektor z listą w lewym panelu
+            opcjonalny wskaźnik na treść w środkowym widoku
+    */
 }
 
 #[derive(PartialEq)]
@@ -70,7 +123,7 @@ pub struct State {
     state_node_dir: StateNodeDir,
     state_root: StateRoot,
     pub current_path: Value<Vec<String>>,
-    pub list: Computed<Resource<Vec<GitTreeItem>>>,                  //lista plików i katalogów w lewym panelu
+    pub list: Computed<Resource<CurrentView>>,                  //lista plików i katalogów w lewym panelu
     //current_node: Computed<DataNodeIdType>,                         //id aktualnie wybranego węzła
 }
 
