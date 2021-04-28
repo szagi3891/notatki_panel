@@ -17,9 +17,7 @@ pub struct CurrentView {
     content: Option<String>,        //wskaźnik na content który jest plikiem jakimś
 }
 
-
-fn move_pointer(current_wsk: &mut Rc<HashMap<String, TreeItem>>, state_node_dir: &StateNodeDir, path_item: &String) -> Result<(), ResourceError> {
-
+fn get_item_from_map<'a>(current_wsk: &'a Rc<HashMap<String, TreeItem>>, path_item: &String) -> Result<&'a TreeItem, ResourceError> {
     let wsk_child = current_wsk.get(path_item);
 
     let wsk_child = match wsk_child {
@@ -29,13 +27,20 @@ fn move_pointer(current_wsk: &mut Rc<HashMap<String, TreeItem>>, state_node_dir:
         }
     };
 
+    Ok(wsk_child)
+}
+
+fn move_pointer(state_node_dir: &StateNodeDir, current_wsk: &Rc<HashMap<String, TreeItem>>, path_item: &String) -> Result<Rc<HashMap<String, TreeItem>>, ResourceError> {
+
+    let wsk_child = get_item_from_map(current_wsk, path_item)?;
+
     if !wsk_child.dir {
         return Err(ResourceError::Error(format!("Dir expected {}", path_item)));
     }
 
-    *current_wsk = state_node_dir.get_list(&wsk_child.id)?;
+    let item = state_node_dir.get_list(&wsk_child.id)?;
 
-    Ok(())
+    Ok(item)
 }
 
 fn create_list(
@@ -53,10 +58,10 @@ fn create_list(
 
         let current_path = current_path.get_value();
         let mut current_path = (*current_path).clone();
-        let content_item = current_path.pop();
+        let content_name = current_path.pop();
 
-        let content_item = match content_item {
-            Some(content_item) => content_item,
+        let content_name = match content_name {
+            Some(content_name) => content_name,
             None => {
                 return Ok(CurrentView {
                     list: current_wsk,
@@ -66,54 +71,35 @@ fn create_list(
         };
 
         for path_item in current_path {
-            let _ = move_pointer(&mut current_wsk, &state_node_dir, &path_item)?;
+            current_wsk = move_pointer(&state_node_dir, &current_wsk, &path_item)?;
         }
 
+        let content_pointer = get_item_from_map(&current_wsk, &content_name)?;
 
+        if content_pointer.dir {
+            let current_wsk = move_pointer(&state_node_dir, &current_wsk, &content_pointer.id)?;
 
-        //jak przeszlismy przez wszystkie current_path, to teraz odczytujemy wskaźnik na treść i zwracamy wynik
+            return Ok(CurrentView {
+                list: current_wsk,
+                content: None,
+            });
+        }
 
-        //moemy dostać katalog ale równie plik ...
+        let content_id = content_pointer.id.clone();
 
-
-        todo!()
+        return Ok(CurrentView {
+            list: current_wsk,
+            content: Some(content_id),
+        });
     })
-
-    // let root = state_root.get_hash();
-
-    // todo!()
-
-    /*
-        zwracamy
-            vektor z listą w lewym panelu
-            opcjonalny wskaźnik na treść w środkowym widoku
-    */
 }
 
 #[derive(PartialEq)]
 pub struct State {
-    pub driver: DomDriver,
-    state_node_dir: StateNodeDir,
-    state_root: StateRoot,
     pub current_path: Value<Vec<String>>,
     pub list: Computed<Resource<CurrentView>>,                  //lista plików i katalogów w lewym panelu
-    //current_node: Computed<DataNodeIdType>,                         //id aktualnie wybranego węzła
 }
 
-/*
-    dir1/dir2/dir3
-    
-    list => dir3
-    current => dir3
-
-    dir1/dir2/file
-
-    list => dir2
-    current => file
-
-    list => zawsze wskazuje na dir
-    current => na dir | hash pliku + jego nazwa | loading
-*/
 
 impl State {
     pub fn new(root: &Dependencies, driver: &DomDriver) -> Computed<State> {
@@ -127,17 +113,13 @@ impl State {
         let list = create_list(
             root,
             current_path.to_computed(),
-            state_root.clone(),
-            state_node_dir.clone(),
+            state_root,
+            state_node_dir,
         );
 
         root.new_computed_from(State {
-            driver: driver.clone(),
-            state_node_dir,
-            state_root,
             current_path,
             list,
-            // current_node,
         })
     }
 

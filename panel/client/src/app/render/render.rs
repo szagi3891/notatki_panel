@@ -10,7 +10,7 @@ use vertigo_html::{html, css};
 
 use crate::app::state::State;
 // use super::render_header::render_header;
-// use super::render_list::render_list;
+use super::render_list::render_list;
 // use super::render_footer::render_footer;
 
 fn css_wrapper() -> Css {
@@ -77,24 +77,22 @@ fn css_content_content() -> Css {
 
 
 pub fn render(state: &Computed<State>) -> VDomElement {
-    let reset: &str = "html, body {
-        margin: 0;
-        padding: 0;
-        border: 0;
-    }";
-
-    let state = state.get_value();
+    //let state = state.get_value();
 
 
     html! {"
         <div css={css_wrapper()}>
             <style>
-                { reset }
+                html, body {
+                    margin: 0;
+                    padding: 0;
+                    border: 0;
+                }
             </style>
             <div>TODO - header</div>
             <div css={css_content()}>
                 <div css={css_content_list()}>
-                    <div>TODO - list</div>
+                    <component {render_list} data={state.clone()} />
                 </div>
                 <div css={css_content_content()}>
                     content ...
