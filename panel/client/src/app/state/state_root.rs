@@ -33,6 +33,15 @@ impl RootNode {
             value: value_read,
         }
     }
+
+    pub fn get(&self) -> Result<String, ResourceError> {
+        let handler_root = self.value.get_value();
+
+        match &*handler_root {
+            Ok(inner) => Ok(inner.root.clone()),
+            Err(err) => return Err(err.clone()),
+        }
+    }
 }
 
 #[derive(PartialEq, Clone)]
@@ -97,32 +106,8 @@ impl StateRoot {
     //path --> ...
         //bierzemy z kilku rootow path o ktory pytamy ...
     
-    pub fn get_current_root(&self) -> CurrentRoot {
+    pub fn get_current_root(&self) -> Result<String, ResourceError> {
         let current = self.current.get_value();
-        let handler_root = current.value.get_value();
-        CurrentRoot::new(handler_root)
-    }
-}
-
-pub struct CurrentRoot {
-    value: Rc<Result<HandlerRoot, ResourceError>>,
-}
-
-impl CurrentRoot {
-    fn new(value: Rc<Result<HandlerRoot, ResourceError>>) -> CurrentRoot {
-        CurrentRoot {
-            value,
-        }
-    }
-
-    pub fn get(&self) -> Result<&String, ResourceError> {
-        let inner = match &*self.value {
-            Ok(inner) => inner,
-            Err(err) => return Err(err.clone()),
-        };
-
-        let a = &inner.root;
-
-        Ok(a)
+        current.get()
     }
 }
