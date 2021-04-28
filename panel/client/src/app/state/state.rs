@@ -51,10 +51,9 @@ fn create_list(
 ) -> Computed<Resource<CurrentView>> {
 
     root.from(move || -> Resource<CurrentView> {
-        let root_wsk = state_root.get_current_root();
-        let root_wsk = root_wsk.get()?;
+        let root_wsk = state_root.get_current_root()?;
 
-        let mut current_wsk = state_node_dir.get_list(root_wsk)?;
+        let mut current_wsk = state_node_dir.get_list(&root_wsk)?;
 
         let current_path = current_path.get_value();
         let mut current_path = (*current_path).clone();
