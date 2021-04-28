@@ -150,7 +150,6 @@ pub struct State {
     pub list: Computed<Vec<ListItem>>,
 }
 
-
 impl State {
     pub fn new(root: &Dependencies, driver: &DomDriver) -> Computed<State> {
         let request = Request::new(driver);
@@ -176,36 +175,43 @@ impl State {
         })
     }
 
-    // pub fn node_title(&self, node_id: &DataNodeIdType) -> Option<Rc<String>> {
-    //     let item = self.data.get_value(node_id);
-    //     let value = item.get_value();
+    pub fn set_path(&self, path: Vec<String>) {
+        self.current_path.set_value(path);
+    }
 
-    //     if let Resource::Ready(value_resource) = &*value {
-    //         return Some(value_resource.title());
-    //     }
-
-    //     None
-    // }
-
-    // pub fn set_path(&self, node_id: DataNodeIdType) {
-    //     let mut current = (*self.current_path.get_value()).clone();
-    //     current.push(node_id);
-    //     self.current_path.set_value(current);
-    // }
-
-    // pub fn create_dir(&self, name: String) {
-    //     let node = self.current_node.get_value();
-    //     let item = self.data.get_value(&*node).get_value();
-        
-    //     self.driver.spawn_local(async move {
-    //         if let Resource::Ready(item) = &*item {
-    //             item.create_dir(name).await;
-    //         } else {
-    //             log::error!("Błąd przy tworzeniu katalogu");
-    //         }
-    //     });
-    // }
+    pub fn push_path(&self, node: String) {
+        let mut current = (*self.current_path.get_value()).clone();
+        current.push(node);
+        self.current_path.set_value(current);
+    }
 }
+
+// pub fn node_title(&self, node_id: &DataNodeIdType) -> Option<Rc<String>> {
+//     let item = self.data.get_value(node_id);
+//     let value = item.get_value();
+
+//     if let Resource::Ready(value_resource) = &*value {
+//         return Some(value_resource.title());
+//     }
+
+//     None
+// }
+
+
+
+// pub fn create_dir(&self, name: String) {
+//     let node = self.current_node.get_value();
+//     let item = self.data.get_value(&*node).get_value();
+    
+//     self.driver.spawn_local(async move {
+//         if let Resource::Ready(item) = &*item {
+//             item.create_dir(name).await;
+//         } else {
+//             log::error!("Błąd przy tworzeniu katalogu");
+//         }
+//     });
+// }
+
 
 /*
 dodać zakładki

@@ -1,5 +1,4 @@
 use std::rc::Rc;
-use common::DataNodeIdType;
 use vertigo::{
     VDomElement,
     Css,
@@ -8,7 +7,7 @@ use vertigo::{
     }
 };
 use vertigo_html::{html, css};
-use super::state::State;
+use crate::app::state::State;
 
 fn css_header() -> Css {
     css!("
@@ -54,20 +53,19 @@ fn css_item(is_active: bool) -> Css {
     css
 }
 
-fn create_link(state: &Rc<State>, node_id: DataNodeIdType, create_css: fn(bool) -> Css, is_active: bool) -> VDomElement {
-    let title = state.node_title(&node_id);
+//let title = state.node_title(&node_id);
 
+// let title: Rc<String> = match title {
+//     Some(title) => title.clone(),
+//     None => Rc::new("loading ...".into())
+// };
 
-    // let title: Rc<String> = match title {
-    //     Some(title) => title.clone(),
-    //     None => Rc::new("loading ...".into())
-    // };
+// let title: String = match title {
+//     Some(title) => (&*title.clone()).clone(),
+//     None => "loading ...".into()
+// };
 
-    let title: String = match title {
-        Some(title) => (&*title.clone()).clone(),
-        None => "loading ...".into()
-    };
-
+fn create_link(state: &Rc<State>, title: String, node_id: Vec<String>, create_css: fn(bool) -> Css, is_active: bool) -> VDomElement {
     if is_active {
         let css = create_css(true);
 
@@ -82,7 +80,7 @@ fn create_link(state: &Rc<State>, node_id: DataNodeIdType, create_css: fn(bool) 
         let state = state.clone();
         let node_id = node_id.clone();
         move || {
-            state.set_path(node_id);
+            state.set_path(node_id.clone());
         }
     };
 
@@ -104,11 +102,15 @@ pub fn render_header(state: &Computed<State>) -> VDomElement {
     let mut out: Vec<VDomElement> = Vec::new();
 
     let root_is_active = all_items == 0;
-    out.push(create_link(&state, 1, css_root, root_is_active));
+    out.push(create_link(&state, ".".into(), Vec::new(), css_root, root_is_active));
+
+    let mut wsk_current_path = Vec::<String>::new();
 
     for (index, item) in current_path.iter().enumerate() {
+        wsk_current_path.push(item.clone());
+
         let is_active = index == all_items - 1;
-        out.push(create_link(&state, item.clone(), css_item, is_active));
+        out.push(create_link(&state, item.clone(), wsk_current_path.clone(), css_item, is_active));
     }
 
     html! {"

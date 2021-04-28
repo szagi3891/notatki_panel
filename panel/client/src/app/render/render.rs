@@ -9,7 +9,7 @@ use vertigo::{
 use vertigo_html::{html, css};
 
 use crate::app::state::State;
-// use super::render_header::render_header;
+use super::render_header::render_header;
 use super::render_list::render_list;
 // use super::render_footer::render_footer;
 
@@ -89,7 +89,7 @@ pub fn render(state: &Computed<State>) -> VDomElement {
                     border: 0;
                 }
             </style>
-            <div>TODO - header</div>
+            <component {render_header} data={state.clone()} />
             <div css={css_content()}>
                 <div css={css_content_list()}>
                     <component {render_list} data={state.clone()} />
