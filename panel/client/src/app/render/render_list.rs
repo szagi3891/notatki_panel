@@ -10,11 +10,32 @@ use crate::app::state::State;
 
 fn render_list_files(state: &Computed<State>) -> VDomElement {
     
+    let mut out: Vec<VDomElement> = Vec::new();
+
+    let state = state.get_value();
+    let list = state.list.get_value();
+    
+    log::info!("lista renderowana {:?}", &list);
+
+    for item in (*list).iter() {
+        if item.dir {
+            out.push(html!{"
+                <div>{&item.name} (dir)</div>
+            "});
+        } else {
+            out.push(html!{"
+                <div>{&item.name} (file)</div>
+            "});
+        }
+    }
+
     html! {"
         <div>
-            lista ...
+            { ..out }
         </div>
     "}
+
+    //TODO - dodać loader
 
     // let state = state.get_value();
     
@@ -57,12 +78,9 @@ pub fn render_list(state: &Computed<State>) -> VDomElement {
         }
     };
 
-    //let state_value = state.get_value();
-
     html! {"
         <div>
             <div onClick={on_create}>utwórz katalog</div>
-            <div>lista plikow</div>
             <component {render_list_files} data={state.clone()} />
         </div>
     "}

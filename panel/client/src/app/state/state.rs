@@ -1,4 +1,4 @@
-use std::{collections::HashMap};
+use std::{cmp::Ordering, collections::HashMap};
 use std::rc::Rc;
 use vertigo::{
     DomDriver,
@@ -43,7 +43,7 @@ fn move_pointer(state_node_dir: &StateNodeDir, current_wsk: &Rc<HashMap<String, 
     Ok(item)
 }
 
-fn create_list(
+fn create_current_view(
     root: &Dependencies,
     current_path: Computed<Vec<String>>,
     state_root: StateRoot,
@@ -93,10 +93,61 @@ fn create_list(
     })
 }
 
+#[derive(PartialEq, Debug)]
+pub struct ListItem {
+    pub name: String,
+    pub dir: bool,
+}
+
+fn create_list(root: &Dependencies, current_view: &Computed<Resource<CurrentView>>) -> Computed<Vec<ListItem>> {
+    let current_view = current_view.clone();
+
+    root.from(move || -> Vec<ListItem> {
+        let mut list_dir: Vec<ListItem> = Vec::new();
+        let mut list_file: Vec<ListItem> = Vec::new();
+
+        let current_view = current_view.get_value();
+
+        match &*current_view {
+            Ok(current_view) => {
+                for (name, item) in &*current_view.list {
+                    if item.dir {
+                        list_dir.push(ListItem {
+                            name: name.clone(),
+                            dir: true,
+                        });
+                    } else {
+                        list_file.push(ListItem {
+                            name: name.clone(),
+                            dir: false,
+                        });
+                    }
+                }
+
+                list_dir.sort_by(|a: &ListItem, b: &ListItem| -> Ordering {
+                    a.name.cmp(&b.name)
+                });
+
+                list_file.sort_by(|a: &ListItem, b: &ListItem| -> Ordering {
+                    a.name.cmp(&b.name)
+                });
+
+                list_dir.extend(list_file);
+
+                return list_dir;
+            },
+            Err(_) => {
+                return Vec::new();
+            }
+        };
+    })
+}
+
 #[derive(PartialEq)]
 pub struct State {
     pub current_path: Value<Vec<String>>,
-    pub list: Computed<Resource<CurrentView>>,                  //lista plików i katalogów w lewym panelu
+    pub current_view: Computed<Resource<CurrentView>>,                  //lista plików i katalogów w lewym panelu
+    pub list: Computed<Vec<ListItem>>,
 }
 
 
@@ -109,15 +160,18 @@ impl State {
 
         let current_path = root.new_value(Vec::<String>::new());
 
-        let list = create_list(
+        let current_view = create_current_view(
             root,
             current_path.to_computed(),
             state_root,
             state_node_dir,
         );
 
+        let list = create_list(root, &current_view);
+
         root.new_computed_from(State {
             current_path,
+            current_view,
             list,
         })
     }
