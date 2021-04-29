@@ -18,15 +18,25 @@ fn render_list_files(state: &Computed<State>) -> VDomElement {
     log::info!("lista renderowana {:?}", &list);
 
     for item in (*list).iter() {
-        if item.dir {
-            out.push(html!{"
-                <div>{&item.name} (dir)</div>
-            "});
+        let label = if item.dir {
+            "dir"
         } else {
-            out.push(html!{"
-                <div>{&item.name} (file)</div>
-            "});
-        }
+            "file"
+        };
+
+        let on_click = {
+            let state = state.clone();
+            let item = item.clone();
+
+            move || {
+                log::info!("klik w item {}", &item.name);
+                state.push_path(item.name.clone());
+            }
+        };
+
+        out.push(html!{"
+            <div onClick={on_click}>{&item.name} ({label})</div>
+        "});
     }
 
     html! {"

@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, collections::HashMap};
+use std::{cmp::Ordering, collections::HashMap, intrinsics::copy_nonoverlapping};
 use std::rc::Rc;
 use vertigo::{
     DomDriver,
@@ -56,12 +56,14 @@ fn create_current_view(
         let mut current_wsk = state_node_dir.get_list(&root_wsk)?;
 
         let current_path = current_path.get_value();
+        log::info!("przeliczam current path {:?}", &current_path);
         let mut current_path = (*current_path).clone();
         let content_name = current_path.pop();
 
         let content_name = match content_name {
             Some(content_name) => content_name,
             None => {
+                log::info!("return1");
                 return Ok(CurrentView {
                     list: current_wsk,
                     content: None,
@@ -76,8 +78,9 @@ fn create_current_view(
         let content_pointer = get_item_from_map(&current_wsk, &content_name)?;
 
         if content_pointer.dir {
-            let current_wsk = move_pointer(&state_node_dir, &current_wsk, &content_pointer.id)?;
+            let current_wsk = move_pointer(&state_node_dir, &current_wsk, &content_name)?;
 
+            log::info!("return2");
             return Ok(CurrentView {
                 list: current_wsk,
                 content: None,
@@ -86,6 +89,7 @@ fn create_current_view(
 
         let content_id = content_pointer.id.clone();
 
+        log::info!("return3");
         return Ok(CurrentView {
             list: current_wsk,
             content: Some(content_id),
@@ -93,7 +97,7 @@ fn create_current_view(
     })
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct ListItem {
     pub name: String,
     pub dir: bool,
@@ -136,7 +140,8 @@ fn create_list(root: &Dependencies, current_view: &Computed<Resource<CurrentView
 
                 return list_dir;
             },
-            Err(_) => {
+            Err(err) => {
+                log::error!("Create list --> {:?}", err);
                 return Vec::new();
             }
         };
