@@ -20,6 +20,12 @@ fn css_header() -> Css {
     ")
 }
 
+fn css_separator() -> Css {
+    css!("
+        margin: 0 5px;
+    ")
+}
+
 fn css_active(is_active: bool) -> &'static str {
     if is_active {
         "
@@ -34,7 +40,6 @@ fn css_active(is_active: bool) -> &'static str {
 fn css_root(is_active: bool) -> Css {
     let css = css!("
         color: blue;
-        margin-right: 5px;
     ");
 
     let css = css.push_str(css_active(is_active));
@@ -45,7 +50,6 @@ fn css_root(is_active: bool) -> Css {
 fn css_item(is_active: bool) -> Css {
     let css = css!("
         color: black;
-        margin-right: 5px;
     ");
 
     let css = css.push_str(css_active(is_active));
@@ -102,7 +106,7 @@ pub fn render_header(state: &Computed<State>) -> VDomElement {
     let mut out: Vec<VDomElement> = Vec::new();
 
     let root_is_active = all_items == 0;
-    out.push(create_link(&state, ".".into(), Vec::new(), css_root, root_is_active));
+    out.push(create_link(&state, "root".into(), Vec::new(), css_root, root_is_active));
 
     let mut wsk_current_path = Vec::<String>::new();
 
@@ -110,6 +114,7 @@ pub fn render_header(state: &Computed<State>) -> VDomElement {
         wsk_current_path.push(item.clone());
 
         let is_active = index == all_items - 1;
+        out.push(html!{"<span css={css_separator()}>-</span>"});
         out.push(create_link(&state, item.clone(), wsk_current_path.clone(), css_item, is_active));
     }
 

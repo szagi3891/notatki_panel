@@ -17,6 +17,12 @@ pub struct CurrentView {
     content: Option<String>,        //wskaźnik na content który jest plikiem jakimś
 }
 
+impl CurrentView {
+    fn is_file_select(&self) -> bool {
+        self.content.is_some()
+    }
+}
+
 fn get_item_from_map<'a>(current_wsk: &'a Rc<HashMap<String, TreeItem>>, path_item: &String) -> Result<&'a TreeItem, ResourceError> {
     let wsk_child = current_wsk.get(path_item);
 
@@ -185,7 +191,28 @@ impl State {
     }
 
     pub fn push_path(&self, node: String) {
+        let current_view = &*self.current_view.get_value();
+
+        let is_file_select = match current_view {
+            Ok(current) => current.is_file_select(),
+            Err(err) => {
+                log::error!("Ignore action push_path, reason -> {:?}", err);
+                return;
+            }
+        };
+
+
         let mut current = (*self.current_path.get_value()).clone();
+
+        if is_file_select {
+            let last = current.pop();
+
+            if last.is_none() {
+                log::error!("Ignore action push_path, reason -> missing last element");
+                return;
+            }
+        }
+
         current.push(node);
         self.current_path.set_value(current);
     }
