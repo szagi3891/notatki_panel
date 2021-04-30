@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, collections::HashMap, intrinsics::copy_nonoverlapping};
+use std::{cmp::Ordering, collections::HashMap};
 use std::rc::Rc;
 use vertigo::{
     DomDriver,
@@ -12,14 +12,62 @@ use crate::request::{Request, Resource, ResourceError};
 use super::{StateNodeDir, StateRoot, TreeItem};
 
 #[derive(PartialEq)]
+pub enum CurrentContent {
+    File {
+        file: String,
+    },
+    Dir {
+        dir: String,
+    },
+    None
+}
+
+#[derive(PartialEq)]
 pub struct CurrentView {
     list: Rc<HashMap<String, TreeItem>>,
-    content: Option<String>,        //wskaźnik na content który jest plikiem jakimś
+    content: CurrentContent,        //wskaźnik na content który jest plikiem jakimś
 }
 
 impl CurrentView {
     fn is_file_select(&self) -> bool {
-        self.content.is_some()
+        if let CurrentContent::File { .. } = self.content {
+            return true;
+        }
+
+        false
+    }
+
+    fn get_select_file(&self) -> Option<String> {
+        if let CurrentContent::File { file } = &self.content {
+            return Some(file.clone());
+        }
+
+        None
+    }
+
+    fn file(file: String, list: Rc<HashMap<String, TreeItem>>) -> CurrentView {
+        CurrentView {
+            list,
+            content: CurrentContent::File {
+                file,
+            }
+        }
+    }
+
+    fn dir(dir: String, list: Rc<HashMap<String, TreeItem>>) -> CurrentView {
+        CurrentView {
+            list,
+            content: CurrentContent::Dir {
+                dir,
+            }
+        }
+    }
+
+    fn none(list: Rc<HashMap<String, TreeItem>>) -> CurrentView {
+        CurrentView {
+            list,
+            content: CurrentContent::None
+        }
     }
 }
 
@@ -36,17 +84,23 @@ fn get_item_from_map<'a>(current_wsk: &'a Rc<HashMap<String, TreeItem>>, path_it
     Ok(wsk_child)
 }
 
-fn move_pointer(state_node_dir: &StateNodeDir, current_wsk: &Rc<HashMap<String, TreeItem>>, path_item: &String) -> Result<Rc<HashMap<String, TreeItem>>, ResourceError> {
+fn move_pointer(state_node_dir: &StateNodeDir, current_wsk: CurrentView, path_item: &String) -> Result<CurrentView, ResourceError> {
 
-    let wsk_child = get_item_from_map(current_wsk, path_item)?;
-
-    if !wsk_child.dir {
+    if current_wsk.is_file_select() {
         return Err(ResourceError::Error(format!("Dir expected {}", path_item)));
     }
 
-    let item = state_node_dir.get_list(&wsk_child.id)?;
+    let child = get_item_from_map(&current_wsk.list, path_item)?;
 
-    Ok(item)
+    if child.dir {
+        log::info!("return2");
+
+        let child_list = state_node_dir.get_list(&child.id)?;
+
+        return Ok(CurrentView::dir(path_item.clone(), child_list));
+    }
+
+    Ok(CurrentView::file(path_item.clone(), current_wsk.list))
 }
 
 fn create_current_view(
@@ -59,47 +113,15 @@ fn create_current_view(
     root.from(move || -> Resource<CurrentView> {
         let root_wsk = state_root.get_current_root()?;
 
-        let mut current_wsk = state_node_dir.get_list(&root_wsk)?;
+        let current_wsk = state_node_dir.get_list(&root_wsk)?;
 
-        let current_path = current_path.get_value();
-        log::info!("przeliczam current path {:?}", &current_path);
-        let mut current_path = (*current_path).clone();
-        let content_name = current_path.pop();
+        let mut result = CurrentView::none(current_wsk);
 
-        let content_name = match content_name {
-            Some(content_name) => content_name,
-            None => {
-                log::info!("return1");
-                return Ok(CurrentView {
-                    list: current_wsk,
-                    content: None,
-                });
-            }
-        };
-
-        for path_item in current_path {
-            current_wsk = move_pointer(&state_node_dir, &current_wsk, &path_item)?;
+        for path_item in &*current_path.get_value() {
+            result = move_pointer(&state_node_dir, result, &path_item)?;
         }
 
-        let content_pointer = get_item_from_map(&current_wsk, &content_name)?;
-
-        if content_pointer.dir {
-            let current_wsk = move_pointer(&state_node_dir, &current_wsk, &content_name)?;
-
-            log::info!("return2");
-            return Ok(CurrentView {
-                list: current_wsk,
-                content: None,
-            });
-        }
-
-        let content_id = content_pointer.id.clone();
-
-        log::info!("return3");
-        return Ok(CurrentView {
-            list: current_wsk,
-            content: Some(content_id),
-        });
+        Ok(result)
     })
 }
 
@@ -154,11 +176,27 @@ fn create_list(root: &Dependencies, current_view: &Computed<Resource<CurrentView
     })
 }
 
+fn create_list_select_item(root: &Dependencies, current_view: &Computed<Resource<CurrentView>>) -> Computed<Option<String>> {
+    let current_view = current_view.clone();
+
+    root.from(move || -> Option<String> {
+        let current_view = current_view.get_value();
+
+        match &*current_view {
+            Ok(current_view) => {
+                current_view.get_select_file()
+            },
+            Err(_) => None
+        }
+    })
+}
+
 #[derive(PartialEq)]
 pub struct State {
     pub current_path: Value<Vec<String>>,
     pub current_view: Computed<Resource<CurrentView>>,                  //lista plików i katalogów w lewym panelu
     pub list: Computed<Vec<ListItem>>,
+    pub list_select_item: Computed<Option<String>>,
 }
 
 impl State {
@@ -179,10 +217,13 @@ impl State {
 
         let list = create_list(root, &current_view);
 
+        let list_select_item = create_list_select_item(root, &current_view);
+
         root.new_computed_from(State {
             current_path,
             current_view,
             list,
+            list_select_item,
         })
     }
 

@@ -1,12 +1,29 @@
 use vertigo::{
+    Css,
     VDomElement,
     computed::{
         Computed,
     }
 };
-use vertigo_html::html;
+use vertigo_html::{css, html};
 
 use crate::app::state::State;
+
+fn css_normal() -> Css {
+    css!("
+        cursor: pointer;
+
+        :hover {
+            color: green;
+        }
+    ")
+}
+
+fn css_active() -> Css {
+    css!("
+        color: blue;
+    ")
+}
 
 fn render_list_files(state: &Computed<State>) -> VDomElement {
     
@@ -14,6 +31,7 @@ fn render_list_files(state: &Computed<State>) -> VDomElement {
 
     let state = state.get_value();
     let list = state.list.get_value();
+    let select_item = state.list_select_item.get_value();
     
     log::info!("lista renderowana {:?}", &list);
 
@@ -34,9 +52,23 @@ fn render_list_files(state: &Computed<State>) -> VDomElement {
             }
         };
 
-        out.push(html!{"
-            <div onClick={on_click}>{&item.name} ({label})</div>
-        "});
+        let is_select = {
+            if let Some(select_item) = &*select_item {
+                item.name == *select_item
+            } else {
+                false
+            }
+        };
+
+        if is_select {
+            out.push(html!{"
+                <div onClick={on_click} css={css_active()}>{&item.name} ({label})</div>
+            "});
+        } else {
+            out.push(html!{"
+                <div onClick={on_click} css={css_normal()}>{&item.name} ({label})</div>
+            "});
+        }
     }
 
     html! {"

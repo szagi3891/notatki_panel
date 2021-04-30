@@ -1,6 +1,6 @@
 use common::{GitTreeItem, HandlerHetchDirBody, HandlerRoot};
 // use common::{PostParamsFetchNodePost};
-use utils::SpawnOwner;
+// use utils::SpawnOwner;
 use warp::{Filter, Reply, http::Response};
 use std::convert::Infallible;
 use std::net::Ipv4Addr;
@@ -138,20 +138,20 @@ async fn handler_fetch_dir(app_state: Arc<AppState>, body_request: HandlerHetchD
 //     }
 // }
 
-fn start_git_test(git: Git) -> SpawnOwner {
-    SpawnOwner::new(async move {
-        let main_commit = git.get_main_commit().await;
+// fn start_git_test(git: Git) -> SpawnOwner {
+//     SpawnOwner::new(async move {
+//         let main_commit = git.get_main_commit().await;
 
-        println!("main commit: {}", main_commit);
+//         println!("main commit: {}", main_commit);
 
-        let blob = git.get_from_id(&String::from("3b698708d95096267a93d1f7130c08949e69de4a")).await; //mobx
+//         let blob = git.get_from_id(&String::from("3b698708d95096267a93d1f7130c08949e69de4a")).await; //mobx
 
-        println!("mobx ----> {:?}", blob);
+//         println!("mobx ----> {:?}", blob);
 
-        let blob2 = git.get_from_id(&String::from("d3900aaf8c7bfe3639d046b915aa34d5c7503519")).await;//js
-        println!("js ----> {:?}", blob2);
-    })
-}
+//         let blob2 = git.get_from_id(&String::from("d3900aaf8c7bfe3639d046b915aa34d5c7503519")).await;//js
+//         println!("js ----> {:?}", blob2);
+//     })
+// }
 
 #[tokio::main]
 async fn main() {
@@ -171,7 +171,7 @@ async fn main() {
     //chwilowo wyłączamy synchronizację
     // let task_synchronize = start_sync(config.git_repo.clone()).await;
 
-    let task_test = start_git_test(git);
+    // let task_test = start_git_test(git);
 
     let route_index =
         warp::path::end()
@@ -246,5 +246,5 @@ async fn main() {
         .await;
 
     // task_synchronize.off();
-    task_test.off();
+    // task_test.off();
 }
