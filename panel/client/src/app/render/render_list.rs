@@ -39,33 +39,54 @@ fn css_active() -> Css {
     ")
 }
 
-fn icon_wrapper() -> Css {
+fn icon_arrow_wrapper() -> Css {
+    css!("
+        flex-shrink: 0;
+        width: 8px;
+        height: 16px;
+        position: relative;
+    ")
+}
+
+fn icon_wrapper_svg() -> Css {
     css!("
         flex-shrink: 0;
         width: 16px;
         height: 16px;
+        position: relative;
+        left: -4px;
     ")
 }
 
 fn icon_arrow(show: bool) -> VDomElement {
     if show {
         html!(r#"
-            <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                css={icon_wrapper()}
-            >
-                <path d="M15 12.3301L9 16.6603L9 8L15 12.3301Z" fill="currentColor" />
-            </svg>
+            <div css={icon_arrow_wrapper()}>
+                <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    css={icon_wrapper_svg()}
+                >
+                    <path d="M15 12.3301L9 16.6603L9 8L15 12.3301Z" fill="currentColor" />
+                </svg>
+            </div>
         "#)
     } else {
         html!("
-            <div css={icon_wrapper()}></div>
+            <div css={icon_arrow_wrapper()}></div>
         ")
     }
+}
+
+fn icon_dir_css() -> Css {
+    css!("
+        flex-shrink: 0;
+        width: 16px;
+        height: 16px;
+    ")
 }
 
 fn icon_dir() -> VDomElement {
@@ -76,7 +97,7 @@ fn icon_dir() -> VDomElement {
             viewBox="0 0 24 24"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
-            css={icon_wrapper()}
+            css={icon_dir_css()}
         >
             <path
                 fill-rule="evenodd"
@@ -88,6 +109,14 @@ fn icon_dir() -> VDomElement {
     "#)
 }
 
+fn icon_file_css() -> Css {
+    css!("
+        flex-shrink: 0;
+        width: 16px;
+        height: 16px;
+    ")
+}
+
 fn icon_file() -> VDomElement {
     html!(r#"
         <svg
@@ -96,7 +125,7 @@ fn icon_file() -> VDomElement {
             viewBox="0 0 24 24"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
-            css={icon_wrapper()}
+            css={icon_file_css()}
         >
             <path
                 fill-rule="evenodd"
