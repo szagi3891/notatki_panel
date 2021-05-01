@@ -1,6 +1,5 @@
-use common::{GitTreeItem, HandlerHetchDirBody, HandlerRoot};
-// use common::{PostParamsFetchNodePost};
-// use utils::SpawnOwner;
+use common::{HandlerFetchDirBody, HandlerFetchDirResponse, HandlerFetchNodeResponse, HandlerFetchRootResponse};
+use utils::{create_response, create_response_message};
 use warp::{Filter, Reply, http::Response};
 use std::convert::Infallible;
 use std::net::Ipv4Addr;
@@ -56,65 +55,52 @@ async fn handler_index() -> Result<impl Reply, Infallible> {
 async fn handler_fetch_root(app_state: Arc<AppState>) -> Result<impl warp::Reply, Infallible> {
     let root = app_state.git.get_main_commit().await;
 
-    let body = HandlerRoot {
+    let body = HandlerFetchRootResponse {
         root,
     };
 
-    let body = serde_json::to_string(&body).unwrap();
-
-    let response = Response::builder()
-        .status(200)
-        .body(body);
-    Ok(response)
+    Ok(create_response(200, body))
 }
 
-async fn handler_fetch_dir(app_state: Arc<AppState>, body_request: HandlerHetchDirBody) -> Result<impl warp::Reply, Infallible> {
+async fn handler_fetch_dir(app_state: Arc<AppState>, body_request: HandlerFetchDirBody) -> Result<Response<String>, Infallible> {
     let root = app_state.git.get_from_id(&body_request.id).await;
 
     if let Some(git::GitBlob::Tree { list }) = root {
-        let mut out = Vec::<GitTreeItem>::new();
+        let mut response: HandlerFetchDirResponse = HandlerFetchDirResponse::new();
         for item in list {
-            out.push(item.into());
+            response.add(item);
         }
 
-        let out_str = serde_json::to_string(&out).unwrap();
-
-        let response = Response::builder()
-            .status(200)
-            .body(out_str);
-        return Ok(response)
+        return Ok(create_response(200, response));
     }
 
-    let response = Response::builder()
-        .status(404)
-        .body("missing".into());
-    Ok(response)
+    Ok(create_response_message(404, "missing"))
 }
 
+async fn handler_fetch_node(hash_id: String, app_state: Arc<AppState>) -> Result<impl warp::Reply, Infallible> {
 
-// async fn handler_fetch_node(app_state: Arc<AppState>, body_request: PostParamsFetchNodePost) -> Result<impl warp::Reply, Infallible> {
-//     let node_id = body_request.node_id;
+    let data = app_state.git.get_from_id(&hash_id).await;
 
-//     let data = app_state.git.get_from_id(node_id.clone()).await;
+    if let Some(git::GitBlob::Blob { content }) = data {
+        let content = String::from_utf8(content);
 
-//     match data {
-//         Some(data) => {
-//             let a = serde_json::to_string(&data).unwrap();
+        return match content {
+            Ok(content) => {
+                let response = HandlerFetchNodeResponse {
+                    content
+                };
 
-//             let response = Response::builder()
-//                 .status(200)
-//                 .body(a);
-//             Ok(response)
-//         },
-//         None => {
-//             let response = Response::builder()
-//                 .status(404)
-//                 .body(format!("missing {}", node_id));
+                Ok(create_response(200, response))
+            },
+            Err(_) => {
+                Ok(create_response_message(500, "content is not correctly encoded in utf8"))
+            }
+        };
+    }
 
-//             Ok(response)
-//         }
-//     }
-// }
+    Ok(create_response_message(404, format!("missing content {}", hash_id)))
+}
+
 
 // async fn handler_create_dir(app_state: Arc<AppState>, body: PostParamsCreateDir) -> Result<impl warp::Reply, Infallible> {
 //     let new_id = app_state.git.create_dir(body.parent_node, body.name).await;
@@ -138,21 +124,6 @@ async fn handler_fetch_dir(app_state: Arc<AppState>, body_request: HandlerHetchD
 //     }
 // }
 
-// fn start_git_test(git: Git) -> SpawnOwner {
-//     SpawnOwner::new(async move {
-//         let main_commit = git.get_main_commit().await;
-
-//         println!("main commit: {}", main_commit);
-
-//         let blob = git.get_from_id(&String::from("3b698708d95096267a93d1f7130c08949e69de4a")).await; //mobx
-
-//         println!("mobx ----> {:?}", blob);
-
-//         let blob2 = git.get_from_id(&String::from("d3900aaf8c7bfe3639d046b915aa34d5c7503519")).await;//js
-//         println!("js ----> {:?}", blob2);
-//     })
-// }
-
 #[tokio::main]
 async fn main() {
     pretty_env_logger::init();
@@ -165,13 +136,10 @@ async fn main() {
     println!("start git test: {}", &config.git_repo);
     let git = Git::new(config.git_repo, "master".into());
 
-    //let git_db = GitDB::new(config.git_notes);
     let app_state = AppState::new(git.clone());
 
     //chwilowo wyłączamy synchronizację
     // let task_synchronize = start_sync(config.git_repo.clone()).await;
-
-    // let task_test = start_git_test(git);
 
     let route_index =
         warp::path::end()
@@ -196,13 +164,11 @@ async fn main() {
         .and_then(handler_fetch_dir);
 
 
-
-    // let filter_fetch_node =
-    //     warp::path!("fetch_node")
-    //     .and(warp::post())
-    //     .and(inject_state(app_state.clone()))
-    //     .and(warp::body::json())
-    //     .and_then(handler_fetch_node);
+    let filter_fetch_node =
+        warp::path!("fetch_node" / String)
+        .and(warp::get())
+        .and(inject_state(app_state.clone()))
+        .and_then(handler_fetch_node);
 
     // let filter_create_dir =
     //     warp::path!("create_dir")
@@ -224,7 +190,7 @@ async fn main() {
         .or(route_build)
         .or(filter_fetch_root)
         .or(filter_fetch_dir)
-        // .or(filter_fetch_node)
+        .or(filter_fetch_node)
         // .or(filter_create_dir)
         .or(routes_default)
     ;
@@ -246,5 +212,4 @@ async fn main() {
         .await;
 
     // task_synchronize.off();
-    // task_test.off();
 }

@@ -19,30 +19,12 @@ use git2::{
 };
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct TreeItem {
-    dir: bool,
-    id: String,
-    name: String,
-}
-
-impl Into<GitTreeItem> for TreeItem {
-    fn into(self) -> GitTreeItem {
-        let TreeItem { dir, id, name } = self;
-        GitTreeItem {
-            dir,
-            id,
-            name,
-        }
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
 pub enum GitBlob {
     Blob {
         content: Vec<u8>,
     },
     Tree {
-        list: Vec<TreeItem>,
+        list: Vec<GitTreeItem>,
     }
 }
 
@@ -104,7 +86,7 @@ impl Git {
                         };
 
                         if let Ok(tree) = repo.find_tree(oid) {
-                            let mut list: Vec<TreeItem> = Vec::new();
+                            let mut list: Vec<GitTreeItem> = Vec::new();
 
                             for item in tree.iter() {
                                 let name = item.name();
@@ -126,7 +108,7 @@ impl Git {
                                     }
                                 };
 
-                                list.push(TreeItem {
+                                list.push(GitTreeItem {
                                     dir,
                                     id: id.to_string(),
                                     name,

@@ -1,5 +1,5 @@
 use std::{collections::HashMap, rc::Rc};
-use common::{GitTreeItem, HandlerHetchDirBody};
+use common::{GitTreeItem, HandlerFetchDirBody, HandlerFetchDirResponse};
 use vertigo::{
     computed::{
         Computed,
@@ -16,10 +16,10 @@ pub struct TreeItem {
     pub id: String,
 }
 
-fn convert(list: Vec<GitTreeItem>) -> Rc<HashMap<String, TreeItem>> {
+fn convert(list: HandlerFetchDirResponse) -> Rc<HashMap<String, TreeItem>> {
     let mut out: HashMap<String, TreeItem> = HashMap::new();
 
-    for item in list.into_iter() {
+    for item in list.list.into_iter() {
         let GitTreeItem {id, dir, name} = item;
         out.insert(name, TreeItem { dir, id });
     }
@@ -39,10 +39,10 @@ impl NodeDir {
 
         let response = request
             .fetch("/fetch_tree_item")
-            .body(&HandlerHetchDirBody {
+            .body(&HandlerFetchDirBody {
                 id: id.clone(),
             })
-            .post::<Vec<GitTreeItem>>();
+            .post::<HandlerFetchDirResponse>();
 
         request.spawn_local(async move {
             let response = response.await;
