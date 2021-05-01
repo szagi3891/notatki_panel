@@ -40,7 +40,7 @@ fn css_content_list() -> Css {
         flex-grow: 0;
         flex-shrink: 0;
         border-right: 1px solid black;
-        padding: 0 5px;
+        padding: 0 3px;
     ")
 }
 
