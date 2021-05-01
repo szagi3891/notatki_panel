@@ -89,10 +89,6 @@ impl StateNodeDir {
         }
     }
 
-    pub fn get(&self, id: &String) -> NodeDir {
-        self.data.get_value(id)
-    }
-
     pub fn get_list(&self, id: &String) -> Result<Rc<HashMap<String, TreeItem>>, ResourceError> {
         log::info!("get list --> {}", id);
         self.data.get_value(id).get_list()

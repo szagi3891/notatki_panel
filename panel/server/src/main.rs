@@ -1,4 +1,4 @@
-use common::{HandlerFetchDirBody, HandlerFetchDirResponse, HandlerFetchNodeResponse, HandlerFetchRootResponse};
+use common::{HandlerFetchDirBody, HandlerFetchDirResponse, HandlerFetchNodeBody, HandlerFetchNodeResponse, HandlerFetchRootResponse};
 use utils::{create_response, create_response_message};
 use warp::{Filter, Reply, http::Response};
 use std::convert::Infallible;
@@ -77,7 +77,9 @@ async fn handler_fetch_dir(app_state: Arc<AppState>, body_request: HandlerFetchD
     Ok(create_response_message(404, "missing"))
 }
 
-async fn handler_fetch_node(hash_id: String, app_state: Arc<AppState>) -> Result<impl warp::Reply, Infallible> {
+async fn handler_fetch_node(app_state: Arc<AppState>, body_request: HandlerFetchNodeBody) -> Result<impl warp::Reply, Infallible> {
+
+    let hash_id = body_request.hash;
 
     let data = app_state.git.get_from_id(&hash_id).await;
 
@@ -165,9 +167,10 @@ async fn main() {
 
 
     let filter_fetch_node =
-        warp::path!("fetch_node" / String)
-        .and(warp::get())
+        warp::path!("fetch_node")
+        .and(warp::post())
         .and(inject_state(app_state.clone()))
+        .and(warp::body::json())
         .and_then(handler_fetch_node);
 
     // let filter_create_dir =

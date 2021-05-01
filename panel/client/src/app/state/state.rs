@@ -9,15 +9,16 @@ use vertigo::{
     }
 };
 use crate::request::{Request, Resource, ResourceError};
-use super::{StateNodeDir, StateRoot, TreeItem};
+use super::{StateNodeDir, StateRoot, TreeItem, state_node_content::StateNodeContent};
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 pub enum CurrentContent {
     File {
-        file: String,
+        file: String,           //name
+        file_hash: String,      //hash
     },
     Dir {
-        dir: String,
+        dir: String,            //hash
     },
     None
 }
@@ -38,18 +39,19 @@ impl CurrentView {
     }
 
     fn get_select_file(&self) -> Option<String> {
-        if let CurrentContent::File { file } = &self.content {
+        if let CurrentContent::File { file, .. } = &self.content {
             return Some(file.clone());
         }
 
         None
     }
 
-    fn file(file: String, list: Rc<HashMap<String, TreeItem>>) -> CurrentView {
+    fn file(file: String, file_hash: String, list: Rc<HashMap<String, TreeItem>>) -> CurrentView {
         CurrentView {
             list,
             content: CurrentContent::File {
                 file,
+                file_hash,
             }
         }
     }
@@ -100,7 +102,7 @@ fn move_pointer(state_node_dir: &StateNodeDir, current_wsk: CurrentView, path_it
         return Ok(CurrentView::dir(path_item.clone(), child_list));
     }
 
-    Ok(CurrentView::file(path_item.clone(), current_wsk.list))
+    Ok(CurrentView::file(path_item.clone(), child.id.clone(), current_wsk.list))
 }
 
 fn create_current_view(
@@ -192,9 +194,56 @@ fn create_list_select_item(root: &Dependencies, current_view: &Computed<Resource
 }
 
 #[derive(PartialEq)]
+pub enum CurrentContentFullDetails {
+    File {
+        content: Rc<String>,
+    },
+    None,
+}
+
+impl CurrentContentFullDetails {
+    pub fn to_string(&self) -> Option<Rc<String>> {
+        if let CurrentContentFullDetails::File { content } = self {
+            return Some(content.clone());
+        }
+
+        None
+    }
+}
+
+fn create_current_content(root: &Dependencies, current_view: &Computed<Resource<CurrentView>>, state_node_content: StateNodeContent) -> Computed<CurrentContentFullDetails> {
+    let current_view = current_view.clone();
+
+    root.from(move || -> CurrentContentFullDetails {
+        let current_view = current_view.get_value();
+
+        match &*current_view {
+            Ok(current_view) => {
+                match &current_view.content {
+                    CurrentContent::File { file_hash, .. } => {
+                        let result = state_node_content.get(file_hash);
+
+                        if let Ok(result) = result {
+                            return CurrentContentFullDetails::File {
+                                content: result.clone(),
+                            };
+                        }
+
+                        CurrentContentFullDetails::None
+                    },
+                    _ => CurrentContentFullDetails::None,
+                }
+            },
+            Err(_) => CurrentContentFullDetails::None,
+        } 
+    })
+}
+
+#[derive(PartialEq)]
 pub struct State {
     pub current_path: Value<Vec<String>>,
     pub current_view: Computed<Resource<CurrentView>>,                  //lista plików i katalogów w lewym panelu
+    pub current_content: Computed<CurrentContentFullDetails>,
     pub list: Computed<Vec<ListItem>>,
     pub list_select_item: Computed<Option<String>>,
 }
@@ -204,6 +253,7 @@ impl State {
         let request = Request::new(driver);
 
         let state_node_dir = StateNodeDir::new(&request, root);
+        let state_node_content = StateNodeContent::new(&request, root);
         let state_root = StateRoot::new(&request, root, state_node_dir.clone());
 
         let current_path = root.new_value(Vec::<String>::new());
@@ -219,9 +269,12 @@ impl State {
 
         let list_select_item = create_list_select_item(root, &current_view);
 
+        let current_content= create_current_content(root, &current_view, state_node_content);
+
         root.new_computed_from(State {
             current_path,
             current_view,
+            current_content,
             list,
             list_select_item,
         })
@@ -257,5 +310,7 @@ impl State {
         current.push(node);
         self.current_path.set_value(current);
     }
+
+    //pub fn get_content(&self, content_id: String) -> 
 }
 

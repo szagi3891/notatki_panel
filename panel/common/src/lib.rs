@@ -38,6 +38,11 @@ impl HandlerFetchDirResponse {
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct HandlerFetchNodeBody {
+    pub hash: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct HandlerFetchNodeResponse {
     pub content: String,
 }
