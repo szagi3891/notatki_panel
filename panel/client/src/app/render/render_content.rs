@@ -1,7 +1,13 @@
-use vertigo::{VDomElement, computed::Computed};
-use vertigo_html::html;
+use vertigo::{Css, VDomElement, computed::Computed};
+use vertigo_html::{css, html};
 
 use crate::app::state::State;
+
+fn css_content() -> Css {
+    css!("
+        white-space: pre-line;
+    ")
+}
 
 pub fn render_content(state: &Computed<State>) -> VDomElement {
 
@@ -13,7 +19,7 @@ pub fn render_content(state: &Computed<State>) -> VDomElement {
 
     if let Some(content) = content {
         return html!("
-            <div> { content } </div>
+            <div css={css_content()}>{ content }</div>
         ");
     }
 
