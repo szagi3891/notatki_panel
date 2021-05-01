@@ -36,9 +36,11 @@ fn css_content() -> Css {
 
 fn css_content_list() -> Css {
     css!("
-        flex-grow: 1;
+        width: 300px;
+        flex-grow: 0;
+        flex-shrink: 0;
         border-right: 1px solid black;
-        padding: 5px;
+        padding: 0 5px;
     ")
 }
 

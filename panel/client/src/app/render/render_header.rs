@@ -118,6 +118,17 @@ pub fn render_header(state: &Computed<State>) -> VDomElement {
         out.push(create_link(&state, item.clone(), wsk_current_path.clone(), css_item, is_active));
     }
 
+    // let on_create = {
+    //     //let state = state.clone();
+    //     move || {
+    //         //state.get_value().create_dir("Jakiś".into());
+
+    //         log::info!("klik w utworz katalog ...");
+    //     }
+    // };
+    // <div onClick={on_create} css={css_normal()}>utwórz katalog</div>
+
+
     html! {"
         <div css={css_header()}>
             { ..out }
