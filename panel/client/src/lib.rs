@@ -21,10 +21,9 @@ pub async fn start_app() {
 
     log::info!("Start rustowego modułu ...");
 
-    let driver = DomDriverBrowser::new();
-
     let root: Dependencies = Dependencies::default();
-    let app_state = app::state::State::new(&root, &driver);
+    let driver = DomDriverBrowser::new(&root);
+    let app_state = app::State::new(&root, &driver);
 
     let app = App::new(driver.clone(), VDomComponent::new(app_state, app::render));
 

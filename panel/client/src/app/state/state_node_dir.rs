@@ -4,7 +4,7 @@ use vertigo::{
     computed::{
         Computed,
         Dependencies,
-        AutoMapBox,
+        AutoMap,
     },
 };
 
@@ -61,7 +61,7 @@ impl NodeDir {
     pub fn get_list(&self) -> Result<Rc<HashMap<String, TreeItem>>, ResourceError> {
         let list = self.get();
 
-        let value = match &*list {
+        let value = match list.as_ref() {
             Ok(inner) => inner,
             Err(err) => return Err(err.clone()),
         };
@@ -72,7 +72,7 @@ impl NodeDir {
 
 #[derive(PartialEq, Clone)]
 pub struct StateNodeDir {
-    data: AutoMapBox<String, NodeDir>,
+    data: AutoMap<String, NodeDir>,
 }
 
 impl StateNodeDir {
@@ -81,7 +81,7 @@ impl StateNodeDir {
             let request = request.clone();
             let dependencies = dependencies.clone();
 
-            AutoMapBox::new(move |id: &String| NodeDir::new(&request, &dependencies, id))
+            AutoMap::new(move |id: &String| NodeDir::new(&request, &dependencies, id))
         };
 
         StateNodeDir {

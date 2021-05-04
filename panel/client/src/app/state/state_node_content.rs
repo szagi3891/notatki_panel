@@ -4,7 +4,7 @@ use vertigo::{
     computed::{
         Computed,
         Dependencies,
-        AutoMapBox,
+        AutoMap,
     },
 };
 
@@ -44,7 +44,7 @@ impl NodeContent {
     }
 
     pub fn get(&self) -> Result<Rc<String>, ResourceError> {
-        match &*self.value.get_value() {
+        match self.value.get_value().as_ref() {
             Ok(content) => Ok(content.clone()),
             Err(err) => Err(err.clone()),
         }
@@ -53,7 +53,7 @@ impl NodeContent {
 
 #[derive(PartialEq, Clone)]
 pub struct StateNodeContent {
-    data: AutoMapBox<String, NodeContent>,
+    data: AutoMap<String, NodeContent>,
 }
 
 impl StateNodeContent {
@@ -62,7 +62,7 @@ impl StateNodeContent {
             let request = request.clone();
             let dependencies = dependencies.clone();
 
-            AutoMapBox::new(move |id: &String| NodeContent::new(&request, &dependencies, id))
+            AutoMap::new(move |id: &String| NodeContent::new(&request, &dependencies, id))
         };
 
         StateNodeContent {

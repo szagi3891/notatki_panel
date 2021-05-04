@@ -1,14 +1,40 @@
 wklejając linka z youtube, dodawać pobrany automatycznie z sieci tytuł tego filmiku
 
 
-zaznaczenie elementu aktywnego na liście pliki
-    nieklikalne niech nie mają "łapki"
-
 dodanie obsługi kursorów, góra, dół, lewo, prawo - do nawigacji
 
 dodanie podglądu
 
+dodanie podglądu linków youtube
+http://www.get-youtube-thumbnail.com/
+http://i3.ytimg.com/vi/VhFmJh9_vSA/hqdefault.jpg
 
+
+
+mouseover
+mouseout
+niech globalne handlery włączają się tylko wtedy gdy jest chociaz jedno zdarzenie tego typu podpięte
+
+
+
+
+zrobić wyszukiwarkę w nazwach.
+    ma się wyskakujące okno, w nim będzie znajdować się pole do wpisania szukanej frazy.
+    będziemy w liście wyników wyszukiwać rekurencyjnie kolejnych zagniedzen
+
+    list ściezek i zaznaczony w niej szukany fragment
+    wyszukujemy dopiero po tym jak zostanie wpisane co najmniej dwie litery
+
+    klikniecie na sziezke, bedzie kasować wyszukiwaną frazę i przenosić na poszukiwany element
+
+
+edycja pliku ma otwierać wielkie okno, z edytorem
+po dokonaniu zmian, ma isc request zapisujacy zmiany
+po zapisaniu zmian, przywrócony ma zostać tryb podglądu
+
+
+dorobić do zdarzenia klick, parametr
+za jego pomocą będzie mona sie zorientowac czy kliknięto lewym czy moze prawym klawiszem myszy
 
 
 

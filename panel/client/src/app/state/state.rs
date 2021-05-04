@@ -119,7 +119,7 @@ fn create_current_view(
 
         let mut result = CurrentView::none(current_wsk);
 
-        for path_item in &*current_path.get_value() {
+        for path_item in current_path.get_value().as_ref() {
             result = move_pointer(&state_node_dir, result, &path_item)?;
         }
 
@@ -142,9 +142,9 @@ fn create_list(root: &Dependencies, current_view: &Computed<Resource<CurrentView
 
         let current_view = current_view.get_value();
 
-        match &*current_view {
+        match current_view.as_ref() {
             Ok(current_view) => {
-                for (name, item) in &*current_view.list {
+                for (name, item) in current_view.list.as_ref() {
                     if item.dir {
                         list_dir.push(ListItem {
                             name: name.clone(),
@@ -184,7 +184,7 @@ fn create_list_select_item(root: &Dependencies, current_view: &Computed<Resource
     root.from(move || -> Option<String> {
         let current_view = current_view.get_value();
 
-        match &*current_view {
+        match current_view.as_ref() {
             Ok(current_view) => {
                 current_view.get_select_file()
             },
@@ -217,7 +217,7 @@ fn create_current_content(root: &Dependencies, current_view: &Computed<Resource<
     root.from(move || -> CurrentContentFullDetails {
         let current_view = current_view.get_value();
 
-        match &*current_view {
+        match current_view.as_ref() {
             Ok(current_view) => {
                 match &current_view.content {
                     CurrentContent::File { file_hash, .. } => {
@@ -240,12 +240,26 @@ fn create_current_content(root: &Dependencies, current_view: &Computed<Resource<
 }
 
 #[derive(PartialEq)]
+pub enum CurrentAction {
+    CurrentEdit {
+        path: Vec<String>,          //edutowany element
+        hash: String,               //hash poprzedniej zawartosci
+        content: String,            //edytowana tresc
+    }
+
+    //zmiana nazwy
+    //tworzenie pliku
+    //tworzenie katalogu
+}
+
+#[derive(PartialEq)]
 pub struct State {
     pub current_path: Value<Vec<String>>,
     pub current_view: Computed<Resource<CurrentView>>,                  //lista plików i katalogów w lewym panelu
     pub current_content: Computed<CurrentContentFullDetails>,
     pub list: Computed<Vec<ListItem>>,
     pub list_select_item: Computed<Option<String>>,
+    pub current_edit: Value<Option<CurrentAction>>,
 }
 
 impl State {
@@ -271,12 +285,15 @@ impl State {
 
         let current_content= create_current_content(root, &current_view, state_node_content);
 
+        let current_edit = root.new_value(None);
+
         root.new_computed_from(State {
             current_path,
             current_view,
             current_content,
             list,
             list_select_item,
+            current_edit,
         })
     }
 
@@ -311,6 +328,8 @@ impl State {
         self.current_path.set_value(current);
     }
 
-    //pub fn get_content(&self, content_id: String) -> 
+    //pub fn get_content(&self, content_id: String) ->
+
+
 }
 

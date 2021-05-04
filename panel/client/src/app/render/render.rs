@@ -9,10 +9,10 @@ use vertigo::{
 use vertigo_html::{html, css};
 
 use crate::app::state::State;
-use super::render_header::render_header;
-use super::render_list::render_list;
-use super::render_content::render_content;
-// use super::render_footer::render_footer;
+use super::render_menu;
+use super::render_header;
+use super::render_list;
+use super::render_content;
 
 fn css_wrapper() -> Css {
     css!("
@@ -52,15 +52,22 @@ fn css_content_content() -> Css {
     ")
 }
 
-
-//TODO ...
-//             <component {render_footer} data={state.clone()} />
-
-
 pub fn render(state: &Computed<State>) -> VDomElement {
-    //let state = state.get_value();
+    let on_mouse_enter1 = || {
+        log::info!("enter1");
+    };
 
-    //current_content
+    let on_mouse_enter2 = || {
+        log::info!("enter2");
+    };
+
+    let on_mouse_leave1 = || {
+        log::info!("leave1");
+    };
+
+    let on_mouse_leave2 = || {
+        log::info!("leave2");
+    };
 
     html! {"
         <div css={css_wrapper()}>
@@ -71,16 +78,16 @@ pub fn render(state: &Computed<State>) -> VDomElement {
                     border: 0;
                 }
             </style>
+            <component {render_menu} data={state.clone()} />
             <component {render_header} data={state.clone()} />
             <div css={css_content()}>
-                <div css={css_content_list()}>
+                <div css={css_content_list()} onMouseEnter={on_mouse_enter1} onMouseLeave={on_mouse_leave1}>
                     <component {render_list} data={state.clone()} />
                 </div>
-                <div css={css_content_content()}>
+                <div css={css_content_content()} onMouseEnter={on_mouse_enter2} onMouseLeave={on_mouse_leave2}>
                     <component {render_content} data={state.clone()} />
                 </div>
             </div>
-            <div>TODO - footer</div>
         </div>
     "}
 }

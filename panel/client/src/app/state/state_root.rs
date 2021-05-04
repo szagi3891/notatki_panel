@@ -36,7 +36,7 @@ impl RootNode {
     pub fn get(&self) -> Result<String, ResourceError> {
         let handler_root = self.value.get_value();
 
-        match &*handler_root {
+        match handler_root.as_ref() {
             Ok(inner) => Ok(inner.root.clone()),
             Err(err) => return Err(err.clone()),
         }
@@ -89,7 +89,7 @@ impl StateRoot {
 
         let resource = value.value.get_value();
 
-        match &*resource {
+        match resource.as_ref() {
             Err(_) => None,
             Ok(value) => Some(value.root.clone()),
         }

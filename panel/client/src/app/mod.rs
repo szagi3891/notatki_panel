@@ -1,8 +1,5 @@
-pub mod state;
-pub mod render;
+mod state;
+mod render;
 
 pub use render::render;
-// mod render_header;
-// mod render_list;
-// mod render_footer;
-mod node_state;
+pub use state::State;

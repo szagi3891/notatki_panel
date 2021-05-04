@@ -58,6 +58,8 @@ fn icon_wrapper_svg() -> Css {
     ")
 }
 
+//https://css.gg/play-button
+
 fn icon_arrow(show: bool) -> VDomElement {
     if show {
         html!(r#"
