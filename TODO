@@ -17,6 +17,14 @@ niech globalne handlery włączają się tylko wtedy gdy jest chociaz jedno zda
 
 
 
+jak dodajemy onKeyDown, to wymuszać zawsze dodawanie jakiego kolwiek indexu, po to aby łapał eventy
+onKeyDown={on_keydown} tabindex="-1"
+
+
+Dodać izolowanie błędu jakieś
+jak poleci panic, to niech nie rozwala obsługi kolejnych eventów ...
+
+
 
 zrobić wyszukiwarkę w nazwach.
     ma się wyskakujące okno, w nim będzie znajdować się pole do wpisania szukanej frazy.

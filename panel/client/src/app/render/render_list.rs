@@ -1,42 +1,27 @@
-use vertigo::{
-    Css,
-    VDomElement,
-    computed::{
+use vertigo::{Css, KeyDownEvent, VDomElement, computed::{
         Computed,
-    }
-};
+    }};
 use vertigo_html::{css, html};
 
 use crate::app::state::State;
 
-fn css_normal() -> Css {
-    css!("
+fn css_normal(is_select: bool) -> Css {
+    let css = css!("
         display: flex;
         border-bottom: 1px solid #c0c0c0;
         padding: 3px 0;
 
         cursor: pointer;
+    ");
 
-        :hover {
+    if is_select {
+        return css.push_str("
             color: green;
             background-color: #c0c0c0;
-        }
-    ")
-}
+        ");
+    }
 
-fn css_active() -> Css {
-    css!("
-        display: flex;
-        border-bottom: 1px solid #c0c0c0;
-        padding: 3px 0;
-
-        cursor: pointer;
-
-        :hover {
-            color: green;
-            background-color: #c0c0c0;
-        }
-    ")
+    css
 }
 
 fn icon_arrow_wrapper() -> Css {
@@ -139,10 +124,18 @@ fn icon_file() -> VDomElement {
     "#)
 }
 
-fn label_css() -> Css {
-    css!("
+fn label_css(is_pointer: bool) -> Css {
+    let out = css!("
         padding-left: 3px;
-    ")
+    ");
+
+    if is_pointer {
+        return out.push_str("
+            text-decoration: underline;
+        ");
+    }
+
+    out
 }
 
 pub fn render_list(state: &Computed<State>) -> VDomElement {
@@ -151,7 +144,8 @@ pub fn render_list(state: &Computed<State>) -> VDomElement {
 
     let state = state.get_value();
     let list = state.list.get_value();
-    let select_item = state.list_select_item.get_value();
+    let list_current_show_item = state.list_current_show_item.get_value();
+    let list_pointer = state.list_pointer.get_value();
     
     log::info!("lista renderowana {:?}", &list);
 
@@ -166,9 +160,17 @@ pub fn render_list(state: &Computed<State>) -> VDomElement {
             }
         };
 
+        let is_pointer = {
+            if let Some(list_pointer) = list_pointer.as_ref() {
+                item.name == *list_pointer
+            } else {
+                false
+            }
+        };
+
         let is_select = {
-            if let Some(select_item) = &*select_item {
-                item.name == *select_item
+            if let Some(list_current_show_item) = list_current_show_item.as_ref() {
+                item.name == *list_current_show_item
             } else {
                 false
             }
@@ -180,30 +182,38 @@ pub fn render_list(state: &Computed<State>) -> VDomElement {
             icon_file()
         };
 
-        if is_select {
-            out.push(html!{"
-                <div onClick={on_click} css={css_active()}>
-                    {icon_arrow(true)}
-                    {icon}
-                    <span css={label_css()}>{&item.name}</span>
-                </div>
-            "});
-        } else {
-            out.push(html!{"
-                <div onClick={on_click} css={css_normal()}>
-                    {icon_arrow(false)}
-                    {icon}
-                    <span css={label_css()}>{&item.name}</span>
-                </div>
-            "});
-        }
+        let on_mouse_enter = {
+            let name = item.name.clone();
+            let state = state.clone();
+            move || {
+                state.set_pointer(&name);
+            }
+        };
+
+        out.push(html!{"
+            <div onClick={on_click} css={css_normal(is_select)} onMouseEnter={on_mouse_enter}>
+                {icon_arrow(is_pointer)}
+                {icon}
+                <span css={label_css(is_pointer)}>{&item.name}</span>
+            </div>
+        "});
     }
 
-    html! {"
-        <div>
+    let on_keydown = move |event: KeyDownEvent| {
+        if event.code == "ArrowUp" {
+            state.pointer_up();
+        } else if event.code == "ArrowDown" {
+            state.pointer_down();
+        }
+
+        //log::info!("klawisz ... {:?} ", event.code);
+    };
+
+    html! {r#"
+        <div onKeyDown={on_keydown} tabindex="0">
             { ..out }
         </div>
-    "}
+    "#}
 
     //TODO - dodać loader
 

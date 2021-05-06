@@ -254,11 +254,13 @@ pub enum CurrentAction {
 
 #[derive(PartialEq)]
 pub struct State {
-    pub current_path: Value<Vec<String>>,
+    root: Dependencies,
+    pub current_path: Value<Vec<String>>,                               //aktualna ściezka
+    pub list_pointer: Value<Option<String>>,                            //aktualny wskaźnik (akcji)
     pub current_view: Computed<Resource<CurrentView>>,                  //lista plików i katalogów w lewym panelu
     pub current_content: Computed<CurrentContentFullDetails>,
     pub list: Computed<Vec<ListItem>>,
-    pub list_select_item: Computed<Option<String>>,
+    pub list_current_show_item: Computed<Option<String>>,                     //podświetlenie elementu aktualnie wskazanego przez ściezkę
     pub current_edit: Value<Option<CurrentAction>>,
 }
 
@@ -271,6 +273,7 @@ impl State {
         let state_root = StateRoot::new(&request, root, state_node_dir.clone());
 
         let current_path = root.new_value(Vec::<String>::new());
+        let list_pointer = root.new_value(None);
 
         let current_view = create_current_view(
             root,
@@ -281,24 +284,29 @@ impl State {
 
         let list = create_list(root, &current_view);
 
-        let list_select_item = create_list_select_item(root, &current_view);
+        let list_current_show_item = create_list_select_item(root, &current_view);
 
         let current_content= create_current_content(root, &current_view, state_node_content);
 
         let current_edit = root.new_value(None);
 
         root.new_computed_from(State {
+            root: root.clone(),
             current_path,
+            list_pointer,
             current_view,
             current_content,
             list,
-            list_select_item,
+            list_current_show_item,
             current_edit,
         })
     }
 
     pub fn set_path(&self, path: Vec<String>) {
-        self.current_path.set_value(path);
+        self.root.transaction(|| {
+            self.current_path.set_value(path);
+            self.list_pointer.set_value(None);
+        });
     }
 
     pub fn push_path(&self, node: String) {
@@ -325,11 +333,69 @@ impl State {
         }
 
         current.push(node);
-        self.current_path.set_value(current);
+
+        self.root.transaction(|| {
+            self.current_path.set_value(current);
+            self.list_pointer.set_value(None);
+        });
     }
 
-    //pub fn get_content(&self, content_id: String) ->
+    pub fn set_pointer(&self, name: &String) {
+        self.list_pointer.set_value(Some(name.clone()));
+    }
 
+    fn find(&self, item_finding: &String) -> Option<isize> {
+        let list = self.list.get_value();
 
+        for (index, item) in list.as_ref().iter().enumerate() {
+            if item.name == *item_finding {
+                return Some(index as isize);
+            }
+        }
+
+        None
+    }
+
+    fn try_set_pointer_to(&self, index: isize) {
+        if index < 0 {
+            return;
+        }
+
+        let index = index as usize;
+
+        let list = self.list.get_value();
+        let first = list.get(index);
+
+        if let Some(first) = first {
+            self.list_pointer.set_value(Some(first.name.clone()));
+        }
+    }
+
+    pub fn pointer_up(&self) {
+        let list_pointer_rc = self.list_pointer.get_value();
+        let list_pointer = list_pointer_rc.as_ref();
+
+        if let Some(list_pointer) = list_pointer {
+            if let Some(index) = self.find(list_pointer) {
+                self.try_set_pointer_to(index - 1);
+            }
+        } else {
+            self.try_set_pointer_to(0);
+        }
+    }
+
+    pub fn pointer_down(&self) {
+        let list_pointer_rc = self.list_pointer.get_value();
+        let list_pointer = list_pointer_rc.as_ref();
+
+        if let Some(list_pointer) = list_pointer {
+            if let Some(index) = self.find(list_pointer) {
+                self.try_set_pointer_to(index + 1);
+            }
+        } else {
+            let len = self.list.get_value().len() as isize;
+            self.try_set_pointer_to(len - 1);
+        }
+    }
 }
 
