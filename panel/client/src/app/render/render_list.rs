@@ -5,6 +5,12 @@ use vertigo_html::{css, html};
 
 use crate::app::state::State;
 
+fn css_wrapper() -> Css {
+    css!("
+        flex-grow: 1;
+    ")
+}
+
 fn css_normal(is_select: bool) -> Css {
     let css = css!("
         display: flex;
@@ -200,17 +206,11 @@ pub fn render_list(state: &Computed<State>) -> VDomElement {
     }
 
     let on_keydown = move |event: KeyDownEvent| {
-        if event.code == "ArrowUp" {
-            state.pointer_up();
-        } else if event.code == "ArrowDown" {
-            state.pointer_down();
-        }
-
-        //log::info!("klawisz ... {:?} ", event.code);
+        state.keydown(event.code);
     };
 
     html! {r#"
-        <div onKeyDown={on_keydown} tabindex="0">
+        <div css={css_wrapper()} onKeyDown={on_keydown} tabindex="0">
             { ..out }
         </div>
     "#}

@@ -4,7 +4,6 @@ use vertigo::{
     computed::{
         Computed,
     },
-    KeyDownEvent,
 };
 
 use vertigo_html::{html, css};
@@ -43,7 +42,8 @@ fn css_content_list() -> Css {
         flex-grow: 0;
         flex-shrink: 0;
         border-right: 1px solid black;
-        padding: 0 3px;
+
+        display: flex;
     ")
 }
 
@@ -52,6 +52,8 @@ fn css_content_content() -> Css {
         flex-grow: 1;
         padding: 5px;
         overflow-y: scroll;
+
+        display: flex;
     ")
 }
 
@@ -72,12 +74,8 @@ pub fn render(state: &Computed<State>) -> VDomElement {
         log::info!("leave2");
     };
 
-    let on_keydown = |event: KeyDownEvent| {
-        log::info!("char: {}", event.code);
-    };
-
     html! {r#"
-        <div id="root" css={css_wrapper()} onKeyDown={on_keydown} tabindex="0">
+        <div id="root" css={css_wrapper()}>
             <style>
                 html, body {
                     width: 100%;

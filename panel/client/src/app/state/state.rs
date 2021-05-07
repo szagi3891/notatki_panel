@@ -332,12 +332,43 @@ impl State {
             }
         }
 
-        current.push(node);
+        current.push(node.clone());
 
         self.root.transaction(|| {
+            let reset_pointer = {
+                let list = self.list.get_value();
+
+                let mut result = false;
+    
+                for item in list.as_ref() {
+                    if item.name == node {
+                        result = item.dir;
+                        break;
+                    }
+                }
+
+                result
+            };
+
             self.current_path.set_value(current);
-            self.list_pointer.set_value(None);
+
+            if reset_pointer {
+                self.list_pointer.set_value(None);
+            }
         });
+    }
+
+    pub fn pop_path(&self) {
+        let current_path = self.current_path.get_value();
+        let mut current_path = current_path.as_ref().clone();
+        let last = current_path.pop();
+
+        if let Some(last) = last {
+            self.root.transaction(|| {
+                self.current_path.set_value(current_path);
+                self.list_pointer.set_value(Some(last));
+            });
+        }
     }
 
     pub fn set_pointer(&self, name: &String) {
@@ -356,46 +387,85 @@ impl State {
         None
     }
 
-    fn try_set_pointer_to(&self, index: isize) {
+    fn try_set_pointer_to(&self, index: isize) -> bool {
         if index < 0 {
-            return;
+            return false;
         }
 
         let index = index as usize;
 
         let list = self.list.get_value();
-        let first = list.get(index);
 
-        if let Some(first) = first {
+        if let Some(first) = list.get(index) {
             self.list_pointer.set_value(Some(first.name.clone()));
+            return true;
         }
+
+        false
     }
 
-    pub fn pointer_up(&self) {
+    fn try_set_pointer_to_end(&self) {
+        let len = self.list.get_value().len() as isize;
+        self.try_set_pointer_to(len - 1);
+    }
+
+    fn pointer_up(&self) {
         let list_pointer_rc = self.list_pointer.get_value();
         let list_pointer = list_pointer_rc.as_ref();
 
         if let Some(list_pointer) = list_pointer {
             if let Some(index) = self.find(list_pointer) {
-                self.try_set_pointer_to(index - 1);
+                if !self.try_set_pointer_to(index - 1) {
+                    self.try_set_pointer_to_end();
+                }
             }
         } else {
             self.try_set_pointer_to(0);
         }
     }
 
-    pub fn pointer_down(&self) {
+    fn pointer_down(&self) {
         let list_pointer_rc = self.list_pointer.get_value();
         let list_pointer = list_pointer_rc.as_ref();
 
         if let Some(list_pointer) = list_pointer {
             if let Some(index) = self.find(list_pointer) {
-                self.try_set_pointer_to(index + 1);
+                if !self.try_set_pointer_to(index + 1) {
+                    self.try_set_pointer_to(0);
+                }
             }
         } else {
-            let len = self.list.get_value().len() as isize;
-            self.try_set_pointer_to(len - 1);
+            self.try_set_pointer_to_end();
         }
+    }
+
+    fn pointer_enter(&self) {
+        let list_pointer = self.list_pointer.get_value();
+
+        if let Some(list_pointer) = list_pointer.as_ref() {
+            if let Some(_) = self.find(list_pointer) {
+                self.push_path(list_pointer.clone());
+            }
+        }
+    }
+
+    pub fn keydown(&self, code: String) {
+        if code == "ArrowUp" {
+            self.pointer_up();
+        } else if code == "ArrowDown" {
+            self.pointer_down();
+        } else if code == "Escape" {
+            self.list_pointer.set_value(None);
+        } else if code == "ArrowRight" || code == "Enter" {
+            self.pointer_enter();
+        } else if code == "ArrowLeft" {
+            self.pop_path();
+        }
+
+        //po wejściu do nowego katalogu, zaznaczać pierwszy element na liście ????
+        
+
+        log::info!("klawisz ... {:?} ", code);
     }
 }
 
