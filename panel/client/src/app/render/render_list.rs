@@ -130,16 +130,10 @@ fn icon_file() -> VDomElement {
     "#)
 }
 
-fn label_css(is_pointer: bool) -> Css {
+fn label_css() -> Css {
     let out = css!("
         padding-left: 3px;
     ");
-
-    if is_pointer {
-        return out.push_str("
-            text-decoration: underline;
-        ");
-    }
 
     out
 }
@@ -150,10 +144,7 @@ pub fn render_list(state: &Computed<State>) -> VDomElement {
 
     let state = state.get_value();
     let list = state.list.get_value();
-    let list_current_show_item = state.list_current_show_item.get_value();
-    let list_pointer = state.list_pointer.get_value();
-    
-    log::info!("lista renderowana {:?}", &list);
+    let current_item = state.current_item.get_value();
 
     for item in (*list).iter() {
         let on_click = {
@@ -162,21 +153,13 @@ pub fn render_list(state: &Computed<State>) -> VDomElement {
 
             move || {
                 log::info!("klik w item {}", &item.name);
-                state.push_path(item.name.clone());
-            }
-        };
-
-        let is_pointer = {
-            if let Some(list_pointer) = list_pointer.as_ref() {
-                item.name == *list_pointer
-            } else {
-                false
+                state.click_list_item(item.name.clone());
             }
         };
 
         let is_select = {
-            if let Some(list_current_show_item) = list_current_show_item.as_ref() {
-                item.name == *list_current_show_item
+            if let Some(list_pointer) = current_item.as_ref() {
+                item.name == *list_pointer
             } else {
                 false
             }
@@ -188,19 +171,11 @@ pub fn render_list(state: &Computed<State>) -> VDomElement {
             icon_file()
         };
 
-        let on_mouse_enter = {
-            let name = item.name.clone();
-            let state = state.clone();
-            move || {
-                state.set_pointer(&name);
-            }
-        };
-
         out.push(html!{"
-            <div onClick={on_click} css={css_normal(is_select)} onMouseEnter={on_mouse_enter}>
-                {icon_arrow(is_pointer)}
+            <div onClick={on_click} css={css_normal(is_select)}>
+                {icon_arrow(is_select)}
                 {icon}
-                <span css={label_css(is_pointer)}>{&item.name}</span>
+                <span css={label_css()}>{&item.name}</span>
             </div>
         "});
     }

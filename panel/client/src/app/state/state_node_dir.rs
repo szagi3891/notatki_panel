@@ -10,7 +10,7 @@ use vertigo::{
 
 use crate::request::{Request, Resource, ResourceError};
 
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Clone, Debug)]
 pub struct TreeItem {
     pub dir: bool,
     pub id: String,
@@ -90,7 +90,6 @@ impl StateNodeDir {
     }
 
     pub fn get_list(&self, id: &String) -> Result<Rc<HashMap<String, TreeItem>>, ResourceError> {
-        log::info!("get list --> {}", id);
         self.data.get_value(id).get_list()
     }
 }

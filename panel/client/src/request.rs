@@ -144,7 +144,6 @@ impl RequestBuilder {
         let result = self.call::<T>(method).await;
         match result {
             Ok(value) => {
-                log::info!("Response ok - {:?}", value);
                 Ok(value)
             },
             Err(err) => {

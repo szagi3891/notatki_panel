@@ -71,7 +71,6 @@ impl StateNodeContent {
     }
 
     pub fn get(&self, id: &String) -> Result<Rc<String>, ResourceError> {
-        log::info!("get content --> {}", id);
         self.data.get_value(id).get()
     }
 }
