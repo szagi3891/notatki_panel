@@ -152,7 +152,37 @@ fn create_list(root: &Dependencies, list: &Computed<Result<Rc<HashMap<String, Tr
     })
 }
 
-fn create_current_content(root: &Dependencies, state_node_dir: &StateNodeDir, state_node_content: &StateNodeContent, list: &Computed<Result<Rc<HashMap<String, TreeItem>>, ResourceError>>, current_item: &Value<Option<String>>) -> Computed<CurrentContent> {
+fn create_current_item_view(
+    root: &Dependencies,
+    current_item: &Value<Option<String>>,
+    list: &Computed<Vec<ListItem>>
+) -> Computed<Option<String>> {
+    let current_item = current_item.clone();
+    let list = list.clone();
+
+    root.from(move || -> Option<String> {
+        let current_item = current_item.get_value();
+
+        if let Some(current_item) = current_item.as_ref() {
+            return Some(current_item.clone());
+        }
+
+        let list = list.get_value();
+        if let Some(first) = list.first() {
+            return Some(first.name.clone());
+        }
+
+        None
+    })
+}
+
+fn create_current_content(
+    root: &Dependencies,
+    state_node_dir: &StateNodeDir,
+    state_node_content: &StateNodeContent,
+    list: &Computed<Result<Rc<HashMap<String, TreeItem>>, ResourceError>>,
+    current_item: &Computed<Option<String>>
+) -> Computed<CurrentContent> {
 
     let state_node_dir = state_node_dir.clone();
     let state_node_content = state_node_content.clone();
@@ -225,12 +255,15 @@ pub struct State {
     pub current_path: Value<Vec<String>>,                               //aktualna ściezka
 
     //aktualny wskaźnik na wybrany element z katalogu
-    pub current_item: Value<Option<String>>,                            //aktualny wskaźnik (akcji)
+    current_item_value: Value<Option<String>>,                            //aktualny wskaźnik (akcji)
 
     list_hash_map: Computed<Result<Rc<HashMap<String, TreeItem>>, ResourceError>>,
-
     //aktualnie wyliczona lista
     pub list: Computed<Vec<ListItem>>,
+                                                                        //wybrany element z listy, dla widoku
+    pub current_item: Computed<Option<String>>,
+
+
     //aktualnie wyliczony wybrany content wskazywany przez current_path
     pub current_content: Computed<CurrentContent>,
     
@@ -246,10 +279,12 @@ impl State {
         let state_root = StateRoot::new(&request, root, state_node_dir.clone());
 
         let current_path = root.new_value(Vec::<String>::new());
-        let current_item = root.new_value(None);
+        let current_item_value = root.new_value(None);
 
         let list_hash_map = create_list_hash_map(root, &state_root, &state_node_dir, &current_path);
         let list = create_list(root, &list_hash_map);
+
+        let current_item = create_current_item_view(&root, &current_item_value, &list);
 
         let current_content = create_current_content(
             root,
@@ -262,9 +297,10 @@ impl State {
         root.new_computed_from(State {
             root: root.clone(),
             current_path,
-            current_item,
+            current_item_value,
             list_hash_map,
             list,
+            current_item,
             current_content,
         })
     }
@@ -272,7 +308,7 @@ impl State {
     pub fn set_path(&self, path: Vec<String>) {
         self.root.transaction(|| {
             self.current_path.set_value(path);
-            self.current_item.set_value(None);
+            self.current_item_value.set_value(None);
         });
     }
 
@@ -288,11 +324,11 @@ impl State {
 
                     self.root.transaction(|| {
                         self.current_path.set_value(current);
-                        self.current_item.set_value(None);
+                        self.current_item_value.set_value(None);
                     });
                     return;
                 } else {
-                    self.current_item.set_value(Some(node.clone()));
+                    self.current_item_value.set_value(Some(node.clone()));
                 }
             }
         }
@@ -308,7 +344,7 @@ impl State {
         if let Some(last) = last {
             self.root.transaction(|| {
                 self.current_path.set_value(current_path);
-                self.current_item.set_value(Some(last));
+                self.current_item_value.set_value(Some(last));
             });
         }
     }
@@ -335,7 +371,7 @@ impl State {
         let list = self.list.get_value();
 
         if let Some(first) = list.get(index) {
-            self.current_item.set_value(Some(first.name.clone()));
+            self.current_item_value.set_value(Some(first.name.clone()));
             return true;
         }
 
@@ -393,7 +429,7 @@ impl State {
         } else if code == "ArrowDown" {
             self.pointer_down();
         } else if code == "Escape" {
-            self.current_item.set_value(None);
+            self.current_item_value.set_value(None);
         } else if code == "ArrowRight" || code == "Enter" {
             self.pointer_enter();
         } else if code == "ArrowLeft" {
