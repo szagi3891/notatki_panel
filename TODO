@@ -1,8 +1,6 @@
 wklejając linka z youtube, dodawać pobrany automatycznie z sieci tytuł tego filmiku
 
 
-dodanie obsługi kursorów, góra, dół, lewo, prawo - do nawigacji
-
 dodanie podglądu
 
 dodanie podglądu linków youtube
@@ -11,18 +9,7 @@ http://i3.ytimg.com/vi/VhFmJh9_vSA/hqdefault.jpg
 
 
 
-mouseover
-mouseout
-niech globalne handlery włączają się tylko wtedy gdy jest chociaz jedno zdarzenie tego typu podpięte
-
-
-
-jak dodajemy onKeyDown, to wymuszać zawsze dodawanie jakiego kolwiek indexu, po to aby łapał eventy
-onKeyDown={on_keydown} tabindex="-1"
-
-
-Dodać izolowanie błędu jakieś
-jak poleci panic, to niech nie rozwala obsługi kolejnych eventów ...
+Dodać jakąś nawigację po hashu, po to aby mozna było miec kilka zakladek w przegladarce
 
 
 
@@ -71,3 +58,21 @@ dodać obsługę innych statusów, np. 404
     a czasami moze coś innego zwrócić serwer
 
 
+
+
+
+
+mouseover
+mouseout
+niech globalne handlery włączają się tylko wtedy gdy jest chociaz jedno zdarzenie tego typu podpięte
+
+
+
+
+
+jak dodajemy onKeyDown, to wymuszać zawsze dodawanie jakiego kolwiek indexu, po to aby łapał eventy
+onKeyDown={on_keydown} tabindex="-1"
+
+
+Dodać izolowanie błędu jakieś
+jak poleci panic, to niech nie rozwala obsługi kolejnych eventów ...

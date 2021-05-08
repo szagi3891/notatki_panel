@@ -41,6 +41,11 @@ impl Text {
     pub fn len(&self) -> usize {
         self.list.len()
     }
+
+    pub fn to_string(self) -> String {
+        let out: String = self.list.into_iter().collect();
+        out
+    }
 }
 
 impl fmt::Debug for Text {
