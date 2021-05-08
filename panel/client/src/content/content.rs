@@ -116,18 +116,18 @@ fn parse_until_whitespace(text: &Text) -> Option<(Text, Text)> {
 
 //char_indices()
 
-fn parse_trim_whitespace(text: &Text) -> Text {
-    let text = text.as_slice();
+// fn parse_trim_whitespace(text: &Text) -> Text {
+//     let text = text.as_slice();
 
-    for (index, char) in text.into_iter().enumerate() {
-        if !char.is_whitespace() {
-            let rest = &text[index..];
-            return Text::from_slice(rest);
-        }
-    }
+//     for (index, char) in text.into_iter().enumerate() {
+//         if !char.is_whitespace() {
+//             let rest = &text[index..];
+//             return Text::from_slice(rest);
+//         }
+//     }
 
-    return Text::empty();
-}
+//     return Text::empty();
+// }
 
 fn parse_url(text: &Text) -> Option<(Text, Text)> {
     if let Some((scheme, rest)) = parse_link_prefix(text) {
@@ -176,18 +176,20 @@ impl ParseTextItem {
         }
     }
 
-    pub fn text_str(text: &str) -> ParseTextItem {
-        ParseTextItem::Text {
-            text: Text::from_str(text)
-        }
-    }
-
     pub fn link(url: Text) -> ParseTextItem {
         ParseTextItem::Link {
             url
         }
     }
 
+    #[cfg(test)]
+    pub fn text_str(text: &str) -> ParseTextItem {
+        ParseTextItem::Text {
+            text: Text::from_str(text)
+        }
+    }
+
+    #[cfg(test)]
     pub fn link_str(url: &str) -> ParseTextItem {
         ParseTextItem::Link {
             url: Text::from_str(url)
@@ -212,10 +214,8 @@ impl ParserText {
 
     fn push_word(&mut self) {
         if self.chars.len() > 0 {
-            self.out.push(ParseTextItem::Text {
-                text: Text::from_slice(self.chars.as_slice())
-            });
-
+            let text = Text::from_slice(self.chars.as_slice());
+            self.out.push(ParseTextItem::text(text));
             self.chars = Vec::new();
         }
     }
@@ -229,17 +229,13 @@ impl ParserText {
     
             if let Some((url, rest)) = parse_url(&self.text) {
                 self.push_word();
-                self.out.push(ParseTextItem::Link{
-                    url 
-                });
-    
+                self.out.push(ParseTextItem::link(url));
                 self.text = rest;
                 continue;
             }
     
             if let Some((char, rest)) = get_first_char(&self.text) {
                 self.chars.push(char);
-    
                 self.text = rest;
                 continue;
             }
@@ -278,22 +274,22 @@ fn test_parse_until_whitespace() {
     assert_eq!(parse_until_whitespace(&text3), None);
 }
 
-#[test]
-fn test_parse_trim_whitespace() {
-    let text1 = Text::from_str("cos bla");
-    let text2 = Text::from_str(" cos bla");
-    let text3 = Text::from_str("  cos bla");
-    let text4 = Text::from_str("");
-    let text5 = Text::from_str(" ");
-    let text6 = Text::from_str("  ");
+// #[test]
+// fn test_parse_trim_whitespace() {
+//     let text1 = Text::from_str("cos bla");
+//     let text2 = Text::from_str(" cos bla");
+//     let text3 = Text::from_str("  cos bla");
+//     let text4 = Text::from_str("");
+//     let text5 = Text::from_str(" ");
+//     let text6 = Text::from_str("  ");
 
-    assert_eq!(parse_trim_whitespace(&text1), Text::from_str("cos bla"));
-    assert_eq!(parse_trim_whitespace(&text2), Text::from_str("cos bla"));
-    assert_eq!(parse_trim_whitespace(&text3), Text::from_str("cos bla"));
-    assert_eq!(parse_trim_whitespace(&text4), Text::from_str(""));
-    assert_eq!(parse_trim_whitespace(&text5), Text::from_str(""));
-    assert_eq!(parse_trim_whitespace(&text6), Text::from_str(""));
-}
+//     assert_eq!(parse_trim_whitespace(&text1), Text::from_str("cos bla"));
+//     assert_eq!(parse_trim_whitespace(&text2), Text::from_str("cos bla"));
+//     assert_eq!(parse_trim_whitespace(&text3), Text::from_str("cos bla"));
+//     assert_eq!(parse_trim_whitespace(&text4), Text::from_str(""));
+//     assert_eq!(parse_trim_whitespace(&text5), Text::from_str(""));
+//     assert_eq!(parse_trim_whitespace(&text6), Text::from_str(""));
+// }
 
 #[test]
 fn test_parse_url() {

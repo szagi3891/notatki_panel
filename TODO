@@ -1,12 +1,5 @@
 
 
-dodanie podglądu linków youtube
-http://www.get-youtube-thumbnail.com/
-http://i3.ytimg.com/vi/VhFmJh9_vSA/hqdefault.jpg
-
-
-
-
 jak jestesmy w podgladzie katalogu, wyświetlać miniaturki
     zdjęcia, wyświetlać w jakiejś rozdzielczości ...
 
@@ -31,6 +24,19 @@ po zapisaniu zmian, przywrócony ma zostać tryb podglądu
 
 
 Dodać jakąś nawigację po hashu, po to aby mozna było miec kilka zakladek w przegladarce
+
+
+
+zrobić opcje sortowania. jesli nazwa elementu zawiera na początku znak "_" to takie elementy mają być sorotowane w pierwszej kolejności na samym początku
+    to ma działać na zasadzie "pineski" ze slacka. Która wyrónia i przypina element na samym początku listy.
+
+
+przydałoby się zrobić obsługę klawiatury, zeby byla podpieta na globalnym dokumencie. teraz trzeba focusa zeby odpalaly sie te zdarzenia
+    fajnie jakby dalo sie zrobic jakas reprezentacje w domie
+    a moze element root, z zalozenia to bylby ten element, ktory zawsze ma focusa ????
+
+
+jak jesteśmy na elemencie który jest pdf, to znaleźć jakiś patent na wyświetlanie pdf-a
 
 
 
