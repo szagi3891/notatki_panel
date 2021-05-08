@@ -1,7 +1,4 @@
-wklejając linka z youtube, dodawać pobrany automatycznie z sieci tytuł tego filmiku
 
-
-dodanie podglądu
 
 dodanie podglądu linków youtube
 http://www.get-youtube-thumbnail.com/
@@ -9,7 +6,9 @@ http://i3.ytimg.com/vi/VhFmJh9_vSA/hqdefault.jpg
 
 
 
-Dodać jakąś nawigację po hashu, po to aby mozna było miec kilka zakladek w przegladarce
+
+jak jestesmy w podgladzie katalogu, wyświetlać miniaturki
+    zdjęcia, wyświetlać w jakiejś rozdzielczości ...
 
 
 
@@ -23,13 +22,21 @@ zrobić wyszukiwarkę w nazwach.
     klikniecie na sziezke, bedzie kasować wyszukiwaną frazę i przenosić na poszukiwany element
 
 
+
+
 edycja pliku ma otwierać wielkie okno, z edytorem
 po dokonaniu zmian, ma isc request zapisujacy zmiany
 po zapisaniu zmian, przywrócony ma zostać tryb podglądu
 
 
-dorobić do zdarzenia klick, parametr
-za jego pomocą będzie mona sie zorientowac czy kliknięto lewym czy moze prawym klawiszem myszy
+
+Dodać jakąś nawigację po hashu, po to aby mozna było miec kilka zakladek w przegladarce
+
+
+
+---------------------------------------------------------------------------------------------------
+na później - ??
+---------------------------------------------------------------------------------------------------
 
 
 
@@ -59,6 +66,7 @@ dodać obsługę innych statusów, np. 404
 
 
 
+wklejając linka z youtube, dodawać pobrany automatycznie z sieci tytuł tego filmiku
 
 
 
