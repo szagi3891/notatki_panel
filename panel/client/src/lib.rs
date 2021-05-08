@@ -10,6 +10,7 @@ use vertigo_browserdriver::DomDriverBrowser;
 
 mod app;
 mod request;
+mod content;
 
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
