@@ -16,6 +16,9 @@ zrobić wyszukiwarkę w nazwach.
 
 
 
+kliknięcie w katalog wcześniejszy,
+powinno wybrać wcześniejszy katalog, oraz ustawić select_item na ten w którym co dopiero byliśmy
+
 
 edycja pliku ma otwierać wielkie okno, z edytorem
 po dokonaniu zmian, ma isc request zapisujacy zmiany
@@ -37,6 +40,25 @@ przydałoby się zrobić obsługę klawiatury, zeby byla podpieta na globalnym 
 
 
 jak jesteśmy na elemencie który jest pdf, to znaleźć jakiś patent na wyświetlanie pdf-a
+
+Wyswietlanie poprzez zewnetrzny odnośnik
+https://docs.google.com/gview?url=https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-Polish.pdf&embedded=true
+
+https://stackoverflow.com/questions/4853898/display-pdf-within-web-browser
+
+<iframe src="http://docs.google.com/gview?url=http://path.com/to/your/pdf.pdf&embedded=true" 
+style="width:600px; height:500px;" frameborder="0"></iframe>
+
+lub otwierac w nowej karcie ??
+
+ewentualnie otwierać w iframe. Wtedy przeglądarka zajmie się resztą
+
+
+
+
+moliwe ze przydala by sie pamięc tymczasowa, która pozwoli na zapisywanie takich informacji jak miniaturka
+oraz aktualnie otwierana strona w pdf ...
+
 
 
 
