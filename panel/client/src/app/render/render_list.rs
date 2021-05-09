@@ -8,6 +8,7 @@ use crate::app::state::State;
 fn css_wrapper() -> Css {
     css!("
         flex-grow: 1;
+        overflow-y: scroll;
     ")
 }
 
