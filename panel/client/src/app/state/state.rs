@@ -308,6 +308,11 @@ impl State {
     pub fn set_path(&self, path: Vec<String>) {
         let current_path = self.current_path.get_value();
 
+        if current_path.as_ref().as_slice() == path.as_slice() {
+            log::info!("path are equal");
+            return;
+        }
+    
         let (new_current_path, new_current_item_value) = calculate_next_path(current_path.as_ref(), path);
 
         self.root.transaction(|| {
