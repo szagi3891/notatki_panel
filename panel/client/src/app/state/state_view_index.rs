@@ -8,7 +8,7 @@ use vertigo::{
     }
 };
 use crate::request::{ResourceError};
-use super::{StateNodeDir, StateRoot, TreeItem, state_node_content::StateNodeContent};
+use super::{StateData, state_data::TreeItem};
 
 
 #[derive(PartialEq, Debug, Clone)]
@@ -70,12 +70,12 @@ fn get_item_from_map<'a>(current_wsk: &'a Rc<HashMap<String, TreeItem>>, path_it
     Ok(wsk_child)
 }
 
-fn move_pointer(state_node_dir: &StateNodeDir, list: Rc<HashMap<String, TreeItem>>, path_item: &String) -> Result<Rc<HashMap<String, TreeItem>>, ResourceError> {
+fn move_pointer(state_data: &StateData, list: Rc<HashMap<String, TreeItem>>, path_item: &String) -> Result<Rc<HashMap<String, TreeItem>>, ResourceError> {
 
     let child = get_item_from_map(&list, path_item)?;
 
     if child.dir {
-        let child_list = state_node_dir.get_list(&child.id)?;
+        let child_list = state_data.state_node_dir.get_list(&child.id)?;
 
         return Ok(child_list);
     }
@@ -83,28 +83,27 @@ fn move_pointer(state_node_dir: &StateNodeDir, list: Rc<HashMap<String, TreeItem
     return Err(ResourceError::Error(format!("dir expected {}", path_item)));
 }
 
-fn get_dir_content(state_root: &StateRoot, state_node_dir: &StateNodeDir, current_path: &Vec<String>) -> Result<Rc<HashMap<String, TreeItem>>, ResourceError> {
-    let root_wsk = state_root.get_current_root()?;
+fn get_dir_content(state_data: &StateData, current_path: &Vec<String>) -> Result<Rc<HashMap<String, TreeItem>>, ResourceError> {
+    let root_wsk = state_data.state_root.get_current_root()?;
 
-    let mut result = state_node_dir.get_list(&root_wsk)?;
+    let mut result = state_data.state_node_dir.get_list(&root_wsk)?;
 
     for path_item in current_path {
-        result = move_pointer(&state_node_dir, result, &path_item)?;
+        result = move_pointer(state_data, result, &path_item)?;
     }
 
     Ok(result)
 }
 
-fn create_list_hash_map(root: &Dependencies, state_root: &StateRoot, state_node_dir: &StateNodeDir, current_path: &Value<Vec<String>>) -> Computed<Result<Rc<HashMap<String, TreeItem>>, ResourceError>> {
-    let state_root = state_root.clone();
-    let state_node_dir = state_node_dir.clone();
+fn create_list_hash_map(root: &Dependencies, state_data: &StateData, current_path: &Value<Vec<String>>) -> Computed<Result<Rc<HashMap<String, TreeItem>>, ResourceError>> {
+    let state_data = state_data.clone();
     let current_path = current_path.to_computed();
 
     root.from(move || -> Result<Rc<HashMap<String, TreeItem>>, ResourceError> {
         let current_path_rc = current_path.get_value();
         let current_path = current_path_rc.as_ref();
 
-        get_dir_content(&state_root, &state_node_dir, current_path)
+        get_dir_content(&state_data, current_path)
     })
 }
 
@@ -180,14 +179,13 @@ fn create_current_item_view(
 
 fn create_current_content(
     root: &Dependencies,
-    state_node_dir: &StateNodeDir,
-    state_node_content: &StateNodeContent,
+    state_data: &StateData,
     list: &Computed<Result<Rc<HashMap<String, TreeItem>>, ResourceError>>,
     current_item: &Computed<Option<String>>
 ) -> Computed<CurrentContent> {
 
-    let state_node_dir = state_node_dir.clone();
-    let state_node_content = state_node_content.clone();
+    let state_node_dir = state_data.state_node_dir.clone();
+    let state_node_content = state_data.state_node_content.clone();
     let list = list.clone();
     let current_item = current_item.clone();
 
@@ -262,23 +260,20 @@ pub struct StateViewIndex {
 impl StateViewIndex {
     pub fn new(
         root: &Dependencies,
-        state_node_dir: &StateNodeDir,
-        state_node_content: &StateNodeContent,
-        state_root: &StateRoot,
+        state_data: StateData,
     ) -> Computed<StateViewIndex> {
 
         let current_path = root.new_value(Vec::<String>::new());
         let current_item_value = root.new_value(None);
 
-        let list_hash_map = create_list_hash_map(root, &state_root, &state_node_dir, &current_path);
+        let list_hash_map = create_list_hash_map(root, &state_data, &current_path);
         let list = create_list(root, &list_hash_map);
 
         let current_item = create_current_item_view(&root, &current_item_value, &list);
 
         let current_content = create_current_content(
             root,
-            &state_node_dir,
-            &state_node_content,
+            &state_data,
             &list_hash_map,
             &current_item,
         );

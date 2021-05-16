@@ -6,8 +6,8 @@ use vertigo::{
         Value
     }
 };
-use crate::request::{Request};
-use super::{StateNodeDir, StateRoot, StateViewIndex, state_node_content::StateNodeContent};
+
+use super::{StateData, StateViewIndex};
 
 #[derive(PartialEq)]
 pub enum View {
@@ -31,17 +31,11 @@ pub struct State {
 
 impl State {
     pub fn new(root: &Dependencies, driver: &DomDriver) -> Computed<State> {
-        let request = Request::new(driver);
-
-        let state_node_dir = StateNodeDir::new(&request, root);
-        let state_node_content = StateNodeContent::new(&request, root);
-        let state_root = StateRoot::new(&request, root, state_node_dir.clone());
+        let state_data = StateData::new(root, driver);
 
         let state_view_index = StateViewIndex::new(
             root,
-            &state_node_dir,
-            &state_node_content,
-            &state_root,
+            state_data
         );
 
         let current_view = root.new_value(View::Index);
