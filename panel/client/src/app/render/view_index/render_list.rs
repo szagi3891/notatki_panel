@@ -3,7 +3,7 @@ use vertigo::{Css, VDomElement, computed::{
     }};
 use vertigo_html::{css, html};
 
-use crate::app::state::State;
+use crate::app::state::StateViewIndex;
 
 fn css_wrapper() -> Css {
     css!("
@@ -139,7 +139,7 @@ fn label_css() -> Css {
     out
 }
 
-pub fn render_list(state: &Computed<State>) -> VDomElement {
+pub fn render_list(state: &Computed<StateViewIndex>) -> VDomElement {
     
     let mut out: Vec<VDomElement> = Vec::new();
 
@@ -153,7 +153,6 @@ pub fn render_list(state: &Computed<State>) -> VDomElement {
             let item = item.clone();
 
             move || {
-                log::info!("klik w item {}", &item.name);
                 state.click_list_item(item.name.clone());
             }
         };

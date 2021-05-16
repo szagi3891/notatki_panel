@@ -1,102 +1,27 @@
-use vertigo::{Css, KeyDownEvent, VDomElement, computed::{
+use vertigo::{VDomElement, computed::{
         Computed,
     }};
 
-use vertigo_html::{html, css};
+use super::view_index::render as view_index;
 
-use crate::app::state::State;
-use super::render_menu;
-use super::render_header;
-use super::render_list;
-use super::render_content;
+use crate::app::state::{State, View};
 
-fn css_wrapper() -> Css {
-    css!("
-        display: flex;
-        flex-direction: column;
-        border: 1px solid black;
-        background-color: #e0e0e0;
-        padding: 0;
-        width: 100vw;
-        height: 100vh;
-        box-sizing: border-box;
-    ")
-}
-
-fn css_content() -> Css {
-    css!("
-        flex-grow: 1;
-        display: flex;
-        border-bottom: 1px solid black;
-        overflow: hidden;
-    ")
-}
-
-fn css_content_list() -> Css {
-    css!("
-        width: 300px;
-        flex-grow: 0;
-        flex-shrink: 0;
-        border-right: 1px solid black;
-
-        display: flex;
-    ")
-}
-
-fn css_content_content() -> Css {
-    css!("
-        flex-grow: 1;
-        padding: 5px;
-        overflow-y: scroll;
-
-        display: flex;
-    ")
-}
 
 pub fn render(state: &Computed<State>) -> VDomElement {
 
     let state_value = state.get_value();
-    let on_keydown = move |event: KeyDownEvent| {
-        state_value.keydown(event.code);
-    };
+    let view = state_value.current_view.get_value();
 
-    html! {r#"
-        <div id="root" css={css_wrapper()} onKeyDown={on_keydown}>
-            <style>
-                html, body {
-                    width: 100%;
-                    height: 100%;
-                    margin: 0;
-                    padding: 0;
-                    border: 0;
-                }
-            </style>
-            <component {render_menu} data={state.clone()} />
-            <component {render_header} data={state.clone()} />
-            <div css={css_content()}>
-                <div css={css_content_list()}>
-                    <component {render_list} data={state.clone()} />
-                </div>
-                <div css={css_content_content()}>
-                    <component {render_content} data={state.clone()} />
-                </div>
-            </div>
-        </div>
-    "#}
+    match view.as_ref() {
+        View::Index => {
+            view_index(&state_value.state_view_index)
+        },
+        // View::EditContent => {
+        //     panic!("das");
+        // }
+    }
 }
 
-
 /*
-
 onKeyDown={on_keydown} tabindex="0"
-
-<script>
-    /*
-    console.info("test");
-
-    document.addEventListener("keydown", event => {
-        console.info("event dasdasdsa", event);
-    });
-    */
-</script>
 */

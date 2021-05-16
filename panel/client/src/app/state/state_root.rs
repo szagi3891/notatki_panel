@@ -84,23 +84,23 @@ impl StateRoot {
     //     self.current.set_value(new_current);
     // }
 
-    pub fn get_hash(&self) -> Option<String> {
-        let value = self.current.get_value();
+    // pub fn get_hash(&self) -> Option<String> {
+    //     let value = self.current.get_value();
 
-        let resource = value.value.get_value();
+    //     let resource = value.value.get_value();
 
-        match resource.as_ref() {
-            Err(_) => None,
-            Ok(value) => Some(value.root.clone()),
-        }
-    }
+    //     match resource.as_ref() {
+    //         Err(_) => None,
+    //         Ok(value) => Some(value.root.clone()),
+    //     }
+    // }
 
-    pub fn get_hash_view(&self) -> String {
-        match self.get_hash() {
-            Some(hash) => format!("hash={}", &hash),
-            None => "none".into(),
-        }
-    }
+    // pub fn get_hash_view(&self) -> String {
+    //     match self.get_hash() {
+    //         Some(hash) => format!("hash={}", &hash),
+    //         None => "none".into(),
+    //     }
+    // }
 
     //path --> ...
         //bierzemy z kilku rootow path o ktory pytamy ...

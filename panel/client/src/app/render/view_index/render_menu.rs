@@ -7,7 +7,7 @@ use vertigo::{
 };
 
 use vertigo_html::{html, css};
-use crate::app::state::State;
+use crate::app::state::{StateViewIndex};
 
 fn css_footer() -> Css {
     css!("
@@ -37,7 +37,7 @@ fn css_item() -> Css {
     ")
 }
 
-pub fn render_menu(state: &Computed<State>) -> VDomElement {
+pub fn render_menu(_state: &Computed<StateViewIndex>) -> VDomElement {
     html! {"
         <div css={css_footer()}>
             <span css={css_item()}>Utwórz plik</span>
