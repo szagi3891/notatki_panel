@@ -1,4 +1,4 @@
-use vertigo::{Css, KeyDownEvent, VDomElement, computed::{
+use vertigo::{Css, VDomElement, computed::{
         Computed,
     }};
 use vertigo_html::{css, html};
@@ -181,12 +181,8 @@ pub fn render_list(state: &Computed<State>) -> VDomElement {
         "});
     }
 
-    let on_keydown = move |event: KeyDownEvent| {
-        state.keydown(event.code);
-    };
-
     html! {r#"
-        <div css={css_wrapper()} onKeyDown={on_keydown} tabindex="0">
+        <div css={css_wrapper()}>
             { ..out }
         </div>
     "#}

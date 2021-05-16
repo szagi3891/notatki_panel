@@ -326,10 +326,11 @@ impl State {
 
                     current.push(node.clone());
 
-                    self.root.transaction(|| {
-                        self.current_path.set_value(current);
-                        self.current_item_value.set_value(None);
-                    });
+                    self.set_path(current);
+                    // self.root.transaction(|| {
+                    //     self.current_path.set_value(current);
+                    //     self.current_item_value.set_value(None);
+                    // });
                     return;
                 } else {
                     self.current_item_value.set_value(Some(node.clone()));
@@ -338,19 +339,6 @@ impl State {
         }
 
         log::error!("push_path - ignore: {}", node);
-    }
-
-    pub fn pop_path(&self) {
-        let current_path = self.current_path.get_value();
-        let mut current_path = current_path.as_ref().clone();
-        let last = current_path.pop();
-
-        if let Some(last) = last {
-            self.root.transaction(|| {
-                self.current_path.set_value(current_path);
-                self.current_item_value.set_value(Some(last));
-            });
-        }
     }
 
     fn find(&self, item_finding: &String) -> Option<isize> {
@@ -427,6 +415,15 @@ impl State {
         }
     }
 
+    fn backspace(&self) {
+        let current_path = self.current_path.get_value();
+        let mut current_path = current_path.as_ref().clone();
+
+        current_path.pop();
+
+        self.set_path(current_path);
+    }
+
     pub fn keydown(&self, code: String) {
         if code == "ArrowUp" {
             self.pointer_up();
@@ -436,11 +433,9 @@ impl State {
             self.current_item_value.set_value(None);
         } else if code == "ArrowRight" || code == "Enter" {
             self.pointer_enter();
-        } else if code == "ArrowLeft" {
-            self.pop_path();
+        } else if code == "ArrowLeft" || code == "Backspace" || code == "Escape" {
+            self.backspace();
         }
-
-        //po wejściu do nowego katalogu, zaznaczać pierwszy element na liście ????
 
         log::info!("klawisz ... {:?} ", code);
     }

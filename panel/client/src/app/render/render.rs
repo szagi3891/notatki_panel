@@ -1,10 +1,6 @@
-use vertigo::{
-    VDomElement,
-    Css,
-    computed::{
+use vertigo::{Css, KeyDownEvent, VDomElement, computed::{
         Computed,
-    },
-};
+    }};
 
 use vertigo_html::{html, css};
 
@@ -58,8 +54,14 @@ fn css_content_content() -> Css {
 }
 
 pub fn render(state: &Computed<State>) -> VDomElement {
+
+    let state_value = state.get_value();
+    let on_keydown = move |event: KeyDownEvent| {
+        state_value.keydown(event.code);
+    };
+
     html! {r#"
-        <div id="root" css={css_wrapper()}>
+        <div id="root" css={css_wrapper()} onKeyDown={on_keydown}>
             <style>
                 html, body {
                     width: 100%;
@@ -69,15 +71,6 @@ pub fn render(state: &Computed<State>) -> VDomElement {
                     border: 0;
                 }
             </style>
-            <script>
-                /*
-                console.info("test");
-
-                document.addEventListener("keydown", event => {
-                    console.info("event dasdasdsa", event);
-                });
-                */
-            </script>
             <component {render_menu} data={state.clone()} />
             <component {render_header} data={state.clone()} />
             <div css={css_content()}>
@@ -91,3 +84,19 @@ pub fn render(state: &Computed<State>) -> VDomElement {
         </div>
     "#}
 }
+
+
+/*
+
+onKeyDown={on_keydown} tabindex="0"
+
+<script>
+    /*
+    console.info("test");
+
+    document.addEventListener("keydown", event => {
+        console.info("event dasdasdsa", event);
+    });
+    */
+</script>
+*/
