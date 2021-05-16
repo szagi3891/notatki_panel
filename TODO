@@ -16,10 +16,6 @@ zrobić wyszukiwarkę w nazwach.
 
 
 
-kliknięcie w katalog wcześniejszy,
-powinno wybrać wcześniejszy katalog, oraz ustawić select_item na ten w którym co dopiero byliśmy
-
-
 edycja pliku ma otwierać wielkie okno, z edytorem
 po dokonaniu zmian, ma isc request zapisujacy zmiany
 po zapisaniu zmian, przywrócony ma zostać tryb podglądu
