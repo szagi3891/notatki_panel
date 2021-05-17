@@ -1,14 +1,12 @@
 use std::{cmp::Ordering, collections::HashMap};
 use std::rc::Rc;
-use vertigo::{
-    computed::{
+use vertigo::{computed::{
         Computed,
         Dependencies,
         Value
-    }
-};
+    }, utils::Action};
 use crate::request::{ResourceError};
-use super::{StateData, state_data::TreeItem};
+use super::{StateData, state::StateAction, state_data::{CurrentContent, TreeItem}};
 
 
 #[derive(PartialEq, Debug, Clone)]
@@ -18,83 +16,6 @@ pub struct ListItem {
 }
 
 
-#[derive(PartialEq, Clone, Debug)]
-pub enum CurrentContent {
-    File {
-        file: String,           //name
-        file_hash: String,      //hash
-        content: Rc<String>,    //content file
-    },
-    Dir {
-        dir: String,            //hash
-        list: Rc<HashMap<String, TreeItem>>,
-    },
-    None
-}
-
-impl CurrentContent {
-    fn file(file: String, file_hash: String, content: Rc<String>) -> CurrentContent {
-        CurrentContent::File {
-            file,
-            file_hash,
-            content,
-        }
-    }
-
-    fn dir(dir: String, list: Rc<HashMap<String, TreeItem>>) -> CurrentContent {
-        CurrentContent::Dir {
-            dir,
-            list,
-        }
-    }
-
-    pub fn to_string(&self) -> Option<Rc<String>> {
-        if let CurrentContent::File { content, .. } = self {
-            return Some(content.clone());
-        }
-
-        None
-    }
-}
-
-fn get_item_from_map<'a>(current_wsk: &'a Rc<HashMap<String, TreeItem>>, path_item: &String) -> Result<&'a TreeItem, ResourceError> {
-    let wsk_child = current_wsk.get(path_item);
-
-    let wsk_child = match wsk_child {
-        Some(wsk_child) => wsk_child,
-        None => {
-            return Err(ResourceError::Error(format!("missing tree_item {}", path_item)));
-        }
-    };
-
-    Ok(wsk_child)
-}
-
-fn move_pointer(state_data: &StateData, list: Rc<HashMap<String, TreeItem>>, path_item: &String) -> Result<Rc<HashMap<String, TreeItem>>, ResourceError> {
-
-    let child = get_item_from_map(&list, path_item)?;
-
-    if child.dir {
-        let child_list = state_data.state_node_dir.get_list(&child.id)?;
-
-        return Ok(child_list);
-    }
-
-    return Err(ResourceError::Error(format!("dir expected {}", path_item)));
-}
-
-fn get_dir_content(state_data: &StateData, current_path: &Vec<String>) -> Result<Rc<HashMap<String, TreeItem>>, ResourceError> {
-    let root_wsk = state_data.state_root.get_current_root()?;
-
-    let mut result = state_data.state_node_dir.get_list(&root_wsk)?;
-
-    for path_item in current_path {
-        result = move_pointer(state_data, result, &path_item)?;
-    }
-
-    Ok(result)
-}
-
 fn create_list_hash_map(root: &Dependencies, state_data: &StateData, current_path: &Value<Vec<String>>) -> Computed<Result<Rc<HashMap<String, TreeItem>>, ResourceError>> {
     let state_data = state_data.clone();
     let current_path = current_path.to_computed();
@@ -103,10 +24,9 @@ fn create_list_hash_map(root: &Dependencies, state_data: &StateData, current_pat
         let current_path_rc = current_path.get_value();
         let current_path = current_path_rc.as_ref();
 
-        get_dir_content(&state_data, current_path)
+        state_data.get_dir_content(current_path)
     })
 }
-
 
 fn create_list(root: &Dependencies, list: &Computed<Result<Rc<HashMap<String, TreeItem>>, ResourceError>>) -> Computed<Vec<ListItem>> {
     let list = list.clone();
@@ -180,58 +100,19 @@ fn create_current_item_view(
 fn create_current_content(
     root: &Dependencies,
     state_data: &StateData,
-    list: &Computed<Result<Rc<HashMap<String, TreeItem>>, ResourceError>>,
-    current_item: &Computed<Option<String>>
+    current_path_dir: &Value<Vec<String>>,
+    list_current_item: &Computed<Option<String>>
 ) -> Computed<CurrentContent> {
 
-    let state_node_dir = state_data.state_node_dir.clone();
-    let state_node_content = state_data.state_node_content.clone();
-    let list = list.clone();
-    let current_item = current_item.clone();
+    let state_data = state_data.clone();
+    let current_path_dir = current_path_dir.to_computed();
+    let list_current_item = list_current_item.clone();
 
     root.from(move || -> CurrentContent {
-        let current_item_rc = current_item.get_value();
-        let current_item = current_item_rc.as_ref();
-    
-        let current_item = match current_item {
-            Some(current_item) => current_item,
-            None => {
-                return CurrentContent::None;
-            }
-        };
+        let current_path_dir = current_path_dir.get_value();
+        let list_current_item = list_current_item.get_value();
 
-        let list = list.get_value();
-
-        match list.as_ref() {
-            Ok(list) => {
-                let current_value = list.get(current_item);
-
-                if let Some(current_value) = current_value {
-                    if current_value.dir {
-                        let list = state_node_dir.get_list(&current_value.id);
-
-                        if let Ok(list) = list {
-                            return CurrentContent::dir(current_item.clone(), list);
-                        }
-                        
-                        return CurrentContent::None;
-                    } else {
-                        let content = state_node_content.get(&current_value.id);
-
-                        if let Ok(content) = content {
-                            return CurrentContent::file(current_item.clone(), current_value.id.clone(), content.clone());
-                        }
-
-                        return CurrentContent::None;
-                    }
-                }
-
-                return CurrentContent::None;
-            },
-            Err(_) => {
-                return CurrentContent::None;
-            }
-        }
+        state_data.get_content(current_path_dir.as_ref(), list_current_item.as_ref())
     })
 }
 
@@ -241,57 +122,62 @@ pub struct StateViewIndex {
     root: Dependencies,
 
     //aktualna ścieka powinna przechowywać tylko katalogi
-    pub current_path: Value<Vec<String>>,                               //aktualna ściezka
+    pub current_path_dir: Value<Vec<String>>,                               //aktualna ściezka
 
     //aktualny wskaźnik na wybrany element z katalogu
-    current_item_value: Value<Option<String>>,                            //aktualny wskaźnik (akcji)
+    current_path_item: Value<Option<String>>,                            //aktualny wskaźnik (akcji)
 
     list_hash_map: Computed<Result<Rc<HashMap<String, TreeItem>>, ResourceError>>,
+
     //aktualnie wyliczona lista
     pub list: Computed<Vec<ListItem>>,
                                                                         //wybrany element z listy, dla widoku
-    pub current_item: Computed<Option<String>>,
+    pub list_current_item: Computed<Option<String>>,
 
 
     //aktualnie wyliczony wybrany content wskazywany przez current_path
     pub current_content: Computed<CurrentContent>,
+
+    action: Action<StateAction>,
 }
 
 impl StateViewIndex {
     pub fn new(
         root: &Dependencies,
         state_data: StateData,
+        action: Action<StateAction>,
     ) -> Computed<StateViewIndex> {
 
-        let current_path = root.new_value(Vec::<String>::new());
-        let current_item_value = root.new_value(None);
+        let current_path_dir = root.new_value(Vec::<String>::new());
+        let current_path_item = root.new_value(None);
 
-        let list_hash_map = create_list_hash_map(root, &state_data, &current_path);
+        let list_hash_map = create_list_hash_map(root, &state_data, &current_path_dir);
         let list = create_list(root, &list_hash_map);
 
-        let current_item = create_current_item_view(&root, &current_item_value, &list);
+        let list_current_item = create_current_item_view(&root, &current_path_item, &list);
 
         let current_content = create_current_content(
             root,
             &state_data,
-            &list_hash_map,
-            &current_item,
+            &current_path_dir,
+            &list_current_item,
         );
 
         root.new_computed_from(StateViewIndex {
             root: root.clone(),
-            current_path,
-            current_item_value,
+            current_path_dir,
+            current_path_item,
             list_hash_map,
             list,
-            current_item,
+            list_current_item,
             current_content,
+            action,
         })
     }
 
 
     pub fn set_path(&self, path: Vec<String>) {
-        let current_path = self.current_path.get_value();
+        let current_path = self.current_path_dir.get_value();
 
         if current_path.as_ref().as_slice() == path.as_slice() {
             log::info!("path are equal");
@@ -301,8 +187,8 @@ impl StateViewIndex {
         let (new_current_path, new_current_item_value) = calculate_next_path(current_path.as_ref(), path);
 
         self.root.transaction(|| {
-            self.current_path.set_value(new_current_path);
-            self.current_item_value.set_value(new_current_item_value);
+            self.current_path_dir.set_value(new_current_path);
+            self.current_path_item.set_value(new_current_item_value);
         });
     }
 
@@ -312,11 +198,11 @@ impl StateViewIndex {
         if let Ok(list) = list_hash_map_rc.as_ref() {
             if let Some(node_details) = list.get(&node) {
                 if node_details.dir {
-                    let mut current = self.current_path.get_value().as_ref().clone();
+                    let mut current = self.current_path_dir.get_value().as_ref().clone();
                     current.push(node.clone());
                     self.set_path(current);
                 } else {
-                    self.current_item_value.set_value(Some(node.clone()));
+                    self.current_path_item.set_value(Some(node.clone()));
                 }
                 return;
             }
@@ -347,7 +233,7 @@ impl StateViewIndex {
         let list = self.list.get_value();
 
         if let Some(first) = list.get(index) {
-            self.current_item_value.set_value(Some(first.name.clone()));
+            self.current_path_item.set_value(Some(first.name.clone()));
             return true;
         }
 
@@ -360,7 +246,7 @@ impl StateViewIndex {
     }
 
     fn pointer_up(&self) {
-        let list_pointer_rc = self.current_item.get_value();
+        let list_pointer_rc = self.list_current_item.get_value();
         let list_pointer = list_pointer_rc.as_ref();
 
         if let Some(list_pointer) = list_pointer {
@@ -375,7 +261,7 @@ impl StateViewIndex {
     }
 
     fn pointer_down(&self) {
-        let list_pointer_rc = self.current_item.get_value();
+        let list_pointer_rc = self.list_current_item.get_value();
         let list_pointer = list_pointer_rc.as_ref();
 
         if let Some(list_pointer) = list_pointer {
@@ -390,7 +276,7 @@ impl StateViewIndex {
     }
 
     fn pointer_enter(&self) {
-        let list_pointer = self.current_item.get_value();
+        let list_pointer = self.list_current_item.get_value();
 
         if let Some(list_pointer) = list_pointer.as_ref() {
             if let Some(_) = self.find(list_pointer) {
@@ -400,7 +286,7 @@ impl StateViewIndex {
     }
 
     fn backspace(&self) {
-        let current_path = self.current_path.get_value();
+        let current_path = self.current_path_dir.get_value();
         let mut current_path = current_path.as_ref().clone();
 
         current_path.pop();
@@ -414,7 +300,7 @@ impl StateViewIndex {
         } else if code == "ArrowDown" {
             self.pointer_down();
         } else if code == "Escape" {
-            self.current_item_value.set_value(None);
+            self.current_path_item.set_value(None);
         } else if code == "ArrowRight" || code == "Enter" {
             self.pointer_enter();
         } else if code == "ArrowLeft" || code == "Backspace" || code == "Escape" {
@@ -422,6 +308,16 @@ impl StateViewIndex {
         }
 
         log::info!("klawisz ... {:?} ", code);
+    }
+
+    pub fn current_edit(&self) {
+        let mut path = self.current_path_dir.get_value().as_ref().clone();
+        
+        if let Some(current_item) = self.list_current_item.get_value().as_ref() {
+            path.push(current_item.clone());
+        }
+
+        self.action.trigger(StateAction::RedirectToContent { path });
     }
 }
 

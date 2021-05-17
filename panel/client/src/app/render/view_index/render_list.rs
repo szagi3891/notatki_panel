@@ -145,7 +145,7 @@ pub fn render_list(state: &Computed<StateViewIndex>) -> VDomElement {
 
     let state = state.get_value();
     let list = state.list.get_value();
-    let current_item = state.current_item.get_value();
+    let current_item = state.list_current_item.get_value();
 
     for item in (*list).iter() {
         let on_click = {

@@ -37,13 +37,19 @@ fn css_item() -> Css {
     ")
 }
 
-pub fn render_menu(_state: &Computed<StateViewIndex>) -> VDomElement {
+pub fn render_menu(state: &Computed<StateViewIndex>) -> VDomElement {
+    let state = state.get_value();
+
+    let on_click = move || {
+        state.current_edit();
+    };
+
     html! {"
         <div css={css_footer()}>
             <span css={css_item()}>Utwórz plik</span>
             <span css={css_item()}>Utwórz katalog</span>
             <span css={css_item()}>Zmień nazwę</span>
-            <span css={css_item()}>Edycja pliku</span>
+            <span css={css_item()} onClick={on_click}>Edycja pliku</span>
         </div>
     "}
 }

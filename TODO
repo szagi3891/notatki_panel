@@ -28,6 +28,12 @@ Dodać jakąś nawigację po hashu, po to aby mozna było miec kilka zakladek w
 
 
 
+/*
+onKeyDown={on_keydown} tabindex="0"
+*/
+
+
+
 jak jestesmy w podgladzie katalogu, wyświetlać miniaturki
     zdjęcia, wyświetlać w jakiejś rozdzielczości ...
 
