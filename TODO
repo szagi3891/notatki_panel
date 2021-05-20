@@ -75,6 +75,31 @@ na później - ??
 ---------------------------------------------------------------------------------------------------
 
 
+mozna by sie pobawic contentEditable
+ustawić ten atrybut dla tresci html
+edytor posiadalby tekst + aktualna pozycje kursora
+
+trzba by zrobic funkcje, ktora wyliczy reprezentacje tresci oraz znajdzie odpowiedznia pozycje
+w wynikowej tresci dla ktorej powinien zostac ustawiony kursor
+
+w sumie, kursor mógłby być reprezentowany przez <span> nie posiadajacy dzieci
+kursor bylby ustawiony na niego
+
+
+https://rustwasm.github.io/wasm-bindgen/api/web_sys/struct.Window.html#method.get_selection
+
+
+wektor
+    element
+        moze byc zwykłym znakiem
+        lub moze byc kursorem
+
+
+kursor moze zawierac sie do lewej strony, ale moze tez zawierac się do strony prawej
+ilość "zawierań" się moze być liczona
+
+
+
 
 /*
 dodać zakładki
