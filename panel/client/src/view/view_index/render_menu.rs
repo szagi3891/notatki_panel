@@ -7,7 +7,7 @@ use vertigo::{
 };
 
 use vertigo_html::{html, css};
-use crate::app::state::{StateViewIndex};
+use crate::state::{StateViewIndex};
 
 fn css_footer() -> Css {
     css!("

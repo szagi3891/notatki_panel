@@ -1,7 +1,7 @@
 use vertigo::{Css, VDomElement, computed::Computed};
 use vertigo_html::{css, html};
 
-use crate::app::state::StateViewEditContent;
+use crate::state::StateViewEditContent;
 
 
 fn css_wrapper() -> Css {

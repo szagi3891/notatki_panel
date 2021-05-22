@@ -2,7 +2,7 @@ use vertigo::{Css, VDomElement, computed::Computed};
 use vertigo_html::{css, html};
 
 use crate::{
-    app::state::StateViewIndex,
+    state::StateViewIndex,
     content::{
         parse_text,
         ParseTextItem,

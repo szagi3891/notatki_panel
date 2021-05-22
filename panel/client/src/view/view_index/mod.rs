@@ -4,7 +4,7 @@ use vertigo::{Css, KeyDownEvent, VDomElement, computed::{
 
 use vertigo_html::{html, css};
 
-use crate::app::state::StateViewIndex;
+use crate::state::StateViewIndex;
 
 mod render_list;
 mod render_header;

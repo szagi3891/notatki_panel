@@ -7,7 +7,7 @@ use vertigo::{
 use super::view_index::render as view_index;
 use super::vied_edit_content::render as vied_edit_content;
 
-use crate::app::state::{State, View};
+use crate::state::{State, View};
 
 
 pub fn render(state: &Computed<State>) -> VDomElement {

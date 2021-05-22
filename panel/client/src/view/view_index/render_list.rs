@@ -3,7 +3,7 @@ use vertigo::{Css, VDomElement, computed::{
     }};
 use vertigo_html::{css, html};
 
-use crate::app::state::StateViewIndex;
+use crate::state::StateViewIndex;
 
 fn css_wrapper() -> Css {
     css!("
