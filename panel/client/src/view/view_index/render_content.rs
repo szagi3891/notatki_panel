@@ -12,7 +12,7 @@ use crate::{
 
 fn css_content() -> Css {
     css!("
-        white-space: pre-line;
+        white-space: pre-wrap;
     ")
 }
 
@@ -47,38 +47,38 @@ pub fn render_content(state: &Computed<StateViewIndex>) -> VDomElement {
                     let thumb = get_thumbnail(url.as_str());
 
                     if let Some(thumb) = thumb {
-                        out.push(html!{r#"
+                        out.push(html!{
                             <a href={url.clone()} target="_blank" css={link_css()}>
                                 <span>{url}</span>
                                 <img src={thumb} />
                             </a>
-                        "#});
+                        });
                     } else {
-                        out.push(html!{r#"
+                        out.push(html!{
                             <a href={url.clone()} target="_blank" css={link_css()}>
                                 {url}
                             </a>
-                        "#});
+                        });
                     }
                 },
                 ParseTextItem::Text { text } => {
                     let text = text.to_string();
 
-                    out.push(html!{"
+                    out.push(html!{
                         <span>{ text }</span>
-                    "});
+                    });
                 }
             }
         }
-        return html!("
+        return html! {
             <div css={css_content()}>
                 { ..out }
             </div>
-        ");
+        };
     }
 
-    return html!("
+    return html!{
         <div></div>
-    ");
+    };
 }
 

@@ -44,12 +44,12 @@ pub fn render_menu(state: &Computed<StateViewIndex>) -> VDomElement {
         state.current_edit();
     };
 
-    html! {"
+    html! {
         <div css={css_footer()}>
-            <span css={css_item()}>Utwórz plik</span>
-            <span css={css_item()}>Utwórz katalog</span>
-            <span css={css_item()}>Zmień nazwę</span>
-            <span css={css_item()} onClick={on_click}>Edycja pliku</span>
+            <span css={css_item()}>"Utwórz plik"</span>
+            <span css={css_item()}>"Utwórz katalog"</span>
+            <span css={css_item()}>"Zmień nazwę"</span>
+            <span css={css_item()} onClick={on_click}>"Edycja pliku"</span>
         </div>
-    "}
+    }
 }

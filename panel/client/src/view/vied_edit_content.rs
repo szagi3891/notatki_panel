@@ -35,11 +35,11 @@ fn render_textarea(state: &Computed<StateViewEditContent>) -> VDomElement {
 
     let content = &state.as_ref().content;
 
-    html!("
+    html! {
         <textarea css={css_body()}>
             {content}
         </textarea>
-    ")
+    }
 }
 
 pub fn render(state: &Computed<StateViewEditContent>) -> VDomElement {
@@ -55,9 +55,10 @@ pub fn render(state: &Computed<StateViewEditContent>) -> VDomElement {
 
     let path = state_value.as_ref().path.as_slice().join("/");
 
-    html!(r#"
+    html! {
         <div id="root" css={css_wrapper()}>
             <style>
+                "
                 html, body {
                     width: 100%;
                     height: 100%;
@@ -65,12 +66,16 @@ pub fn render(state: &Computed<StateViewEditContent>) -> VDomElement {
                     padding: 0;
                     border: 0;
                 }
+                "
             </style>
             <div css={css_header()}>
-                <div>edycja pliku - do zrobienia .... => {path}</div>
-                <div onClick={on_click}>Wróć</div>
+                <div>
+                    "edycja pliku - do zrobienia .... => "
+                    {path}
+                </div>
+                <div onClick={on_click}>"Wróć"</div>
             </div>
             <component {render_textarea} data={state} />
         </div>
-    "#)
+    }
 }

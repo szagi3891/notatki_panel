@@ -54,7 +54,7 @@ fn icon_wrapper_svg() -> Css {
 
 fn icon_arrow(show: bool) -> VDomElement {
     if show {
-        html!(r#"
+        html! {
             <div css={icon_arrow_wrapper()}>
                 <svg
                     width="24"
@@ -67,11 +67,11 @@ fn icon_arrow(show: bool) -> VDomElement {
                     <path d="M15 12.3301L9 16.6603L9 8L15 12.3301Z" fill="currentColor" />
                 </svg>
             </div>
-        "#)
+        }
     } else {
-        html!("
+        html! {
             <div css={icon_arrow_wrapper()}></div>
-        ")
+        }
     }
 }
 
@@ -84,7 +84,7 @@ fn icon_dir_css() -> Css {
 }
 
 fn icon_dir() -> VDomElement {
-    html!(r#"
+    html! {
         <svg
             width="24"
             height="24"
@@ -100,7 +100,7 @@ fn icon_dir() -> VDomElement {
                 fill="currentColor"
             />
         </svg>
-    "#)
+    }
 }
 
 fn icon_file_css() -> Css {
@@ -112,7 +112,7 @@ fn icon_file_css() -> Css {
 }
 
 fn icon_file() -> VDomElement {
-    html!(r#"
+    html! {
         <svg
             width="24"
             height="24"
@@ -128,7 +128,7 @@ fn icon_file() -> VDomElement {
                 fill="currentColor"
             />
         </svg>
-    "#)
+    }
 }
 
 fn label_css() -> Css {
@@ -171,20 +171,20 @@ pub fn render_list(state: &Computed<StateViewIndex>) -> VDomElement {
             icon_file()
         };
 
-        out.push(html!{"
+        out.push(html!{
             <div onClick={on_click} css={css_normal(is_select)}>
                 {icon_arrow(is_select)}
                 {icon}
                 <span css={label_css()}>{&item.name}</span>
             </div>
-        "});
+        });
     }
 
-    html! {r#"
+    html! {
         <div css={css_wrapper()}>
             { ..out }
         </div>
-    "#}
+    }
 
     //TODO - dodać loader
 

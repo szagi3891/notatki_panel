@@ -73,11 +73,11 @@ fn create_link(state: &Rc<StateViewIndex>, title: String, node_id: Vec<String>, 
     if is_active {
         let css = create_css(true);
 
-        return html! {"
+        return html! {
             <div css={css}>
                 { title }
             </div>
-        "};
+        };
     }
 
     let on_click = {
@@ -90,11 +90,11 @@ fn create_link(state: &Rc<StateViewIndex>, title: String, node_id: Vec<String>, 
 
     let css = create_css(false);
 
-    html! {"
+    html! {
         <div css={css} onClick={on_click}>
             { title }
         </div>
-    "}
+    }
 }
 
 pub fn render_header(state: &Computed<StateViewIndex>) -> VDomElement {
@@ -114,7 +114,7 @@ pub fn render_header(state: &Computed<StateViewIndex>) -> VDomElement {
         wsk_current_path.push(item.clone());
 
         let is_active = index == all_items - 1;
-        out.push(html!{"<span css={css_separator()}>-</span>"});
+        out.push(html!{<span css={css_separator()}>"-"</span>});
         out.push(create_link(&state, item.clone(), wsk_current_path.clone(), css_item, is_active));
     }
 
@@ -129,9 +129,9 @@ pub fn render_header(state: &Computed<StateViewIndex>) -> VDomElement {
     // <div onClick={on_create} css={css_normal()}>utwórz katalog</div>
 
 
-    html! {"
+    html! {
         <div css={css_header()}>
             { ..out }
         </div>
-    "}
+    }
 }

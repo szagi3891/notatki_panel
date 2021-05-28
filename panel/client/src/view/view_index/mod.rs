@@ -67,9 +67,10 @@ pub fn render(state: &Computed<StateViewIndex>) -> VDomElement {
         state_value.keydown(event.code);
     };
 
-    html! {r#"
+    html! {
         <div id="root" css={css_wrapper()} onKeyDown={on_keydown}>
             <style>
+                "
                 html, body {
                     width: 100%;
                     height: 100%;
@@ -77,6 +78,7 @@ pub fn render(state: &Computed<StateViewIndex>) -> VDomElement {
                     padding: 0;
                     border: 0;
                 }
+                "
             </style>
             <component {render_menu} data={state.clone()} />
             <component {render_header} data={state.clone()} />
@@ -89,5 +91,5 @@ pub fn render(state: &Computed<StateViewIndex>) -> VDomElement {
                 </div>
             </div>
         </div>
-    "#}
+    }
 }
