@@ -33,7 +33,9 @@ qstring = "0.7.2"
 
 common={ path="../common" }
 
-#for run
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-structopt = "0.3.21"
-wasm-run = "0.8.1"
+
+[profile.release]
+lto = true
+opt-level = 'z'
+codegen-units = 1
+
