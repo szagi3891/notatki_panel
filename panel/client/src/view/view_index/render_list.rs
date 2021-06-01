@@ -190,21 +190,50 @@ pub fn render_list(state: &Computed<StateViewIndex>) -> VDomElement {
         }
     }
 
+    //Koryguj tylko wtedy gdy element aktywny nie jest widoczny
     let dom_apply = |node_refs: &NodeRefs| {
 
         if let (Some(wrapper), Some(active)) = (node_refs.expect_one("wrapper"), node_refs.expect_one("active")) {
             let wrapper_rect = wrapper.get_bounding_client_rect();
             let active_rect = active.get_bounding_client_rect();
-            let scroll_top = wrapper.scroll_top();
 
-            let active_offset_from_wrapper = active_rect.y as i32 + scroll_top - wrapper_rect.y as i32;
-            let target_offset_from_wrapper = (wrapper_rect.height as i32 - active_rect.height as i32) / 2;
+            if active_rect.y < wrapper_rect.y {
+                let offset = wrapper_rect.y- active_rect.y;
 
-            let offset = active_offset_from_wrapper - target_offset_from_wrapper;
+                let scroll_top = wrapper.scroll_top();
+                wrapper.set_scroll_top(scroll_top - offset as i32);
+                return;
+            }
 
-            wrapper.set_scroll_top(offset);
+            let wrapper_y2 = wrapper_rect.y + wrapper_rect.height;
+            let active_y2 = active_rect.y + active_rect.height;
+
+            if active_y2 > wrapper_y2 {
+                let offset = active_y2 - wrapper_y2;
+
+                let scroll_top = wrapper.scroll_top();
+                wrapper.set_scroll_top(scroll_top + offset as i32);
+                return;
+            }
         }
     };
+
+    //Centrowanie na środku zawsze
+    // let dom_apply = |node_refs: &NodeRefs| {
+
+    //     if let (Some(wrapper), Some(active)) = (node_refs.expect_one("wrapper"), node_refs.expect_one("active")) {
+    //         let wrapper_rect = wrapper.get_bounding_client_rect();
+    //         let active_rect = active.get_bounding_client_rect();
+    //         let scroll_top = wrapper.scroll_top();
+
+    //         let active_offset_from_wrapper = active_rect.y as i32 + scroll_top - wrapper_rect.y as i32;
+    //         let target_offset_from_wrapper = (wrapper_rect.height as i32 - active_rect.height as i32) / 2;
+
+    //         let offset = active_offset_from_wrapper - target_offset_from_wrapper;
+
+    //         wrapper.set_scroll_top(offset);
+    //     }
+    // };
 
     html! {
         <div css={css_wrapper()} dom_ref="wrapper" dom_apply={dom_apply}>
