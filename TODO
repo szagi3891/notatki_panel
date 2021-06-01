@@ -158,3 +158,14 @@ onKeyDown={on_keydown} tabindex="-1"
 
 Dodać izolowanie błędu jakieś
 jak poleci panic, to niech nie rozwala obsługi kolejnych eventów ...
+
+
+
+
+
+
+eksperymenty z focusem
+        spróbowac promować takie podejście ze mamy zmienna która reprezentuja aktywny status focus
+        onFocus muszą zainteresowane elementy miec zaimplementowane, przestawienie
+        dowolne inne zdarzenia będą potrafiły przestawić tego focusa poprzez zmianę zmiennej w stanie, która reprezentuje ten focus
+
