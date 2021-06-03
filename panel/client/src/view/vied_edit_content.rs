@@ -2,20 +2,23 @@ use vertigo::{Css, VDomElement, computed::Computed};
 use vertigo_html::{css, html};
 
 use crate::state::StateViewEditContent;
-
+use crate::view::components::button;
 
 fn css_wrapper() -> Css {
     css!("
         display: flex;
         flex-direction: column;
-        width: 100%;
-        height: 100%;
+        border: 1px solid black;
+        background-color: #e0e0e0;
+        width: 100vw;
+        height: 100vh;
     ")
 }
 
 fn css_header() -> Css {
     css!("
         border-bottom: 1px solid black;
+        padding: 5px;
     ")
 }
 
@@ -24,6 +27,8 @@ fn css_body() -> Css {
         flex-grow: 1;
         border: 0;
         padding: 5px;
+        margin: 5px;
+        border: 1px solid blue;
         :focus {
             border: 0;
         }
@@ -33,11 +38,15 @@ fn css_body() -> Css {
 fn render_textarea(state: &Computed<StateViewEditContent>) -> VDomElement {
     let state = state.get_value();
 
-    let content = &state.as_ref().content;
+    let content = &state.edit_content.get_value();
+
+    let on_input = move |new_value: String| {
+        state.on_input(new_value);
+    };
 
     html! {
-        <textarea css={css_body()}>
-            {content}
+        <textarea css={css_body()} onInput={on_input}>
+            {content.as_ref()}
         </textarea>
     }
 }
@@ -55,6 +64,16 @@ pub fn render(state: &Computed<StateViewEditContent>) -> VDomElement {
 
     let path = state_value.as_ref().path.as_slice().join("/");
 
+    let mut buttons = Vec::new();
+
+    buttons.push(button("Wróć", on_click));
+
+    let save_enable = state_value.save_enable.get_value();
+
+    if *save_enable {
+        buttons.push(button("Zapisz", || {}));
+    }
+
     html! {
         <div id="root" css={css_wrapper()}>
             <style>
@@ -69,11 +88,11 @@ pub fn render(state: &Computed<StateViewEditContent>) -> VDomElement {
                 "
             </style>
             <div css={css_header()}>
-                <div>
-                    "edycja pliku - do zrobienia .... => "
-                    {path}
-                </div>
-                <div onClick={on_click}>"Wróć"</div>
+                "edycja pliku => "
+                {path}
+            </div>
+            <div css={css_header()}>
+                { ..buttons }
             </div>
             <component {render_textarea} data={state} />
         </div>

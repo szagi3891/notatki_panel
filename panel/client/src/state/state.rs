@@ -70,12 +70,13 @@ impl State {
                         match content {
                             CurrentContent::File { file_hash, content, ..} => {
 
-                                let state = StateViewEditContent {
+                                let state = StateViewEditContent::new(
                                     path,
-                                    hash: file_hash,
-                                    content: content.as_ref().clone(),
-                                    action: action.clone(),
-                                };
+                                    file_hash,
+                                    content.as_ref().clone(),
+                                    action.clone(),
+                                    &root,
+                                );
 
                                 current_view.set_value(View::EditContent {
                                     state: root.new_computed_from(state)
