@@ -28,51 +28,6 @@ fn create_list_hash_map(root: &Dependencies, state_data: &StateData, current_pat
     })
 }
 
-// fn create_list(root: &Dependencies, list: &Computed<Result<Rc<HashMap<String, TreeItem>>, ResourceError>>) -> Computed<Vec<ListItem>> {
-//     let list = list.clone();
-
-//     root.from(move || -> Vec<ListItem> {
-//         let mut list_dir: Vec<ListItem> = Vec::new();
-//         let mut list_file: Vec<ListItem> = Vec::new();
-
-//         let result = list.get_value();
-
-//         match result.as_ref() {
-//             Ok(current_view) => {
-//                 for (name, item) in current_view.as_ref() {
-//                     if item.dir {
-//                         list_dir.push(ListItem {
-//                             name: name.clone(),
-//                             dir: true,
-//                         });
-//                     } else {
-//                         list_file.push(ListItem {
-//                             name: name.clone(),
-//                             dir: false,
-//                         });
-//                     }
-//                 }
-
-//                 list_dir.sort_by(|a: &ListItem, b: &ListItem| -> Ordering {
-//                     a.name.cmp(&b.name)
-//                 });
-
-//                 list_file.sort_by(|a: &ListItem, b: &ListItem| -> Ordering {
-//                     a.name.cmp(&b.name)
-//                 });
-
-//                 list_dir.extend(list_file);
-
-//                 return list_dir;
-//             },
-//             Err(err) => {
-//                 log::error!("Create list --> {:?}", err);
-//                 return Vec::new();
-//             }
-//         };
-//     })
-// }
-
 fn create_list(root: &Dependencies, list: &Computed<Result<Rc<HashMap<String, TreeItem>>, ResourceError>>) -> Computed<Vec<ListItem>> {
     let list = list.clone();
 
