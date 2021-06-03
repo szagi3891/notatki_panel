@@ -46,13 +46,11 @@ jak jestesmy w podgladzie katalogu, wyświetlać miniaturki
     zdjęcia, wyświetlać w jakiejś rozdzielczości ...
 
 
-zrobić opcje sortowania. jesli nazwa elementu zawiera na początku znak "_" to takie elementy mają być sorotowane w pierwszej kolejności na samym początku
-    to ma działać na zasadzie "pineski" ze slacka. Która wyrónia i przypina element na samym początku listy.
 
 
-przydałoby się zrobić obsługę klawiatury, zeby byla podpieta na globalnym dokumencie. teraz trzeba focusa zeby odpalaly sie te zdarzenia
-    fajnie jakby dalo sie zrobic jakas reprezentacje w domie
-    a moze element root, z zalozenia to bylby ten element, ktory zawsze ma focusa ????
+elementy które mają znak _ na początku, niech są jakoś podświetlone
+
+
 
 
 jak jesteśmy na elemencie który jest pdf, to znaleźć jakiś patent na wyświetlanie pdf-a
@@ -78,8 +76,6 @@ oraz aktualnie otwierana strona w pdf ...
 
 
 
-widok listy po lewej stronie
-aplikuj reaktywną korektę. Zaznaczony element musi zawsze znaleźć się wycentrowany w tym widoku
 
 
 

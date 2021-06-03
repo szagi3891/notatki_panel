@@ -131,10 +131,16 @@ fn icon_file() -> VDomElement {
     }
 }
 
-fn label_css() -> Css {
+fn label_css(green_label: bool) -> Css {
     let out = css!("
         padding-left: 3px;
     ");
+
+    if green_label {
+        return out.push_str("
+            color: green;
+        ");
+    }
 
     out
 }
@@ -171,12 +177,14 @@ pub fn render_list(state: &Computed<StateViewIndex>) -> VDomElement {
             icon_file()
         };
 
+        let green_label = item.name.get(0..1) == Some("_");
+
         if is_select {
             out.push(html!{
                 <div onClick={on_click} css={css_normal(true)} dom_ref="active">
                     {icon_arrow(true)}
                     {icon}
-                    <span css={label_css()}>{&item.name}</span>
+                    <span css={label_css(green_label)}>{&item.name}</span>
                 </div>
             });
         } else {
@@ -184,7 +192,7 @@ pub fn render_list(state: &Computed<StateViewIndex>) -> VDomElement {
                 <div onClick={on_click} css={css_normal(false)}>
                     {icon_arrow(false)}
                     {icon}
-                    <span css={label_css()}>{&item.name}</span>
+                    <span css={label_css(green_label)}>{&item.name}</span>
                 </div>
             });
         }
