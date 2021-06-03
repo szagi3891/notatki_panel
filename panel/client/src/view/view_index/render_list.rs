@@ -131,6 +131,14 @@ fn icon_file() -> VDomElement {
     }
 }
 
+fn icon_render(dir: bool) -> VDomElement {
+    if dir {
+        icon_dir()
+    } else {
+        icon_file()
+    }
+}
+
 fn label_css(green_label: bool) -> Css {
     let out = css!("
         padding-left: 3px;
@@ -144,6 +152,42 @@ fn label_css(green_label: bool) -> Css {
 
     out
 }
+
+
+//Koryguj tylko wtedy gdy element aktywny nie jest widoczny
+fn dom_apply(node_refs: &NodeRefs) {
+
+    if let (
+        Some(wrapper),
+        Some(active)
+    ) = (
+        node_refs.expect_one("wrapper"),
+        node_refs.expect_one("active")
+    ) {
+        let wrapper_rect = wrapper.get_bounding_client_rect();
+        let active_rect = active.get_bounding_client_rect();
+
+        if active_rect.y < wrapper_rect.y {
+            let offset = wrapper_rect.y- active_rect.y;
+
+            let scroll_top = wrapper.scroll_top();
+            wrapper.set_scroll_top(scroll_top - offset as i32);
+            return;
+        }
+
+        let wrapper_y2 = wrapper_rect.y + wrapper_rect.height;
+        let active_y2 = active_rect.y + active_rect.height;
+
+        if active_y2 > wrapper_y2 {
+            let offset = active_y2 - wrapper_y2;
+
+            let scroll_top = wrapper.scroll_top();
+            wrapper.set_scroll_top(scroll_top + offset as i32);
+            return;
+        }
+    }
+}
+
 
 pub fn render_list(state: &Computed<StateViewIndex>) -> VDomElement {
     
@@ -171,77 +215,26 @@ pub fn render_list(state: &Computed<StateViewIndex>) -> VDomElement {
             }
         };
 
-        let icon = if item.dir {
-            icon_dir()
-        } else {
-            icon_file()
-        };
-
         let green_label = item.name.get(0..1) == Some("_");
 
         if is_select {
             out.push(html!{
-                <div onClick={on_click} css={css_normal(true)} dom_ref="active">
-                    {icon_arrow(true)}
-                    {icon}
+                <div onClick={on_click} css={css_normal(is_select)} dom_ref="active">
+                    {icon_arrow(is_select)}
+                    {icon_render(item.dir)}
                     <span css={label_css(green_label)}>{&item.name}</span>
                 </div>
             });
         } else {
             out.push(html!{
-                <div onClick={on_click} css={css_normal(false)}>
-                    {icon_arrow(false)}
-                    {icon}
+                <div onClick={on_click} css={css_normal(is_select)}>
+                    {icon_arrow(is_select)}
+                    {icon_render(item.dir)}
                     <span css={label_css(green_label)}>{&item.name}</span>
                 </div>
             });
         }
     }
-
-    //Koryguj tylko wtedy gdy element aktywny nie jest widoczny
-    let dom_apply = |node_refs: &NodeRefs| {
-
-        if let (Some(wrapper), Some(active)) = (node_refs.expect_one("wrapper"), node_refs.expect_one("active")) {
-            let wrapper_rect = wrapper.get_bounding_client_rect();
-            let active_rect = active.get_bounding_client_rect();
-
-            if active_rect.y < wrapper_rect.y {
-                let offset = wrapper_rect.y- active_rect.y;
-
-                let scroll_top = wrapper.scroll_top();
-                wrapper.set_scroll_top(scroll_top - offset as i32);
-                return;
-            }
-
-            let wrapper_y2 = wrapper_rect.y + wrapper_rect.height;
-            let active_y2 = active_rect.y + active_rect.height;
-
-            if active_y2 > wrapper_y2 {
-                let offset = active_y2 - wrapper_y2;
-
-                let scroll_top = wrapper.scroll_top();
-                wrapper.set_scroll_top(scroll_top + offset as i32);
-                return;
-            }
-        }
-    };
-
-    //Centrowanie na środku zawsze
-    // let dom_apply = |node_refs: &NodeRefs| {
-
-    //     if let (Some(wrapper), Some(active)) = (node_refs.expect_one("wrapper"), node_refs.expect_one("active")) {
-    //         let wrapper_rect = wrapper.get_bounding_client_rect();
-    //         let active_rect = active.get_bounding_client_rect();
-    //         let scroll_top = wrapper.scroll_top();
-
-    //         let active_offset_from_wrapper = active_rect.y as i32 + scroll_top - wrapper_rect.y as i32;
-    //         let target_offset_from_wrapper = (wrapper_rect.height as i32 - active_rect.height as i32) / 2;
-
-    //         let offset = active_offset_from_wrapper - target_offset_from_wrapper;
-
-    //         wrapper.set_scroll_top(offset);
-    //     }
-    // };
 
     html! {
         <div css={css_wrapper()} dom_ref="wrapper" dom_apply={dom_apply}>
@@ -249,3 +242,22 @@ pub fn render_list(state: &Computed<StateViewIndex>) -> VDomElement {
         </div>
     }
 }
+
+
+
+//Centrowanie na środku zawsze
+// let dom_apply = |node_refs: &NodeRefs| {
+
+//     if let (Some(wrapper), Some(active)) = (node_refs.expect_one("wrapper"), node_refs.expect_one("active")) {
+//         let wrapper_rect = wrapper.get_bounding_client_rect();
+//         let active_rect = active.get_bounding_client_rect();
+//         let scroll_top = wrapper.scroll_top();
+
+//         let active_offset_from_wrapper = active_rect.y as i32 + scroll_top - wrapper_rect.y as i32;
+//         let target_offset_from_wrapper = (wrapper_rect.height as i32 - active_rect.height as i32) / 2;
+
+//         let offset = active_offset_from_wrapper - target_offset_from_wrapper;
+
+//         wrapper.set_scroll_top(offset);
+//     }
+// };
