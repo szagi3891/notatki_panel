@@ -65,6 +65,13 @@ async fn handler_fetch_root(app_state: Arc<AppState>) -> Result<impl warp::Reply
 async fn handler_fetch_dir(app_state: Arc<AppState>, body_request: HandlerFetchDirBody) -> Result<Response<String>, Infallible> {
     let root = app_state.git.get_from_id(&body_request.id).await;
 
+    let root = match root {
+        Ok(root) => root,
+        Err(message) => {
+            return Ok(message.to_response());
+        }
+    };
+
     if let Some(git::GitBlob::Tree { list }) = root {
         let mut response: HandlerFetchDirResponse = HandlerFetchDirResponse::new();
         for item in list {
@@ -82,6 +89,13 @@ async fn handler_fetch_node(app_state: Arc<AppState>, body_request: HandlerFetch
     let hash_id = body_request.hash;
 
     let data = app_state.git.get_from_id(&hash_id).await;
+
+    let data = match data {
+        Ok(data) => data,
+        Err(message) => {
+            return Ok(message.to_response());
+        }
+    };
 
     if let Some(git::GitBlob::Blob { content }) = data {
         let content = String::from_utf8(content);
@@ -137,6 +151,15 @@ async fn main() {
 
     println!("start git test: {}", &config.git_repo);
     let git = Git::new(config.git_repo, "master".into());
+
+
+    let path = vec![String::from("_testowy"), String::from("1")];
+    git.save_content(
+        path,
+        "1d38095774b07a5dabc5fa675fea1aa31680ca02".into(),
+         "nowa treść".into(),
+    ).await;
+
 
     let app_state = AppState::new(git.clone());
 
