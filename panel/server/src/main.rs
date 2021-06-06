@@ -55,6 +55,13 @@ async fn handler_index() -> Result<impl Reply, Infallible> {
 async fn handler_fetch_root(app_state: Arc<AppState>) -> Result<impl warp::Reply, Infallible> {
     let root = app_state.git.get_main_commit().await;
 
+    let root = match root {
+        Ok(root) => root,
+        Err(message) => {
+            return Ok(message.to_response());
+        }
+    };
+
     let body = HandlerFetchRootResponse {
         root,
     };

@@ -21,6 +21,10 @@ use git2::{
 };
 use crate::utils::ErrorProcess;
 
+mod command_find_main_commit;
+use command_find_main_commit::command_find_main_commit;
+
+
 #[derive(Debug, Serialize, Deserialize)]
 pub enum GitBlob {
     Blob {
@@ -35,7 +39,7 @@ pub enum GitBlob {
 enum Command {
     FindMainCommit {
         branch: String,
-        response: oneshot::Sender<String>,
+        response: oneshot::Sender<Result<std::string::String, ErrorProcess>>,
     },
     FindBlob {
         id: String,
@@ -282,10 +286,8 @@ impl Git {
 
                 match command {
                     Command::FindMainCommit { branch, response } => {
-                        let branch = repo.find_branch(branch.as_str(), BranchType::Local).unwrap();
-                        let reference = branch.get();
-                        let tree = reference.peel_to_tree().unwrap();
-                        response.send(tree.id().to_string()).unwrap();
+                        let tree = command_find_main_commit(&repo, branch);
+                        response.send(tree).unwrap();
                     },
 
                     Command::FindBlob { id, response } => {
@@ -320,7 +322,7 @@ impl Git {
         }
     }
 
-    pub async fn get_main_commit(&self) -> String {
+    pub async fn get_main_commit(&self) -> Result<String, ErrorProcess> {
         let (sender, receiver) = oneshot::channel();
 
         let command = Command::FindMainCommit {
