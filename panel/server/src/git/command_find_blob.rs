@@ -26,7 +26,7 @@ fn convert_to_name(item: &TreeEntry) -> Result<String, ErrorProcess> {
 
     match name {
         Some(str) => Ok(String::from(str)),
-        None => Err(ErrorProcess::server("One of the tree elements has an invalid utf8 name"))
+        None => ErrorProcess::server("One of the tree elements has an invalid utf8 name")
     }
 }
 
@@ -36,7 +36,7 @@ fn convert_to_type(item: &TreeEntry) -> Result<bool, ErrorProcess> {
     match kind {
         Some(ObjectType::Tree) => Ok(true),
         Some(ObjectType::Blob) => Ok(false),
-        _ => Err(ErrorProcess::server("Trees only support 'ObjectType::Tree' and 'ObjectType::Blob'"))
+        _ => ErrorProcess::server("Trees only support 'ObjectType::Tree' and 'ObjectType::Blob'")
     }
 }
 

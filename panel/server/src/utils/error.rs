@@ -13,16 +13,16 @@ pub enum ErrorProcess {
 }
 
 impl ErrorProcess {
-    pub fn user<T: Into<String>>(message: T) -> ErrorProcess {
-        ErrorProcess::User {
+    pub fn user<K, T: Into<String>>(message: T) -> Result<K, ErrorProcess> {
+        Err(ErrorProcess::User {
             message: message.into(),
-        }
+        })
     }
 
-    pub fn server<T: Into<String>>(message: T) -> ErrorProcess {
-        ErrorProcess::Server {
+    pub fn server<K, T: Into<String>>(message: T) -> Result<K, ErrorProcess> {
+        Err(ErrorProcess::Server {
             message: message.into(),
-        }
+        })
     }
 
     pub fn to_response(self) -> Response<String> {
@@ -35,6 +35,8 @@ impl ErrorProcess {
 
 impl From<Error> for ErrorProcess {
     fn from(err: Error) -> ErrorProcess {
-        ErrorProcess::server(format!("{}", err))
+        ErrorProcess::Server {
+            message: format!("{}", err),
+        }
     }
 }

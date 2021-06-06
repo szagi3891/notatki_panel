@@ -27,11 +27,11 @@ pub fn command_save_change<'repo>(
             match child {
                 Some(child) => {
                     if child.id().to_string() != prev_hash {
-                        return Err(ErrorProcess::user(format!("item not found to be modified = {}, hash mismatch", file_name)));
+                        return ErrorProcess::user(format!("item not found to be modified = {}, hash mismatch", file_name));
                     }
                 },
                 None => {
-                    return Err(ErrorProcess::user(format!("item not found to be modified = {}", &file_name)));
+                    return ErrorProcess::user(format!("item not found to be modified = {}", &file_name));
                 }
             };
 

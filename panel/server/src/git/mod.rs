@@ -9,7 +9,7 @@ use tokio::sync::{
 };
 
 use std::sync::Arc;
-use git2::{Oid, Repository};
+use git2::{Repository};
 use crate::utils::ErrorProcess;
 
 mod utils;

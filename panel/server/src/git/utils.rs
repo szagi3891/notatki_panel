@@ -12,7 +12,7 @@ pub fn create_id(hash: String) -> Result<Oid, ErrorProcess> {
     match Oid::from_str(&hash) {
         Ok(id) => Ok(id),
         Err(err) => {
-            Err(ErrorProcess::user(format!("Invalid hash {} {}", hash, err)))
+            ErrorProcess::user(format!("Invalid hash {} {}", hash, err))
         }
     }
 }
@@ -37,7 +37,7 @@ fn get_child_tree<'repo>(
         }
     }
 
-    Err(ErrorProcess::user(format!("Element not found {}", name)))
+    ErrorProcess::user(format!("Element not found {}", name))
 }
 
 fn put_child_tree<'repo>(
@@ -53,10 +53,10 @@ fn put_child_tree<'repo>(
         Some(ObjectType::Tree) => {}, 
         Some(ObjectType::Blob) => {},
         Some(kind) => {
-            return Err(ErrorProcess::user(format!("Incorrect type object = {}, {}", child, kind)));
+            return ErrorProcess::user(format!("Incorrect type object = {}, {}", child, kind));
         },
         None => {
-            return Err(ErrorProcess::user(format!("It was not possible to determine the type of this object = {}", child)));
+            return ErrorProcess::user(format!("It was not possible to determine the type of this object = {}", child));
         },
     };
 
