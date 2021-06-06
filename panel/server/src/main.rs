@@ -163,8 +163,8 @@ async fn main() {
     let path = vec![String::from("_testowy"), String::from("1")];
     let result = git.save_content(
         path,
-        "3b555f58210ac3a8adeb30783570a36ce1bcf888".into(),
-         "Jakaś kolejna nowa treść @@@@ -----".into(),
+        "1e865032a634b49f601c6df6d1742341e8e16dde".into(),
+         "Jakaś kolejna nowa treść @@@@ ----- XXXX YYYY".into(),
     ).await;
 
     println!("Wynik próby zapisania {:?}", result);

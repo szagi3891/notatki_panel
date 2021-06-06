@@ -9,9 +9,7 @@ use tokio::sync::{
 };
 
 use std::sync::Arc;
-use git2::{
-    Repository,
-};
+use git2::{Oid, Repository};
 use crate::utils::ErrorProcess;
 
 mod utils;
@@ -23,6 +21,7 @@ use command_find_main_commit::command_find_main_commit;
 use command_find_blob::command_find_blob;
 pub use command_find_blob::GitBlob;
 use command_save_change::command_save_change;
+pub use utils::create_id;
 
 #[derive(Debug)]
 enum Command {

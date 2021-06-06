@@ -113,8 +113,11 @@ pub fn find_and_commit<
 
     let commit = reference.peel_to_commit()?;
 
+    let update_ref = format!("refs/heads/{}", branch_name);
+    //HEAD
+
     repo.commit(
-        Some("HEAD"),
+        Some(update_ref.as_str()),   //"heads/master"),
         &commit.author(),
         &commit.committer(),
         "auto save",
