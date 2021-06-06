@@ -149,6 +149,42 @@ fn find_and_change<
     }
 }
 
+fn find_and_commit<
+    'repo,
+    M: Fn(&Repository, Tree<'repo>) -> Result<Oid, ErrorProcess>
+>(
+    repo: &'repo Repository,
+    branch_name: String,
+    path: &[String],
+    modify: M
+) -> Result<Oid, ErrorProcess> {
+    let branch = repo.find_branch(branch_name.as_str(), BranchType::Local).unwrap();
+    let reference = branch.get();
+    let curret_root_tree = reference.peel_to_tree()?;
+
+    let new_tree_id = find_and_change(
+        &repo,
+        curret_root_tree,
+        &path,
+        modify
+    )?;
+
+    let new_tree = find_tree(&repo, new_tree_id)?;
+
+    let commit = reference.peel_to_commit()?;
+
+    repo.commit(
+        Some("HEAD"),
+        &commit.author(),
+        &commit.committer(),
+        "auto save",
+        &new_tree,
+        &[&commit]
+    )?;
+
+    Ok(new_tree_id)
+}
+
 fn command_find_blob(repo: &Repository, id: String) -> Result<Option<GitBlob>, ErrorProcess> {
     let oid = create_id(id)?;
 
@@ -184,17 +220,12 @@ fn command_save_change<'repo>(
     prev_hash: String,
     new_content: String
 ) -> Result<String, ErrorProcess> {
-    
-    let branch = repo.find_branch(branch_name.as_str(), BranchType::Local).unwrap();
-    let reference = branch.get();
-    let curret_root_tree = reference.peel_to_tree()?;
-    let commit = reference.peel_to_commit()?;
 
     let file_name = path.pop().unwrap();
 
-    let new_tree_id = find_and_change(
+    let new_tree_id = find_and_commit(
         &repo,
-        curret_root_tree,
+        branch_name,
         &path,
         move |repo: &Repository, tree: Tree| -> Result<Oid, ErrorProcess> {
             
@@ -219,17 +250,6 @@ fn command_save_change<'repo>(
 
             Ok(id)
         }
-    )?;
-    
-    let new_tree = find_tree(&repo, new_tree_id)?;
-
-    repo.commit(
-        Some("HEAD"),
-        &commit.author(),
-        &commit.committer(),
-        "auto save",
-        &new_tree,
-        &[&commit]
     )?;
 
     Ok(new_tree_id.to_string())
