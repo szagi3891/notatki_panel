@@ -47,3 +47,16 @@ pub struct HandlerFetchNodeResponse {
     pub content: String,
 }
 
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct HandlerSaveContentBody {
+    pub path: Vec<String>,
+    pub prev_hash: String,
+    pub new_content: String,
+}
+
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct HandlerSaveContentResponse {
+    pub new_root: String,
+}

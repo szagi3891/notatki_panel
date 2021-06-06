@@ -1,0 +1,9 @@
+
+POST http://0.0.0.0:4000/save_content
+Content-Type: application/json
+
+{
+    "path": ["_testowy","1"],
+    "prev_hash": "6c58864a2fd40dca73e3b9c49586ae7b2186e38f",
+    "new_content": "Jakaś kolejna nowa dsadasdasdasdas"
+}

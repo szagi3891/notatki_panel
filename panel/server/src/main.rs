@@ -1,3 +1,4 @@
+use common::{HandlerSaveContentBody, HandlerSaveContentResponse};
 use common::{HandlerFetchDirBody, HandlerFetchDirResponse, HandlerFetchNodeBody, HandlerFetchNodeResponse, HandlerFetchRootResponse};
 use utils::{create_response, create_response_message};
 use warp::{Filter, Reply, http::Response};
@@ -124,6 +125,26 @@ async fn handler_fetch_node(app_state: Arc<AppState>, body_request: HandlerFetch
     Ok(create_response_message(404, format!("missing content {}", hash_id)))
 }
 
+async fn handler_save_content(app_state: Arc<AppState>, body_request: HandlerSaveContentBody) -> Result<impl warp::Reply, Infallible> {
+
+    let result = app_state.git.save_content(
+        body_request.path,
+        body_request.prev_hash,
+        body_request.new_content
+    ).await;
+
+    match result {
+        Ok(new_root) => {
+            let response = HandlerSaveContentResponse {
+                new_root,
+            };
+            Ok(create_response(200, response))
+        },
+        Err(err) => {
+            Ok(err.to_response())
+        }
+    }
+}
 
 // async fn handler_create_dir(app_state: Arc<AppState>, body: PostParamsCreateDir) -> Result<impl warp::Reply, Infallible> {
 //     let new_id = app_state.git.create_dir(body.parent_node, body.name).await;
@@ -160,14 +181,14 @@ async fn main() {
     let git = Git::new(config.git_repo, "master".into());
 
 
-    let path = vec![String::from("_testowy"), String::from("1")];
-    let result = git.save_content(
-        path,
-        "1e865032a634b49f601c6df6d1742341e8e16dde".into(),
-         "Jakaś kolejna nowa treść @@@@ ----- XXXX YYYY".into(),
-    ).await;
+    // let path = vec![String::from("_testowy"), String::from("1")];
+    // let result = git.save_content(
+    //     path,
+    //     "1e865032a634b49f601c6df6d1742341e8e16dde".into(),
+    //      "Jakaś kolejna nowa treść @@@@ ----- XXXX YYYY".into(),
+    // ).await;
 
-    println!("Wynik próby zapisania {:?}", result);
+    // println!("Wynik próby zapisania {:?}", result);
 
     let app_state = AppState::new(git.clone());
 
@@ -204,6 +225,13 @@ async fn main() {
         .and(warp::body::json())
         .and_then(handler_fetch_node);
 
+    let filter_save_content =
+        warp::path!("save_content")
+        .and(warp::post())
+        .and(inject_state(app_state.clone()))
+        .and(warp::body::json())
+        .and_then(handler_save_content);
+
     // let filter_create_dir =
     //     warp::path!("create_dir")
     //     .and(warp::post())
@@ -225,6 +253,7 @@ async fn main() {
         .or(filter_fetch_root)
         .or(filter_fetch_dir)
         .or(filter_fetch_node)
+        .or(filter_save_content)
         // .or(filter_create_dir)
         .or(routes_default)
     ;
