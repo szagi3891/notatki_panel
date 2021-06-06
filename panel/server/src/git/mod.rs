@@ -15,6 +15,10 @@ use git2::{
     Repository,
     BranchType,
     ObjectType,
+    TreeEntry,
+    TreeBuilder,
+    Tree,
+    Object,
     Oid,
 };
 use crate::utils::ErrorProcess;
@@ -57,6 +61,96 @@ fn create_id(hash: String) -> Result<Oid, ErrorProcess> {
     }
 }
 
+fn convert_to_name(item: &TreeEntry) -> Result<String, ErrorProcess> {
+    let name = item.name();
+
+    match name {
+        Some(str) => Ok(String::from(str)),
+        None => Err(ErrorProcess::server("One of the tree elements has an invalid utf8 name"))
+    }
+}
+
+fn convert_to_type(item: &TreeEntry) -> Result<bool, ErrorProcess> {
+    let kind = item.kind();
+
+    match kind {
+        Some(ObjectType::Tree) => Ok(true),
+        Some(ObjectType::Blob) => Ok(false),
+        _ => Err(ErrorProcess::server("Trees only support 'ObjectType::Tree' and 'ObjectType::Blob'"))
+    }
+}
+
+fn find_tree<'repo>(repo: &'repo Repository, id: Oid) -> Result<Tree<'repo>, ErrorProcess> {
+    let result = repo.find_object(id, None)?;
+    let tree = result.peel_to_tree()?;
+    Ok(tree)
+}
+
+fn get_child_tree<'repo>(
+    repo: &'repo Repository, 
+    tree: &Tree<'repo>,
+    name: &String
+) -> Result<Tree<'repo>, ErrorProcess> {
+    
+    for item in tree {
+        if item.name() == Some(name.as_str()) {
+            let tree = find_tree(repo, item.id())?;
+            return Ok(tree);
+        }
+    }
+
+    Err(ErrorProcess::user(format!("Element not found {}", name)))
+}
+
+fn put_child_tree<'repo>(
+    repo: &Repository,
+    tree: &Tree<'repo>,
+    filename: &String,
+    child: Oid
+) -> Result<Oid, ErrorProcess> {
+
+    let child_object = repo.find_object(child, None)?;
+
+    match child_object.kind() {
+        Some(ObjectType::Tree) => {}, 
+        Some(ObjectType::Blob) => {},
+        Some(kind) => {
+            return Err(ErrorProcess::user(format!("Incorrect type object = {}, {}", child, kind)));
+        },
+        None => {
+            return Err(ErrorProcess::user(format!("It was not possible to determine the type of this object = {}", child)));
+        },
+    };
+
+    let mut builder = repo.treebuilder(Some(tree))?;
+    builder.insert(filename, child, 0o040000)?;
+    let write_result = builder.write()?;
+
+    Ok(write_result)
+}
+
+fn find_and_change<
+    'repo,
+    M: Fn(&Repository, Tree<'repo>) -> Result<Oid, ErrorProcess>
+>(
+    repo: &'repo Repository,
+    tree: Tree<'repo>, 
+    path: &[String],
+    modify: M
+) -> Result<Oid, ErrorProcess> {
+    if let Some((first, rest_path)) = path.split_first() {
+        
+        let child_tree = get_child_tree(repo, &tree, first)?;
+        let child_tree_modify = find_and_change(repo, child_tree, rest_path, modify)?;
+        let tree_modify = put_child_tree(repo, &tree, first, child_tree_modify)?;
+
+        Ok(tree_modify)
+
+    } else {
+        modify(repo, tree)
+    }
+}
+
 fn command_find_blob(repo: &Repository, id: String) -> Result<Option<GitBlob>, ErrorProcess> {
     let oid = create_id(id)?;
 
@@ -64,29 +158,10 @@ fn command_find_blob(repo: &Repository, id: String) -> Result<Option<GitBlob>, E
         let mut list: Vec<GitTreeItem> = Vec::new();
 
         for item in tree.iter() {
-            let name = item.name();
-            let kind = item.kind();
-            let id = item.id();
-
-            let name = match name {
-                Some(str) => String::from(str),
-                _ => {
-                    return Err(ErrorProcess::server("One of the tree elements has an invalid utf8 name"));
-                }
-            };
-
-            let dir = match kind {
-                Some(ObjectType::Tree) => true,
-                Some(ObjectType::Blob) => false,
-                _ => {
-                    return Err(ErrorProcess::server("Trees only support 'ObjectType::Tree' and 'ObjectType::Blob'"));
-                }
-            };
-
             list.push(GitTreeItem {
-                dir,
-                id: id.to_string(),
-                name,
+                dir: convert_to_type(&item)?,
+                id: item.id().to_string(),
+                name: convert_to_name(&item)?,
             });
         }
 
@@ -152,32 +227,58 @@ impl Git {
 
                         let branch = repo.find_branch(branch.as_str(), BranchType::Local).unwrap();
                         let reference = branch.get();
-                        let tree = reference.peel_to_tree().unwrap();
+                        let curret_root_tree = reference.peel_to_tree().unwrap();
                         let commit = reference.peel_to_commit().unwrap();
                         //TODO - coś rób
 
                         let file_name = path.pop().unwrap();
 
-                        fn get_sub_tree<'repo>(tree: git2::Tree<'repo>, name: &String) -> Result<git2::Tree<'repo>, ErrorProcess> {
-                            todo!();
-                        }
-
-                        fn find_and_change<'repo, M: Fn(git2::Tree<'repo>) -> git2::Tree<'repo>>(tree: git2::Tree, path: &[String], modify: M) -> Result<git2::Tree<'repo>, ErrorProcess> {
-                            if let Some((first, rest_path)) = path.split_first() {
-                                
-                                let sub_tree = get_sub_tree(tree, first)?;
-                                let sub_tree2 = find_and_change(sub_tree, rest_path, modify)?;
-                                return Ok(sub_tree2);
-
-                            } else {
-                                //przetwarzaj
-                            }
-
-                            todo!()
-                        }
-
                         println!(".. {:?} ..", commit);
 
+                        let new_tree_id = find_and_change(
+                            &repo,
+                            curret_root_tree,
+                            &path,
+                            move |repo: &Repository, tree: Tree| -> Result<Oid, ErrorProcess> {
+                                
+                                let child = tree.get_name(file_name.as_str());
+
+                                match child {
+                                    Some(child) => {
+                                        if child.id().to_string() != prev_hash {
+                                            return Err(ErrorProcess::user(format!("item not found to be modified = {}, hash mismatch", file_name)));
+                                        }
+                                    },
+                                    None => {
+                                        return Err(ErrorProcess::user(format!("item not found to be modified = {}", &file_name)));
+                                    }
+                                };
+
+                                let mut builder = repo.treebuilder(Some(&tree))?;
+                                let new_content_id = repo.blob(new_content.as_bytes())?;
+                                println!("insert inner");
+                                builder.insert(&file_name, new_content_id, 0o100755)?;
+
+                                let id = builder.write()?;
+
+                                println!("najnizsze id {}", id);
+                                Ok(id)
+                            }
+                        );
+
+                        println!("aaaa vvvvv {:?}", new_tree_id);
+
+                        /*
+                            Odczytaj Tree
+                            wykonaj operację find_and_change ---> to zwróci Oid
+
+                            Etap komitowania.
+                            Trzeba zapisać to drzewo jako nowy komit
+                            odczytujemy najnowszy komit.
+                            odczytujemy autora
+                            odczytujemy obiekt Tree na podstawie Oid
+
+                        */
                         response.send(());
                     }
                 }

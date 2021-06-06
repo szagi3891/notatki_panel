@@ -1,5 +1,5 @@
 use warp::http::Response;
-
+use git2::Error;
 use super::create_response_message;
 
 #[derive(Debug)]
@@ -30,5 +30,11 @@ impl ErrorProcess {
             ErrorProcess::Server { message } => create_response_message(500, message),
             ErrorProcess::User { message } => create_response_message(400, message),
         }
+    }
+}
+
+impl From<Error> for ErrorProcess {
+    fn from(err: Error) -> ErrorProcess {
+        ErrorProcess::server(format!("{}", err))
     }
 }
