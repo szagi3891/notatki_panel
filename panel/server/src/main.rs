@@ -154,12 +154,13 @@ async fn main() {
 
 
     let path = vec![String::from("_testowy"), String::from("1")];
-    git.save_content(
+    let result = git.save_content(
         path,
         "1d38095774b07a5dabc5fa675fea1aa31680ca02".into(),
          "nowa treść".into(),
     ).await;
 
+    println!("Wynik próby zapisania {:?}", result);
 
     let app_state = AppState::new(git.clone());
 

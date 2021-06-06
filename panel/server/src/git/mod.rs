@@ -16,9 +16,7 @@ use git2::{
     BranchType,
     ObjectType,
     TreeEntry,
-    TreeBuilder,
     Tree,
-    Object,
     Oid,
 };
 use crate::utils::ErrorProcess;
@@ -48,7 +46,7 @@ enum Command {
         path: Vec<String>,      //wskazuje na plik do zapisania
         prev_hash: String,
         new_content: String,
-        response: oneshot::Sender<()>,
+        response: oneshot::Sender<Result<String, ErrorProcess>>,
     }
 }
 
@@ -179,6 +177,64 @@ fn command_find_blob(repo: &Repository, id: String) -> Result<Option<GitBlob>, E
 }
 
 
+fn command_save_change<'repo>(
+    repo: &'repo Repository,
+    branch_name: String,
+    mut path: Vec<String>,
+    prev_hash: String,
+    new_content: String
+) -> Result<String, ErrorProcess> {
+    
+    let branch = repo.find_branch(branch_name.as_str(), BranchType::Local).unwrap();
+    let reference = branch.get();
+    let curret_root_tree = reference.peel_to_tree()?;
+    let commit = reference.peel_to_commit()?;
+
+    let file_name = path.pop().unwrap();
+
+    let new_tree_id = find_and_change(
+        &repo,
+        curret_root_tree,
+        &path,
+        move |repo: &Repository, tree: Tree| -> Result<Oid, ErrorProcess> {
+            
+            let child = tree.get_name(file_name.as_str());
+
+            match child {
+                Some(child) => {
+                    if child.id().to_string() != prev_hash {
+                        return Err(ErrorProcess::user(format!("item not found to be modified = {}, hash mismatch", file_name)));
+                    }
+                },
+                None => {
+                    return Err(ErrorProcess::user(format!("item not found to be modified = {}", &file_name)));
+                }
+            };
+
+            let mut builder = repo.treebuilder(Some(&tree))?;
+            let new_content_id = repo.blob(new_content.as_bytes())?;
+            builder.insert(&file_name, new_content_id, 0o100755)?;
+
+            let id = builder.write()?;
+
+            Ok(id)
+        }
+    )?;
+    
+    let new_tree = find_tree(&repo, new_tree_id)?;
+
+    repo.commit(
+        Some("HEAD"),
+        &commit.author(),
+        &commit.committer(),
+        "auto save",
+        &new_tree,
+        &[&commit]
+    )?;
+
+    Ok(new_tree_id.to_string())
+}
+
 #[derive(Clone)]
 pub struct Git {
     branch: String,
@@ -219,67 +275,13 @@ impl Git {
 
                     Command::SaveChangeInContent {
                         branch,
-                        mut path,
+                        path,
                         prev_hash,
                         new_content,
                         response
                     } => {
-
-                        let branch = repo.find_branch(branch.as_str(), BranchType::Local).unwrap();
-                        let reference = branch.get();
-                        let curret_root_tree = reference.peel_to_tree().unwrap();
-                        let commit = reference.peel_to_commit().unwrap();
-                        //TODO - coś rób
-
-                        let file_name = path.pop().unwrap();
-
-                        println!(".. {:?} ..", commit);
-
-                        let new_tree_id = find_and_change(
-                            &repo,
-                            curret_root_tree,
-                            &path,
-                            move |repo: &Repository, tree: Tree| -> Result<Oid, ErrorProcess> {
-                                
-                                let child = tree.get_name(file_name.as_str());
-
-                                match child {
-                                    Some(child) => {
-                                        if child.id().to_string() != prev_hash {
-                                            return Err(ErrorProcess::user(format!("item not found to be modified = {}, hash mismatch", file_name)));
-                                        }
-                                    },
-                                    None => {
-                                        return Err(ErrorProcess::user(format!("item not found to be modified = {}", &file_name)));
-                                    }
-                                };
-
-                                let mut builder = repo.treebuilder(Some(&tree))?;
-                                let new_content_id = repo.blob(new_content.as_bytes())?;
-                                println!("insert inner");
-                                builder.insert(&file_name, new_content_id, 0o100755)?;
-
-                                let id = builder.write()?;
-
-                                println!("najnizsze id {}", id);
-                                Ok(id)
-                            }
-                        );
-
-                        println!("aaaa vvvvv {:?}", new_tree_id);
-
-                        /*
-                            Odczytaj Tree
-                            wykonaj operację find_and_change ---> to zwróci Oid
-
-                            Etap komitowania.
-                            Trzeba zapisać to drzewo jako nowy komit
-                            odczytujemy najnowszy komit.
-                            odczytujemy autora
-                            odczytujemy obiekt Tree na podstawie Oid
-
-                        */
-                        response.send(());
+                        let resp = command_save_change(&repo, branch, path, prev_hash, new_content);
+                        response.send(resp).unwrap();
                     }
                 }
 
@@ -323,7 +325,7 @@ impl Git {
         receiver.await.unwrap()
     }
 
-    pub async fn save_content(&self, path: Vec<String>, prev_hash: String, new_content: String) {
+    pub async fn save_content(&self, path: Vec<String>, prev_hash: String, new_content: String) -> Result<String, ErrorProcess> {
         let (sender, receiver) = oneshot::channel();
 
         let save_command = Command::SaveChangeInContent {
@@ -335,6 +337,6 @@ impl Git {
         };
 
         self.sender.send(save_command).await.unwrap();
-        receiver.await.unwrap();
+        receiver.await.unwrap()
     }
 }
