@@ -27,6 +27,7 @@ pub enum View {
 #[derive(PartialEq)]
 pub enum StateAction {
     RedirectToIndex,
+    RedirectToIndexWithRootRefresh,
     RedirectToContent {
         path: Vec<String>,
     }
@@ -58,10 +59,16 @@ impl State {
         {
             let root = root.clone();
             let action = action.clone();
+            let driver = driver.clone();
+            let state_data = state_data.clone();
 
             subscribe.subscribe(move |message| {
                 match message {
                     StateAction::RedirectToIndex => {
+                        current_view.set_value(View::Index);
+                    },
+                    StateAction::RedirectToIndexWithRootRefresh => {
+                        state_data.state_root.refresh();
                         current_view.set_value(View::Index);
                     },
                     StateAction::RedirectToContent { path } => {
@@ -76,6 +83,7 @@ impl State {
                                     content.as_ref().clone(),
                                     action.clone(),
                                     &root,
+                                    &driver
                                 );
 
                                 current_view.set_value(View::EditContent {

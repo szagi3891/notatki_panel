@@ -47,6 +47,7 @@ impl RootNode {
 pub struct StateRoot {
     request: Request,
     dependencies: Dependencies,
+    state_node_dir: StateNodeDir,
     pub current: Value<RootNode>,
     //list: Value<VecDeque<RootNode>>,      //todo zaimplementowach historie, zeby zniwelowac ilosc migań
 }
@@ -58,12 +59,13 @@ impl StateRoot {
 
         // let list = dependencies.new_value(list);
 
-        let current = RootNode::new(request, dependencies, state_node_dir);
+        let current = RootNode::new(request, dependencies, state_node_dir.clone());
         let current = dependencies.new_value(current);
        
         StateRoot {
             request: request.clone(),
             dependencies: dependencies.clone(),
+            state_node_dir,
             current,
         }
     }
@@ -108,5 +110,11 @@ impl StateRoot {
     pub fn get_current_root(&self) -> Result<String, ResourceError> {
         let current = self.current.get_value();
         current.get()
+    }
+
+
+    pub fn refresh(&self) {
+        let current = RootNode::new(&self.request, &self.dependencies, self.state_node_dir.clone());
+        self.current.set_value(current);
     }
 }

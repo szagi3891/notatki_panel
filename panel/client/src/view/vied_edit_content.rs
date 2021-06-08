@@ -71,7 +71,14 @@ pub fn render(state: &Computed<StateViewEditContent>) -> VDomElement {
     let save_enable = state_value.save_enable.get_value();
 
     if *save_enable {
-        buttons.push(button("Zapisz", || {}));
+        let on_save = {
+            let state = state_value.clone();
+            move || {
+                state.on_save();
+            }
+        };
+
+        buttons.push(button("Zapisz", on_save));
     }
 
     html! {
