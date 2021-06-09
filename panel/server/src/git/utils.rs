@@ -89,12 +89,39 @@ fn find_and_change<
     }
 }
 
+pub fn create_file_content<'repo>(
+    repo: &'repo Repository,
+    path: &[String],
+    new_content: &String,
+) -> Result<(Oid, bool), ErrorProcess> {
+    if let Some((name_item, rest_path)) = path.split_first() {
+        
+        let (rest_id, is_file) = create_file_content(repo, rest_path, new_content)?;
+
+        let mut builder = repo.treebuilder(None)?;
+
+        if is_file {
+            builder.insert(name_item, rest_id, 0o100644)?;
+        } else {
+            builder.insert(name_item, rest_id, 0o040000)?;
+        }
+        
+        let write_result = builder.write()?;
+
+        Ok((write_result, false))
+
+    } else {
+        let new_content_id = repo.blob(new_content.as_bytes())?;
+        Ok((new_content_id, true))
+    }
+}
+
 pub fn find_and_commit<
     'repo,
     M: Fn(&Repository, Tree<'repo>) -> Result<Oid, ErrorProcess>
 >(
     repo: &'repo Repository,
-    branch_name: String,
+    branch_name: &String,
     path: &[String],
     modify: M
 ) -> Result<Oid, ErrorProcess> {

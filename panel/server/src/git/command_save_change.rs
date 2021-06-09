@@ -8,7 +8,7 @@ use super::utils::find_and_commit;
 
 pub fn command_save_change<'repo>(
     repo: &'repo Repository,
-    branch_name: String,
+    branch_name: &String,
     mut path: Vec<String>,
     prev_hash: String,
     new_content: String
@@ -37,7 +37,8 @@ pub fn command_save_change<'repo>(
 
             let mut builder = repo.treebuilder(Some(&tree))?;
             let new_content_id = repo.blob(new_content.as_bytes())?;
-            builder.insert(&file_name, new_content_id, 0o100755)?;
+            builder.insert(&file_name, new_content_id, 0o100644)?;
+            //0o100755
 
             let id = builder.write()?;
 

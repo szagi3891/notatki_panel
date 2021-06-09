@@ -1,5 +1,14 @@
-use common::{HandlerSaveContentBody, HandlerSaveContentResponse};
-use common::{HandlerFetchDirBody, HandlerFetchDirResponse, HandlerFetchNodeBody, HandlerFetchNodeResponse, HandlerFetchRootResponse};
+use common::{
+    HandlerSaveContentBody,
+    HandlerSaveContentResponse,
+    HandlerFetchDirBody,
+    HandlerFetchDirResponse,
+    HandlerFetchNodeBody,
+    HandlerFetchNodeResponse,
+    HandlerFetchRootResponse,
+    HandlerCreateFileBody,
+    HandlerCreateFileResponse
+};
 use utils::{create_response, create_response_message};
 use warp::{Filter, Reply, http::Response};
 use std::convert::Infallible;
@@ -146,27 +155,27 @@ async fn handler_save_content(app_state: Arc<AppState>, body_request: HandlerSav
     }
 }
 
-// async fn handler_create_dir(app_state: Arc<AppState>, body: PostParamsCreateDir) -> Result<impl warp::Reply, Infallible> {
-//     let new_id = app_state.git.create_dir(body.parent_node, body.name).await;
+async fn handler_create_file(app_state: Arc<AppState>, body_request: HandlerCreateFileBody) -> Result<impl warp::Reply, Infallible> {
 
-//     match new_id {
-//         Ok(new_id) => {
-//             let message = serde_json::to_string(&new_id).unwrap();
+    let result = app_state.git.create_file(
+        body_request.path,
+        body_request.new_path,
+        body_request.new_content
+    ).await;
 
-//             let response = Response::builder()
-//                 .status(200)
-//                 .body(message);
-//             Ok(response)
-//         },
-//         Err(err) => {
-//             let response = Response::builder()
-//                 .status(500)
-//                 .body(format!("error dir create = {:?}", err));
+    match result {
+        Ok(new_root) => {
+            let response = HandlerCreateFileResponse {
+                new_root,
+            };
+            Ok(create_response(200, response))
+        },
+        Err(err) => {
+            Ok(err.to_response())
+        }
+    }
+}
 
-//             Ok(response)
-//         }
-//     }
-// }
 
 #[tokio::main]
 async fn main() {
@@ -180,15 +189,6 @@ async fn main() {
     println!("start git test: {}", &config.git_repo);
     let git = Git::new(config.git_repo, "master".into());
 
-
-    // let path = vec![String::from("_testowy"), String::from("1")];
-    // let result = git.save_content(
-    //     path,
-    //     "1e865032a634b49f601c6df6d1742341e8e16dde".into(),
-    //      "Jakaś kolejna nowa treść @@@@ ----- XXXX YYYY".into(),
-    // ).await;
-
-    // println!("Wynik próby zapisania {:?}", result);
 
     let app_state = AppState::new(git.clone());
 
@@ -232,12 +232,12 @@ async fn main() {
         .and(warp::body::json())
         .and_then(handler_save_content);
 
-    // let filter_create_dir =
-    //     warp::path!("create_dir")
-    //     .and(warp::post())
-    //     .and(inject_state(app_state.clone()))
-    //     .and(warp::body::json())
-    //     .and_then(handler_create_dir);
+    let filter_create_file =
+        warp::path!("create_file")
+        .and(warp::post())
+        .and(inject_state(app_state.clone()))
+        .and(warp::body::json())
+        .and_then(handler_create_file);
     
     let routes_default =
         warp::any()
@@ -254,7 +254,7 @@ async fn main() {
         .or(filter_fetch_dir)
         .or(filter_fetch_node)
         .or(filter_save_content)
-        // .or(filter_create_dir)
+        .or(filter_create_file)
         .or(routes_default)
     ;
 

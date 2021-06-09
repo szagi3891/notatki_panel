@@ -16,17 +16,19 @@ mod utils;
 mod command_find_main_commit;
 mod command_find_blob;
 mod command_save_change;
+mod command_create_file;
 
 use command_find_main_commit::command_find_main_commit;
 use command_find_blob::command_find_blob;
-pub use command_find_blob::GitBlob;
 use command_save_change::command_save_change;
+use command_create_file::command_create_file;
+
+pub use command_find_blob::GitBlob;
 pub use utils::create_id;
 
 #[derive(Debug)]
 enum Command {
     FindMainCommit {
-        branch: String,
         response: oneshot::Sender<Result<std::string::String, ErrorProcess>>,
     },
     FindBlob {
@@ -34,9 +36,14 @@ enum Command {
         response: oneshot::Sender<Result<Option<GitBlob>, ErrorProcess>>,
     },
     SaveChangeInContent {
-        branch: String,
         path: Vec<String>,      //wskazuje na plik do zapisania
         prev_hash: String,
+        new_content: String,
+        response: oneshot::Sender<Result<String, ErrorProcess>>,
+    },
+    CreateFile {
+        path: Vec<String>,      //wskazuje na katalog w którym utworzymy nową treść
+        new_path: Vec<String>,  //mona od razu utworzyc potrzebne podktalogi
         new_content: String,
         response: oneshot::Sender<Result<String, ErrorProcess>>,
     }
@@ -44,7 +51,6 @@ enum Command {
 
 #[derive(Clone)]
 pub struct Git {
-    branch: String,
     sender: Sender<Command>,
     _thread: Arc<std::thread::JoinHandle<()>>,
 }
@@ -68,8 +74,8 @@ impl Git {
                 println!("command ... {:?}", &command);
 
                 match command {
-                    Command::FindMainCommit { branch, response } => {
-                        let tree = command_find_main_commit(&repo, branch);
+                    Command::FindMainCommit { response } => {
+                        let tree = command_find_main_commit(&repo, &branch);
                         response.send(tree).unwrap();
                     },
 
@@ -79,13 +85,22 @@ impl Git {
                     }
 
                     Command::SaveChangeInContent {
-                        branch,
                         path,
                         prev_hash,
                         new_content,
                         response
                     } => {
-                        let resp = command_save_change(&repo, branch, path, prev_hash, new_content);
+                        let resp = command_save_change(&repo, &branch, path, prev_hash, new_content);
+                        response.send(resp).unwrap();
+                    },
+
+                    Command::CreateFile {
+                        path,
+                        new_path,
+                        new_content,
+                        response,
+                    } => {
+                        let resp = command_create_file(&repo, &branch, path, new_path, new_content);
                         response.send(resp).unwrap();
                     }
                 }
@@ -99,7 +114,6 @@ impl Git {
         });
 
         Git {
-            branch: branch,
             sender,
             _thread: Arc::new(thread),
         }
@@ -109,7 +123,6 @@ impl Git {
         let (sender, receiver) = oneshot::channel();
 
         let command = Command::FindMainCommit {
-            branch: self.branch.clone(),
             response: sender,
         };
 
@@ -134,9 +147,22 @@ impl Git {
         let (sender, receiver) = oneshot::channel();
 
         let save_command = Command::SaveChangeInContent {
-            branch: self.branch.clone(),
             path,
             prev_hash,
+            new_content,
+            response: sender,
+        };
+
+        self.sender.send(save_command).await.unwrap();
+        receiver.await.unwrap()
+    }
+
+    pub async fn create_file(&self, path: Vec<String>, new_path: Vec<String>, new_content: String) -> Result<String, ErrorProcess> {
+        let (sender, receiver) = oneshot::channel();
+
+        let save_command = Command::CreateFile {
+            path,
+            new_path,
             new_content,
             response: sender,
         };
