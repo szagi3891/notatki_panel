@@ -1,14 +1,8 @@
 
 
-edycja pliku ma otwierać wielkie okno, z edytorem
-po dokonaniu zmian, ma isc request zapisujacy zmiany
-po zapisaniu zmian, przywrócony ma zostać tryb podglądu
-
-            //jak jesteśmy w trybie edycji, to ignorować globalny handler ze zdarzeniami klawiatury
-            //zrobić inny "korzeń" z widokiem
-                zrobić tak, ze widok edycji zastepuje caly panel ...
-                wtedy zdarzenia do nawigacji po strukturze sie odlacza
-
+dodać podgląd pozwalający na utworzenie nowego pliku
+podczas tworzenia będzie mozna okreslic nowe katalogi, oraz nową zawartość tego pliku
+    widok powinien być podobny do edycji, ale zawierać dodatkową informację o tworzonej ściezce
 
 
 
