@@ -57,15 +57,7 @@ fn create_list(root: &Dependencies, list: &Computed<Result<Rc<HashMap<String, Tr
                         return Ordering::Greater;
                     }
 
-                    if a.dir == true && b.dir == false {
-                        return Ordering::Less;
-                    }
-
-                    if a.dir == false && b.dir == true {
-                        return Ordering::Greater;
-                    }
-
-                    a.name.cmp(&b.name)
+                    a.name.to_lowercase().cmp(&b.name.to_lowercase())
                 });
 
                 return list_out;
