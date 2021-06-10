@@ -291,20 +291,26 @@ impl StateViewIndex {
         self.set_path(current_path);
     }
 
-    pub fn keydown(&self, code: String) {
+    pub fn keydown(&self, code: String) -> bool {
         if code == "ArrowUp" {
             self.pointer_up();
+            return true;
         } else if code == "ArrowDown" {
             self.pointer_down();
+            return true;
         } else if code == "Escape" {
             self.current_path_item.set_value(None);
+            return true;
         } else if code == "ArrowRight" || code == "Enter" {
             self.pointer_enter();
+            return true;
         } else if code == "ArrowLeft" || code == "Backspace" || code == "Escape" {
             self.backspace();
+            return true;
         }
 
         log::info!("klawisz ... {:?} ", code);
+        false
     }
 
     pub fn current_edit(&self) {

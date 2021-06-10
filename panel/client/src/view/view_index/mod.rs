@@ -63,8 +63,8 @@ pub fn render(state: &Computed<StateViewIndex>) -> VDomElement {
 
     let state_value = state.get_value();
 
-    let on_keydown = move |event: KeyDownEvent| {
-        state_value.keydown(event.code);
+    let on_keydown = move |event: KeyDownEvent| -> bool {
+        state_value.keydown(event.code)
     };
 
     html! {

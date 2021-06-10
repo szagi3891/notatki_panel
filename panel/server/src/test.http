@@ -18,6 +18,6 @@ Content-Type: application/json
 
 {
     "path": ["spiski", "nazisci argentyna"],
-    "new_path": ["Operacja wielkiego skoku - High jump operation"],
+    "new_path": ["Nowa szwabia"],
     "new_content": "a"
 }
