@@ -27,6 +27,12 @@ fn link_css() -> Css {
     ")
 }
 
+fn youtube_css() -> Css {
+    css!("
+        display: block;
+    ")
+}
+
 pub fn render_content(state: &Computed<StateViewIndex>) -> VDomElement {
 
     let state = state.get_value();
@@ -50,7 +56,7 @@ pub fn render_content(state: &Computed<StateViewIndex>) -> VDomElement {
                         out.push(html!{
                             <a href={url.clone()} target="_blank" css={link_css()}>
                                 <span>{url}</span>
-                                <img src={thumb} />
+                                <img css={youtube_css()} src={thumb} />
                             </a>
                         });
                     } else {

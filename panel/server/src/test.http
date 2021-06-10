@@ -17,7 +17,7 @@ POST http://0.0.0.0:4000/create_file
 Content-Type: application/json
 
 {
-    "path": ["_testowy"],
-    "new_path": ["3", "4", "5"],
-    "new_content": "Jakaś kolejna nowa dsadasdasdasdas"
+    "path": ["spiski", "nazisci argentyna"],
+    "new_path": ["Operacja wielkiego skoku - High jump operation"],
+    "new_content": "a"
 }
