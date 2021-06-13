@@ -10,7 +10,6 @@ use vertigo::{
 };
 use crate::request::{ResourceError};
 use crate::state_data::{CurrentContent, TreeItem};
-// use super::{state::StateAction};
 use crate::state_data::StateData;
 
 #[derive(PartialEq, Debug, Clone)]
@@ -139,9 +138,8 @@ pub struct State {
     //aktualnie wyliczony wybrany content wskazywany przez current_path
     pub current_content: Computed<CurrentContent>,
 
-    // action: Action<StateAction>,
-
     callback_redirect_to_content: Callback<Vec<String>>,
+    callback_redirect_to_new_content: Callback<(Vec<String>, Computed<Vec<ListItem>>)>,
 }
 
 impl State {
@@ -149,6 +147,7 @@ impl State {
         root: &Dependencies,
         state_data: StateData,
         callback_redirect_to_content: Callback<Vec<String>>,
+        callback_redirect_to_new_content: Callback<(Vec<String>, Computed<Vec<ListItem>>)>,
     ) -> Computed<State> {
 
         let current_path_dir = root.new_value(Vec::<String>::new());
@@ -175,6 +174,7 @@ impl State {
             list_current_item,
             current_content,
             callback_redirect_to_content,
+            callback_redirect_to_new_content,
         })
     }
 
@@ -327,6 +327,13 @@ impl State {
         }
 
         self.callback_redirect_to_content.run(path);
+    }
+
+    pub fn create_file(&self) {
+        let path = self.current_path_dir.get_value().as_ref().clone();
+        let list = self.list.clone();
+
+        self.callback_redirect_to_new_content.run((path, list));
     }
 }
 

@@ -23,14 +23,25 @@ fn css_footer() -> Css {
 pub fn render_menu(state: &Computed<State>) -> VDomElement {
     let state = state.get_value();
 
-    let on_click = move || {
-        state.current_edit();
+    let on_click = {
+        let state = state.clone();
+        
+        move || {
+            state.current_edit();
+        }
+    };
+
+    let on_create = {
+        let state = state.clone();
+        
+        move || {
+            state.create_file();
+        }
     };
 
     let mut out = Vec::new();
 
-    out.push(button("Utwórz plik", || {}));
-    out.push(button("Utwórz katalog", || {}));
+    out.push(button("Utwórz plik", on_create));
     out.push(button("Zmień nazwę", || {}));
     out.push(button("Edycja pliku", on_click));
 

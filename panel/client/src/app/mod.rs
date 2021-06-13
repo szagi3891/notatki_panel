@@ -10,11 +10,13 @@ use vertigo::{
 };
 
 use crate::state_data::CurrentContent;
-// use super::{StateViewEditContent, StateViewIndex, StateViewNewContent};
 use crate::state_data::StateData;
+
+use self::index::ListItem;
 
 mod index;
 mod edit_content;
+mod new_content;
 
 #[derive(PartialEq)]
 pub enum View {
@@ -22,9 +24,9 @@ pub enum View {
     EditContent {
         state: Computed<edit_content::State>,
     },
-    // NewContent {
-    //     state: Computed<StateViewNewContent>,
-    // }
+    NewContent {
+        state: Computed<new_content::State>,
+    }
     //TODO - zmiana nazwy
 }
 
@@ -106,6 +108,32 @@ impl CallbackBuilder {
             current_view.set_value(View::Index);
         })
     }
+
+    pub fn redirect_to_new_content(&self) -> Callback<(Vec<String>, Computed<Vec<ListItem>>)> {
+        let callback = self.clone();
+
+        let current_view = self.current_view.clone();
+        let root = self.root.clone();
+        let driver = self.driver.clone();
+
+        Callback::new(move |(parent, list): (Vec<String>, Computed<Vec<ListItem>>)| {
+            let callback_redirect_to_index = callback.redirect_to_index();
+            let callback_redirect_to_index_with_root_refresh = callback.redirect_to_index_with_root_refresh();
+        
+            let state = new_content::State::new(
+                &root,
+                parent,
+                &driver,
+                list,
+                callback_redirect_to_index,
+                callback_redirect_to_index_with_root_refresh
+            );
+    
+            let state = root.new_computed_from(state);
+
+            current_view.set_value(View::NewContent { state });
+        })
+    }
 }
 
 #[derive(PartialEq)]
@@ -128,6 +156,7 @@ impl State {
                 root,
                 state_data.clone(),
                 callback.redirect_to_content(),
+                callback.redirect_to_new_content(),
             ),
             current_view: current_view_computed,
         })
@@ -147,12 +176,8 @@ pub fn render(state: &Computed<State>) -> VDomElement {
         View::EditContent { state } => {
             edit_content::render(state)
         },
-        // View::NewContent { state } => {
-        //     html! {
-        //         <div>
-        //             "todo - dodanie kontentu"
-        //         </div>
-        //     }
-        // }
+        View::NewContent { state } => {
+            new_content::render(state)
+        }
     }
 }

@@ -6,5 +6,5 @@ mod render_menu;
 mod render;
 mod state;
 
-pub use state::State;
+pub use state::{State, ListItem};
 pub use render::render;
