@@ -3,7 +3,7 @@ use vertigo::{Css, NodeRefs, VDomElement, computed::{
     }};
 use vertigo_html::{css, html};
 
-use crate::state::StateViewIndex;
+use super::state::State;
 
 fn css_wrapper() -> Css {
     css!("
@@ -189,7 +189,7 @@ fn dom_apply(node_refs: &NodeRefs) {
 }
 
 
-pub fn render_list(state: &Computed<StateViewIndex>) -> VDomElement {
+pub fn render_list(state: &Computed<State>) -> VDomElement {
     
     let mut out: Vec<VDomElement> = Vec::new();
 

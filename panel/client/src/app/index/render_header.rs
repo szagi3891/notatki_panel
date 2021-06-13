@@ -7,7 +7,7 @@ use vertigo::{
     }
 };
 use vertigo_html::{html, css};
-use crate::state::StateViewIndex;
+use super::state::State;
 
 fn css_header() -> Css {
     css!("
@@ -69,7 +69,7 @@ fn css_item(is_active: bool) -> Css {
 //     None => "loading ...".into()
 // };
 
-fn create_link(state: &Rc<StateViewIndex>, title: String, node_id: Vec<String>, create_css: fn(bool) -> Css, is_active: bool) -> VDomElement {
+fn create_link(state: &Rc<State>, title: String, node_id: Vec<String>, create_css: fn(bool) -> Css, is_active: bool) -> VDomElement {
     if is_active {
         let css = create_css(true);
 
@@ -97,7 +97,7 @@ fn create_link(state: &Rc<StateViewIndex>, title: String, node_id: Vec<String>, 
     }
 }
 
-pub fn render_header(state: &Computed<StateViewIndex>) -> VDomElement {
+pub fn render_header(state: &Computed<State>) -> VDomElement {
     let state = state.get_value();
 
     let current_path = state.current_path_dir.get_value();

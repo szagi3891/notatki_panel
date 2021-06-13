@@ -4,17 +4,12 @@ use vertigo::{Css, KeyDownEvent, VDomElement, computed::{
 
 use vertigo_html::{html, css};
 
-use crate::state::StateViewIndex;
+use super::state::State;
 
-mod render_list;
-mod render_header;
-mod render_content;
-mod render_menu;
-
-use render_list::render_list;
-use render_header::render_header;
-use render_content::render_content;
-use render_menu::render_menu;
+use super::render_list::render_list;
+use super::render_header::render_header;
+use super::render_content::render_content;
+use super::render_menu::render_menu;
 
 fn css_wrapper() -> Css {
     css!("
@@ -59,7 +54,7 @@ fn css_content_content() -> Css {
     ")
 }
 
-pub fn render(state: &Computed<StateViewIndex>) -> VDomElement {
+pub fn render(state: &Computed<State>) -> VDomElement {
 
     let state_value = state.get_value();
 
@@ -93,3 +88,4 @@ pub fn render(state: &Computed<StateViewIndex>) -> VDomElement {
         </div>
     }
 }
+

@@ -1,36 +1,39 @@
 use common::{HandlerSaveContentBody, HandlerSaveContentResponse};
-use vertigo::{DomDriver, computed::{Computed, Dependencies, Value}, utils::Action};
+use vertigo::{DomDriver, computed::{Computed, Dependencies, Value}, utils::EqBox};
+use std::rc::Rc;
 
 use crate::request::Request;
 
-use super::state::StateAction;
-
 #[derive(PartialEq)]
-pub struct StateViewEditContent {
+pub struct State {
     request: Request,
 
     pub path: Vec<String>,          //edutowany element
     pub hash: String,               //hash poprzedniej zawartosci
-    pub action: Action<StateAction>,
 
     pub action_save: Value<bool>,
     pub edit_content: Value<String>,
     pub save_enable: Computed<bool>,
+
+    callback_redirect_to_index: EqBox<Box<dyn Fn() -> ()>>,
+    callback_redirect_to_index_with_root_refresh: Rc<EqBox<Box<dyn Fn() -> ()>>>,
 }
 
-impl StateViewEditContent {
+impl State {
     pub fn redirect_to_index(&self) {
-        self.action.trigger(StateAction::RedirectToIndex);
+        let Self { callback_redirect_to_index, .. } = self;
+        callback_redirect_to_index();
     }
 
     pub fn new(
         path: Vec<String>,
         hash: String,
         content: String,
-        action: &Action<StateAction>,
         deep: &Dependencies,
         driver: &DomDriver,
-    ) -> StateViewEditContent {
+        callback_redirect_to_index: EqBox<Box<dyn Fn() -> ()>>,
+        callback_redirect_to_index_with_root_refresh: EqBox<Box<dyn Fn() -> ()>>,
+    ) -> State {
         let edit_content = deep.new_value(content.clone());
 
         let save_enable = {
@@ -47,16 +50,17 @@ impl StateViewEditContent {
 
         let request = Request::new(driver);
 
-        StateViewEditContent {
+        State {
             request,
 
             path,
             hash,
-            action: action.clone(),
 
             action_save,
             edit_content,
             save_enable,
+            callback_redirect_to_index,
+            callback_redirect_to_index_with_root_refresh: Rc::new(callback_redirect_to_index_with_root_refresh),
         }
     }
 
@@ -92,7 +96,7 @@ impl StateViewEditContent {
             .body(body)
             .post::<HandlerSaveContentResponse>();
 
-        let action = self.action.clone();
+        let callback_redirect_to_index_with_root_refresh = self.callback_redirect_to_index_with_root_refresh.clone();
 
         self.request.spawn_local(async move {
 
@@ -100,7 +104,7 @@ impl StateViewEditContent {
 
             log::info!("Zapis udany {:?}", response);
 
-            action.trigger(StateAction::RedirectToIndexWithRootRefresh);
+            callback_redirect_to_index_with_root_refresh();
         });
     }
 }

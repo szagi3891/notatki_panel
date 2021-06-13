@@ -1,13 +1,19 @@
 use std::{cmp::Ordering, collections::HashMap};
 use std::rc::Rc;
-use vertigo::{computed::{
+use vertigo::{
+    computed::{
         Computed,
         Dependencies,
         Value
-    }, utils::Action};
+    },
+    utils::{
+        Action,
+        EqBox,
+    },
+};
 use crate::request::{ResourceError};
 use crate::state_data::{CurrentContent, TreeItem};
-use super::{state::StateAction};
+// use super::{state::StateAction};
 use crate::state_data::StateData;
 
 #[derive(PartialEq, Debug, Clone)]
@@ -116,7 +122,7 @@ fn create_current_content(
 
 
 #[derive(PartialEq)]
-pub struct StateViewIndex {
+pub struct State {
     root: Dependencies,
 
     //aktualna ścieka powinna przechowywać tylko katalogi
@@ -136,15 +142,17 @@ pub struct StateViewIndex {
     //aktualnie wyliczony wybrany content wskazywany przez current_path
     pub current_content: Computed<CurrentContent>,
 
-    action: Action<StateAction>,
+    // action: Action<StateAction>,
+
+    callback_redirect_to_content: EqBox<Box<dyn Fn(Vec<String>) -> ()>>,
 }
 
-impl StateViewIndex {
+impl State {
     pub fn new(
         root: &Dependencies,
         state_data: StateData,
-        action: Action<StateAction>,
-    ) -> Computed<StateViewIndex> {
+        callback_redirect_to_content: EqBox<Box<dyn Fn(Vec<String>) -> ()>>,
+    ) -> Computed<State> {
 
         let current_path_dir = root.new_value(Vec::<String>::new());
         let current_path_item = root.new_value(None);
@@ -161,7 +169,7 @@ impl StateViewIndex {
             &list_current_item,
         );
 
-        root.new_computed_from(StateViewIndex {
+        root.new_computed_from(State {
             root: root.clone(),
             current_path_dir,
             current_path_item,
@@ -169,7 +177,7 @@ impl StateViewIndex {
             list,
             list_current_item,
             current_content,
-            action,
+            callback_redirect_to_content,
         })
     }
 
@@ -321,7 +329,8 @@ impl StateViewIndex {
             path.push(current_item.clone());
         }
 
-        self.action.trigger(StateAction::RedirectToContent { path });
+        let Self { callback_redirect_to_content, .. } = self;
+        callback_redirect_to_content(path);
     }
 }
 

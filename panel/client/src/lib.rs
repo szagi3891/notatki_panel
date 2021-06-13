@@ -12,8 +12,7 @@ mod request;
 mod content;
 mod state_data;
 mod components;
-mod state;
-mod view;
+mod app;
 
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
@@ -27,9 +26,9 @@ pub async fn start_app() {
 
     let root: Dependencies = Dependencies::default();
     let driver = DomDriverBrowser::new(&root);
-    let app_state = state::State::new(&root, &driver);
+    let app_state = app::State::new(&root, &driver);
 
-    let app = App::new(driver.clone(), VDomComponent::new(app_state, view::render));
+    let app = App::new(driver.clone(), VDomComponent::new(app_state, app::render));
 
     app.start_app().await;
 }
