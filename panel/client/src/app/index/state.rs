@@ -6,10 +6,7 @@ use vertigo::{
         Dependencies,
         Value
     },
-    utils::{
-        Action,
-        EqBox,
-    },
+    Callback,
 };
 use crate::request::{ResourceError};
 use crate::state_data::{CurrentContent, TreeItem};
@@ -144,14 +141,14 @@ pub struct State {
 
     // action: Action<StateAction>,
 
-    callback_redirect_to_content: EqBox<Box<dyn Fn(Vec<String>) -> ()>>,
+    callback_redirect_to_content: Callback<Vec<String>>,
 }
 
 impl State {
     pub fn new(
         root: &Dependencies,
         state_data: StateData,
-        callback_redirect_to_content: EqBox<Box<dyn Fn(Vec<String>) -> ()>>,
+        callback_redirect_to_content: Callback<Vec<String>>,
     ) -> Computed<State> {
 
         let current_path_dir = root.new_value(Vec::<String>::new());
@@ -329,8 +326,7 @@ impl State {
             path.push(current_item.clone());
         }
 
-        let Self { callback_redirect_to_content, .. } = self;
-        callback_redirect_to_content(path);
+        self.callback_redirect_to_content.run(path);
     }
 }
 

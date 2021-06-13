@@ -5,7 +5,8 @@ use vertigo::{
         Computed,
         Dependencies,
     },
-    utils::{EqBox}
+    utils::{EqBox},
+    Callback,
 };
 
 use crate::state_data::CurrentContent;
@@ -45,12 +46,12 @@ impl State {
         let state_view_index = {
             let current_view = current_view.clone();
 
-            let callback_redirect_to_content: EqBox<Box<dyn Fn(Vec<String>) -> ()>> = {
+            let callback_redirect_to_content = {
                 let root = root.clone();
                 let driver = driver.clone();
                 let state_data = state_data.clone();
                 
-                EqBox::new(Box::new(move |path: Vec<String>| {
+                Callback::new(move |path: Vec<String>| {
 
                     let content = state_data.get_content_from_path(&path);
 
@@ -59,21 +60,21 @@ impl State {
 
                             let root = root.clone();
 
-                            let callback_redirect_to_index: EqBox<Box<dyn Fn() -> ()>> = {
+                            let callback_redirect_to_index = {
                                 let current_view = current_view.clone();
-                                EqBox::new(Box::new(move || {
+                                Callback::new(move |_| {
                                     current_view.set_value(View::Index);
-                                }))
+                                })
                             };
 
-                            let callback_redirect_to_index_with_root_refresh: EqBox<Box<dyn Fn() -> ()>> = {
+                            let callback_redirect_to_index_with_root_refresh = {
                                 let current_view = current_view.clone();
                                 let state_data = state_data.clone();
 
-                                EqBox::new(Box::new(move || {
+                                Callback::new(move |_| {
                                     state_data.state_root.refresh();
                                     current_view.set_value(View::Index);
-                                }))
+                                })
                             };
 
                             let state = edit_content::State::new(
@@ -97,7 +98,7 @@ impl State {
                             log::error!("Oczekiwano pliku, nic nie znaleziono");
                         }
                     }
-                }))
+                })
             };
 
             index::State::new(

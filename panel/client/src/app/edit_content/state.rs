@@ -1,6 +1,9 @@
 use common::{HandlerSaveContentBody, HandlerSaveContentResponse};
-use vertigo::{DomDriver, computed::{Computed, Dependencies, Value}, utils::EqBox};
-use std::rc::Rc;
+use vertigo::{
+    DomDriver, 
+    computed::{Computed, Dependencies, Value},
+    Callback
+};
 
 use crate::request::Request;
 
@@ -15,14 +18,13 @@ pub struct State {
     pub edit_content: Value<String>,
     pub save_enable: Computed<bool>,
 
-    callback_redirect_to_index: EqBox<Box<dyn Fn() -> ()>>,
-    callback_redirect_to_index_with_root_refresh: Rc<EqBox<Box<dyn Fn() -> ()>>>,
+    callback_redirect_to_index: Callback<()>,
+    callback_redirect_to_index_with_root_refresh: Callback<()>,
 }
 
 impl State {
     pub fn redirect_to_index(&self) {
-        let Self { callback_redirect_to_index, .. } = self;
-        callback_redirect_to_index();
+        self.callback_redirect_to_index.run(());
     }
 
     pub fn new(
@@ -31,8 +33,8 @@ impl State {
         content: String,
         deep: &Dependencies,
         driver: &DomDriver,
-        callback_redirect_to_index: EqBox<Box<dyn Fn() -> ()>>,
-        callback_redirect_to_index_with_root_refresh: EqBox<Box<dyn Fn() -> ()>>,
+        callback_redirect_to_index: Callback<()>,
+        callback_redirect_to_index_with_root_refresh: Callback<()>,
     ) -> State {
         let edit_content = deep.new_value(content.clone());
 
@@ -60,7 +62,7 @@ impl State {
             edit_content,
             save_enable,
             callback_redirect_to_index,
-            callback_redirect_to_index_with_root_refresh: Rc::new(callback_redirect_to_index_with_root_refresh),
+            callback_redirect_to_index_with_root_refresh,
         }
     }
 
@@ -104,7 +106,7 @@ impl State {
 
             log::info!("Zapis udany {:?}", response);
 
-            callback_redirect_to_index_with_root_refresh();
+            callback_redirect_to_index_with_root_refresh.run(());
         });
     }
 }
