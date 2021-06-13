@@ -5,7 +5,6 @@ use vertigo::{
         Computed,
         Dependencies,
     },
-    utils::{EqBox},
     Callback,
 };
 
@@ -107,62 +106,6 @@ impl State {
                 callback_redirect_to_content
             )
         };
-
-        // {
-        //     let root = root.clone();
-        //     let action = action.clone();
-        //     let driver = driver.clone();
-        //     let state_data = state_data.clone();
-
-        //     subscribe.subscribe(move |message| {
-        //         match message {
-        //             StateAction::RedirectToIndex => {
-        //                 current_view.set_value(View::Index);
-        //             },
-        //             StateAction::RedirectToIndexWithRootRefresh => {
-        //                 state_data.state_root.refresh();
-        //                 current_view.set_value(View::Index);
-        //             },
-        //             StateAction::RedirectToContent { path } => {
-        //                 let content = state_data.get_content_from_path(&path);
-
-        //                 match content {
-        //                     CurrentContent::File { file_hash, content, ..} => {
-
-        //                         let state = StateViewEditContent::new(
-        //                             path,
-        //                             file_hash,
-        //                             content.as_ref().clone(),
-        //                             &action,
-        //                             &root,
-        //                             &driver
-        //                         );
-
-        //                         current_view.set_value(View::EditContent {
-        //                             state: root.new_computed_from(state)
-        //                         });
-        //                     },
-        //                     CurrentContent::Dir { .. } => {
-        //                         log::error!("Oczekiwano pliku, znaleziono katalog");
-        //                     },
-        //                     CurrentContent::None => {
-        //                         log::error!("Oczekiwano pliku, nic nie znaleziono");
-        //                     }
-        //                 }
-        //             },
-        //             StateAction::RedirectToNewContent { parent } => {
-        //                 let new_content = StateViewNewContent::new(
-        //                     &root,
-        //                     parent,
-        //                     &action,
-        //                 );
-        //                 current_view.set_value(View::NewContent{
-        //                     state: root.new_computed_from(new_content)
-        //                 });
-        //             }
-        //         }
-        //     });
-        // }
 
         root.new_computed_from(State {
             state_view_index,
