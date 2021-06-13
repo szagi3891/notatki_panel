@@ -6,8 +6,9 @@ use vertigo::{computed::{
         Value
     }, utils::Action};
 use crate::request::{ResourceError};
-use super::{StateData, state::StateAction, state_data::{CurrentContent, TreeItem}};
-
+use crate::state_data::{CurrentContent, TreeItem};
+use super::{state::StateAction};
+use crate::state_data::StateData;
 
 #[derive(PartialEq, Debug, Clone)]
 pub struct ListItem {

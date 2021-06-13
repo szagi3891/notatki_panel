@@ -10,6 +10,8 @@ use vertigo_browserdriver::DomDriverBrowser;
 
 mod request;
 mod content;
+mod state_data;
+mod components;
 mod state;
 mod view;
 

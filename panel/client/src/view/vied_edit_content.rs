@@ -2,7 +2,7 @@ use vertigo::{Css, VDomElement, computed::Computed};
 use vertigo_html::{css, html};
 
 use crate::state::StateViewEditContent;
-use crate::view::components::button;
+use crate::components::button;
 
 fn css_wrapper() -> Css {
     css!("

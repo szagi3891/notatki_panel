@@ -3,6 +3,7 @@ use vertigo::{
         Computed,
     }
 };
+use vertigo_html::html;
 
 use super::view_index::render as view_index;
 use super::vied_edit_content::render as vied_edit_content;
@@ -21,6 +22,13 @@ pub fn render(state: &Computed<State>) -> VDomElement {
         },
         View::EditContent { state }=> {
             vied_edit_content(state)
+        },
+        View::NewContent { state } => {
+            html! {
+                <div>
+                    "todo - dodanie kontentu"
+                </div>
+            }
         }
     }
 }

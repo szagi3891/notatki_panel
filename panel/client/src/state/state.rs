@@ -7,18 +7,20 @@ use vertigo::{
     utils::Action
 };
 
-use super::{StateData, StateViewEditContent, StateViewIndex, state_data::CurrentContent};
+use crate::state_data::CurrentContent;
+use super::{StateViewEditContent, StateViewIndex, StateViewNewContent};
+use crate::state_data::StateData;
 
 #[derive(PartialEq)]
 pub enum View {
     Index,
     EditContent {
         state: Computed<StateViewEditContent>,
+    },
+    NewContent {
+        state: Computed<StateViewNewContent>,
     }
-
-    //zmiana nazwy
-    //tworzenie pliku
-    //tworzenie katalogu
+    //TODO - zmiana nazwy
 }
 
 
@@ -30,6 +32,9 @@ pub enum StateAction {
     RedirectToIndexWithRootRefresh,
     RedirectToContent {
         path: Vec<String>,
+    },
+    RedirectToNewContent {
+        parent: Vec<String>,
     }
 }
 
@@ -81,7 +86,7 @@ impl State {
                                     path,
                                     file_hash,
                                     content.as_ref().clone(),
-                                    action.clone(),
+                                    &action,
                                     &root,
                                     &driver
                                 );
@@ -97,6 +102,16 @@ impl State {
                                 log::error!("Oczekiwano pliku, nic nie znaleziono");
                             }
                         }
+                    },
+                    StateAction::RedirectToNewContent { parent } => {
+                        let new_content = StateViewNewContent::new(
+                            &root,
+                            parent,
+                            &action,
+                        );
+                        current_view.set_value(View::NewContent{
+                            state: root.new_computed_from(new_content)
+                        });
                     }
                 }
             });

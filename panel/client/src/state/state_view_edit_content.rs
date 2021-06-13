@@ -27,7 +27,7 @@ impl StateViewEditContent {
         path: Vec<String>,
         hash: String,
         content: String,
-        action: Action<StateAction>,
+        action: &Action<StateAction>,
         deep: &Dependencies,
         driver: &DomDriver,
     ) -> StateViewEditContent {
@@ -52,7 +52,7 @@ impl StateViewEditContent {
 
             path,
             hash,
-            action,
+            action: action.clone(),
 
             action_save,
             edit_content,
