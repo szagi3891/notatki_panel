@@ -110,8 +110,8 @@ impl CallbackBuilder {
 
 #[derive(PartialEq)]
 pub struct State {
-    pub state_view_index: Computed<index::State>,
-    pub current_view: Computed<View>,
+    state_view_index: Computed<index::State>,
+    current_view: Computed<View>,
 }
 
 impl State {
