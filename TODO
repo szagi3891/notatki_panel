@@ -23,6 +23,34 @@ Po odpaleniu moze sie pojawiac popup z odpowiedzia.
 
 
 
+Vertigo
+zrobić moliwość czytania tylko i wyłącznie gdy get_value jest w bloku autorun
+
+czyli gdy jesteśmy w bolku wykonawczym danego computed
+albo w bloku wykonawczym subskrybcji.
+
+uzycie funkcji get_value jest równiez mozliwe w akcji
+zrobic jakis tryb akcji
+
+
+
+
+zrobić opcjonalny tryb widokowy, coś jak NortonCommander
+lewy panel i prawy panel pokazujący listę plików i katalogów
+w tym trybie powinno dać się przenosić pliki i katalogi
+
+
+
+Jak się utworzy nowy plik, to po zapisaniu, widok podglądu ma pokazywać ten nowo utworzony plik
+
+
+Dodać przycisk pozwalający wypchnąć zmiany lokalne na zdalny serwer
+
+
+
+jak nawigujemy kursorami, to w prawo na pliku powinno otwierać edykcję tego pliku
+
+
 
 zrobić wyszukiwarkę w nazwach.
     ma się wyskakujące okno, w nim będzie znajdować się pole do wpisania szukanej frazy.
