@@ -1,14 +1,4 @@
-use common::{
-    HandlerSaveContentBody,
-    HandlerSaveContentResponse,
-    HandlerFetchDirBody,
-    HandlerFetchDirResponse,
-    HandlerFetchNodeBody,
-    HandlerFetchNodeResponse,
-    HandlerFetchRootResponse,
-    HandlerCreateFileBody,
-    HandlerCreateFileResponse
-};
+use common::{HandlerCreateFileBody, HandlerCreateFileResponse, HandlerFetchDirBody, HandlerFetchDirResponse, HandlerFetchNodeBody, HandlerFetchNodeResponse, HandlerFetchRootResponse, HandlerRenameItemBody, HandlerRenameItemResponse, HandlerSaveContentBody, HandlerSaveContentResponse};
 use utils::{create_response, create_response_message};
 use warp::{Filter, Reply, http::Response};
 use std::convert::Infallible;
@@ -176,6 +166,26 @@ async fn handler_create_file(app_state: Arc<AppState>, body_request: HandlerCrea
     }
 }
 
+async fn handler_rename_item(app_state: Arc<AppState>, body_request: HandlerRenameItemBody) -> Result<impl warp::Reply, Infallible> {
+    let result = app_state.git.rename_item(
+        body_request.path,
+        body_request.prev_name,
+        body_request.prev_hash,
+        body_request.new_name
+    ).await;
+
+    match result {
+        Ok(new_root) => {
+            let response = HandlerRenameItemResponse {
+                new_root,
+            };
+            Ok(create_response(200, response))
+        },
+        Err(err) => {
+            Ok(err.to_response())
+        }
+    }
+}
 
 #[tokio::main]
 async fn main() {
@@ -239,6 +249,13 @@ async fn main() {
         .and(warp::body::json())
         .and_then(handler_create_file);
     
+    let filter_rename_item =
+        warp::path!("rename_item")
+        .and(warp::post())
+        .and(inject_state(app_state.clone()))
+        .and(warp::body::json())
+        .and_then(handler_rename_item);
+        
     let routes_default =
         warp::any()
         .map(|| {
@@ -255,6 +272,7 @@ async fn main() {
         .or(filter_fetch_node)
         .or(filter_save_content)
         .or(filter_create_file)
+        .or(filter_rename_item)
         .or(routes_default)
     ;
 

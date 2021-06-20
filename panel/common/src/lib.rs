@@ -74,3 +74,19 @@ pub struct HandlerCreateFileBody {
 pub struct HandlerCreateFileResponse {
     pub new_root: String,
 }
+
+
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct HandlerRenameItemBody {
+    pub path: Vec<String>,
+    pub prev_name: String,
+    pub prev_hash: String,
+    pub new_name: String,
+}
+
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct HandlerRenameItemResponse {
+    pub new_root: String,
+}

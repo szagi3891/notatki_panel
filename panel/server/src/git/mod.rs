@@ -17,11 +17,13 @@ mod command_find_main_commit;
 mod command_find_blob;
 mod command_save_change;
 mod command_create_file;
+mod command_rename_item;
 
 use command_find_main_commit::command_find_main_commit;
 use command_find_blob::command_find_blob;
 use command_save_change::command_save_change;
 use command_create_file::command_create_file;
+use command_rename_item::command_rename_item;
 
 pub use command_find_blob::GitBlob;
 pub use utils::create_id;
@@ -46,6 +48,13 @@ enum Command {
         new_path: Vec<String>,  //mona od razu utworzyc potrzebne podktalogi
         new_content: String,
         response: oneshot::Sender<Result<String, ErrorProcess>>,
+    },
+    RenameItem {
+        path: Vec<String>,      //wskazuje na katalog w którym utworzymy nową treść
+        prev_name: String,
+        prev_hash: String,
+        new_name: String,
+        response: oneshot::Sender<Result<String, ErrorProcess>>,
     }
 }
 
@@ -54,7 +63,6 @@ pub struct Git {
     sender: Sender<Command>,
     _thread: Arc<std::thread::JoinHandle<()>>,
 }
-
 
 impl Git {
     pub fn new(path: String, branch: String) -> Git {
@@ -101,6 +109,17 @@ impl Git {
                         response,
                     } => {
                         let resp = command_create_file(&repo, &branch, path, new_path, new_content);
+                        response.send(resp).unwrap();
+                    },
+
+                    Command::RenameItem {
+                        path,
+                        prev_name,
+                        prev_hash,
+                        new_name,
+                        response,
+                    } => {
+                        let resp = command_rename_item(&repo, &branch, path, prev_name, prev_hash, new_name);
                         response.send(resp).unwrap();
                     }
                 }
@@ -168,6 +187,21 @@ impl Git {
         };
 
         self.sender.send(save_command).await.unwrap();
+        receiver.await.unwrap()
+    }
+
+    pub async fn rename_item(&self, path: Vec<String>, prev_name: String, prev_hash: String, new_name: String) -> Result<String, ErrorProcess> {
+        let (sender, receiver) = oneshot::channel();
+
+        let command = Command::RenameItem {
+            path,
+            prev_name,
+            prev_hash,
+            new_name,
+            response: sender,
+        };
+
+        self.sender.send(command).await.unwrap();
         receiver.await.unwrap()
     }
 }

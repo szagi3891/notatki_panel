@@ -21,3 +21,17 @@ Content-Type: application/json
     "new_path": ["Nowa szwabia"],
     "new_content": "a"
 }
+
+
+###
+
+POST http://0.0.0.0:4000/rename_item
+Content-Type: application/json
+
+{
+    "path": ["_testowy"],
+    "prev_name": "aaaa",
+    "prev_hash": "7284ab4d2836271d66b988ae7d037bd6ef0d5d15",
+    "new_name": "aaaa=111"
+}
+
