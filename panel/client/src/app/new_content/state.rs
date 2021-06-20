@@ -21,6 +21,7 @@ pub struct State {
     pub save_enable: Computed<bool>,
 
     callback_redirect_to_index: Callback<()>,
+    redirect_to_index_with_path: Callback<(Vec<String>, Option<String>)>,
     callback_redirect_to_index_with_root_refresh: Callback<()>,
 }
 
@@ -35,6 +36,7 @@ impl State {
         driver: &DomDriver,
         list: Computed<Vec<ListItem>>,
         callback_redirect_to_index: Callback<()>,
+        redirect_to_index_with_path: Callback<(Vec<String>, Option<String>)>,
         callback_redirect_to_index_with_root_refresh: Callback<()>,
     ) -> State {
         let action_save = deep.new_value(false);
@@ -98,6 +100,7 @@ impl State {
             save_enable,
 
             callback_redirect_to_index,
+            redirect_to_index_with_path,
             callback_redirect_to_index_with_root_refresh,
         }
     }
@@ -136,6 +139,8 @@ impl State {
 
         let name = (*self.name.get_value()).clone();
 
+        let path_new_content = (self.parent.clone(), Some(name.clone()));
+
         let body: HandlerCreateFileBody = HandlerCreateFileBody {
             path: self.parent.clone(),
             new_path: vec!(name),
@@ -147,7 +152,7 @@ impl State {
             .body(body)
             .post::<HandlerCreateFileResponse>();
 
-        let callback_redirect_to_index_with_root_refresh = self.callback_redirect_to_index_with_root_refresh.clone();
+        let redirect_to_index_with_path = self.redirect_to_index_with_path.clone();
 
         self.request.spawn_local(async move {
 
@@ -155,7 +160,7 @@ impl State {
 
             log::info!("Zapis udany {:?}", response);
 
-            callback_redirect_to_index_with_root_refresh.run(());
+            redirect_to_index_with_path.run(path_new_content);
         });
     }
 }

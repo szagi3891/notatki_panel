@@ -146,12 +146,11 @@ impl State {
     pub fn new(
         root: &Dependencies,
         state_data: StateData,
+        current_path_dir: Value<Vec<String>>,
+        current_path_item: Value<Option<String>>,
         callback_redirect_to_content: Callback<Vec<String>>,
         callback_redirect_to_new_content: Callback<(Vec<String>, Computed<Vec<ListItem>>)>,
     ) -> Computed<State> {
-
-        let current_path_dir = root.new_value(Vec::<String>::new());
-        let current_path_item = root.new_value(None);
 
         let list_hash_map = create_list_hash_map(root, &state_data, &current_path_dir);
         let list = create_list(root, &list_hash_map);

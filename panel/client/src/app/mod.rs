@@ -35,6 +35,8 @@ struct CallbackBuilder {
     root: Dependencies,
     driver: DomDriver,
     state_data: StateData,
+    current_path_dir: Value<Vec<String>>,
+    current_path_item: Value<Option<String>>,
     current_view: Value<View>,
 }
 
@@ -43,12 +45,16 @@ impl CallbackBuilder {
         root: &Dependencies,
         driver: &DomDriver,
         state_data: &StateData,
+        current_path_dir: &Value<Vec<String>>,
+        current_path_item: &Value<Option<String>>,
         current_view: &Value<View>
     ) -> CallbackBuilder {
         CallbackBuilder {
             root: root.clone(),
             driver: driver.clone(),
             state_data: state_data.clone(),
+            current_path_dir: current_path_dir.clone(),
+            current_path_item: current_path_item.clone(),
             current_view: current_view.clone(),
         }
     }
@@ -99,6 +105,20 @@ impl CallbackBuilder {
         })
     }
 
+    pub fn redirect_to_index_with_path(&self) -> Callback<(Vec<String>, Option<String>)> {
+        let current_view = self.current_view.clone();
+        let current_path_dir = self.current_path_dir.clone();
+        let current_path_item = self.current_path_item.clone();
+        let state_data = self.state_data.clone();
+
+        Callback::new(move |(new_path, new_item)| {
+            current_view.set_value(View::Index);
+            current_path_dir.set_value(new_path);
+            current_path_item.set_value(new_item);
+            state_data.state_root.refresh();
+        })
+    }
+
     pub fn redirect_to_index_with_root_refresh(&self) -> Callback<()> {
         let current_view = self.current_view.clone();
         let state_data = self.state_data.clone();
@@ -118,6 +138,7 @@ impl CallbackBuilder {
 
         Callback::new(move |(parent, list): (Vec<String>, Computed<Vec<ListItem>>)| {
             let callback_redirect_to_index = callback.redirect_to_index();
+            let redirect_to_index_with_path = callback.redirect_to_index_with_path();
             let callback_redirect_to_index_with_root_refresh = callback.redirect_to_index_with_root_refresh();
         
             let state = new_content::State::new(
@@ -126,6 +147,7 @@ impl CallbackBuilder {
                 &driver,
                 list,
                 callback_redirect_to_index,
+                redirect_to_index_with_path,
                 callback_redirect_to_index_with_root_refresh
             );
     
@@ -149,12 +171,17 @@ impl State {
         let current_view = root.new_value(View::Index);
         let current_view_computed = current_view.to_computed();
 
-        let callback = CallbackBuilder::new(root, driver, &state_data, &current_view);
+        let current_path_dir: Value<Vec<String>> = root.new_value(Vec::new());
+        let current_path_item: Value<Option<String>> = root.new_value(None);
+
+        let callback = CallbackBuilder::new(root, driver, &state_data, &current_path_dir, &current_path_item, &current_view);
 
         root.new_computed_from(State {
             state_view_index: index::State::new(
                 root,
                 state_data.clone(),
+                current_path_dir,
+                current_path_item,
                 callback.redirect_to_content(),
                 callback.redirect_to_new_content(),
             ),
