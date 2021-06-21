@@ -30,8 +30,8 @@ pub enum View {
     //TODO - zmiana nazwy
 }
 
-#[derive(Clone)]
-struct CallbackBuilder {
+#[derive(Clone, PartialEq)]
+pub struct CallbackBuilder {
     root: Dependencies,
     driver: DomDriver,
     state_data: StateData,
@@ -59,64 +59,45 @@ impl CallbackBuilder {
         }
     }
 
-    pub fn redirect_to_content(&self) -> Callback<Vec<std::string::String>> {
-        let callback = self.clone();
-        
-        Callback::new(move |path: Vec<String>| {
+    pub fn redirect_to_content(&self, path: Vec<String>) {
+        let content = self.state_data.get_content_from_path(&path);
 
-            let content = callback.state_data.get_content_from_path(&path);
+        match content {
+            CurrentContent::File { file_hash, content, ..} => {
 
-            match content {
-                CurrentContent::File { file_hash, content, ..} => {
+                let root = self.root.clone();
 
-                    let root = callback.root.clone();
+                let state = edit_content::State::new(
+                    path,
+                    file_hash,
+                    content.as_ref().clone(),
+                    &root,
+                    &self.driver,
+                    self.clone(),
+                );
 
-                    let callback_redirect_to_index = callback.redirect_to_index();
-                    let callback_redirect_to_index_with_root_refresh = callback.redirect_to_index_with_root_refresh();
-
-                    let state = edit_content::State::new(
-                        path,
-                        file_hash,
-                        content.as_ref().clone(),
-                        &root,
-                        &callback.driver,
-                        callback_redirect_to_index,
-                        callback_redirect_to_index_with_root_refresh
-                    );
-
-                    callback.current_view.set_value(View::EditContent {
-                        state: root.new_computed_from(state)
-                    });
-                },
-                CurrentContent::Dir { .. } => {
-                    log::error!("Oczekiwano pliku, znaleziono katalog");
-                },
-                CurrentContent::None => {
-                    log::error!("Oczekiwano pliku, nic nie znaleziono");
-                }
+                self.current_view.set_value(View::EditContent {
+                    state: root.new_computed_from(state)
+                });
+            },
+            CurrentContent::Dir { .. } => {
+                log::error!("Oczekiwano pliku, znaleziono katalog");
+            },
+            CurrentContent::None => {
+                log::error!("Oczekiwano pliku, nic nie znaleziono");
             }
-        })
+        }
     }
 
-    pub fn redirect_to_index(&self) -> Callback<()> {
-        let current_view = self.current_view.clone();
-        Callback::new(move |_| {
-            current_view.set_value(View::Index);
-        })
+    pub fn redirect_to_index(&self) {
+        self.current_view.set_value(View::Index);
     }
 
-    pub fn redirect_to_index_with_path(&self) -> Callback<(Vec<String>, Option<String>)> {
-        let current_view = self.current_view.clone();
-        let current_path_dir = self.current_path_dir.clone();
-        let current_path_item = self.current_path_item.clone();
-        let state_data = self.state_data.clone();
-
-        Callback::new(move |(new_path, new_item)| {
-            current_view.set_value(View::Index);
-            current_path_dir.set_value(new_path);
-            current_path_item.set_value(new_item);
-            state_data.state_root.refresh();
-        })
+    pub fn redirect_to_index_with_path(&self, new_path: Vec<String>, new_item: Option<String>) {
+        self.current_view.set_value(View::Index);
+        self.current_path_dir.set_value(new_path);
+        self.current_path_item.set_value(new_item);
+        self.state_data.state_root.refresh();
     }
 
     pub fn redirect_to_index_with_root_refresh(&self) -> Callback<()> {
@@ -129,32 +110,18 @@ impl CallbackBuilder {
         })
     }
 
-    pub fn redirect_to_new_content(&self) -> Callback<(Vec<String>, Computed<Vec<ListItem>>)> {
-        let callback = self.clone();
+    pub fn redirect_to_new_content(&self, parent: Vec<String>, list: Computed<Vec<ListItem>>) {
+        let state = new_content::State::new(
+            &self.root,
+            parent,
+            &self.driver,
+            list,
+            self.clone(),
+        );
 
-        let current_view = self.current_view.clone();
-        let root = self.root.clone();
-        let driver = self.driver.clone();
+        let state = self.root.new_computed_from(state);
 
-        Callback::new(move |(parent, list): (Vec<String>, Computed<Vec<ListItem>>)| {
-            let callback_redirect_to_index = callback.redirect_to_index();
-            let redirect_to_index_with_path = callback.redirect_to_index_with_path();
-            let callback_redirect_to_index_with_root_refresh = callback.redirect_to_index_with_root_refresh();
-        
-            let state = new_content::State::new(
-                &root,
-                parent,
-                &driver,
-                list,
-                callback_redirect_to_index,
-                redirect_to_index_with_path,
-                callback_redirect_to_index_with_root_refresh
-            );
-    
-            let state = root.new_computed_from(state);
-
-            current_view.set_value(View::NewContent { state });
-        })
+        self.current_view.set_value(View::NewContent { state });
     }
 }
 
@@ -182,8 +149,7 @@ impl State {
                 state_data.clone(),
                 current_path_dir,
                 current_path_item,
-                callback.redirect_to_content(),
-                callback.redirect_to_new_content(),
+                callback.clone(),
             ),
             current_view: current_view_computed,
         })

@@ -6,8 +6,8 @@ use vertigo::{
         Dependencies,
         Value
     },
-    Callback,
 };
+use crate::app::CallbackBuilder;
 use crate::request::{ResourceError};
 use crate::state_data::{CurrentContent, TreeItem};
 use crate::state_data::StateData;
@@ -138,8 +138,7 @@ pub struct State {
     //aktualnie wyliczony wybrany content wskazywany przez current_path
     pub current_content: Computed<CurrentContent>,
 
-    callback_redirect_to_content: Callback<Vec<String>>,
-    callback_redirect_to_new_content: Callback<(Vec<String>, Computed<Vec<ListItem>>)>,
+    callback: CallbackBuilder,
 }
 
 impl State {
@@ -148,8 +147,7 @@ impl State {
         state_data: StateData,
         current_path_dir: Value<Vec<String>>,
         current_path_item: Value<Option<String>>,
-        callback_redirect_to_content: Callback<Vec<String>>,
-        callback_redirect_to_new_content: Callback<(Vec<String>, Computed<Vec<ListItem>>)>,
+        callback: CallbackBuilder,
     ) -> Computed<State> {
 
         let list_hash_map = create_list_hash_map(root, &state_data, &current_path_dir);
@@ -172,8 +170,7 @@ impl State {
             list,
             list_current_item,
             current_content,
-            callback_redirect_to_content,
-            callback_redirect_to_new_content,
+            callback,
         })
     }
 
@@ -325,14 +322,14 @@ impl State {
             path.push(current_item.clone());
         }
 
-        self.callback_redirect_to_content.run(path);
+        self.callback.redirect_to_content(path);
     }
 
     pub fn create_file(&self) {
         let path = self.current_path_dir.get_value().as_ref().clone();
         let list = self.list.clone();
 
-        self.callback_redirect_to_new_content.run((path, list));
+        self.callback.redirect_to_new_content(path, list);
     }
 }
 

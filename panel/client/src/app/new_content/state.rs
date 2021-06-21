@@ -2,10 +2,9 @@ use common::{HandlerCreateFileBody, HandlerCreateFileResponse};
 use vertigo::{
     DomDriver, 
     computed::{Computed, Dependencies, Value},
-    Callback
 };
 
-use crate::{app::index::ListItem, request::Request};
+use crate::{app::{CallbackBuilder, index::ListItem}, request::Request};
 
 #[derive(PartialEq)]
 pub struct State {
@@ -20,14 +19,12 @@ pub struct State {
     pub name_exists: Computed<bool>,
     pub save_enable: Computed<bool>,
 
-    callback_redirect_to_index: Callback<()>,
-    redirect_to_index_with_path: Callback<(Vec<String>, Option<String>)>,
-    callback_redirect_to_index_with_root_refresh: Callback<()>,
+    callback: CallbackBuilder,
 }
 
 impl State {
     pub fn redirect_to_index(&self) {
-        self.callback_redirect_to_index.run(());
+        self.callback.redirect_to_index();
     }
 
     pub fn new(
@@ -35,9 +32,7 @@ impl State {
         parent: Vec<String>,
         driver: &DomDriver,
         list: Computed<Vec<ListItem>>,
-        callback_redirect_to_index: Callback<()>,
-        redirect_to_index_with_path: Callback<(Vec<String>, Option<String>)>,
-        callback_redirect_to_index_with_root_refresh: Callback<()>,
+        callback: CallbackBuilder,
     ) -> State {
         let action_save = deep.new_value(false);
         let name = deep.new_value(String::from(""));
@@ -99,9 +94,7 @@ impl State {
             name_exists,
             save_enable,
 
-            callback_redirect_to_index,
-            redirect_to_index_with_path,
-            callback_redirect_to_index_with_root_refresh,
+            callback,
         }
     }
 
@@ -139,11 +132,9 @@ impl State {
 
         let name = (*self.name.get_value()).clone();
 
-        let path_new_content = (self.parent.clone(), Some(name.clone()));
-
         let body: HandlerCreateFileBody = HandlerCreateFileBody {
             path: self.parent.clone(),
-            new_path: vec!(name),
+            new_path: vec!(name.clone()),
             new_content: (*self.content.get_value()).clone(),
         };
 
@@ -152,15 +143,21 @@ impl State {
             .body(body)
             .post::<HandlerCreateFileResponse>();
 
-        let redirect_to_index_with_path = self.redirect_to_index_with_path.clone();
+        let callback = self.callback.clone();
 
-        self.request.spawn_local(async move {
+        self.request.spawn_local({
+            
+            let parent = self.parent.clone();
+            let name = Some(name);
+            
+            async move {
 
-            let response = request.await.unwrap();
+                let response = request.await.unwrap();
 
-            log::info!("Zapis udany {:?}", response);
+                log::info!("Zapis udany {:?}", response);
 
-            redirect_to_index_with_path.run(path_new_content);
+                callback.redirect_to_index_with_path(parent, name);
+            }
         });
     }
 }

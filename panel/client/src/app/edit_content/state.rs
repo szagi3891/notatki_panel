@@ -2,10 +2,9 @@ use common::{HandlerSaveContentBody, HandlerSaveContentResponse};
 use vertigo::{
     DomDriver, 
     computed::{Computed, Dependencies, Value},
-    Callback
 };
 
-use crate::request::Request;
+use crate::{app::CallbackBuilder, request::Request};
 
 #[derive(PartialEq)]
 pub struct State {
@@ -18,13 +17,12 @@ pub struct State {
     pub edit_content: Value<String>,
     pub save_enable: Computed<bool>,
 
-    callback_redirect_to_index: Callback<()>,
-    callback_redirect_to_index_with_root_refresh: Callback<()>,
+    callback: CallbackBuilder,
 }
 
 impl State {
     pub fn redirect_to_index(&self) {
-        self.callback_redirect_to_index.run(());
+        self.callback.redirect_to_index();
     }
 
     pub fn new(
@@ -33,8 +31,7 @@ impl State {
         content: String,
         deep: &Dependencies,
         driver: &DomDriver,
-        callback_redirect_to_index: Callback<()>,
-        callback_redirect_to_index_with_root_refresh: Callback<()>,
+        callback: CallbackBuilder,
     ) -> State {
         let edit_content = deep.new_value(content.clone());
 
@@ -61,8 +58,7 @@ impl State {
             action_save,
             edit_content,
             save_enable,
-            callback_redirect_to_index,
-            callback_redirect_to_index_with_root_refresh,
+            callback
         }
     }
 
@@ -98,7 +94,7 @@ impl State {
             .body(body)
             .post::<HandlerSaveContentResponse>();
 
-        let callback_redirect_to_index_with_root_refresh = self.callback_redirect_to_index_with_root_refresh.clone();
+        let callback = self.callback.clone();
 
         self.request.spawn_local(async move {
 
@@ -106,7 +102,7 @@ impl State {
 
             log::info!("Zapis udany {:?}", response);
 
-            callback_redirect_to_index_with_root_refresh.run(());
+            callback.redirect_to_index_with_root_refresh();
         });
     }
 }

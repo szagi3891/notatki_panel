@@ -16,7 +16,7 @@ use vertigo::{
 };
 use crate::request::{ResourceError, Request};
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct StateData {
     pub state_node_dir: StateNodeDir,
     pub state_node_content: StateNodeContent,
