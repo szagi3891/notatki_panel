@@ -4,7 +4,7 @@ use vertigo::{
     computed::{Computed, Dependencies, Value},
 };
 
-use crate::{app::CallbackBuilder, request::Request};
+use crate::{app::State as ParentState, request::Request};
 
 #[derive(PartialEq)]
 pub struct State {
@@ -17,12 +17,12 @@ pub struct State {
     pub edit_content: Value<String>,
     pub save_enable: Computed<bool>,
 
-    callback: CallbackBuilder,
+    parent_state: Computed<ParentState>,
 }
 
 impl State {
     pub fn redirect_to_index(&self) {
-        self.callback.redirect_to_index();
+        self.parent_state.get_value().redirect_to_index();
     }
 
     pub fn new(
@@ -31,7 +31,7 @@ impl State {
         content: String,
         deep: &Dependencies,
         driver: &DomDriver,
-        callback: CallbackBuilder,
+        parent_state: Computed<ParentState>,
     ) -> State {
         let edit_content = deep.new_value(content.clone());
 
@@ -58,7 +58,7 @@ impl State {
             action_save,
             edit_content,
             save_enable,
-            callback
+            parent_state
         }
     }
 
@@ -94,7 +94,7 @@ impl State {
             .body(body)
             .post::<HandlerSaveContentResponse>();
 
-        let callback = self.callback.clone();
+        let callback = self.parent_state.get_value().clone();
 
         self.request.spawn_local(async move {
 

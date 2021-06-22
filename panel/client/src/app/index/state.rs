@@ -7,7 +7,7 @@ use vertigo::{
         Value
     },
 };
-use crate::app::CallbackBuilder;
+use crate::app::State as ParentState;
 use crate::request::{ResourceError};
 use crate::state_data::{CurrentContent, TreeItem};
 use crate::state_data::StateData;
@@ -138,14 +138,14 @@ pub struct State {
     //aktualnie wyliczony wybrany content wskazywany przez current_path
     pub current_content: Computed<CurrentContent>,
 
-    callback: CallbackBuilder,
+    parent_state: Computed<ParentState>,
 }
 
 impl State {
     pub fn new(
         root: &Dependencies,
         state_data: StateData,
-        callback: CallbackBuilder,
+        parent_state: Computed<ParentState>,
     ) -> Computed<State> {
 
         let list_hash_map = create_list_hash_map(root, &state_data, &state_data.current_path_dir);
@@ -168,7 +168,7 @@ impl State {
             list,
             list_current_item,
             current_content,
-            callback,
+            parent_state,
         })
     }
 
@@ -320,14 +320,14 @@ impl State {
             path.push(current_item.clone());
         }
 
-        self.callback.redirect_to_content(path);
+        self.parent_state.get_value().redirect_to_content(path);
     }
 
     pub fn create_file(&self) {
         let path = self.current_path_dir.get_value().as_ref().clone();
         let list = self.list.clone();
 
-        self.callback.redirect_to_new_content(path, list);
+        self.parent_state.get_value().redirect_to_new_content(path, list);
     }
 }
 
