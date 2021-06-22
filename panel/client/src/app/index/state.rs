@@ -145,27 +145,25 @@ impl State {
     pub fn new(
         root: &Dependencies,
         state_data: StateData,
-        current_path_dir: Value<Vec<String>>,
-        current_path_item: Value<Option<String>>,
         callback: CallbackBuilder,
     ) -> Computed<State> {
 
-        let list_hash_map = create_list_hash_map(root, &state_data, &current_path_dir);
+        let list_hash_map = create_list_hash_map(root, &state_data, &state_data.current_path_dir);
         let list = create_list(root, &list_hash_map);
 
-        let list_current_item = create_current_item_view(&root, &current_path_item, &list);
+        let list_current_item = create_current_item_view(&root, &state_data.current_path_item, &list);
 
         let current_content = create_current_content(
             root,
             &state_data,
-            &current_path_dir,
+            &state_data.current_path_dir,
             &list_current_item,
         );
 
         root.new_computed_from(State {
             root: root.clone(),
-            current_path_dir,
-            current_path_item,
+            current_path_dir: state_data.current_path_dir.clone(),
+            current_path_item: state_data.current_path_item.clone(),
             list_hash_map,
             list,
             list_current_item,

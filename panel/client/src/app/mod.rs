@@ -34,8 +34,6 @@ pub struct CallbackBuilder {
     root: Dependencies,
     driver: DomDriver,
     state_data: StateData,
-    current_path_dir: Value<Vec<String>>,
-    current_path_item: Value<Option<String>>,
     current_view: Value<View>,
 }
 
@@ -44,16 +42,12 @@ impl CallbackBuilder {
         root: &Dependencies,
         driver: &DomDriver,
         state_data: &StateData,
-        current_path_dir: &Value<Vec<String>>,
-        current_path_item: &Value<Option<String>>,
         current_view: &Value<View>
     ) -> CallbackBuilder {
         CallbackBuilder {
             root: root.clone(),
             driver: driver.clone(),
             state_data: state_data.clone(),
-            current_path_dir: current_path_dir.clone(),
-            current_path_item: current_path_item.clone(),
             current_view: current_view.clone(),
         }
     }
@@ -94,8 +88,8 @@ impl CallbackBuilder {
 
     pub fn redirect_to_index_with_path(&self, new_path: Vec<String>, new_item: Option<String>) {
         self.current_view.set_value(View::Index);
-        self.current_path_dir.set_value(new_path);
-        self.current_path_item.set_value(new_item);
+        self.state_data.current_path_dir.set_value(new_path);
+        self.state_data.current_path_item.set_value(new_item);
         self.state_data.state_root.refresh();
     }
 
@@ -119,26 +113,104 @@ impl CallbackBuilder {
     }
 }
 
-struct StateBox<T> {
-    inner: Option<T>,
-}
+// use vertigo::utils::BoxRefCell;
+// use std::rc::Rc;
+// use std::cell::{RefCell, Cell, Ref};
+// use std::collections::HashMap;
 
-impl<T> StateBox<T> {
-    pub fn new<
-        F: Fn(&StateBox<T>) -> T
-    >(callback: F) -> StateBox<T> {
-        let mut state = StateBox {
-            inner: None,
-        };
+// struct StateBuilder {
 
-        let new_inner = callback(&state);
+// }
 
-        state.inner = Some(new_inner);
+// struct State2<T> {
+//     id: u64,
+//     data: HashMap<u64, T>,
+// }
 
-        state
-    }
-}
+// impl<T> std::ops::Deref for State2<T> {
+//     type Target = T;
 
+//     fn deref(&self) -> &T {
+//         let item = self.data.get(&self.id);
+
+//         item.unwrap()
+//     }
+// }
+
+// struct State3<T> {
+//     value: Rc<RefCell<Option<Rc<T>>>>,
+// }
+
+// impl<T> State3<T> {
+//     pub fn new() -> State3<T> {
+//         State3 {
+//             value: Rc::new(RefCell::new(None))
+//         }
+//     }
+
+//     pub fn get(&self) -> Rc<T> {
+//         let inner = self.value.as_ref().borrow();
+//         let copy = inner.as_ref().unwrap().clone();
+//         copy
+//     }
+// }
+
+// impl<T> std::ops::Deref for State3<T> {
+//     type Target = Ref<T>;
+
+//     fn deref(&self) -> &Rc<T> {
+//         &self.value
+//     }
+// }
+
+// struct StateBox<T> {
+//     inner: Option<T>,
+// }
+
+// impl<T> StateBox<T> {
+//     pub fn new<
+//         F: Fn(&StateBox<T>) -> T
+//     >(callback: F) -> StateBox<T> {
+//         let state = StateBox {
+//             inner: None,
+//         };
+
+//         let new_inner = callback(&state);
+
+//         let inner = state.inner.get_mut();
+//         *inner = Some(new_inner);
+//         // state.inner.change(new_inner, |state, data| {
+//         //     *state = Some(Rc::new(data));
+//         // });
+
+//         state
+//     }
+// }
+
+// impl<T> std::ops::Deref for StateBox<T> {
+//     type Target = T;
+
+//     fn deref(&self) -> &T {
+//         let f = self.inner.re
+
+//         f.as_ref()
+//     }
+// }
+
+/*
+invalid `self` parameter type: StateBox<AAB>
+type of `self` must be `Self` or a type that dereferences to it
+consider changing to `self`, `&self`, `&mut self`, `self: Box<Self>`, `self: Rc<Self>`, `self: Arc<Self>`, or `self: Pin<P>` (where P is one of the previous types except `Self`)rustcE0307
+*/
+// struct AAB {
+
+// }
+
+// impl AAB {
+//     fn test(self: StateBox<AAB>) -> String {
+//         String::ftom("das")
+//     }
+// }
 
 //konstruktor będzie przyjmowal referencje w konstruktorze callbackowym do siebie samego
 
@@ -157,17 +229,12 @@ impl State {
         let current_view = root.new_value(View::Index);
         let current_view_computed = current_view.to_computed();
 
-        let current_path_dir: Value<Vec<String>> = root.new_value(Vec::new());
-        let current_path_item: Value<Option<String>> = root.new_value(None);
-
-        let callback = CallbackBuilder::new(root, driver, &state_data, &current_path_dir, &current_path_item, &current_view);
+        let callback = CallbackBuilder::new(root, driver, &state_data, &current_view);
 
         root.new_computed_from(State {
             state_view_index: index::State::new(
                 root,
                 state_data.clone(),
-                current_path_dir,
-                current_path_item,
                 callback.clone(),
             ),
             current_view: current_view_computed,

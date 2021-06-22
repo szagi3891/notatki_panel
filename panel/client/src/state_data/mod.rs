@@ -8,12 +8,7 @@ use state_node_dir::StateNodeDir;
 use state_node_content::StateNodeContent;
 use state_root::StateRoot;
 
-use vertigo::{
-    DomDriver,
-    computed::{
-        Dependencies,
-    },
-};
+use vertigo::{DomDriver, computed::{Dependencies, Value}};
 use crate::request::{ResourceError, Request};
 
 #[derive(Clone, PartialEq)]
@@ -21,6 +16,8 @@ pub struct StateData {
     pub state_node_dir: StateNodeDir,
     pub state_node_content: StateNodeContent,
     pub state_root: StateRoot,
+    pub current_path_dir: Value<Vec<String>>,
+    pub current_path_item: Value<Option<String>>,
 }
 
 impl StateData {
@@ -32,10 +29,15 @@ impl StateData {
         let state_node_content = StateNodeContent::new(&request, root);
         let state_root = StateRoot::new(&request, root, state_node_dir.clone());
 
+        let current_path_dir: Value<Vec<String>> = root.new_value(Vec::new());
+        let current_path_item: Value<Option<String>> = root.new_value(None);
+
         StateData {
             state_node_dir,
             state_node_content,
             state_root,
+            current_path_dir,
+            current_path_item,
         }
     }
 }
