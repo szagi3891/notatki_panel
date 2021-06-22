@@ -6,7 +6,6 @@ use vertigo::{
         Computed,
         Dependencies,
     },
-    Callback,
 };
 
 use crate::state_data::CurrentContent;
@@ -100,14 +99,9 @@ impl CallbackBuilder {
         self.state_data.state_root.refresh();
     }
 
-    pub fn redirect_to_index_with_root_refresh(&self) -> Callback<()> {
-        let current_view = self.current_view.clone();
-        let state_data = self.state_data.clone();
-
-        Callback::new(move |_| {
-            state_data.state_root.refresh();
-            current_view.set_value(View::Index);
-        })
+    pub fn redirect_to_index_with_root_refresh(&self) {
+        self.state_data.state_root.refresh();
+        self.current_view.set_value(View::Index);
     }
 
     pub fn redirect_to_new_content(&self, parent: Vec<String>, list: Computed<Vec<ListItem>>) {
@@ -124,6 +118,31 @@ impl CallbackBuilder {
         self.current_view.set_value(View::NewContent { state });
     }
 }
+
+struct StateBox<T> {
+    inner: Option<T>,
+}
+
+impl<T> StateBox<T> {
+    pub fn new<
+        F: Fn(&StateBox<T>) -> T
+    >(callback: F) -> StateBox<T> {
+        let mut state = StateBox {
+            inner: None,
+        };
+
+        let new_inner = callback(&state);
+
+        state.inner = Some(new_inner);
+
+        state
+    }
+}
+
+
+//konstruktor będzie przyjmowal referencje w konstruktorze callbackowym do siebie samego
+
+
 
 #[derive(PartialEq)]
 pub struct State {
