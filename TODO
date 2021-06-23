@@ -63,6 +63,16 @@ zrobić wyszukiwarkę w nazwach.
 Dodać jakąś nawigację po hashu, po to aby mozna było miec kilka zakladek w przegladarce
 
 
+jeśli w callbacku wywołana będzie metoda get_value, to mechanizm conmputed ma rzucić jakimś błędem
+w konsoli pewnie
+
+    let on_click = {
+        let state = state.clone();
+        let node_id = node_id.clone();
+        move || {
+            state.set_path(node_id.clone());
+        }
+    };
 
 
 /*

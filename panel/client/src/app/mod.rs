@@ -44,7 +44,7 @@ impl State {
     pub fn new(root: &Dependencies, driver: &DomDriver) -> Computed<State> {
         let state_data = StateData::new(root, driver);
 
-        let computed_state = root.new_state(|self_state: &Computed<State>| -> State {
+        root.new_state(|self_state: &Computed<State>| -> State {
             let current_view = root.new_value(View::Index {
                 state: index::State::new(
                     root,
@@ -60,9 +60,7 @@ impl State {
                 current_view,
                 self_state: self_state.clone(),
             }
-        });
-
-        computed_state
+        })
     }
 
     pub fn redirect_to_content(&self, path: Vec<String>) {
