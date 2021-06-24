@@ -22,12 +22,26 @@ fn css_header() -> Css {
     ")
 }
 
-fn css_body() -> Css {
+fn css_input() -> Css {
     css!("
         border: 0;
         padding: 5px;
         margin: 5px;
         border: 1px solid blue;
+        :focus {
+            border: 0;
+        }
+    ")
+}
+
+fn css_textarea() -> Css {
+    css!("
+        flex-grow: 1;
+        border: 0;
+        padding: 5px;
+        margin: 5px;
+        border: 1px solid blue;
+        background: #e0e0e010;
         :focus {
             border: 0;
         }
@@ -44,9 +58,32 @@ fn render_input(state: &Computed<State>) -> VDomElement {
     };
 
     html! {
-        <input css={css_body()} onInput={on_input} value={content.as_ref()} />
+        <input css={css_input()} onInput={on_input} value={content.as_ref()} />
     }
 }
+
+
+fn render_textarea(state: &Computed<State>) -> VDomElement {
+    let state = state.get_value();
+
+    let prev_content = state.prev_content.clone();
+
+    match prev_content {
+        Some(text) => {
+            html! {
+                <textarea css={css_textarea()} readonly="readonly">
+                    {text}
+                </textarea>
+            }
+        },
+        None => {
+            html!{
+                <div/>
+            }
+        }
+    }
+}
+
 
 pub fn render(state: &Computed<State>) -> VDomElement {
 
@@ -61,15 +98,15 @@ pub fn render(state: &Computed<State>) -> VDomElement {
 
     let path = state_value.get_full_path();
 
-    let mut buttons = Vec::new();
-
-    buttons.push(button("Wróć", on_click));
+    let mut buttons = vec![
+        button("Wróć", on_click)
+    ];
 
     let save_enable = state_value.save_enable.get_value();
 
     if *save_enable {
         let on_save = {
-            let state = state_value.clone();
+            let state = state_value;
             move || {
                 state.on_save();
             }
@@ -99,6 +136,7 @@ pub fn render(state: &Computed<State>) -> VDomElement {
                 { ..buttons }
             </div>
             <component {render_input} data={state} />
+            <component {render_textarea} data={state} />
         </div>
     }
 }

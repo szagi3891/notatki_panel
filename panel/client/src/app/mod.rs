@@ -110,14 +110,16 @@ impl State {
     pub fn redirect_to_rename_item(&self, base_path: &Vec<String>, select_item: &String) {
         let select_item = select_item.clone();
         let full_path = self.create_full_path(base_path, &Some(select_item.clone()));
-        let content = self.state_data.get_content_hash(&full_path);
+        let content_hash = self.state_data.get_content_hash(&full_path);
+        let get_content_string = self.state_data.get_content_string(&full_path);
 
-        match content {
+        match content_hash {
             Some(content_hash) => {
                 let state = rename_item::State::new(
                     base_path.clone(),
                     select_item,
                     content_hash,
+                    get_content_string,
                     &self.root,
                     &self.driver,
                     self.self_state.clone(),

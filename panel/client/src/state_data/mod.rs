@@ -193,4 +193,16 @@ impl StateData {
             CurrentContent::None => None,
         }
     }
+
+    pub fn get_content_string(&self, path: &[String]) -> Option<String> {
+        let result = self.get_content_from_path(path);
+
+        match result {
+            CurrentContent::File { content, .. } => {
+                Some(content.as_ref().clone())
+            },
+            CurrentContent::Dir { .. } => None,
+            CurrentContent::None => None,
+        }
+    }
 }

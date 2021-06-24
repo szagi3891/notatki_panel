@@ -13,6 +13,7 @@ pub struct State {
     pub path: Vec<String>,          //edutowany element
     pub prev_name: String,
     pub prev_hash: String,               //hash poprzedniej zawartosci
+    pub prev_content: Option<String>,
 
     pub new_name: Value<String>,
     pub action_save: Value<bool>,
@@ -31,6 +32,7 @@ impl State {
         path: Vec<String>,
         prev_name: String,
         prev_hash: String,
+        prev_content: Option<String>,
         deep: &Dependencies,
         driver: &DomDriver,
         parent_state: Computed<ParentState>,
@@ -66,6 +68,7 @@ impl State {
             path,
             prev_name,
             prev_hash,
+            prev_content,
 
             new_name,
 
