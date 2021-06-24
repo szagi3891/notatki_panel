@@ -66,6 +66,16 @@ fn create_list(root: &Dependencies, list: &Computed<Result<Rc<HashMap<String, Tr
                     let a_prirority = get_list_item_prirority(&a.name);
                     let b_prirority = get_list_item_prirority(&b.name);
 
+                    if a_prirority == 2 && b_prirority == 2 {
+                        if a.dir && !b.dir {
+                            return Ordering::Less;
+                        }
+
+                        if !a.dir && b.dir {
+                            return Ordering::Greater;
+                        }
+                    }
+
                     if a_prirority > b_prirority {
                         return Ordering::Less;
                     }
