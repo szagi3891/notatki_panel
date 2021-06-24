@@ -75,12 +75,13 @@ fn move_pointer(state_data: &StateData, list: Rc<HashMap<String, TreeItem>>, pat
 #[derive(PartialEq, Clone, Debug)]
 pub enum CurrentContent {
     File {
-        file_name: String,           //name
+        file_name: String,      //name
         file_hash: String,      //hash
         content: Rc<String>,    //content file
     },
     Dir {
         dir: String,            //hash
+        dir_hash: String,
         list: Rc<HashMap<String, TreeItem>>,
     },
     None
@@ -95,9 +96,10 @@ impl CurrentContent {
         }
     }
 
-    fn dir(dir: String, list: Rc<HashMap<String, TreeItem>>) -> CurrentContent {
+    fn dir(dir: String, dir_hash: String, list: Rc<HashMap<String, TreeItem>>) -> CurrentContent {
         CurrentContent::Dir {
             dir,
+            dir_hash,
             list,
         }
     }
@@ -142,10 +144,10 @@ impl StateData {
                 let list = self.state_node_dir.get_list(&current_value.id);
 
                 if let Ok(list) = list {
-                    return Ok(CurrentContent::dir(current_item.clone(), list));
+                    return Ok(CurrentContent::dir(current_item.clone(), current_value.id.clone(), list));
                 }
                 
-                return Ok(CurrentContent::None);
+                //return Ok(CurrentContent::None);
             } else {
                 let content = self.state_node_content.get(&current_value.id);
 
@@ -153,11 +155,11 @@ impl StateData {
                     return Ok(CurrentContent::file(current_item.clone(), current_value.id.clone(), content.clone()));
                 }
 
-                return Ok(CurrentContent::None);
+                //return Ok(CurrentContent::None);
             }
         }
 
-        return Ok(CurrentContent::None);
+        Ok(CurrentContent::None)
     }
 
     pub fn get_content(&self, base_dir: &[String], item: &Option<String>) -> CurrentContent {
@@ -176,5 +178,19 @@ impl StateData {
         let last = path.pop();
 
         self.get_content(path.as_slice(), &last)
+    }
+
+    pub fn get_content_hash(&self, path: &[String]) -> Option<String> {
+        let result = self.get_content_from_path(path);
+
+        match result {
+            CurrentContent::File { file_hash, .. } => {
+                Some(file_hash)
+            },
+            CurrentContent::Dir { dir_hash, .. } => {
+                Some(dir_hash)
+            },
+            CurrentContent::None => None,
+        }
     }
 }

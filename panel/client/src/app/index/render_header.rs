@@ -82,7 +82,7 @@ fn create_link(state: &Rc<State>, title: String, node_id: Vec<String>, create_cs
 
     let on_click = {
         let state = state.clone();
-        let node_id = node_id.clone();
+        let node_id = node_id;
         move || {
             state.set_path(node_id.clone());
         }

@@ -1,4 +1,4 @@
-use common::{HandlerSaveContentBody, HandlerSaveContentResponse};
+use common::{HandlerRenameItemBody, HandlerRenameItemResponse};
 use vertigo::{
     DomDriver, 
     computed::{Computed, Dependencies, Value},
@@ -11,10 +11,12 @@ pub struct State {
     request: Request,
 
     pub path: Vec<String>,          //edutowany element
-    pub hash: String,               //hash poprzedniej zawartosci
+    pub prev_name: String,
+    pub prev_hash: String,               //hash poprzedniej zawartosci
 
+    pub new_name: Value<String>,
     pub action_save: Value<bool>,
-    pub edit_content: Value<String>,
+
     pub save_enable: Computed<bool>,
 
     parent_state: Computed<ParentState>,
@@ -27,21 +29,30 @@ impl State {
 
     pub fn new(
         path: Vec<String>,
-        hash: String,
-        content: String,
+        prev_name: String,
+        prev_hash: String,
         deep: &Dependencies,
         driver: &DomDriver,
         parent_state: Computed<ParentState>,
     ) -> State {
-        let edit_content = deep.new_value(content.clone());
+        let new_name = deep.new_value(prev_name.clone());
 
         let save_enable = {
-            let edit_content = edit_content.to_computed();
+            let prev_name = prev_name.clone();
+            let new_name = new_name.to_computed();
 
             deep.from(move || -> bool {
-                let edit_content = edit_content.get_value();
-                let save_enabled = edit_content.as_ref() != &content;
-                save_enabled
+                let new_name = new_name.get_value();
+                
+                if new_name.as_ref().trim() == "" {
+                    return false;
+                }
+
+                if new_name.as_ref() != &prev_name {
+                    return true;
+                }
+
+                false
             })
         };
 
@@ -53,13 +64,24 @@ impl State {
             request,
 
             path,
-            hash,
+            prev_name,
+            prev_hash,
+
+            new_name,
 
             action_save,
-            edit_content,
             save_enable,
             parent_state
         }
+    }
+
+    pub fn get_full_path(&self) -> String {
+        let mut path = self.path.clone();
+        let prev_name = self.prev_name.clone();
+
+        path.push(prev_name);
+
+        path.as_slice().join("/")
     }
 
     pub fn on_input(&self, new_text: String) {
@@ -70,7 +92,7 @@ impl State {
             return;
         }
 
-        self.edit_content.set_value(new_text);
+        self.new_name.set_value(new_text);
     }
 
     pub fn on_save(&self) {
@@ -83,16 +105,17 @@ impl State {
 
         self.action_save.set_value(true);
 
-        let body: HandlerSaveContentBody = HandlerSaveContentBody {
+        let body: HandlerRenameItemBody = HandlerRenameItemBody {
             path: self.path.clone(),
-            prev_hash: self.hash.clone(),
-            new_content: (*self.edit_content.get_value()).clone(),
+            prev_name: self.prev_name.clone(),
+            prev_hash: self.prev_hash.clone(),
+            new_name: (*self.new_name.get_value()).clone(),
         };
 
         let request = self.request
-            .fetch("/save_content")
+            .fetch("/rename_item")
             .body(body)
-            .post::<HandlerSaveContentResponse>();
+            .post::<HandlerRenameItemResponse>();
 
         let callback = self.parent_state.get_value();
 

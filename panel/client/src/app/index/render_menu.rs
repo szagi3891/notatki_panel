@@ -31,6 +31,14 @@ pub fn render_menu(state: &Computed<State>) -> VDomElement {
         }
     };
 
+    let on_rename = {
+        let state = state.clone();
+
+        move || {
+            state.current_rename();
+        }
+    };
+
     let on_create = {
         let state = state.clone();
         
@@ -42,7 +50,7 @@ pub fn render_menu(state: &Computed<State>) -> VDomElement {
     let mut out = Vec::new();
 
     out.push(button("Utwórz plik", on_create));
-    out.push(button("Zmień nazwę", || {}));
+    out.push(button("Zmień nazwę", on_rename));
     out.push(button("Edycja pliku", on_click));
 
     // let out = [

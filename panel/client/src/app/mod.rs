@@ -16,6 +16,7 @@ use self::index::ListItem;
 mod index;
 mod edit_content;
 mod new_content;
+mod rename_item;
 
 #[derive(PartialEq)]
 pub enum View {
@@ -27,8 +28,10 @@ pub enum View {
     },
     NewContent {
         state: Computed<new_content::State>,
+    },
+    RenameItem {
+        state: Computed<rename_item::State>,
     }
-    //TODO - zmiana nazwy
 }
 
 #[derive(PartialEq)]
@@ -63,8 +66,19 @@ impl State {
         })
     }
 
-    pub fn redirect_to_content(&self, path: Vec<String>) {
-        let content = self.state_data.get_content_from_path(&path);
+    fn create_full_path(&self, path: &Vec<String>, select_item: &Option<String>) -> Vec<String> {
+        let mut path = path.clone();
+
+        if let Some(select_item) = select_item {
+            path.push(select_item.clone());
+        }
+
+        path
+    }
+    
+    pub fn redirect_to_content(&self, base_path: &Vec<String>, select_item: &Option<String>) {
+        let full_path = self.create_full_path(base_path, select_item);
+        let content = self.state_data.get_content_from_path(&full_path);
 
         match content {
             CurrentContent::File { file_hash, content, ..} => {
@@ -72,7 +86,7 @@ impl State {
                 let root = self.root.clone();
 
                 let state = edit_content::State::new(
-                    path,
+                    full_path,
                     file_hash,
                     content.as_ref().clone(),
                     &root,
@@ -89,6 +103,32 @@ impl State {
             },
             CurrentContent::None => {
                 log::error!("Oczekiwano pliku, nic nie znaleziono");
+            }
+        }
+    }
+
+    pub fn redirect_to_rename_item(&self, base_path: &Vec<String>, select_item: &String) {
+        let select_item = select_item.clone();
+        let full_path = self.create_full_path(base_path, &Some(select_item.clone()));
+        let content = self.state_data.get_content_hash(&full_path);
+
+        match content {
+            Some(content_hash) => {
+                let state = rename_item::State::new(
+                    base_path.clone(),
+                    select_item,
+                    content_hash,
+                    &self.root,
+                    &self.driver,
+                    self.self_state.clone(),
+                );
+
+                self.current_view.set_value(View::RenameItem {
+                    state: self.root.new_computed_from(state),
+                });
+            },
+            None => {
+                log::error!("redirect_to_rename_item fail - {:?} {:?}", base_path, select_item);
             }
         }
     }
@@ -117,10 +157,10 @@ impl State {
         self.redirect_to_index();
     }
 
-    pub fn redirect_to_new_content(&self, parent: Vec<String>, list: Computed<Vec<ListItem>>) {
+    pub fn redirect_to_new_content(&self, parent: &Vec<String>, list: Computed<Vec<ListItem>>) {
         let state = new_content::State::new(
             &self.root,
-            parent,
+            parent.clone(),
             &self.driver,
             list,
             self.self_state.clone(),
@@ -147,6 +187,9 @@ pub fn render(state: &Computed<State>) -> VDomElement {
         },
         View::NewContent { state } => {
             new_content::render(state)
+        },
+        View::RenameItem { state } => {
+            rename_item::render(state)
         }
     }
 }

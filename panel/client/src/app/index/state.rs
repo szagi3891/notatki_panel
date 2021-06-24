@@ -314,20 +314,27 @@ impl State {
     }
 
     pub fn current_edit(&self) {
-        let mut path = self.current_path_dir.get_value().as_ref().clone();
-        
-        if let Some(current_item) = self.list_current_item.get_value().as_ref() {
-            path.push(current_item.clone());
-        }
-
-        self.parent_state.get_value().redirect_to_content(path);
+        let path = self.current_path_dir.get_value();
+        let select_item = self.list_current_item.get_value();
+        self.parent_state.get_value().redirect_to_content(&path, &select_item);
     }
 
     pub fn create_file(&self) {
-        let path = self.current_path_dir.get_value().as_ref().clone();
+        let path = self.current_path_dir.get_value();
         let list = self.list.clone();
 
-        self.parent_state.get_value().redirect_to_new_content(path, list);
+        self.parent_state.get_value().redirect_to_new_content(path.as_ref(), list);
+    }
+
+    pub fn current_rename(&self) {
+        let path = self.current_path_dir.get_value();
+        let select_item = self.list_current_item.get_value();
+
+        if let Some(select_item) = select_item.as_ref() {
+            self.parent_state.get_value().redirect_to_rename_item(&path, &select_item);
+        } else {
+            log::error!("current_rename fail");
+        }
     }
 }
 
