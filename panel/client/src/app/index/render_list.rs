@@ -23,7 +23,6 @@ fn css_normal(is_select: bool) -> Css {
 
     if is_select {
         return css.push_str("
-            color: green;
             background-color: #c0c0c0;
         ");
     }
@@ -139,18 +138,25 @@ fn icon_render(dir: bool) -> VDomElement {
     }
 }
 
-fn label_css(green_label: bool) -> Css {
-    let out = css!("
-        padding-left: 3px;
-    ");
-
-    if green_label {
-        return out.push_str("
+fn label_css(prirority: u8) -> Css {
+    if prirority == 2 {
+        return css!("
+            padding-left: 3px;
             color: green;
         ");
     }
 
-    out
+    if prirority == 1 {
+        return css!("
+            padding-left: 3px;
+        ");
+    }
+
+    css!("
+        padding-left: 3px;
+        opacity: 0.5;
+        text-decoration: line-through;
+    ")
 }
 
 
@@ -188,6 +194,30 @@ fn dom_apply(node_refs: &NodeRefs) {
     }
 }
 
+fn remove_first(chars: &[char]) -> &[char] {
+    if let Some((name_item, rest_path)) = chars.split_first() {
+        if *name_item == '_' {
+            return rest_path;
+        }
+    }
+
+    chars
+}
+
+fn remove_prefix(name: &String) -> String {
+    let chars = name.chars().collect::<Vec<char>>();
+
+    let chars = remove_first(&chars);
+    let chars = remove_first(chars);
+
+    let mut out: String = String::new();
+
+    for char in chars {
+        out.push(*char);
+    }
+
+    out
+}
 
 pub fn render_list(state: &Computed<State>) -> VDomElement {
     
@@ -215,14 +245,12 @@ pub fn render_list(state: &Computed<State>) -> VDomElement {
             }
         };
 
-        let green_label = item.name.get(0..1) == Some("_");
-
         if is_select {
             out.push(html!{
                 <div onClick={on_click} css={css_normal(is_select)} dom_ref="active">
                     {icon_arrow(is_select)}
                     {icon_render(item.dir)}
-                    <span css={label_css(green_label)}>{&item.name}</span>
+                    <span css={label_css(item.prirority)}>{remove_prefix(&item.name)}</span>
                 </div>
             });
         } else {
@@ -230,7 +258,7 @@ pub fn render_list(state: &Computed<State>) -> VDomElement {
                 <div onClick={on_click} css={css_normal(is_select)}>
                     {icon_arrow(is_select)}
                     {icon_render(item.dir)}
-                    <span css={label_css(green_label)}>{&item.name}</span>
+                    <span css={label_css(item.prirority)}>{remove_prefix(&item.name)}</span>
                 </div>
             });
         }

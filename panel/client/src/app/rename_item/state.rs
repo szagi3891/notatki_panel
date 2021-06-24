@@ -117,7 +117,9 @@ impl State {
             .body(body)
             .post::<HandlerRenameItemResponse>();
 
-        let callback = self.parent_state.get_value();
+        let parent_state = self.parent_state.get_value();
+        let redirect_path = self.path.clone();
+        let redirect_new_name = self.new_name.get_value().as_ref().clone();
 
         self.request.spawn_local(async move {
 
@@ -125,7 +127,7 @@ impl State {
 
             log::info!("Zapis udany {:?}", response);
 
-            callback.redirect_to_index_with_root_refresh();
+            parent_state.redirect_to_index_with_path(redirect_path, Some(redirect_new_name));
         });
     }
 }

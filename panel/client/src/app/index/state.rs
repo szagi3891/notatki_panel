@@ -16,6 +16,7 @@ use crate::state_data::StateData;
 pub struct ListItem {
     pub name: String,
     pub dir: bool,
+    pub prirority: u8,
 }
 
 
@@ -29,6 +30,18 @@ fn create_list_hash_map(root: &Dependencies, state_data: &StateData, current_pat
 
         state_data.get_dir_content(current_path)
     })
+}
+
+fn get_list_item_prirority(name: &String) -> u8 {
+    if name.get(0..2) == Some("__") {
+        return 0
+    }
+
+    if name.get(0..1) == Some("_") {
+        return 2
+    }
+
+    1
 }
 
 fn create_list(root: &Dependencies, list: &Computed<Result<Rc<HashMap<String, TreeItem>>, ResourceError>>) -> Computed<Vec<ListItem>> {
@@ -45,31 +58,32 @@ fn create_list(root: &Dependencies, list: &Computed<Result<Rc<HashMap<String, Tr
                     list_out.push(ListItem {
                         name: name.clone(),
                         dir: item.dir,
+                        prirority: get_list_item_prirority(name),
                     });
                 }
 
                 list_out.sort_by(|a: &ListItem, b: &ListItem| -> Ordering {
-                    let a_prefix = a.name.get(0..1) == Some("_");
-                    let b_prefix = b.name.get(0..1) == Some("_");
+                    let a_prirority = get_list_item_prirority(&a.name);
+                    let b_prirority = get_list_item_prirority(&b.name);
 
-                    if a_prefix == true && b_prefix == false {
+                    if a_prirority > b_prirority {
                         return Ordering::Less;
                     }
 
-                    if a_prefix == false && b_prefix == true {
+                    if a_prirority < b_prirority {
                         return Ordering::Greater;
                     }
 
                     a.name.to_lowercase().cmp(&b.name.to_lowercase())
                 });
 
-                return list_out;
+                list_out
             },
             Err(err) => {
                 log::error!("Create list --> {:?}", err);
-                return Vec::new();
+                Vec::new()
             }
-        };
+        }
     })
 }
 
