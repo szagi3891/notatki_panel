@@ -100,7 +100,7 @@ fn create_link(state: &Rc<State>, title: String, node_id: Vec<String>, create_cs
 pub fn render_header(state: &Computed<State>) -> VDomElement {
     let state = state.get_value();
 
-    let current_path = state.current_path_dir.get_value();
+    let current_path = state.current_path_dir();
     let all_items = current_path.len();
 
     let mut out: Vec<VDomElement> = Vec::new();

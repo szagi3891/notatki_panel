@@ -145,11 +145,7 @@ fn create_current_content(
 pub struct State {
     root: Dependencies,
 
-    //aktualna ścieka powinna przechowywać tylko katalogi
-    pub current_path_dir: Value<Vec<String>>,                               //aktualna ściezka
-
-    //aktualny wskaźnik na wybrany element z katalogu
-    current_path_item: Value<Option<String>>,                            //aktualny wskaźnik (akcji)
+    state_data: StateData,
 
     list_hash_map: Computed<Result<Rc<HashMap<String, TreeItem>>, ResourceError>>,
 
@@ -186,8 +182,7 @@ impl State {
 
         root.new_computed_from(State {
             root: root.clone(),
-            current_path_dir: state_data.current_path_dir.clone(),
-            current_path_item: state_data.current_path_item.clone(),
+            state_data,
             list_hash_map,
             list,
             list_current_item,
@@ -198,7 +193,7 @@ impl State {
 
 
     pub fn set_path(&self, path: Vec<String>) {
-        let current_path = self.current_path_dir.get_value();
+        let current_path = self.state_data.current_path_dir.get_value();
 
         if current_path.as_ref().as_slice() == path.as_slice() {
             log::info!("path are equal");
@@ -208,8 +203,8 @@ impl State {
         let (new_current_path, new_current_item_value) = calculate_next_path(current_path.as_ref(), path);
 
         self.root.transaction(|| {
-            self.current_path_dir.set_value(new_current_path);
-            self.current_path_item.set_value(new_current_item_value);
+            self.state_data.current_path_dir.set_value(new_current_path);
+            self.state_data.current_path_item.set_value(new_current_item_value);
         });
     }
 
@@ -219,11 +214,11 @@ impl State {
         if let Ok(list) = list_hash_map_rc.as_ref() {
             if let Some(node_details) = list.get(&node) {
                 if node_details.dir {
-                    let mut current = self.current_path_dir.get_value().as_ref().clone();
+                    let mut current = self.state_data.current_path_dir.get_value().as_ref().clone();
                     current.push(node.clone());
                     self.set_path(current);
                 } else {
-                    self.current_path_item.set_value(Some(node.clone()));
+                    self.state_data.current_path_item.set_value(Some(node.clone()));
                 }
                 return;
             }
@@ -254,7 +249,7 @@ impl State {
         let list = self.list.get_value();
 
         if let Some(first) = list.get(index) {
-            self.current_path_item.set_value(Some(first.name.clone()));
+            self.state_data.current_path_item.set_value(Some(first.name.clone()));
             return true;
         }
 
@@ -307,7 +302,7 @@ impl State {
     }
 
     fn backspace(&self) {
-        let current_path = self.current_path_dir.get_value();
+        let current_path = self.state_data.current_path_dir.get_value();
         let mut current_path = current_path.as_ref().clone();
 
         current_path.pop();
@@ -323,7 +318,7 @@ impl State {
             self.pointer_down();
             return true;
         } else if code == "Escape" {
-            self.current_path_item.set_value(None);
+            self.state_data.current_path_item.set_value(None);
             return true;
         } else if code == "ArrowRight" || code == "Enter" {
             self.pointer_enter();
@@ -338,20 +333,20 @@ impl State {
     }
 
     pub fn current_edit(&self) {
-        let path = self.current_path_dir.get_value();
+        let path = self.state_data.current_path_dir.get_value();
         let select_item = self.list_current_item.get_value();
         self.parent_state.get_value().redirect_to_content(&path, &select_item);
     }
 
     pub fn create_file(&self) {
-        let path = self.current_path_dir.get_value();
+        let path = self.state_data.current_path_dir.get_value();
         let list = self.list.clone();
 
         self.parent_state.get_value().redirect_to_new_content(path.as_ref(), list);
     }
 
     pub fn current_rename(&self) {
-        let path = self.current_path_dir.get_value();
+        let path = self.state_data.current_path_dir.get_value();
         let select_item = self.list_current_item.get_value();
 
         if let Some(select_item) = select_item.as_ref() {
@@ -359,6 +354,10 @@ impl State {
         } else {
             log::error!("current_rename fail");
         }
+    }
+
+    pub fn current_path_dir(&self) -> Rc<Vec<String>> {
+        self.state_data.current_path_dir.get_value()
     }
 }
 
