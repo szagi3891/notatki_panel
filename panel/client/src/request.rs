@@ -26,10 +26,15 @@ impl Request {
     }
 
     pub fn fetch<U: Into<String>>(&self, url: U) -> RequestBuilder {
+        let mut headers = HashMap::<String, String>::new();
+        let key = "Content-Type".into();
+        let value = "application/json".into();
+        headers.insert(key, value);
+
         RequestBuilder {
             driver: self.driver.clone(),
             url: url.into(),
-            headers: None,
+            headers: Some(headers),
             body: Body::None,
         }
     }

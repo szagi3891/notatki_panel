@@ -24,7 +24,7 @@ fn css_item() -> Css {
     ")
 }
 
-pub fn button<F: Fn() -> () + 'static>(label: &'static str, on_click: F) -> VDomElement {
+pub fn button<F: Fn() + 'static>(label: &'static str, on_click: F) -> VDomElement {
     html! {
         <span css={css_item()} onClick={on_click}>{label}</span>
     }

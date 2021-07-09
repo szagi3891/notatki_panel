@@ -71,9 +71,7 @@ fn render_textarea(state: &Computed<State>) -> VDomElement {
     match prev_content {
         Some(text) => {
             html! {
-                <textarea css={css_textarea()} readonly="readonly">
-                    {text}
-                </textarea>
+                <textarea css={css_textarea()} readonly="readonly" value={text} />
             }
         },
         None => {

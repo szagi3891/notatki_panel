@@ -146,7 +146,6 @@ impl State {
     }
 
     pub fn redirect_to_index_with_path(&self, new_path: Vec<String>, new_item: Option<String>) {
-        // self.current_view.set_value(View::Index);
         self.redirect_to_index();
         self.state_data.current_path_dir.set_value(new_path);
         self.state_data.current_path_item.set_value(new_item);
@@ -155,7 +154,6 @@ impl State {
 
     pub fn redirect_to_index_with_root_refresh(&self) {
         self.state_data.state_root.refresh();
-        // self.current_view.set_value(View::Index);
         self.redirect_to_index();
     }
 

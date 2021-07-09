@@ -57,18 +57,6 @@ fn css_item(is_active: bool) -> Css {
     css
 }
 
-//let title = state.node_title(&node_id);
-
-// let title: Rc<String> = match title {
-//     Some(title) => title.clone(),
-//     None => Rc::new("loading ...".into())
-// };
-
-// let title: String = match title {
-//     Some(title) => (&*title.clone()).clone(),
-//     None => "loading ...".into()
-// };
-
 fn create_link(state: &Rc<State>, title: String, node_id: Vec<String>, create_css: fn(bool) -> Css, is_active: bool) -> VDomElement {
     if is_active {
         let css = create_css(true);
@@ -117,17 +105,6 @@ pub fn render_header(state: &Computed<State>) -> VDomElement {
         out.push(html!{<span css={css_separator()}>"-"</span>});
         out.push(create_link(&state, item.clone(), wsk_current_path.clone(), css_item, is_active));
     }
-
-    // let on_create = {
-    //     //let state = state.clone();
-    //     move || {
-    //         //state.get_value().create_dir("Jakiś".into());
-
-    //         log::info!("klik w utworz katalog ...");
-    //     }
-    // };
-    // <div onClick={on_create} css={css_normal()}>utwórz katalog</div>
-
 
     html! {
         <div css={css_header()}>

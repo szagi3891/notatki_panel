@@ -170,19 +170,27 @@ fn dom_apply(node_refs: &NodeRefs) {
         node_refs.expect_one("wrapper"),
         node_refs.expect_one("active")
     ) {
-        let wrapper_rect = wrapper.get_bounding_client_rect();
-        let active_rect = active.get_bounding_client_rect();
+        // let wrapper_rect = wrapper.get_bounding_client_rect();
+        // let active_rect = active.get_bounding_client_rect();
 
-        if active_rect.y < wrapper_rect.y {
-            let offset = wrapper_rect.y- active_rect.y;
+        let active_rect_y = active.get_bounding_client_rect_y();
+        let active_rect_height = active.get_bounding_client_rect_height();
+
+        let wrapper_rect_y = wrapper.get_bounding_client_rect_y();
+        let wrapper_rect_height = wrapper.get_bounding_client_rect_height();
+
+        log::info!("aplikowanie doma {:?}", [&active_rect_y, &active_rect_height, &wrapper_rect_y, &wrapper_rect_height]);
+
+        if active_rect_y < wrapper_rect_y {
+            let offset = wrapper_rect_y - active_rect_y;
 
             let scroll_top = wrapper.scroll_top();
             wrapper.set_scroll_top(scroll_top - offset as i32);
             return;
         }
 
-        let wrapper_y2 = wrapper_rect.y + wrapper_rect.height;
-        let active_y2 = active_rect.y + active_rect.height;
+        let wrapper_y2 = wrapper_rect_y + wrapper_rect_height;
+        let active_y2 = active_rect_y + active_rect_height;
 
         if active_y2 > wrapper_y2 {
             let offset = active_y2 - wrapper_y2;

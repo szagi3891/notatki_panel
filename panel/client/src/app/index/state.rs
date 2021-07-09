@@ -89,6 +89,10 @@ fn create_list(root: &Dependencies, list: &Computed<Result<Rc<HashMap<String, Tr
 
                 list_out
             },
+            Err(ResourceError::Loading) => {
+                log::info!("Create list --> Loading");
+                Vec::new()
+            },
             Err(err) => {
                 log::error!("Create list --> {:?}", err);
                 Vec::new()

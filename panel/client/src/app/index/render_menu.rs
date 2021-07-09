@@ -53,18 +53,6 @@ pub fn render_menu(state: &Computed<State>) -> VDomElement {
     out.push(button("Zmień nazwę", on_rename));
     out.push(button("Edycja pliku", on_click));
 
-    // let out = [
-    //     button("Utwórz plik", || {}),
-    //     button("Utwórz katalog", || {}),
-    //     button("Zmień nazwę", || {}),
-    //     button("Edycja pliku", on_click)
-    // ];
-
-    // <span css={css_item()}>"Utwórz plik"</span>
-    // <span css={css_item()}>"Utwórz katalog"</span>
-    // <span css={css_item()}>"Zmień nazwę"</span>
-    // <span css={css_item()} onClick={on_click}>"Edycja pliku"</span>
-
     html! {
         <div css={css_footer()}>
             { ..out }
