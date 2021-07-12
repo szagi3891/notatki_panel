@@ -13,10 +13,9 @@ pub struct State {
     pub action_save: Value<bool>,
 
     pub parent: Vec<String>,
-    pub name: Value<String>,
+    pub new_name: Computed<super::new_name::NewName>,
     pub content: Value<String>,
 
-    pub name_exists: Computed<bool>,
     pub save_enable: Computed<bool>,
 
     parent_state: Computed<ParentState>,
@@ -33,46 +32,25 @@ impl State {
         driver: &DomDriver,
         list: Computed<Vec<ListItem>>,
         parent_state: Computed<ParentState>,
-    ) -> State {
+    ) -> Computed<State> {
         let action_save = deep.new_value(false);
-        let name = deep.new_value(String::from(""));
+        let new_name = super::new_name::NewName::new(deep, list, action_save.to_computed());
         let content = deep.new_value(String::from(""));
 
-        let name_exists = {
-            let name = name.to_computed();
-
-            deep.from(move || -> bool {
-                let list = list.get_value();
-                let name = name.get_value();
-
-                for item in list.as_ref() {
-                    if item.name == *name {
-                        return true;
-                    }
-                }
-
-                false
-            })
-        };
 
         let save_enable = {
-            let name_exists = name_exists.clone();
-            let name = name.to_computed();
+            let new_name = new_name.clone();
             let content = content.to_computed();
 
             deep.from(move || -> bool {
-                let name_exists = name_exists.get_value();
-                if *name_exists == true {
-                    return false;
-                }
+                let new_name_is_valid = new_name.get_value().is_valid.get_value();
 
-                let name = name.get_value();
-                if *name == "" {
+                if !*new_name_is_valid  {
                     return false;
                 }
 
                 let content = content.get_value();
-                if *content == "" {
+                if content.is_empty() {
                     return false;
                 }
 
@@ -82,37 +60,25 @@ impl State {
 
         let request = Request::new(driver);
 
-        State {
+        deep.new_computed_from(State {
             request,
 
             action_save,
             
             parent,
-            name,
+            new_name,
             content,
 
-            name_exists,
             save_enable,
 
             parent_state,
-        }
-    }
-
-    pub fn on_input_name(&self, new_value: String) {
-        let action_save = self.action_save.get_value();
-
-        if *action_save == true {
-            log::error!("Trwa obecnie zapis");
-            return;
-        }
-
-        self.name.set_value(new_value);
+        })
     }
 
     pub fn on_input_content(&self, new_value: String) {
         let action_save = self.action_save.get_value();
 
-        if *action_save == true {
+        if *action_save {
             log::error!("Trwa obecnie zapis");
             return;
         }
@@ -123,18 +89,20 @@ impl State {
     pub fn on_save(&self) {
         let action_save = self.action_save.get_value();
 
-        if *action_save == true {
+        if *action_save {
             log::error!("Trwa obecnie zapis");
             return;
         }
 
         self.action_save.set_value(true);
 
-        let name = (*self.name.get_value()).clone();
+        let new_name_state = self.new_name.get_value();
+        let full_relative_new_path = (*new_name_state.full_relative_new_path.get_value()).clone();
+        let file_name = (*new_name_state.name.get_value()).clone();
 
         let body: HandlerCreateFileBody = HandlerCreateFileBody {
             path: self.parent.clone(),
-            new_path: vec!(name.clone()),
+            new_path: full_relative_new_path,
             new_content: (*self.content.get_value()).clone(),
         };
 
@@ -143,20 +111,24 @@ impl State {
             .body(body)
             .post::<HandlerCreateFileResponse>();
 
-        let callback = self.parent_state.get_value().clone();
+        let callback = self.parent_state.get_value();
+
 
         self.request.spawn_local({
             
-            let parent = self.parent.clone();
-            let name = Some(name);
+            let mut path_redirect = self.parent.clone();
+            let relative_new_path = (*new_name_state.relative_path.get_value()).clone();
+            path_redirect.extend(relative_new_path.into_iter());
+            
+            let file_name = Some(file_name);
             
             async move {
 
                 let response = request.await.unwrap();
 
-                log::info!("Zapis udany {:?}", response);
+                log::info!("Zapis udany {:?} -> przekierowanie na -> {:?} {:?}", response, path_redirect, file_name);
 
-                callback.redirect_to_index_with_path(parent, name);
+                callback.redirect_to_index_with_path(path_redirect, file_name);
             }
         });
     }

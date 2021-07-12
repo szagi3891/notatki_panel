@@ -1,7 +1,7 @@
 use vertigo::{Css, VDomElement, computed::Computed};
 use vertigo_html::{css, html};
 
-use super::State;
+use super::{State};
 use crate::components::button;
 
 fn css_wrapper() -> Css {
@@ -22,18 +22,6 @@ fn css_header() -> Css {
     ")
 }
 
-fn css_input_name() -> Css {
-    css!("
-        border: 0;
-        padding: 5px;
-        margin: 5px;
-        border: 1px solid blue;
-        :focus {
-            border: 0;
-        }
-    ")
-}
-
 fn css_input_content() -> Css {
     css!("
         flex-grow: 1;
@@ -45,20 +33,6 @@ fn css_input_content() -> Css {
             border: 0;
         }
     ")
-}
-
-fn render_input_name(state: &Computed<State>) -> VDomElement {
-    let state = state.get_value();
-
-    let content = &state.name.get_value();
-
-    let on_input = move |new_value: String| {
-        state.on_input_name(new_value);
-    };
-
-    html! {
-        <textarea css={css_input_name()} onInput={on_input} value={content.as_ref()} />
-    }
 }
 
 fn render_input_content(state: &Computed<State>) -> VDomElement {
@@ -88,21 +62,17 @@ pub fn render(state: &Computed<State>) -> VDomElement {
 
     let parent_path = state_value.as_ref().parent.as_slice().join("/");
 
-    let mut buttons = Vec::new();
-
-    buttons.push(button("Wróć", on_click));
+    let mut buttons = vec!(button("Wróć", on_click));
 
     let save_enable = state_value.save_enable.get_value();
 
     if *save_enable {
-        let on_save = {
+        buttons.push(button("Zapisz", {
             let state = state_value.clone();
             move || {
                 state.on_save();
             }
-        };
-
-        buttons.push(button("Zapisz", on_save));
+        }));
     }
 
     html! {
@@ -125,7 +95,7 @@ pub fn render(state: &Computed<State>) -> VDomElement {
             <div css={css_header()}>
                 { ..buttons }
             </div>
-            <component {render_input_name} data={state.clone()} />
+            <component {super::new_name::render} data={state_value.new_name.clone()} />
             <component {render_input_content} data={state} />
         </div>
     }

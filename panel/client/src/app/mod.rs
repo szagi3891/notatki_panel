@@ -166,8 +166,6 @@ impl State {
             self.self_state.clone(),
         );
 
-        let state = self.root.new_computed_from(state);
-
         self.current_view.set_value(View::NewContent { state });
     }
 }

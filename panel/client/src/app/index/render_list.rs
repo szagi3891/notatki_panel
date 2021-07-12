@@ -179,8 +179,6 @@ fn dom_apply(node_refs: &NodeRefs) {
         let wrapper_rect_y = wrapper.get_bounding_client_rect_y();
         let wrapper_rect_height = wrapper.get_bounding_client_rect_height();
 
-        log::info!("aplikowanie doma {:?}", [&active_rect_y, &active_rect_height, &wrapper_rect_y, &wrapper_rect_height]);
-
         if active_rect_y < wrapper_rect_y {
             let offset = wrapper_rect_y - active_rect_y;
 
