@@ -220,7 +220,7 @@ fn render_path(state_computed: &Computed<NewName>) -> VDomElement {
         <div css={css_path()}>
             "Podkatalog:"
             { ..subdir }
-            <button onClick={on_remove_last}>
+            <button on_click={on_remove_last}>
                 "usuń ostatni"
             </button>
         </div>
@@ -254,10 +254,10 @@ pub fn render(state_computed: &Computed<NewName>) -> VDomElement {
             <div css={css_input_wrapper()}>
                 <input
                     css={css_input_name()}
-                    onInput={on_input}
+                    on_input={on_input}
                     value={content.as_ref()}
                 />
-                <button onClick={on_new_subdir} css={css_button_dir()}>
+                <button on_click={on_new_subdir} css={css_button_dir()}>
                     "Dodaj jako podkatalog"
                 </button>
             </div>

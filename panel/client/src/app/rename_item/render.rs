@@ -58,7 +58,7 @@ fn render_input(state: &Computed<State>) -> VDomElement {
     };
 
     html! {
-        <input css={css_input()} onInput={on_input} value={content.as_ref()} />
+        <input css={css_input()} on_input={on_input} value={content.as_ref()} />
     }
 }
 

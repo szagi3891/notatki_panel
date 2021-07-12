@@ -45,7 +45,7 @@ fn render_input_content(state: &Computed<State>) -> VDomElement {
     };
 
     html! {
-        <textarea css={css_input_content()} onInput={on_input} value={content.as_ref()} />
+        <textarea css={css_input_content()} on_input={on_input} value={content.as_ref()} />
     }
 }
 

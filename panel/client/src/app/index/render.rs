@@ -63,7 +63,7 @@ pub fn render(state: &Computed<State>) -> VDomElement {
     };
 
     html! {
-        <div id="root" css={css_wrapper()} onKeyDown={on_keydown}>
+        <div id="root" css={css_wrapper()} on_key_down={on_keydown}>
             <style>
                 "
                 html, body {

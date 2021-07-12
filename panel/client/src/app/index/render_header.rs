@@ -79,7 +79,7 @@ fn create_link(state: &Rc<State>, title: String, node_id: Vec<String>, create_cs
     let css = create_css(false);
 
     html! {
-        <div css={css} onClick={on_click}>
+        <div css={css} on_click={on_click}>
             { title }
         </div>
     }

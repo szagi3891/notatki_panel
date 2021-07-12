@@ -253,7 +253,7 @@ pub fn render_list(state: &Computed<State>) -> VDomElement {
 
         if is_select {
             out.push(html!{
-                <div onClick={on_click} css={css_normal(is_select)} dom_ref="active">
+                <div on_click={on_click} css={css_normal(is_select)} dom_ref="active">
                     {icon_arrow(is_select)}
                     {icon_render(item.dir)}
                     <span css={label_css(item.prirority)}>{remove_prefix(&item.name)}</span>
@@ -261,7 +261,7 @@ pub fn render_list(state: &Computed<State>) -> VDomElement {
             });
         } else {
             out.push(html!{
-                <div onClick={on_click} css={css_normal(is_select)}>
+                <div on_click={on_click} css={css_normal(is_select)}>
                     {icon_arrow(is_select)}
                     {icon_render(item.dir)}
                     <span css={label_css(item.prirority)}>{remove_prefix(&item.name)}</span>
