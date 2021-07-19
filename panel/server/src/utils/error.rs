@@ -1,34 +1,69 @@
+use std::fmt::Debug;
+
 use warp::http::Response;
 use git2::Error;
 use super::create_response_message;
 
+fn format_message(context: Vec<String>, message: String) -> String {
+    let context = context.as_slice().join(",");
+    format!("{} context=({})", message, context)
+}
+
 #[derive(Debug)]
 pub enum ErrorProcess {
     User {
+        context: Vec<String>,
         message: String,
     },
     Server {
+        context: Vec<String>,
         message: String,
     }
 }
 
 impl ErrorProcess {
-    pub fn user<K, T: Into<String>>(message: T) -> Result<K, ErrorProcess> {
+    pub fn user<T: Into<String>>(message: T) -> ErrorProcess {
+        ErrorProcess::User {
+            context: Vec::new(),
+            message: message.into(),
+        }
+    }
+
+    pub fn user_result<K, T: Into<String>>(message: T) -> Result<K, ErrorProcess> {
         Err(ErrorProcess::User {
+            context: Vec::new(),
             message: message.into(),
         })
     }
 
-    pub fn server<K, T: Into<String>>(message: T) -> Result<K, ErrorProcess> {
+    pub fn server_result<K, T: Into<String>>(message: T) -> Result<K, ErrorProcess> {
         Err(ErrorProcess::Server {
+            context: Vec::new(),
             message: message.into(),
         })
     }
 
     pub fn to_response(self) -> Response<String> {
         match self {
-            ErrorProcess::Server { message } => create_response_message(500, message),
-            ErrorProcess::User { message } => create_response_message(400, message),
+            ErrorProcess::Server { message, context } => {
+                create_response_message(500, format_message(context, message))
+            },
+            ErrorProcess::User { message, context } => {
+                create_response_message(400, format_message(context, message))
+            }
+        }
+    }
+
+    pub fn context<T: Debug>(self, label: &str, label_message: T) -> Self {
+        match self {
+            ErrorProcess::User { mut context, message } => {
+                context.push(format!("{} = {:?}", label, label_message));
+                ErrorProcess::User { context, message }
+            },
+            ErrorProcess::Server { mut context, message } => {
+                context.push(format!("{} = {:?}", label, label_message));
+                ErrorProcess::User { context, message }
+            },
         }
     }
 }
@@ -36,6 +71,7 @@ impl ErrorProcess {
 impl From<Error> for ErrorProcess {
     fn from(err: Error) -> ErrorProcess {
         ErrorProcess::Server {
+            context: Vec::new(),
             message: format!("{}", err),
         }
     }

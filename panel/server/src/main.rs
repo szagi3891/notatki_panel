@@ -1,3 +1,6 @@
+#![allow(clippy::needless_lifetimes)]
+#![allow(clippy::ptr_arg)]
+
 use common::{HandlerCreateFileBody, HandlerCreateFileResponse, HandlerFetchDirBody, HandlerFetchDirResponse, HandlerFetchNodeBody, HandlerFetchNodeResponse, HandlerFetchRootResponse, HandlerRenameItemBody, HandlerRenameItemResponse, HandlerSaveContentBody, HandlerSaveContentResponse};
 use utils::{create_response, create_response_message};
 use warp::{Filter, Reply, http::Response};

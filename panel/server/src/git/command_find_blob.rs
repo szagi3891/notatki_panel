@@ -3,11 +3,10 @@ use serde::{Deserialize, Serialize};
 
 use git2::{
     Repository,
-    ObjectType,
     TreeEntry,
 };
 use crate::utils::ErrorProcess;
-use super::utils::create_id;
+use super::utils::{create_id, tree_entry_is_file};
 
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -20,23 +19,12 @@ pub enum GitBlob {
     }
 }
 
-
 fn convert_to_name(item: &TreeEntry) -> Result<String, ErrorProcess> {
     let name = item.name();
 
     match name {
         Some(str) => Ok(String::from(str)),
-        None => ErrorProcess::server("One of the tree elements has an invalid utf8 name")
-    }
-}
-
-fn convert_to_type(item: &TreeEntry) -> Result<bool, ErrorProcess> {
-    let kind = item.kind();
-
-    match kind {
-        Some(ObjectType::Tree) => Ok(true),
-        Some(ObjectType::Blob) => Ok(false),
-        _ => ErrorProcess::server("Trees only support 'ObjectType::Tree' and 'ObjectType::Blob'")
+        None => ErrorProcess::server_result("One of the tree elements has an invalid utf8 name")
     }
 }
 
@@ -48,7 +36,7 @@ pub fn command_find_blob(repo: &Repository, id: String) -> Result<Option<GitBlob
 
         for item in tree.iter() {
             list.push(GitTreeItem {
-                dir: convert_to_type(&item)?,
+                dir: !tree_entry_is_file(&item)?,
                 id: item.id().to_string(),
                 name: convert_to_name(&item)?,
             });

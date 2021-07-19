@@ -1,12 +1,12 @@
-use git2::ObjectType;
 use git2::{
     Repository,
     Tree,
     Oid,
 };
+use crate::git::utils::tree_entry_is_file;
 use crate::utils::ErrorProcess;
 use super::create_id;
-use super::utils::find_and_commit;
+use super::utils::RepoWrapper;
 
 pub fn command_rename_item<'repo>(
     repo: &'repo Repository,
@@ -17,44 +17,23 @@ pub fn command_rename_item<'repo>(
     new_name: String,
 ) -> Result<String, ErrorProcess> {
 
-    let new_tree_id = find_and_commit(
-        &repo,
-        branch_name,
-        &path,
-        move |repo: &Repository, tree: Tree| -> Result<Oid, ErrorProcess> {
-        
-            let child = tree.get_name(prev_name.as_str());
+    let new_tree_id = RepoWrapper::new(repo, branch_name)?
+        .find_and_modify(&path, move |repo: &Repository, tree: Tree| -> Result<Oid, ErrorProcess> {
 
-            let child = match child {
-                Some(child) => child,
-                None => {
-                    return ErrorProcess::user(format!("this element not exists - {}", prev_name));
-                },
-            };
+            let child = tree.get_name(prev_name.as_str())
+                .ok_or_else(|| ErrorProcess::user("this element not exists")
+                    .context("command_rename_item prev_name", &prev_name)
+                )?;
 
-            let child_is_file = {
-                let child_kind = match child.kind() {
-                    Some(child_kind) => child_kind,
-                    None => {
-                        return ErrorProcess::user(format!("Problem with reading the 'kind' for  - {}", prev_name));
-                    }
-                };
-
-                if child_kind == ObjectType::Tree {
-                    false
-                } else if child_kind == ObjectType::Blob {
-                    true
-                } else {
-                    return ErrorProcess::user(format!("Unsupported type  - {} {}", prev_name, child_kind));
-                }
-            };
+            let child_is_file = tree_entry_is_file(&child)
+                .map_err(|err| err.context("command_rename_item prev_name", &prev_name))?;
 
             let prev_hash = create_id(prev_hash.clone())?;
 
             if child.id() != prev_hash {
                 let prev_hash = prev_hash.to_string();
                 let child_id = child.id().to_string();
-                return ErrorProcess::user(format!("'prev_hash' does not match - {} {}", prev_hash, child_id));
+                return ErrorProcess::user_result(format!("'prev_hash' does not match - {} {}", prev_hash, child_id));
             }
 
             let new_item_exist = {
@@ -63,7 +42,7 @@ pub fn command_rename_item<'repo>(
             };
 
             if new_item_exist {
-                return ErrorProcess::user(format!("New element exists - {}", new_name));
+                return ErrorProcess::user_result(format!("New element exists - {}", new_name));
             }
 
             let mut builder = repo.treebuilder(Some(&tree))?;
@@ -79,9 +58,8 @@ pub fn command_rename_item<'repo>(
             let id = builder.write()?;
 
             Ok(id)
-
-        }
-    )?;
+        })?
+        .commit()?;
 
     Ok(new_tree_id.to_string())
 }

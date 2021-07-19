@@ -98,7 +98,13 @@ impl Git {
                         new_content,
                         response
                     } => {
-                        let resp = command_save_change(&repo, &branch, path, prev_hash, new_content);
+                        let resp = command_save_change(
+                            &repo,
+                            &branch,
+                            path,
+                            prev_hash,
+                            new_content
+                        );
                         response.send(resp).unwrap();
                     },
 
@@ -108,7 +114,13 @@ impl Git {
                         new_content,
                         response,
                     } => {
-                        let resp = command_create_file(&repo, &branch, path, new_path, new_content);
+                        let resp = command_create_file(
+                            &repo,
+                            &branch,
+                            path,
+                            new_path,
+                            new_content
+                        );
                         response.send(resp).unwrap();
                     },
 
@@ -119,7 +131,14 @@ impl Git {
                         new_name,
                         response,
                     } => {
-                        let resp = command_rename_item(&repo, &branch, path, prev_name, prev_hash, new_name);
+                        let resp = command_rename_item(
+                            &repo,
+                            &branch,
+                            path,
+                            prev_name,
+                            prev_hash,
+                            new_name
+                        );
                         response.send(resp).unwrap();
                     }
                 }
@@ -147,8 +166,7 @@ impl Git {
 
         self.sender.send(command).await.unwrap();
 
-        let response = receiver.await.unwrap();
-        response
+        receiver.await.unwrap()
     }
 
     pub async fn get_from_id(&self, id: &String) -> Result<Option<GitBlob>, ErrorProcess> {
