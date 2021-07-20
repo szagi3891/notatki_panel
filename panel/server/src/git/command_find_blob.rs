@@ -2,11 +2,10 @@ use common::GitTreeItem;
 use serde::{Deserialize, Serialize};
 
 use git2::{
-    Repository,
     TreeEntry,
 };
 use crate::utils::ErrorProcess;
-use super::utils::{create_id, tree_entry_is_file};
+use super::utils::{RepoWrapper, create_id, tree_entry_is_file};
 
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -28,10 +27,10 @@ fn convert_to_name(item: &TreeEntry) -> Result<String, ErrorProcess> {
     }
 }
 
-pub fn command_find_blob(repo: &Repository, id: String) -> Result<Option<GitBlob>, ErrorProcess> {
+pub fn command_find_blob(repo: &RepoWrapper, id: String) -> Result<Option<GitBlob>, ErrorProcess> {
     let oid = create_id(id)?;
 
-    if let Ok(tree) = repo.find_tree(oid) {
+    if let Ok(tree) = repo.repo.find_tree(oid) {
         let mut list: Vec<GitTreeItem> = Vec::new();
 
         for item in tree.iter() {
@@ -45,7 +44,7 @@ pub fn command_find_blob(repo: &Repository, id: String) -> Result<Option<GitBlob
         return Ok(Some(GitBlob::Tree { list }));
     }
 
-    if let Ok(blob) = repo.find_blob(oid) {
+    if let Ok(blob) = repo.repo.find_blob(oid) {
         let content = blob.content();
         let content = Vec::from(content);
 

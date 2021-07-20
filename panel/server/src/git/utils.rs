@@ -63,17 +63,17 @@ fn put_child_tree<'repo>(
 
 fn find_and_change<
     'repo,
-    M: Fn(&Repository, Tree<'repo>) -> Result<Oid, ErrorProcess>
+    M: Fn(&'repo Repository, &Tree<'repo>) -> Result<Oid, ErrorProcess>
 >(
     repo: &'repo Repository,
-    tree: Tree<'repo>, 
+    tree: &Tree<'repo>, 
     path: &[String],
     modify: M
 ) -> Result<Oid, ErrorProcess> {
     if let Some((first, rest_path)) = path.split_first() {
         
         let child_tree = get_child_tree(repo, &tree, first)?;
-        let child_tree_modify = find_and_change(repo, child_tree, rest_path, modify)?;
+        let child_tree_modify = find_and_change(repo, &child_tree, rest_path, modify)?;
         let tree_modify = put_child_tree(repo, &tree, first, child_tree_modify)?;
 
         Ok(tree_modify)
@@ -110,14 +110,15 @@ pub fn create_file_content<'repo>(
     }
 }
 
+#[derive(Clone)]
 pub struct RepoWrapper<'repo> {
-    repo: &'repo Repository,
-    branch_name: &'repo String,
-    new_tree: Tree<'repo>,
+    pub repo: &'repo Repository,
+    branch_name: String,
+    tree: Tree<'repo>,
 }
 
 impl<'repo> RepoWrapper<'repo> {
-    pub fn new(repo: &'repo Repository, branch_name: &'repo String) -> Result<RepoWrapper<'repo>, ErrorProcess> {
+    pub fn new(repo: &'repo Repository, branch_name: String) -> Result<RepoWrapper<'repo>, ErrorProcess> {
         let branch = repo.find_branch(branch_name.as_str(), BranchType::Local).unwrap();
         let reference = branch.get();
         let curret_root_tree = reference.peel_to_tree()?;
@@ -125,37 +126,39 @@ impl<'repo> RepoWrapper<'repo> {
         Ok(RepoWrapper {
             repo,
             branch_name,
-            new_tree: curret_root_tree,
+            tree: curret_root_tree,
         })
     }
 
+    pub fn main_id(&self) -> String {
+        self.tree.id().to_string()
+    }
+
     pub fn find_and_modify<
-        M: Fn(&Repository, Tree<'repo>) -> Result<Oid, ErrorProcess>
+        M: Fn(&Repository, &Tree<'repo>) -> Result<Oid, ErrorProcess>
     >(
         self,
         path: &[String],
         modify: M,
     ) -> Result<RepoWrapper<'repo>, ErrorProcess> {
-        let Self { repo, branch_name, new_tree: root_tree } = self;
-
         let new_tree_id = find_and_change(
-            &repo,
-            root_tree,
+            self.repo,
+            &self.tree,
             &path,
             modify
         )?;
 
-        let new_tree = find_tree(&repo, new_tree_id)?;
+        let new_tree = find_tree(&self.repo, new_tree_id)?;
         
         Ok(RepoWrapper {
-            repo,
-            branch_name,
-            new_tree
+            repo: self.repo,
+            branch_name: self.branch_name.clone(),
+            tree: new_tree
         })
     }
 
-    pub fn commit(self) -> Result<Oid, ErrorProcess> {
-        let Self { repo, branch_name, new_tree } = self;
+    pub fn commit(&self) -> Result<(), ErrorProcess> {
+        let Self { repo, branch_name, tree: new_tree } = self;
 
         let branch = self.repo.find_branch(branch_name.as_str(), BranchType::Local).unwrap();
         let reference = branch.get();
@@ -174,8 +177,14 @@ impl<'repo> RepoWrapper<'repo> {
             &[&commit]
         )?;
 
-        Ok(new_tree.id())
+        Ok(())
     }
+
+    //
+    //TODO - tutaj dodać kolejne metody na "repo"
+    //zapis pliku
+    //skasowanie pliku
+    //itd ...
 }
 
 

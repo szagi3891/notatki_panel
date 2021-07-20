@@ -10,16 +10,14 @@ use tokio::sync::{
 
 use std::sync::Arc;
 use git2::{Repository};
-use crate::utils::ErrorProcess;
+use crate::{git::utils::RepoWrapper, utils::ErrorProcess};
 
 mod utils;
-mod command_find_main_commit;
 mod command_find_blob;
 mod command_save_change;
 mod command_create_file;
 mod command_rename_item;
 
-use command_find_main_commit::command_find_main_commit;
 use command_find_blob::command_find_blob;
 use command_save_change::command_save_change;
 use command_create_file::command_create_file;
@@ -73,22 +71,23 @@ impl Git {
 
             println!("test z watku ... start");
 
-            let repo = match Repository::open(path) {
+            let repository = match Repository::open(path) {
                 Ok(repo) => repo,
                 Err(e) => panic!("failed to init: {}", e),
             };
+            
+            let mut repo_wrapper = RepoWrapper::new(&repository, branch).unwrap();
             
             while let Some(command) = receiver.blocking_recv() {
                 println!("command ... {:?}", &command);
 
                 match command {
                     Command::FindMainCommit { response } => {
-                        let tree = command_find_main_commit(&repo, &branch);
-                        response.send(tree).unwrap();
+                        response.send(Ok(repo_wrapper.main_id())).unwrap();
                     },
 
                     Command::FindBlob { id, response } => {
-                        let res = command_find_blob(&repo, id);
+                        let res = command_find_blob(&repo_wrapper, id);
                         response.send(res).unwrap();
                     }
 
@@ -99,13 +98,22 @@ impl Git {
                         response
                     } => {
                         let resp = command_save_change(
-                            &repo,
-                            &branch,
+                            repo_wrapper.clone(),
                             path,
                             prev_hash,
                             new_content
                         );
-                        response.send(resp).unwrap();
+
+                        match resp {
+                            Ok(new_repo) => {
+                                let id = new_repo.main_id();
+                                repo_wrapper = new_repo;
+                                response.send(Ok(id)).unwrap();
+                            },
+                            Err(err) => {
+                                response.send(Err(err)).unwrap();
+                            }
+                        };
                     },
 
                     Command::CreateFile {
@@ -115,13 +123,22 @@ impl Git {
                         response,
                     } => {
                         let resp = command_create_file(
-                            &repo,
-                            &branch,
+                            repo_wrapper.clone(),
                             path,
                             new_path,
                             new_content
                         );
-                        response.send(resp).unwrap();
+
+                        match resp {
+                            Ok(new_repo) => {
+                                let id = new_repo.main_id();
+                                repo_wrapper = new_repo;
+                                response.send(Ok(id)).unwrap();
+                            },
+                            Err(err) => {
+                                response.send(Err(err)).unwrap();
+                            }
+                        };
                     },
 
                     Command::RenameItem {
@@ -132,21 +149,28 @@ impl Git {
                         response,
                     } => {
                         let resp = command_rename_item(
-                            &repo,
-                            &branch,
+                            repo_wrapper.clone(),
                             path,
                             prev_name,
                             prev_hash,
                             new_name
                         );
-                        response.send(resp).unwrap();
+
+                        match resp {
+                            Ok(new_repo) => {
+                                let id = new_repo.main_id();
+                                repo_wrapper = new_repo;
+                                response.send(Ok(id)).unwrap();
+                            },
+                            Err(err) => {
+                                response.send(Err(err)).unwrap();
+                            }
+                        };
                     }
                 }
 
                 println!("next command ...");
             }
-
-            drop(repo);
 
             println!("test z watku ...");
         });
