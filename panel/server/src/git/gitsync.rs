@@ -32,6 +32,13 @@ impl Gitsync {
         GitsyncSession::new(mutex_guard, self.branch_name.as_str())
     }
 
+    pub async fn command_main_commit(
+        &self,
+    ) -> Result<String, ErrorProcess> {
+        let session = self.session().await?;
+        session.command_main_commit().await
+    }
+
     pub async fn command_save_change(
         &self,
         path: Vec<String>,

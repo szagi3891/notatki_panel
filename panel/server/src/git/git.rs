@@ -14,15 +14,11 @@ use git2::{Repository};
 use crate::{git::utils::RepoWrapper, utils::ErrorProcess};
 
 use super::{command_find_blob::command_find_blob, gitsync::Gitsync};
-use super::command_save_change::command_save_change;
 use super::command_create_file::command_create_file;
 use super::command_rename_item::command_rename_item;
 
 #[derive(Debug)]
 enum Command {
-    FindMainCommit {
-        response: oneshot::Sender<Result<std::string::String, ErrorProcess>>,
-    },
     FindBlob {
         id: String,
         response: oneshot::Sender<Result<Option<GitBlob>, ErrorProcess>>,
@@ -71,10 +67,6 @@ impl Git {
                 println!("command ... {:?}", &command);
 
                 match command {
-                    Command::FindMainCommit { response } => {
-                        response.send(Ok(repo_wrapper.main_id())).unwrap();
-                    },
-
                     Command::FindBlob { id, response } => {
                         let res = command_find_blob(&repo_wrapper, id);
                         response.send(res).unwrap();
@@ -147,15 +139,7 @@ impl Git {
     }
 
     pub async fn get_main_commit(&self) -> Result<String, ErrorProcess> {
-        let (sender, receiver) = oneshot::channel();
-
-        let command = Command::FindMainCommit {
-            response: sender,
-        };
-
-        self.sender.send(command).await.unwrap();
-
-        receiver.await.unwrap()
+        self.gitsync.command_main_commit().await
     }
 
     pub async fn get_from_id(&self, id: &String) -> Result<Option<GitBlob>, ErrorProcess> {

@@ -201,6 +201,12 @@ impl<'repo> GitsyncSession<'repo> {
         })
     }
 
+    pub async fn command_main_commit(
+        self,
+    ) -> Result<String, ErrorProcess> {
+        Ok(self.id.to_string())
+    }
+
     pub async fn command_save_change(
         self,
         mut path: Vec<String>,
