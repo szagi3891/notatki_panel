@@ -110,6 +110,21 @@ pub fn create_file_content<'repo>(
     }
 }
 
+
+/*
+    obiekt który reprezentuje repozytorium
+
+
+    obiekt.modify(|RepoWrapper| {
+
+
+        jesli sie wszystko udalo, zwracamy nowe tree
+        //zadaniem tego kodu który wywołuje wrappera będzie zaktualizowanie informacji o nowym tree,
+        oraz dokonanie odpowiedniego komita ...
+    })
+*/
+
+
 #[derive(Clone)]
 pub struct RepoWrapper<'repo> {
     pub repo: &'repo Repository,
