@@ -2,10 +2,10 @@ mod git;
 mod gitsync;
 mod gitsync_session;
 mod utils;
-mod command_find_blob;
 mod command_create_file;
 mod command_rename_item;
+mod models;
 
-pub use command_find_blob::GitBlob;
+pub use models::GitBlob;
 pub use utils::create_id;
 pub use git::Git;

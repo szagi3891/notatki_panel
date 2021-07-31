@@ -1,19 +1,11 @@
-use std::sync::Arc;
-use git2::{BranchType, ObjectType, Repository, Tree, Oid};
-use serde::ser::Error;
+use git2::{BranchType, ObjectType, Repository, Tree, Oid, TreeEntry};
 use crate::utils::ErrorProcess;
-use tokio::sync::{Mutex, MutexGuard};
+use tokio::sync::{MutexGuard};
+use common::GitTreeItem;
 use tokio::task;
 
-
-// pub fn create_id(hash: String) -> Result<Oid, ErrorProcess> {
-//     match Oid::from_str(&hash) {
-//         Ok(id) => Ok(id),
-//         Err(err) => {
-//             ErrorProcess::user_result(format!("Invalid hash {} {}", hash, err))
-//         }
-//     }
-// }
+use crate::git::GitBlob;
+use super::utils::{create_id, tree_entry_is_file};
 
 
 fn find_tree<'repo>(repo: &'repo MutexGuard<'repo, Repository>, id: Oid) -> Result<Tree, ErrorProcess> {
@@ -88,6 +80,16 @@ fn find_and_change_path<
 }
 
 
+fn convert_to_name(item: &TreeEntry) -> Result<String, ErrorProcess> {
+    let name = item.name();
+
+    match name {
+        Some(str) => Ok(String::from(str)),
+        None => ErrorProcess::server_result("One of the tree elements has an invalid utf8 name")
+    }
+}
+
+
 pub struct GitsyncSession<'repo> {
     id: Oid,
     branch_name: String,
@@ -111,26 +113,26 @@ impl<'repo> GitsyncSession<'repo> {
         })
     }
 
-    fn find_and_change<
-        M: Fn(&MutexGuard<'repo, Repository>, &Tree) -> Result<Oid, ErrorProcess>
-    >(
-        self,
-        modify: M
-    ) ->  Result<GitsyncSession<'repo>, ErrorProcess> {
-        let Self { id, branch_name, repo } = self;
+    // fn find_and_change<
+    //     M: Fn(&MutexGuard<'repo, Repository>, &Tree) -> Result<Oid, ErrorProcess>
+    // >(
+    //     self,
+    //     modify: M
+    // ) ->  Result<GitsyncSession<'repo>, ErrorProcess> {
+    //     let Self { id, branch_name, repo } = self;
 
-        let new_id = {
-            let tree = find_tree(&repo, id)?;
-            let new_id = modify(&repo, &tree)?;
-            new_id
-        };
+    //     let new_id = {
+    //         let tree = find_tree(&repo, id)?;
+    //         let new_id = modify(&repo, &tree)?;
+    //         new_id
+    //     };
 
-        Ok(GitsyncSession {
-            id: new_id,
-            branch_name,
-            repo,
-        })
-    }
+    //     Ok(GitsyncSession {
+    //         id: new_id,
+    //         branch_name,
+    //         repo,
+    //     })
+    // }
 
     fn find_and_change_path_sync<
         M: Fn(&MutexGuard<'repo, Repository>, &Tree) -> Result<Oid, ErrorProcess>
@@ -238,4 +240,35 @@ impl<'repo> GitsyncSession<'repo> {
         new_repo.commit()
     }
 
+    pub async fn command_find_blob(
+        self,
+        id: String
+    ) -> Result<Option<GitBlob>, ErrorProcess> {
+        let Self { repo, .. } = self;
+
+        let oid = create_id(id)?;
+
+        if let Ok(tree) = repo.find_tree(oid) {
+            let mut list: Vec<GitTreeItem> = Vec::new();
+    
+            for item in tree.iter() {
+                list.push(GitTreeItem {
+                    dir: !tree_entry_is_file(&item)?,
+                    id: item.id().to_string(),
+                    name: convert_to_name(&item)?,
+                });
+            }
+    
+            return Ok(Some(GitBlob::Tree { list }));
+        }
+    
+        if let Ok(blob) = repo.find_blob(oid) {
+            let content = blob.content();
+            let content = Vec::from(content);
+    
+            return Ok(Some(GitBlob::Blob { content }));
+        }
+    
+        Ok(None)
+    }
 }

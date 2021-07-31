@@ -13,16 +13,12 @@ use std::sync::Arc;
 use git2::{Repository};
 use crate::{git::utils::RepoWrapper, utils::ErrorProcess};
 
-use super::{command_find_blob::command_find_blob, gitsync::Gitsync};
+use super::gitsync::Gitsync;
 use super::command_create_file::command_create_file;
 use super::command_rename_item::command_rename_item;
 
 #[derive(Debug)]
 enum Command {
-    FindBlob {
-        id: String,
-        response: oneshot::Sender<Result<Option<GitBlob>, ErrorProcess>>,
-    },
     CreateFile {
         path: Vec<String>,      //wskazuje na katalog w którym utworzymy nową treść
         new_path: Vec<String>,  //mona od razu utworzyc potrzebne podktalogi
@@ -67,11 +63,6 @@ impl Git {
                 println!("command ... {:?}", &command);
 
                 match command {
-                    Command::FindBlob { id, response } => {
-                        let res = command_find_blob(&repo_wrapper, id);
-                        response.send(res).unwrap();
-                    },
-
                     Command::CreateFile {
                         path,
                         new_path,
@@ -143,14 +134,7 @@ impl Git {
     }
 
     pub async fn get_from_id(&self, id: &String) -> Result<Option<GitBlob>, ErrorProcess> {
-        let (sender, receiver) = oneshot::channel();
-
-        let command = Command::FindBlob {
-            id: id.clone(),
-            response: sender,
-        };
-        self.sender.send(command).await.unwrap();
-        receiver.await.unwrap()
+        self.gitsync.get_from_id(id.clone()).await
     }
 
     pub async fn save_content(&self, path: Vec<String>, prev_hash: String, new_content: String) -> Result<String, ErrorProcess> {
