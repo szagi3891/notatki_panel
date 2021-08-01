@@ -10,17 +10,6 @@ pub fn create_id(hash: &String) -> Result<Oid, ErrorProcess> {
     }
 }
 
-/*
-    obiekt który reprezentuje repozytorium
-
-
-    obiekt.modify(|RepoWrapper| {
-        jesli sie wszystko udalo, zwracamy nowe tree
-        //zadaniem tego kodu który wywołuje wrappera będzie zaktualizowanie informacji o nowym tree,
-        oraz dokonanie odpowiedniego komita ...
-    })
-*/
-
 pub fn tree_entry_is_file(child: &TreeEntry) -> Result<bool, ErrorProcess> {
     let child_kind = child.kind()
         .ok_or_else(|| ErrorProcess::user("Problem with reading the 'kind' for"))?;
