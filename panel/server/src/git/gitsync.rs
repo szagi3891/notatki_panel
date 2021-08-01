@@ -63,4 +63,16 @@ impl Gitsync {
         let session = self.session().await?;
         session.command_create_file(path, new_path, new_content).await
     }
+
+
+    pub async fn command_rename_item(
+        &self,
+        path: Vec<String>,          //wskazuje na katalog
+        prev_name: String,          //mona od razu utworzyc potrzebne podktalogi
+        prev_hash: String,
+        new_name: String,
+    ) -> Result<String, ErrorProcess> {
+        let session = self.session().await?;
+        session.command_rename_item(path, prev_name, prev_hash, new_name).await
+    }
 }

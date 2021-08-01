@@ -1,99 +1,22 @@
-use tokio::sync::{
-    oneshot::{
-        self,
-    },
-    mpsc::{
-        self,
-        Sender,
-    }
-};
 use crate::git::GitBlob;
 
-use std::sync::Arc;
-use git2::{Repository};
-use crate::{git::utils::RepoWrapper, utils::ErrorProcess};
+use crate::utils::ErrorProcess;
 
 use super::gitsync::Gitsync;
-use super::command_rename_item::command_rename_item;
 
-#[derive(Debug)]
-enum Command {
-    RenameItem {
-        path: Vec<String>,      //wskazuje na katalog w którym utworzymy nową treść
-        prev_name: String,
-        prev_hash: String,
-        new_name: String,
-        response: oneshot::Sender<Result<String, ErrorProcess>>,
-    }
-}
 
 #[derive(Clone)]
 pub struct Git {
     gitsync: Gitsync,
-    sender: Sender<Command>,
-    _thread: Arc<std::thread::JoinHandle<()>>,
 }
 
 impl Git {
     pub fn new(path: String, branch_name: String) -> Git {
 
-        let (sender, mut receiver) = mpsc::channel::<Command>(1000);
-
         let gitsync = Gitsync::new(path.clone(), branch_name.clone()).unwrap();     //TODO ...
 
-        let thread = std::thread::spawn(move || {
-
-            println!("test z watku ... start");
-
-            let repository = match Repository::open(path) {
-                Ok(repo) => repo,
-                Err(e) => panic!("failed to init: {}", e),
-            };
-            
-            let mut repo_wrapper = RepoWrapper::new(&repository, branch_name).unwrap();
-            
-            while let Some(command) = receiver.blocking_recv() {
-                println!("command ... {:?}", &command);
-
-                match command {
-                    Command::RenameItem {
-                        path,
-                        prev_name,
-                        prev_hash,
-                        new_name,
-                        response,
-                    } => {
-                        let resp = command_rename_item(
-                            repo_wrapper.clone(),
-                            path,
-                            prev_name,
-                            prev_hash,
-                            new_name
-                        );
-
-                        match resp {
-                            Ok(new_repo) => {
-                                let id = new_repo.main_id();
-                                repo_wrapper = new_repo;
-                                response.send(Ok(id)).unwrap();
-                            },
-                            Err(err) => {
-                                response.send(Err(err)).unwrap();
-                            }
-                        };
-                    },
-                }
-
-                println!("next command ...");
-            }
-
-            println!("test z watku ...");
-        });
-
         Git {
-            sender,
             gitsync,
-            _thread: Arc::new(thread),
         }
     }
 
@@ -114,17 +37,6 @@ impl Git {
     }
 
     pub async fn rename_item(&self, path: Vec<String>, prev_name: String, prev_hash: String, new_name: String) -> Result<String, ErrorProcess> {
-        let (sender, receiver) = oneshot::channel();
-
-        let command = Command::RenameItem {
-            path,
-            prev_name,
-            prev_hash,
-            new_name,
-            response: sender,
-        };
-
-        self.sender.send(command).await.unwrap();
-        receiver.await.unwrap()
+        self.gitsync.command_rename_item(path, prev_name, prev_hash, new_name).await
     }
 }
