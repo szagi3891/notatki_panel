@@ -46,12 +46,14 @@ impl Git {
         new_content: String
     ) -> Result<String, ErrorProcess> {
         let session = self.session().await?;
-        session.command_save_change(path, prev_hash, new_content).await
+        let session = session.command_save_change(path, prev_hash, new_content).await?;
+        session.commit()
     }
 
     pub async fn get_from_id(&self, id: &String) -> Result<Option<GitBlob>, ErrorProcess> {
         let session = self.session().await?;
-        session.command_find_blob(id).await
+        let (_, result) = session.command_find_blob(id).await?;
+        Ok(result)
     }
 
     pub async fn create_file(
@@ -61,7 +63,8 @@ impl Git {
         new_content: String,
     ) -> Result<String, ErrorProcess> {
         let session = self.session().await?;
-        session.command_create_file(path, new_path, new_content).await
+        let session = session.command_create_file(path, new_path, new_content).await?;
+        session.commit()
     }
 
 
@@ -73,6 +76,7 @@ impl Git {
         new_name: String,
     ) -> Result<String, ErrorProcess> {
         let session = self.session().await?;
-        session.command_rename_item(path, prev_name, prev_hash, new_name).await
+        let session = session.command_rename_item(path, prev_name, prev_hash, new_name).await?;
+        session.commit()
     }
 }
