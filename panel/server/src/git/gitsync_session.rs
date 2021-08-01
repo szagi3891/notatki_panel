@@ -90,6 +90,33 @@ fn convert_to_name(item: &TreeEntry) -> Result<String, ErrorProcess> {
 }
 
 
+pub fn create_file_content<'repo>(
+    repo: &MutexGuard<'repo, Repository>,
+    path: &[String],
+    new_content: &String,
+) -> Result<(Oid, bool), ErrorProcess> {
+    if let Some((name_item, rest_path)) = path.split_first() {
+        
+        let (rest_id, is_file) = create_file_content(repo, rest_path, new_content)?;
+
+        let mut builder = repo.treebuilder(None)?;
+
+        if is_file {
+            builder.insert(name_item, rest_id, 0o100644)?;
+        } else {
+            builder.insert(name_item, rest_id, 0o040000)?;
+        }
+        
+        let write_result = builder.write()?;
+
+        Ok((write_result, false))
+
+    } else {
+        let new_content_id = repo.blob(new_content.as_bytes())?;
+        Ok((new_content_id, true))
+    }
+}
+
 pub struct GitsyncSession<'repo> {
     id: Oid,
     branch_name: String,
@@ -271,4 +298,44 @@ impl<'repo> GitsyncSession<'repo> {
     
         Ok(None)
     }
+
+    pub async fn command_create_file(
+        self,
+        path: Vec<String>,      //wskazuje na katalog w którym utworzymy nową treść
+        new_path: Vec<String>,  //mona od razu utworzyc potrzebne podktalogi
+        new_content: String,
+    ) -> Result<String, ErrorProcess> {
+        
+        let new_repo = self.find_and_change_path(&path, move |repo: &MutexGuard<'repo, Repository>, tree: &Tree| -> Result<Oid, ErrorProcess> {
+            if let Some((first_item_name, rest_path)) = new_path.split_first() {
+    
+                let child = tree.get_name(first_item_name.as_str());
+    
+                if child.is_some() {
+                    return ErrorProcess::user_result(format!("this element already exists - {}", first_item_name));
+                }
+    
+                let (new_content_id, is_file) = create_file_content(repo, rest_path, &new_content)?;
+    
+                let mut builder = repo.treebuilder(Some(&tree))?;
+                
+                if is_file {
+                    builder.insert(first_item_name, new_content_id, 0o100644)?;
+                } else {
+                    builder.insert(first_item_name, new_content_id, 0o040000)?;
+                }
+    
+                let id = builder.write()?;
+    
+                Ok(id)
+    
+            } else {
+                ErrorProcess::user_result("new_path - must be a non-empty list")
+            }
+        }).await?;
+
+        new_repo.commit()
+    }
 }
+
+

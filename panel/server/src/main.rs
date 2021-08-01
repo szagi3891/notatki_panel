@@ -149,7 +149,6 @@ async fn handler_save_content(app_state: Arc<AppState>, body_request: HandlerSav
 }
 
 async fn handler_create_file(app_state: Arc<AppState>, body_request: HandlerCreateFileBody) -> Result<impl warp::Reply, Infallible> {
-
     let result = app_state.git.create_file(
         body_request.path,
         body_request.new_path,

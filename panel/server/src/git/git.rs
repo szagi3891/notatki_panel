@@ -14,17 +14,10 @@ use git2::{Repository};
 use crate::{git::utils::RepoWrapper, utils::ErrorProcess};
 
 use super::gitsync::Gitsync;
-use super::command_create_file::command_create_file;
 use super::command_rename_item::command_rename_item;
 
 #[derive(Debug)]
 enum Command {
-    CreateFile {
-        path: Vec<String>,      //wskazuje na katalog w którym utworzymy nową treść
-        new_path: Vec<String>,  //mona od razu utworzyc potrzebne podktalogi
-        new_content: String,
-        response: oneshot::Sender<Result<String, ErrorProcess>>,
-    },
     RenameItem {
         path: Vec<String>,      //wskazuje na katalog w którym utworzymy nową treść
         prev_name: String,
@@ -63,31 +56,6 @@ impl Git {
                 println!("command ... {:?}", &command);
 
                 match command {
-                    Command::CreateFile {
-                        path,
-                        new_path,
-                        new_content,
-                        response,
-                    } => {
-                        let resp = command_create_file(
-                            repo_wrapper.clone(),
-                            path,
-                            new_path,
-                            new_content
-                        );
-
-                        match resp {
-                            Ok(new_repo) => {
-                                let id = new_repo.main_id();
-                                repo_wrapper = new_repo;
-                                response.send(Ok(id)).unwrap();
-                            },
-                            Err(err) => {
-                                response.send(Err(err)).unwrap();
-                            }
-                        };
-                    },
-
                     Command::RenameItem {
                         path,
                         prev_name,
@@ -142,17 +110,7 @@ impl Git {
     }
 
     pub async fn create_file(&self, path: Vec<String>, new_path: Vec<String>, new_content: String) -> Result<String, ErrorProcess> {
-        let (sender, receiver) = oneshot::channel();
-
-        let save_command = Command::CreateFile {
-            path,
-            new_path,
-            new_content,
-            response: sender,
-        };
-
-        self.sender.send(save_command).await.unwrap();
-        receiver.await.unwrap()
+        self.gitsync.command_create_file(path, new_path, new_content).await
     }
 
     pub async fn rename_item(&self, path: Vec<String>, prev_name: String, prev_hash: String, new_name: String) -> Result<String, ErrorProcess> {

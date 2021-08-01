@@ -53,4 +53,14 @@ impl Gitsync {
         let session = self.session().await?;
         session.command_find_blob(id).await
     }
+
+    pub async fn command_create_file(
+        &self,
+        path: Vec<String>,      //wskazuje na katalog w którym utworzymy nową treść
+        new_path: Vec<String>,  //mona od razu utworzyc potrzebne podktalogi
+        new_content: String,
+    ) -> Result<String, ErrorProcess> {
+        let session = self.session().await?;
+        session.command_create_file(path, new_path, new_content).await
+    }
 }
