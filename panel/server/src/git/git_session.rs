@@ -117,14 +117,14 @@ pub fn create_file_content<'repo>(
     }
 }
 
-pub struct GitsyncSession<'repo> {
+pub struct GitSession<'repo> {
     id: Oid,
     branch_name: String,
     repo: MutexGuard<'repo, Repository>,
 }
 
-impl<'repo> GitsyncSession<'repo> {
-    pub fn new(repo: MutexGuard<'repo, Repository>, branch_name: &str) -> Result<GitsyncSession<'repo>, ErrorProcess> {
+impl<'repo> GitSession<'repo> {
+    pub fn new(repo: MutexGuard<'repo, Repository>, branch_name: &str) -> Result<GitSession<'repo>, ErrorProcess> {
 
         let id = {
             let branch = (*repo).find_branch(branch_name, BranchType::Local)?;
@@ -133,7 +133,7 @@ impl<'repo> GitsyncSession<'repo> {
             tree.id()
         };
 
-        Ok(GitsyncSession {
+        Ok(GitSession {
             id,
             branch_name: branch_name.into(),
             repo
@@ -167,7 +167,7 @@ impl<'repo> GitsyncSession<'repo> {
         self,
         path: &[String],
         modify: M
-    ) -> Result<GitsyncSession<'repo>, ErrorProcess> {
+    ) -> Result<GitSession<'repo>, ErrorProcess> {
 
         let Self { id, branch_name, repo } = self;
 
@@ -177,7 +177,7 @@ impl<'repo> GitsyncSession<'repo> {
             new_id
         };
 
-        Ok(GitsyncSession {
+        Ok(GitSession {
             id: new_id,
             branch_name,
             repo,
@@ -190,7 +190,7 @@ impl<'repo> GitsyncSession<'repo> {
         self,
         path: &[String],
         modify: M
-    ) -> Result<GitsyncSession<'repo>, ErrorProcess> {
+    ) -> Result<GitSession<'repo>, ErrorProcess> {
         task::block_in_place(move || {
             self.find_and_change_path_sync(path, modify)
         })
@@ -269,7 +269,7 @@ impl<'repo> GitsyncSession<'repo> {
 
     pub async fn command_find_blob(
         self,
-        id: String
+        id: &String
     ) -> Result<Option<GitBlob>, ErrorProcess> {
         let Self { repo, .. } = self;
 
@@ -355,7 +355,7 @@ impl<'repo> GitsyncSession<'repo> {
             let child_is_file = tree_entry_is_file(&child)
                 .map_err(|err| err.context("command_rename_item prev_name", &prev_name))?;
 
-            let prev_hash = create_id(prev_hash.clone())?;
+            let prev_hash = create_id(&prev_hash)?;
 
             if child.id() != prev_hash {
                 let prev_hash = prev_hash.to_string();

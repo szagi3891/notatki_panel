@@ -1,6 +1,5 @@
 mod git;
-mod gitsync;
-mod gitsync_session;
+mod git_session;
 mod utils;
 mod models;
 

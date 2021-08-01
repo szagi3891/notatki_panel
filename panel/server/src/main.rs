@@ -56,7 +56,7 @@ async fn handler_index() -> Result<impl Reply, Infallible> {
 }
 
 async fn handler_fetch_root(app_state: Arc<AppState>) -> Result<impl warp::Reply, Infallible> {
-    let root = app_state.git.get_main_commit().await;
+    let root = app_state.git.main_commit().await;
 
     let root = match root {
         Ok(root) => root,
@@ -199,7 +199,7 @@ async fn main() {
     };
 
     println!("start git test: {}", &config.git_repo);
-    let git = Git::new(config.git_repo, "master".into());
+    let git = Git::new(config.git_repo, "master".into()).unwrap();
 
 
     let app_state = AppState::new(git.clone());
