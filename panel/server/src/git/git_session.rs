@@ -196,6 +196,18 @@ impl<'repo> GitSession<'repo> {
         })
     }
 
+    pub fn create_new_blob_sync(self, path: &[String], new_content: &String) -> Result<(GitSession<'repo>, Oid, bool), ErrorProcess> {
+        let (id, is_file) = create_file_content(&self.repo, path, new_content)?;
+        Ok((self, id, is_file))
+    }
+
+    pub async fn create_new_blob(self, path: &[String], new_content: &String) -> Result<(GitSession<'repo>, Oid, bool), ErrorProcess> {
+        task::block_in_place(move || {
+            self.create_new_blob_sync(path, new_content)
+        })
+    }
+
+
     pub fn commit_sync(self) -> Result<String, ErrorProcess> {
         //TODO - odpalenie tej funkcji, powoduje zakomitowanie zmian i zjedzenie instancji
 
@@ -229,6 +241,10 @@ impl<'repo> GitSession<'repo> {
             self.commit_sync()
         })
     }
+
+    //.......
+    //logika aplikacji
+    //.......
 
     pub async fn command_main_commit(
         self,
@@ -306,16 +322,15 @@ impl<'repo> GitSession<'repo> {
         new_content: String,
     ) -> Result<String, ErrorProcess> {
         
-        let new_repo = self.find_and_change_path(&path, move |repo: &MutexGuard<'repo, Repository>, tree: &Tree| -> Result<Oid, ErrorProcess> {
-            if let Some((first_item_name, rest_path)) = new_path.split_first() {
-    
+        if let Some((first_item_name, rest_path)) = new_path.split_first() {
+            let (session, new_content_id, is_file) = self.create_new_blob(&rest_path, &new_content).await?;
+
+            let new_repo = session.find_and_change_path(&path, move |repo: &MutexGuard<'repo, Repository>, tree: &Tree| -> Result<Oid, ErrorProcess> {
                 let child = tree.get_name(first_item_name.as_str());
     
                 if child.is_some() {
                     return ErrorProcess::user_result(format!("this element already exists - {}", first_item_name));
                 }
-    
-                let (new_content_id, is_file) = create_file_content(repo, rest_path, &new_content)?;
     
                 let mut builder = repo.treebuilder(Some(&tree))?;
                 
@@ -328,13 +343,12 @@ impl<'repo> GitSession<'repo> {
                 let id = builder.write()?;
     
                 Ok(id)
-    
-            } else {
-                ErrorProcess::user_result("new_path - must be a non-empty list")
-            }
-        }).await?;
+            }).await?;
 
-        new_repo.commit()
+            new_repo.commit()
+        } else {
+            return ErrorProcess::user_result("new_path - must be a non-empty list");
+        }
     }
 
 
