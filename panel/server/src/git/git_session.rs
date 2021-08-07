@@ -455,8 +455,6 @@ impl<'repo> GitSession<'repo> {
                 self.id = id;
 
                 Ok(self)
-
-                //self.commit()
             } else {
                 return ErrorProcess::user_result("new_path - must be a non-empty list");
             }
