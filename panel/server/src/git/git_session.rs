@@ -288,6 +288,37 @@ pub fn command_find_blob<
     Ok(None)
 }
 
+
+pub fn commit<
+    'repo
+>(
+    session: GitSession<'repo>,
+) -> Result<String, ErrorProcess> {
+    //TODO - odpalenie tej funkcji, powoduje zakomitowanie zmian i zjedzenie instancji
+
+    let new_tree = find_tree(&session, session.id.clone())?;
+
+    let branch = session.repo.find_branch(session.branch_name.as_str(), BranchType::Local)?;
+    let reference = branch.get();
+
+    let commit = reference.peel_to_commit()?;
+
+    let update_ref = format!("refs/heads/{}", session.branch_name);
+    //HEAD
+
+    session.repo.commit(
+        Some(update_ref.as_str()),   //"heads/master"),
+        &commit.author(),
+        &commit.committer(),
+        "auto save",
+        &new_tree,
+        &[&commit]
+    )?;
+
+    Ok(session.id.to_string())
+}
+
+
 // treebuilder
 // let mut builder = repo.treebuilder(Some(tree))?;
 // builder.insert(filename, child, 0o040000)?;
@@ -326,61 +357,17 @@ impl<'repo> GitSession<'repo> {
         })
     }
 
-    fn create_blob(&self, new_content: String) -> Result<GitId, ErrorProcess> {
+    fn create_blob(&self, new_content: String) -> Result<GitId, ErrorProcess> {             //TODO - tp wyciągnąć na zewnętrzną komendę
         let new_content_id = self.repo.blob(new_content.as_bytes())?;
         Ok(GitId::new_file(new_content_id))
     }
 
 
-
-
-    pub fn create_new_blob(&self, path: &[String], new_content: &String) -> Result<GitId, ErrorProcess> {
-        let id = create_file_content(&self, path, new_content)?;
-        Ok(id)
-    }
-
-    // pub async fn create_new_blob(&self, path: &[String], new_content: &String) -> Result<GitId, ErrorProcess> {
-    //     task::block_in_place(move || {
-    //         self.create_new_blob_sync(path, new_content)
-    //     })
-    // }
-
-
-    pub fn commit_sync(self) -> Result<String, ErrorProcess> {
-        //TODO - odpalenie tej funkcji, powoduje zakomitowanie zmian i zjedzenie instancji
-
-        let new_tree = find_tree(&self, self.id.clone())?;
-
-        let branch = self.repo.find_branch(self.branch_name.as_str(), BranchType::Local)?;
-        let reference = branch.get();
-
-        let commit = reference.peel_to_commit()?;
-
-        let update_ref = format!("refs/heads/{}", self.branch_name);
-        //HEAD
-    
-        self.repo.commit(
-            Some(update_ref.as_str()),   //"heads/master"),
-            &commit.author(),
-            &commit.committer(),
-            "auto save",
-            &new_tree,
-            &[&commit]
-        )?;
-
-        Ok(self.id.to_string())
-    }
-
-
-    pub fn commit(self) -> Result<String, ErrorProcess> {
+    pub async fn commit(self) -> Result<String, ErrorProcess> {
         task::block_in_place(move || {
-            self.commit_sync()
+            commit(self)
         })
     }
-
-    //.......
-    //logika aplikacji
-    //.......
 
     pub async fn command_main_commit(
         self,
@@ -451,7 +438,7 @@ impl<'repo> GitSession<'repo> {
         
         let new_self = task::block_in_place(move || -> Result<GitSession<'repo>, ErrorProcess> {
             if let Some((first_item_name, rest_path)) = new_path.split_first() {
-                let new_content_id = self.create_new_blob(&rest_path, &new_content)?;
+                let new_content_id = create_file_content(&self, &rest_path, &new_content)?;
 
                 let id = find_and_change_path(&self, &path, move |tree_builder: &mut GitTreeBuilder<'repo>| -> Result<(), ErrorProcess> {
                     let is_exist = tree_builder.is_exist(first_item_name.as_str())?;

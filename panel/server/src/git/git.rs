@@ -47,7 +47,7 @@ impl Git {
     ) -> Result<String, ErrorProcess> {
         let session = self.session().await?;
         let session = session.command_save_change(path, prev_hash, new_content).await?;
-        session.commit()
+        session.commit().await
     }
 
     pub async fn get_from_id(&self, id: &String) -> Result<Option<GitBlob>, ErrorProcess> {
@@ -64,7 +64,7 @@ impl Git {
     ) -> Result<String, ErrorProcess> {
         let session = self.session().await?;
         let session = session.command_create_file(path, new_path, new_content).await?;
-        session.commit()
+        session.commit().await
     }
 
 
@@ -77,6 +77,6 @@ impl Git {
     ) -> Result<String, ErrorProcess> {
         let session = self.session().await?;
         let session = session.command_rename_item(path, prev_name, prev_hash, new_name).await?;
-        session.commit()
+        session.commit().await
     }
 }
