@@ -58,6 +58,13 @@ impl Git {
 
         let (session, prev_content_id) = session.remove_child(&path, &file_name).await?;
 
+        let prev_content_id = match prev_content_id {
+            Some(prev_content_id) => prev_content_id,
+            None => {
+                return Err(ErrorProcess::user(format!("No file exists in the location: {}/{}", path.join("/"), file_name)));
+            }
+        };
+
         if prev_content_id.id.to_string() != prev_hash {
             return ErrorProcess::user_result(format!("item not found to be modified = {}, hash mismatch", file_name));
         }
@@ -86,6 +93,12 @@ impl Git {
         if let Some((first_item_name, rest_path)) = new_path.split_first() {
             let (session, new_content_id) = session.create_file_content(rest_path, &new_content).await?;
 
+            let (session, old_child) = session.remove_child(&path, first_item_name).await?;
+
+            if old_child.is_some() {
+                return Err(ErrorProcess::user(format!("File exists in this location: {}", first_item_name)));
+            }
+
             let session = session.insert_child(&path, first_item_name, new_content_id).await?;
 
             session.commit().await
@@ -106,11 +119,16 @@ impl Git {
 
         let (session, current_id) = session.remove_child(&path, &prev_name).await?;
 
+        let current_id = match current_id {
+            Some(current_id) => current_id,
+            None => {
+                return Err(ErrorProcess::user(format!("No file exists in the location: {}/{}", path.join("/"), prev_name)));
+            }
+        };
+
         let current_hash = session.create_id(&prev_hash)?;
-        if current_id.id != current_hash.id {
-            let current_hash = current_hash.id.to_string();
-            let child_id = current_id.id.to_string();
-            return ErrorProcess::user_result(format!("'current_hash' does not match - {} {}", current_hash, child_id));
+        if current_id != current_hash {
+            return ErrorProcess::user_result(format!("'current_hash' does not match - {:?} {:?}", current_hash, current_id));
         }
 
         let session = session.insert_child(&path, &new_name, current_id).await?;

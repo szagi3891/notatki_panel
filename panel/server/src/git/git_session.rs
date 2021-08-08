@@ -5,8 +5,8 @@ use common::GitTreeItem;
 use tokio::task;
 
 use crate::git::GitBlob;
-use super::utils::{create_id, tree_entry_is_file};
 
+#[derive(PartialEq, Eq, Debug)]
 pub struct GitId {
     pub id: Oid,
     is_file: bool,
@@ -103,6 +103,14 @@ impl<'repo> GitTreeBuilder<'repo> {
 
 }
 
+fn create_id(hash: &String) -> Result<Oid, ErrorProcess> {
+    match Oid::from_str(&hash) {
+        Ok(id) => Ok(id),
+        Err(err) => {
+            ErrorProcess::user_result(format!("Invalid hash {} {}", hash, err))
+        }
+    }
+}
 
 fn find_id<'repo>(session: &GitSession<'repo>, id: Oid) -> Result<GitId, ErrorProcess> {
     GitId::new(&session.repo, id)
@@ -243,7 +251,24 @@ pub fn create_file_content<'repo>(
     }
 }
 
-pub fn command_find_blob<'repo>(
+fn tree_entry_is_file(child: &TreeEntry) -> Result<bool, ErrorProcess> {
+    let child_kind = child.kind()
+        .ok_or_else(|| ErrorProcess::user("Problem with reading the 'kind' for"))?;
+
+    if child_kind == ObjectType::Tree {
+        Ok(false)
+    } else if child_kind == ObjectType::Blob {
+        Ok(true)
+    } else {
+        Err(
+            ErrorProcess::user("tree_entry_is_file - unsupported type")
+                .context("child.id", child.id())
+                .context("kind", child_kind)
+        )
+    }
+}
+
+fn command_find_blob<'repo>(
     session: &GitSession<'repo>,
     id: &String
 ) -> Result<Option<GitBlob>, ErrorProcess> {
@@ -396,17 +421,21 @@ impl<'repo> GitSession<'repo> {
         })
     }
 
-    pub async fn remove_child(mut self, path: &Vec<String>, child_name: &String) -> Result<(GitSession<'repo>, GitId), ErrorProcess> {
+    pub async fn remove_child(mut self, path: &Vec<String>, child_name: &String) -> Result<(GitSession<'repo>, Option<GitId>), ErrorProcess> {
         task::block_in_place(move || {
-            let (new_root, result)  = find_and_change_path(&self, &path, move |tree_builder: &mut GitTreeBuilder<'repo>| -> Result<GitId, ErrorProcess> {
-                let current_child = tree_builder.get_child(child_name.as_str())?.ok_or_else(|| {
-                    ErrorProcess::user("this element not exists")
-                        .context("command_rename_item prev_name", &child_name)
-                })?;
+            let (new_root, result)  = find_and_change_path(&self, &path, move |tree_builder: &mut GitTreeBuilder<'repo>| -> Result<Option<GitId>, ErrorProcess> {
+                let child_id = tree_builder.get_child(child_name.as_str())?;
 
-                tree_builder.remove(child_name.as_str())?;
-
-                Ok(current_child)
+                match child_id {
+                    Some(child_id) => {
+                        tree_builder.remove(child_name.as_str())?;
+                        Ok(Some(child_id))
+                    },
+                    None => {
+                        Ok(None)
+                    }
+                }
+                
             })?;
 
             self.root = new_root;
