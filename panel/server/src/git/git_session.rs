@@ -8,7 +8,7 @@ use crate::git::GitBlob;
 use super::utils::{create_id, tree_entry_is_file};
 
 pub struct GitId {
-    id: Oid,
+    pub id: Oid,
     is_file: bool,
 }
 
@@ -306,12 +306,6 @@ fn create_blob<'repo>(session: &GitSession<'repo>, new_content: String) -> Resul
 }
 
 
-// treebuilder
-// let mut builder = repo.treebuilder(Some(tree))?;
-// builder.insert(filename, child, 0o040000)?;
-// let write_result = builder.write()?;
-
-
 fn convert_to_name(item: &TreeEntry) -> Result<String, ErrorProcess> {
     let name = item.name();
 
@@ -415,28 +409,14 @@ impl<'repo> GitSession<'repo> {
         new_self
     }
 
-
-    //TODO - rozbić na operację tworzenia blob-a 
-    //oraz operację wstawiania
-
-    pub async fn command_create_file(
-        self,
-        path: Vec<String>,      //wskazuje na katalog w którym utworzymy nową treść
-        new_path: Vec<String>,  //mona od razu utworzyc potrzebne podktalogi
-        new_content: String,
-    ) -> Result<GitSession<'repo>, ErrorProcess> {
-        
-        if let Some((first_item_name, rest_path)) = new_path.split_first() {
-            let new_content_id = create_file_content(&self, &rest_path, &new_content)?;
-
-            let new_self = self.insert_child(&path, first_item_name, new_content_id).await?;
-            Ok(new_self)
-        } else {
-            return ErrorProcess::user_result("new_path - must be a non-empty list");
-        }
+    pub async fn create_file_content(self, new_path: &[String], content: &String) -> Result<(GitSession<'repo>, GitId), ErrorProcess> {
+        task::block_in_place(move || {
+            let new_content_id = create_file_content(&self, new_path, content)?;
+            Ok((self, new_content_id))
+        })
     }
 
-    async fn insert_child(mut self, path: &Vec<String>, new_child_item: &String, new_content_id: GitId) -> Result<GitSession<'repo>, ErrorProcess> {
+    pub async fn insert_child(mut self, path: &Vec<String>, new_child_item: &String, new_content_id: GitId) -> Result<GitSession<'repo>, ErrorProcess> {
         task::block_in_place(move || -> Result<GitSession<'repo>, ErrorProcess> {
             let (new_root, _) = find_and_change_path(&self, &path, move |tree_builder: &mut GitTreeBuilder<'repo>| -> Result<(), ErrorProcess> {
                 let is_exist = tree_builder.is_exist(new_child_item.as_str())?;
@@ -456,7 +436,7 @@ impl<'repo> GitSession<'repo> {
         })
     }
 
-    async fn remove_child(mut self, path: &Vec<String>, child_name: &String) -> Result<(GitSession<'repo>, GitId), ErrorProcess> {
+    pub async fn remove_child(mut self, path: &Vec<String>, child_name: &String) -> Result<(GitSession<'repo>, GitId), ErrorProcess> {
         task::block_in_place(move || {
             let (new_root, result)  = find_and_change_path(&self, &path, move |tree_builder: &mut GitTreeBuilder<'repo>| -> Result<GitId, ErrorProcess> {
                 let current_child = tree_builder.get_child(child_name.as_str())?.ok_or_else(|| {
@@ -475,30 +455,10 @@ impl<'repo> GitSession<'repo> {
         })
     }
 
-    //TODO
-    //rozbić na operację usuwania elementu
-    //oraz dodawania nowego 
-
-    pub async fn command_rename_item(
-        self,
-        path: Vec<String>,          //wskazuje na katalog
-        current_name: String,          //mona od razu utworzyc potrzebne podktalogi
-        current_hash: String,
-        new_name: String,
-    ) -> Result<GitSession<'repo>, ErrorProcess> {
-
-        let (session, current_id) = self.remove_child(&path, &current_name).await?;
-
-        let current_hash = create_id(&current_hash)?;
-        if current_id.id != current_hash {
-            let current_hash = current_hash.to_string();
-            let child_id = current_id.id.to_string();
-            return ErrorProcess::user_result(format!("'current_hash' does not match - {} {}", current_hash, child_id));
-        }
-
-        let session = session.insert_child(&path, &new_name, current_id).await?;
-
-        Ok(session)
+    pub fn create_id(&self, hash: &String) -> Result<GitId, ErrorProcess> {
+        let id = create_id(hash)?;
+        let git_id = GitId::new(&self.repo, id)?;
+        Ok(git_id)
     }
 }
 

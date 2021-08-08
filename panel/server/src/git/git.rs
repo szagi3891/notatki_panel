@@ -63,8 +63,16 @@ impl Git {
         new_content: String,
     ) -> Result<String, ErrorProcess> {
         let session = self.session().await?;
-        let session = session.command_create_file(path, new_path, new_content).await?;
-        session.commit().await
+
+        if let Some((first_item_name, rest_path)) = new_path.split_first() {
+            let (session, new_content_id) = session.create_file_content(rest_path, &new_content).await?;
+
+            let session = session.insert_child(&path, first_item_name, new_content_id).await?;
+
+            session.commit().await
+        } else {
+            return ErrorProcess::user_result("new_path - must be a non-empty list");
+        }
     }
 
 
@@ -76,7 +84,24 @@ impl Git {
         new_name: String,
     ) -> Result<String, ErrorProcess> {
         let session = self.session().await?;
-        let session = session.command_rename_item(path, prev_name, prev_hash, new_name).await?;
+
+        let (session, current_id) = session.remove_child(&path, &prev_name).await?;
+
+        let current_hash = session.create_id(&prev_hash)?;
+        if current_id.id != current_hash.id {
+            let current_hash = current_hash.id.to_string();
+            let child_id = current_id.id.to_string();
+            return ErrorProcess::user_result(format!("'current_hash' does not match - {} {}", current_hash, child_id));
+        }
+
+        let session = session.insert_child(&path, &new_name, current_id).await?;
+
         session.commit().await
     }
+
+
+    //TODO
+    //rozbić na operację usuwania elementu
+    //oraz dodawania nowego 
+
 }
