@@ -349,51 +349,11 @@ impl<'repo> GitSession<'repo> {
         Ok(self.root.to_string())
     }
 
-    pub async fn command_save_change(
-        mut self,
-        mut path: Vec<String>,
-        prev_hash: String,
-        new_content: String
-    ) -> Result<GitSession<'repo>, ErrorProcess> {
-
-        let file_name = path.pop();
-
-        let file_name = match file_name {
-            Some(file_name) => file_name,
-            None => {
-                return Err(ErrorProcess::user("Incorrect path to file - non-empty list expected"));
-            }
-        };
-
-        let new_content_id = create_blob(&self, new_content)?;
-
-        let new_self = task::block_in_place(move || -> Result<GitSession<'repo>, ErrorProcess> {
-            let (new_root, _) = find_and_change_path(
-                &self,
-                &path,
-                move |tree_builder: &mut GitTreeBuilder<'repo>| -> Result<(), ErrorProcess> {
-                    
-                    let child = tree_builder.get_child(file_name.as_str())?;
-                    let child = child.ok_or_else(|| {
-                        ErrorProcess::user(format!("item not found to be modified = {}", &file_name))
-                    })?;
-
-                    if child.id.to_string() != prev_hash {
-                        return ErrorProcess::user_result(format!("item not found to be modified = {}, hash mismatch", file_name));
-                    }
-
-
-                    tree_builder.insert(&file_name, new_content_id)?;
-                    Ok(())
-                }
-            )?;
-
-            self.root = new_root;
-
-            Ok(self)
-        })?;
-
-        Ok(new_self)
+    pub async fn create_blob(self, new_content: String) -> Result<(GitSession<'repo>, GitId), ErrorProcess> {
+        task::block_in_place(move || {
+            let new_content_id = create_blob(&self, new_content)?;
+            Ok((self, new_content_id))
+        })
     }
 
     pub async fn command_find_blob(

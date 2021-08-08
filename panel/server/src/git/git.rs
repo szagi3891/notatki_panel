@@ -41,12 +41,31 @@ impl Git {
 
     pub async fn save_content(
         &self,
-        path: Vec<String>,
+        mut path: Vec<String>,
         prev_hash: String,
         new_content: String
     ) -> Result<String, ErrorProcess> {
         let session = self.session().await?;
-        let session = session.command_save_change(path, prev_hash, new_content).await?;
+
+        let file_name = path.pop();
+
+        let file_name = match file_name {
+            Some(file_name) => file_name,
+            None => {
+                return Err(ErrorProcess::user("Incorrect path to file - non-empty list expected"));
+            }
+        };
+
+        let (session, prev_content_id) = session.remove_child(&path, &file_name).await?;
+
+        if prev_content_id.id.to_string() != prev_hash {
+            return ErrorProcess::user_result(format!("item not found to be modified = {}, hash mismatch", file_name));
+        }
+
+        let (session, new_content_id) = session.create_blob(new_content).await?;
+
+        let session = session.insert_child(&path, &file_name, new_content_id).await?;
+
         session.commit().await
     }
 
