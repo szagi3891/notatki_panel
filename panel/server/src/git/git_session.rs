@@ -401,7 +401,7 @@ impl<'repo> GitSession<'repo> {
         })
     }
 
-    pub async fn insert_child(mut self, path: &Vec<String>, new_child_item: &String, new_content_id: GitId) -> Result<GitSession<'repo>, ErrorProcess> {
+    pub async fn insert_child(mut self, path: &[String], new_child_item: &String, new_content_id: GitId) -> Result<GitSession<'repo>, ErrorProcess> {
         task::block_in_place(move || -> Result<GitSession<'repo>, ErrorProcess> {
             let (new_root, _) = find_and_change_path(&self, &path, move |tree_builder: &mut GitTreeBuilder<'repo>| -> Result<(), ErrorProcess> {
                 let is_exist = tree_builder.is_exist(new_child_item.as_str())?;
@@ -421,7 +421,7 @@ impl<'repo> GitSession<'repo> {
         })
     }
 
-    pub async fn remove_child(mut self, path: &Vec<String>, child_name: &String) -> Result<(GitSession<'repo>, Option<GitId>), ErrorProcess> {
+    pub async fn remove_child(mut self, path: &[String], child_name: &String) -> Result<(GitSession<'repo>, Option<GitId>), ErrorProcess> {
         task::block_in_place(move || {
             let (new_root, result)  = find_and_change_path(&self, &path, move |tree_builder: &mut GitTreeBuilder<'repo>| -> Result<Option<GitId>, ErrorProcess> {
                 let child_id = tree_builder.get_child(child_name.as_str())?;
@@ -444,10 +444,33 @@ impl<'repo> GitSession<'repo> {
         })
     }
 
-    pub fn create_id(&self, hash: &String) -> Result<GitId, ErrorProcess> {
+    pub async fn extract_child(self, path: &[String], child_name: &String) -> Result<(GitSession<'repo>, GitId), ErrorProcess> {
+        let (session, child) = self.remove_child(&path, &child_name).await?;
+
+        let child = match child {
+            Some(child) => child,
+            None => {
+                return Err(ErrorProcess::user(format!("No file exists in the location: {}/{}", path.join("/"), child_name)));
+            }
+        };
+
+        Ok((session, child))
+    }
+
+    fn create_id(&self, hash: &String) -> Result<GitId, ErrorProcess> {
         let id = create_id(hash)?;
         let git_id = GitId::new(&self.repo, id)?;
         Ok(git_id)
+    }
+
+    pub fn should_eq(&self, child: &GitId, hash: &String) -> Result<(), ErrorProcess> {
+        let hash = self.create_id(&hash)?;
+
+        if hash != *child {
+            return ErrorProcess::user_result(format!("'hash' does not match - child={:?} hash={:?}", child, hash));
+        }
+
+        Ok(())
     }
 }
 

@@ -5,6 +5,22 @@ use tokio::sync::{Mutex};
 use super::git_session::GitSession;
 use crate::git::GitBlob;
 
+fn split_first(path: &[String]) -> Result<(&String, &[String]), ErrorProcess> {
+    if let Some((first, rest)) = path.split_first() {
+        Ok((first, rest))
+    } else {
+        ErrorProcess::user_result("missing first element to split")
+    }
+}
+
+fn split_last(path: &[String]) -> Result<(&[String], &String), ErrorProcess> {    
+    if let Some((last, begin)) = path.split_last() {
+        Ok((begin, last))
+    } else {
+        ErrorProcess::user_result("missing last element to split")
+    }
+}
+
 #[derive(Clone)]
 pub struct Git {
     branch_name: String,
@@ -56,14 +72,7 @@ impl Git {
             }
         };
 
-        let (session, prev_content_id) = session.remove_child(&path, &file_name).await?;
-
-        let prev_content_id = match prev_content_id {
-            Some(prev_content_id) => prev_content_id,
-            None => {
-                return Err(ErrorProcess::user(format!("No file exists in the location: {}/{}", path.join("/"), file_name)));
-            }
-        };
+        let (session, prev_content_id) = session.extract_child(&path, &file_name).await?;
 
         if prev_content_id.id.to_string() != prev_hash {
             return ErrorProcess::user_result(format!("item not found to be modified = {}, hash mismatch", file_name));
@@ -90,21 +99,19 @@ impl Git {
     ) -> Result<String, ErrorProcess> {
         let session = self.session().await?;
 
-        if let Some((first_item_name, rest_path)) = new_path.split_first() {
-            let (session, new_content_id) = session.create_file_content(rest_path, &new_content).await?;
+        let (new_path_first, new_path_rest) = split_first(&new_path)?;
 
-            let (session, old_child) = session.remove_child(&path, first_item_name).await?;
+        let (session, new_content_id) = session.create_file_content(new_path_rest, &new_content).await?;
 
-            if old_child.is_some() {
-                return Err(ErrorProcess::user(format!("File exists in this location: {}", first_item_name)));
-            }
+        let (session, old_child) = session.remove_child(&path, new_path_first).await?;
 
-            let session = session.insert_child(&path, first_item_name, new_content_id).await?;
-
-            session.commit().await
-        } else {
-            return ErrorProcess::user_result("new_path - must be a non-empty list");
+        if old_child.is_some() {
+            return Err(ErrorProcess::user(format!("File exists in this location: {}", new_path_first)));
         }
+
+        let session = session.insert_child(&path, new_path_first, new_content_id).await?;
+
+        session.commit().await
     }
 
 
@@ -117,28 +124,46 @@ impl Git {
     ) -> Result<String, ErrorProcess> {
         let session = self.session().await?;
 
-        let (session, current_id) = session.remove_child(&path, &prev_name).await?;
-
-        let current_id = match current_id {
-            Some(current_id) => current_id,
-            None => {
-                return Err(ErrorProcess::user(format!("No file exists in the location: {}/{}", path.join("/"), prev_name)));
-            }
-        };
-
-        let current_hash = session.create_id(&prev_hash)?;
-        if current_id != current_hash {
-            return ErrorProcess::user_result(format!("'current_hash' does not match - {:?} {:?}", current_hash, current_id));
-        }
-
-        let session = session.insert_child(&path, &new_name, current_id).await?;
+        let (session, child) = session.extract_child(&path, &prev_name).await?;
+        session.should_eq(&child, &prev_hash)?;
+        let session = session.insert_child(&path, &new_name, child).await?;
 
         session.commit().await
     }
 
+    pub async fn move_item(
+        &self,
+        path: Vec<String>,          //dir lub file
+        item_hash: String,
+        new_path: Vec<String>,
+    ) -> Result<String, ErrorProcess> {
+        let (path_base, path_last) = split_last(&path)?;
+        let (new_path_base, new_path_last) = split_last(&new_path)?;
 
-    //TODO
-    //rozbić na operację usuwania elementu
-    //oraz dodawania nowego 
+        let session = self.session().await?;
+        let (session, child) = session.extract_child(path_base, &path_last).await?;
 
+        session.should_eq(&child, &item_hash)?;
+
+        let session = session.insert_child(new_path_base, new_path_last, child).await?;
+        
+        let new_root_id = session.commit().await?;
+        Ok(new_root_id)
+    }
+
+    pub async fn delete_item(
+        &self,
+        path: Vec<String>,
+        item_hash: String,
+    ) -> Result<String, ErrorProcess> {
+        let (path_base, path_last) = split_last(&path)?;
+        
+        let session = self.session().await?;
+        let (session, child) = session.extract_child(path_base, &path_last).await?;
+
+        session.should_eq(&child, &item_hash)?;
+
+        let new_root_id = session.commit().await?;
+        Ok(new_root_id)
+    }
 }
