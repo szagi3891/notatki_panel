@@ -151,7 +151,7 @@ impl Git {
         Ok(new_root_id)
     }
 
-    pub async fn delete_item(
+    pub async fn delete_file(
         &self,
         path: Vec<String>,
         item_hash: String,
@@ -162,6 +162,8 @@ impl Git {
         let (session, child) = session.extract_child(path_base, &path_last).await?;
 
         session.should_eq(&child, &item_hash)?;
+
+        child.should_be_file()?;
 
         let new_root_id = session.commit().await?;
         Ok(new_root_id)

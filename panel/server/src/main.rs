@@ -1,7 +1,7 @@
 #![allow(clippy::needless_lifetimes)]
 #![allow(clippy::ptr_arg)]
 
-use common::{HandlerCreateFileBody, HandlerCreateFileResponse, HandlerFetchDirBody, HandlerFetchDirResponse, HandlerFetchNodeBody, HandlerFetchNodeResponse, HandlerFetchRootResponse, HandlerRenameItemBody, HandlerRenameItemResponse, HandlerSaveContentBody, HandlerSaveContentResponse};
+use common::{HandlerCreateFileBody, HandlerCreateFileResponse, HandlerDeleteFileBody, HandlerDeleteFileResponse, HandlerFetchDirBody, HandlerFetchDirResponse, HandlerFetchNodeBody, HandlerFetchNodeResponse, HandlerFetchRootResponse, HandlerRenameItemBody, HandlerRenameItemResponse, HandlerSaveContentBody, HandlerSaveContentResponse};
 use utils::{create_response, create_response_message};
 use warp::{Filter, Reply, http::Response};
 use std::convert::Infallible;
@@ -189,6 +189,25 @@ async fn handler_rename_item(app_state: Arc<AppState>, body_request: HandlerRena
     }
 }
 
+async fn handler_delete_file(app_state: Arc<AppState>, body_request: HandlerDeleteFileBody) -> Result<impl warp::Reply, Infallible> {
+    let result = app_state.git.delete_file(
+        body_request.path,
+        body_request.hash,
+    ).await;
+
+    match result {
+        Ok(new_root) => {
+            let response = HandlerDeleteFileResponse {
+                new_root,
+            };
+            Ok(create_response(200, response))
+        },
+        Err(err) => {
+            Ok(err.to_response())
+        }
+    }
+}
+
 #[tokio::main]
 async fn main() {
     pretty_env_logger::init();
@@ -257,7 +276,14 @@ async fn main() {
         .and(inject_state(app_state.clone()))
         .and(warp::body::json())
         .and_then(handler_rename_item);
-        
+
+    let filter_delete_item = 
+        warp::path!("delete_file")
+        .and(warp::post())
+        .and(inject_state(app_state.clone()))
+        .and(warp::body::json())
+        .and_then(handler_delete_file);
+
     let routes_default =
         warp::any()
         .map(|| {
@@ -275,6 +301,7 @@ async fn main() {
         .or(filter_save_content)
         .or(filter_create_file)
         .or(filter_rename_item)
+        .or(filter_delete_item)
         .or(routes_default)
     ;
 

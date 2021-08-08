@@ -90,3 +90,15 @@ pub struct HandlerRenameItemBody {
 pub struct HandlerRenameItemResponse {
     pub new_root: String,
 }
+
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct HandlerDeleteFileBody {
+    pub path: Vec<String>,
+    pub hash: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct HandlerDeleteFileResponse {
+    pub new_root: String,
+}
