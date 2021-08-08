@@ -138,9 +138,7 @@ fn get_child_tree<'repo, 'session: 'repo>(
     ErrorProcess::user_result(format!("Element not found {}", name))
 }
 
-fn put_child_tree<
-    'repo
->(
+fn put_child_tree<'repo>(
     session: &GitSession<'repo>,
     tree: &Tree,
     filename: &String,
@@ -171,28 +169,29 @@ fn put_child_tree<
 fn find_and_change_path_small<
     'repo,
     'session: 'repo,
-    M: FnOnce(&mut GitTreeBuilder<'repo>) -> Result<(), ErrorProcess>
+    R,
+    M: FnOnce(&mut GitTreeBuilder<'repo>) -> Result<R, ErrorProcess>
 >(
     session: &'session GitSession<'repo>,
     tree: &Tree<'repo>,
     path: &[String],
     modify: M
-) -> Result<Oid, ErrorProcess> {
+) -> Result<(Oid, R), ErrorProcess> {
     if let Some((first, rest_path)) = path.split_first() {
         
         let child_tree = get_child_tree(&session, &tree, first)?;
-        let child_tree_modify = find_and_change_path_small(&session, &child_tree, rest_path, modify)?;
+        let (child_tree_modify, result) = find_and_change_path_small(&session, &child_tree, rest_path, modify)?;
         let tree_modify = put_child_tree(&session, &tree, first, child_tree_modify)?;
 
-        Ok(tree_modify)
+        Ok((tree_modify, result))
 
     } else {
         let builder = session.repo.treebuilder(Some(tree))?;
 
         let mut treebuilder = GitTreeBuilder::new(builder);
-        modify(&mut treebuilder)?;
+        let result = modify(&mut treebuilder)?;
         let new_id = treebuilder.id()?;
-        Ok(new_id)
+        Ok((new_id, result))
     }
 }
 
@@ -200,34 +199,22 @@ fn find_and_change_path_small<
 fn find_and_change_path<
     'repo,
     'session: 'repo,
-    M: FnOnce(&mut GitTreeBuilder<'repo>) -> Result<(), ErrorProcess>
+    R,
+    M: FnOnce(&mut GitTreeBuilder<'repo>) -> Result<R, ErrorProcess>
 >(
     session: &'session GitSession<'repo>,
     path: &[String],
     modify: M
-) -> Result<Oid, ErrorProcess> {
+) -> Result<(Oid, R), ErrorProcess> {
 
-    // let Self { id, branch_name, repo } = self;
-
-    // let new_id = {
-        // let refrr: &'repo MutexGuard<'repo, Repository> = &repo;
-
-        //let aa = repo.find_object(id, None)?;
-
-        // let repo = &self.repo;
-
-    let result = session.repo.find_object(session.id, None)?;
+    let result = session.repo.find_object(session.root, None)?;
     let tree = result.peel_to_tree()?;
 
-    //GitTreeBuilder::new(repo, tree)
-    // let tree = find_tree(refrr, id)?;
     find_and_change_path_small(session, &tree, path, modify)
 }
 
 
-pub fn create_file_content<
-    'repo,
->(
+pub fn create_file_content<'repo>(
     session: &GitSession<'repo>,
     path: &[String],
     new_content: &String,
@@ -256,9 +243,7 @@ pub fn create_file_content<
     }
 }
 
-pub fn command_find_blob<
-    'repo,
->(
+pub fn command_find_blob<'repo>(
     session: &GitSession<'repo>,
     id: &String
 ) -> Result<Option<GitBlob>, ErrorProcess> {
@@ -289,14 +274,10 @@ pub fn command_find_blob<
 }
 
 
-pub fn commit<
-    'repo
->(
+pub fn commit<'repo>(
     session: GitSession<'repo>,
 ) -> Result<String, ErrorProcess> {
-    //TODO - odpalenie tej funkcji, powoduje zakomitowanie zmian i zjedzenie instancji
-
-    let new_tree = find_tree(&session, session.id.clone())?;
+    let new_tree = find_tree(&session, session.root.clone())?;
 
     let branch = session.repo.find_branch(session.branch_name.as_str(), BranchType::Local)?;
     let reference = branch.get();
@@ -315,7 +296,13 @@ pub fn commit<
         &[&commit]
     )?;
 
-    Ok(session.id.to_string())
+    Ok(session.root.to_string())
+}
+
+
+fn create_blob<'repo>(session: &GitSession<'repo>, new_content: String) -> Result<GitId, ErrorProcess> {
+    let new_content_id = session.repo.blob(new_content.as_bytes())?;
+    Ok(GitId::new_file(new_content_id))
 }
 
 
@@ -335,14 +322,13 @@ fn convert_to_name(item: &TreeEntry) -> Result<String, ErrorProcess> {
 }
 
 pub struct GitSession<'repo> {
-    id: Oid,
+    root: Oid,
     branch_name: String,
     repo: MutexGuard<'repo, Repository>,
 }
 
 impl<'repo> GitSession<'repo> {
     pub fn new(repo: MutexGuard<'repo, Repository>, branch_name: &str) -> Result<GitSession<'repo>, ErrorProcess> {
-
         let id = {
             let branch = (*repo).find_branch(branch_name, BranchType::Local)?;
             let reference = branch.get();
@@ -351,17 +337,11 @@ impl<'repo> GitSession<'repo> {
         };
 
         Ok(GitSession {
-            id,
+            root: id,
             branch_name: branch_name.into(),
             repo
         })
     }
-
-    fn create_blob(&self, new_content: String) -> Result<GitId, ErrorProcess> {             //TODO - tp wyciągnąć na zewnętrzną komendę
-        let new_content_id = self.repo.blob(new_content.as_bytes())?;
-        Ok(GitId::new_file(new_content_id))
-    }
-
 
     pub async fn commit(self) -> Result<String, ErrorProcess> {
         task::block_in_place(move || {
@@ -372,7 +352,7 @@ impl<'repo> GitSession<'repo> {
     pub async fn command_main_commit(
         self,
     ) -> Result<String, ErrorProcess> {
-        Ok(self.id.to_string())
+        Ok(self.root.to_string())
     }
 
     pub async fn command_save_change(
@@ -382,12 +362,19 @@ impl<'repo> GitSession<'repo> {
         new_content: String
     ) -> Result<GitSession<'repo>, ErrorProcess> {
 
-        let file_name = path.pop().unwrap();
+        let file_name = path.pop();
 
-        let new_content_id = self.create_blob(new_content)?;
+        let file_name = match file_name {
+            Some(file_name) => file_name,
+            None => {
+                return Err(ErrorProcess::user("Incorrect path to file - non-empty list expected"));
+            }
+        };
+
+        let new_content_id = create_blob(&self, new_content)?;
 
         let new_self = task::block_in_place(move || -> Result<GitSession<'repo>, ErrorProcess> {
-            let id = find_and_change_path(
+            let (new_root, _) = find_and_change_path(
                 &self,
                 &path,
                 move |tree_builder: &mut GitTreeBuilder<'repo>| -> Result<(), ErrorProcess> {
@@ -407,7 +394,7 @@ impl<'repo> GitSession<'repo> {
                 }
             )?;
 
-            self.id = id;
+            self.root = new_root;
 
             Ok(self)
         })?;
@@ -429,81 +416,89 @@ impl<'repo> GitSession<'repo> {
     }
 
 
+    //TODO - rozbić na operację tworzenia blob-a 
+    //oraz operację wstawiania
+
     pub async fn command_create_file(
-        mut self,
+        self,
         path: Vec<String>,      //wskazuje na katalog w którym utworzymy nową treść
         new_path: Vec<String>,  //mona od razu utworzyc potrzebne podktalogi
         new_content: String,
     ) -> Result<GitSession<'repo>, ErrorProcess> {
         
-        let new_self = task::block_in_place(move || -> Result<GitSession<'repo>, ErrorProcess> {
-            if let Some((first_item_name, rest_path)) = new_path.split_first() {
-                let new_content_id = create_file_content(&self, &rest_path, &new_content)?;
+        if let Some((first_item_name, rest_path)) = new_path.split_first() {
+            let new_content_id = create_file_content(&self, &rest_path, &new_content)?;
 
-                let id = find_and_change_path(&self, &path, move |tree_builder: &mut GitTreeBuilder<'repo>| -> Result<(), ErrorProcess> {
-                    let is_exist = tree_builder.is_exist(first_item_name.as_str())?;
-
-                    if is_exist {
-                        return ErrorProcess::user_result(format!("this element already exists - {}", first_item_name));
-                    }
-        
-                    let tree_builder = tree_builder.insert(first_item_name, new_content_id)?;
-
-                    Ok(tree_builder)
-                })?;
-
-                self.id = id;
-
-                Ok(self)
-            } else {
-                return ErrorProcess::user_result("new_path - must be a non-empty list");
-            }
-        });
-
-        new_self
+            let new_self = self.insert_child(&path, first_item_name, new_content_id).await?;
+            Ok(new_self)
+        } else {
+            return ErrorProcess::user_result("new_path - must be a non-empty list");
+        }
     }
 
+    async fn insert_child(mut self, path: &Vec<String>, new_child_item: &String, new_content_id: GitId) -> Result<GitSession<'repo>, ErrorProcess> {
+        task::block_in_place(move || -> Result<GitSession<'repo>, ErrorProcess> {
+            let (new_root, _) = find_and_change_path(&self, &path, move |tree_builder: &mut GitTreeBuilder<'repo>| -> Result<(), ErrorProcess> {
+                let is_exist = tree_builder.is_exist(new_child_item.as_str())?;
+
+                if is_exist {
+                    return ErrorProcess::user_result(format!("this element already exists - {}", new_child_item));
+                }
+
+                let tree_builder = tree_builder.insert(new_child_item, new_content_id)?;
+
+                Ok(tree_builder)
+            })?;
+
+            self.root = new_root;
+
+            Ok(self)
+        })
+    }
+
+    async fn remove_child(mut self, path: &Vec<String>, child_name: &String) -> Result<(GitSession<'repo>, GitId), ErrorProcess> {
+        task::block_in_place(move || {
+            let (new_root, result)  = find_and_change_path(&self, &path, move |tree_builder: &mut GitTreeBuilder<'repo>| -> Result<GitId, ErrorProcess> {
+                let current_child = tree_builder.get_child(child_name.as_str())?.ok_or_else(|| {
+                    ErrorProcess::user("this element not exists")
+                        .context("command_rename_item prev_name", &child_name)
+                })?;
+
+                tree_builder.remove(child_name.as_str())?;
+
+                Ok(current_child)
+            })?;
+
+            self.root = new_root;
+
+            Ok((self, result))
+        })
+    }
+
+    //TODO
+    //rozbić na operację usuwania elementu
+    //oraz dodawania nowego 
 
     pub async fn command_rename_item(
-        mut self,
+        self,
         path: Vec<String>,          //wskazuje na katalog
         current_name: String,          //mona od razu utworzyc potrzebne podktalogi
         current_hash: String,
         new_name: String,
     ) -> Result<GitSession<'repo>, ErrorProcess> {
 
-        let new_self = task::block_in_place(move || -> Result<GitSession<'repo>, ErrorProcess> {
-            let id = find_and_change_path(&self, &path, move |tree_builder: &mut GitTreeBuilder<'repo>| -> Result<(), ErrorProcess> {
-                let current_hash = create_id(&current_hash)?;
-                let current_child = tree_builder.get_child(current_name.as_str())?.ok_or_else(|| {
-                    ErrorProcess::user("this element not exists")
-                        .context("command_rename_item prev_name", &current_name)
-                })?;
+        let (session, current_id) = self.remove_child(&path, &current_name).await?;
 
-                if current_child.id != current_hash {
-                    let current_hash = current_hash.to_string();
-                    let child_id = current_child.id.to_string();
-                    return ErrorProcess::user_result(format!("'current_hash' does not match - {} {}", current_hash, child_id));
-                }
+        let current_hash = create_id(&current_hash)?;
+        if current_id.id != current_hash {
+            let current_hash = current_hash.to_string();
+            let child_id = current_id.id.to_string();
+            return ErrorProcess::user_result(format!("'current_hash' does not match - {} {}", current_hash, child_id));
+        }
 
-                let new_item_exist = tree_builder.is_exist(new_name.as_str())?;
+        let session = session.insert_child(&path, &new_name, current_id).await?;
 
-                if new_item_exist {
-                    return ErrorProcess::user_result(format!("New element exists - {}", new_name));
-                }
-
-                tree_builder.remove(current_name.as_str())?;
-                tree_builder.insert(new_name.as_str(), current_child)?;
-
-                Ok(())
-            })?;
-    
-            self.id = id;
-
-            Ok(self)
-        });
-
-        new_self
+        Ok(session)
     }
 }
 
