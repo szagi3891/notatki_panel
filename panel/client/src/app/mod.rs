@@ -168,10 +168,10 @@ impl State {
         let current_view: Computed<ViewState> = view.map({
             let root = root.clone();
 
-            move |state| -> Rc<ViewState> {
+            move |state| -> ViewState {
                 let view = state.get_value();
 
-                let aa = match &(*view) {
+                match &(*view) {
                     View::Index => {
                         ViewState::Index {
                             state: index::State::new(
@@ -220,9 +220,7 @@ impl State {
                             )
                         }
                     }
-                };
-
-                Rc::new(aa)
+                }
             }
         });
 
