@@ -47,13 +47,13 @@ pub struct StateView {
 }
 
 impl StateView {
-    pub fn new(root: &Dependencies, driver: &DomDriver) -> (Value<View>, StateView) {
+    pub fn new(root: &Dependencies, driver: &DomDriver) -> (Computed<View>, StateView) {
         let state_data = StateData::new(root, driver);
 
         let view = root.new_value(View::Index);
 
         (
-            view.clone(),
+            view.to_computed(),
             StateView {
                 root: root.clone(),
                 driver: driver.clone(),
@@ -165,7 +165,7 @@ impl State {
     pub fn new(root: &Dependencies, driver: &DomDriver) -> Computed<State> {
         let (view, state_view) = StateView::new(root, driver);
 
-        let current_view: Computed<ViewState> = view.to_computed().map({
+        let current_view: Computed<ViewState> = view.map({
             let root = root.clone();
 
             move |state| -> Rc<ViewState> {
