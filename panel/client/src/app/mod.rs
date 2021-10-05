@@ -19,7 +19,7 @@ mod new_content;
 mod rename_item;
 
 #[derive(PartialEq)]
-pub enum View {
+enum View {
     Index,
     EditContent {
         full_path: Vec<String>,
@@ -47,7 +47,7 @@ pub struct StateView {
 }
 
 impl StateView {
-    pub fn new(root: &Dependencies, driver: &DomDriver) -> (Computed<View>, StateView) {
+    fn new(root: &Dependencies, driver: &DomDriver) -> (Computed<View>, StateView) {
         let state_data = StateData::new(root, driver);
 
         let view = root.new_value(View::Index);
@@ -141,91 +141,18 @@ impl StateView {
 
 
 #[derive(PartialEq)]
-pub enum ViewState {
-    Index {
-        state: Computed<index::State>,
-    },
-    EditContent {
-        state: Computed<edit_content::State>,
-    },
-    NewContent {
-        state: Computed<new_content::State>,
-    },
-    RenameItem {
-        state: Computed<rename_item::State>,
-    }
-}
-
-#[derive(PartialEq)]
 pub struct State {
-    current_view: Computed<ViewState>,
+    view: Computed<View>,
+    state_view: StateView,
 }
 
 impl State {
     pub fn new(root: &Dependencies, driver: &DomDriver) -> Computed<State> {
         let (view, state_view) = StateView::new(root, driver);
 
-        let current_view: Computed<ViewState> = view.map({
-            let root = root.clone();
-
-            move |state| -> ViewState {
-                let view = state.get_value();
-
-                match &(*view) {
-                    View::Index => {
-                        ViewState::Index {
-                            state: index::State::new(
-                                &state_view.root,
-                                state_view.state_data.clone(),
-                                state_view.clone(),
-                            )
-                        }
-                    },
-
-                    View::EditContent { full_path, file_hash, content } => {
-                        ViewState::EditContent {
-                            state: edit_content::State::new(
-                                full_path.clone(),
-                                file_hash.clone(),
-                                content.as_ref().clone(),
-                                &root,
-                                &state_view.driver,
-                                state_view.clone(),
-                            )
-                        }
-                    },
-
-                    View::RenameItem { base_path, prev_name, prev_hash, prev_content } => {
-                        ViewState::RenameItem {
-                            state: rename_item::State::new(
-                                base_path.clone(),
-                                prev_name.clone(),
-                                prev_hash.clone(),
-                                prev_content.clone(),
-                                &state_view.root,
-                                &state_view.driver,
-                                state_view.clone(),
-                            )
-                        }
-                    },
-
-                    View::NewContent { parent, list } => {
-                        ViewState::NewContent {
-                            state: new_content::State::new(
-                                &state_view.root,
-                                parent.clone(),
-                                &state_view.driver,
-                                list.clone(),
-                                state_view.clone(),
-                            )
-                        }
-                    }
-                }
-            }
-        });
-
         root.new_computed_from(State {
-            current_view,
+            view,
+            state_view,
         })
     }
 }
@@ -233,20 +160,60 @@ impl State {
 pub fn render(state: &Computed<State>) -> VDomElement {
 
     let state_value = state.get_value();
-    let view = state_value.current_view.get_value();
+    let view = state_value.view.get_value();
 
     match view.as_ref() {
-        ViewState::Index { state } => {
-            index::render(state)
+        View::Index => {
+            let state = index::State::new(
+                &state_value.state_view.root,
+                state_value.state_view.state_data.clone(),
+                state_value.state_view.clone(),
+            );
+
+            index::render(&state)
+
+            // html! {
+            //     <div>
+            //         "index ..."
+            //         <component {index::render} data={state} />
+            //     </div>
+            // }
         },
-        ViewState::EditContent { state } => {
-            edit_content::render(state)
+        View::EditContent { full_path, file_hash, content } => {
+            let state = edit_content::State::new(
+                full_path.clone(),
+                file_hash.clone(),
+                content.as_ref().clone(),
+                &state_value.state_view.root,
+                &state_value.state_view.driver,
+                state_value.state_view.clone(),
+            );
+
+            edit_content::render(&state)
         },
-        ViewState::NewContent { state } => {
-            new_content::render(state)
+        View::NewContent { parent, list } => {
+            let state = new_content::State::new(
+                &state_value.state_view.root,
+                parent.clone(),
+                &state_value.state_view.driver,
+                list.clone(),
+                state_value.state_view.clone(),
+            );
+
+            new_content::render(&state)
         },
-        ViewState::RenameItem { state } => {
-            rename_item::render(state)
+        View::RenameItem { base_path, prev_name, prev_hash, prev_content } => {
+            let state = rename_item::State::new(
+                base_path.clone(),
+                prev_name.clone(),
+                prev_hash.clone(),
+                prev_content.clone(),
+                &state_value.state_view.root,
+                &state_value.state_view.driver,
+                state_value.state_view.clone(),
+            );
+
+            rename_item::render(&state)
         }
     }
 }
