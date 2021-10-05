@@ -7,7 +7,7 @@ use vertigo::{
         Dependencies,
     },
 };
-
+use std::rc::Rc;
 use crate::state_data::CurrentContent;
 use crate::state_data::StateData;
 
@@ -20,50 +20,47 @@ mod rename_item;
 
 #[derive(PartialEq)]
 pub enum View {
-    Index {
-        state: Computed<index::State>,
-    },
+    Index,
     EditContent {
-        state: Computed<edit_content::State>,
-    },
-    NewContent {
-        state: Computed<new_content::State>,
+        full_path: Vec<String>,
+        file_hash: String,
+        content: Rc<String>
     },
     RenameItem {
-        state: Computed<rename_item::State>,
+        base_path: Vec<String>,
+        prev_name: String,
+        prev_hash: String,
+        prev_content: Option<String>
+    },
+    NewContent {
+        parent: Vec<String>,
+        list: Computed<Vec<ListItem>>,
     }
 }
 
-#[derive(PartialEq)]
-pub struct State {
+#[derive(PartialEq, Clone)]
+pub struct StateView {
     root: Dependencies,
     driver: DomDriver,
     state_data: StateData,
-    current_view: Value<View>,
-    self_state: Computed<State>,
+    view: Value<View>,
 }
 
-impl State {
-    pub fn new(root: &Dependencies, driver: &DomDriver) -> Computed<State> {
+impl StateView {
+    pub fn new(root: &Dependencies, driver: &DomDriver) -> (Value<View>, StateView) {
         let state_data = StateData::new(root, driver);
 
-        root.new_state(|self_state: &Computed<State>| -> State {
-            let current_view = root.new_value(View::Index {
-                state: index::State::new(
-                    root,
-                    state_data.clone(),
-                    self_state.clone(),                 //TODO - jak się odwołamy w tej funkcji do self_state, to wybuchnie
-                ),
-            });
+        let view = root.new_value(View::Index);
 
-            State {
+        (
+            view.clone(),
+            StateView {
                 root: root.clone(),
                 driver: driver.clone(),
                 state_data: state_data.clone(),
-                current_view,
-                self_state: self_state.clone(),
+                view,
             }
-        })
+        )
     }
 
     fn create_full_path(&self, path: &Vec<String>, select_item: &Option<String>) -> Vec<String> {
@@ -82,20 +79,10 @@ impl State {
 
         match content {
             CurrentContent::File { file_hash, content, ..} => {
-
-                let root = self.root.clone();
-
-                let state = edit_content::State::new(
+                self.view.set_value(View::EditContent {
                     full_path,
                     file_hash,
-                    content.as_ref().clone(),
-                    &root,
-                    &self.driver,
-                    self.self_state.clone(),
-                );
-
-                self.current_view.set_value(View::EditContent {
-                    state: root.new_computed_from(state)
+                    content
                 });
             },
             CurrentContent::Dir { .. } => {
@@ -115,18 +102,11 @@ impl State {
 
         match content_hash {
             Some(content_hash) => {
-                let state = rename_item::State::new(
-                    base_path.clone(),
-                    select_item,
-                    content_hash,
-                    get_content_string,
-                    &self.root,
-                    &self.driver,
-                    self.self_state.clone(),
-                );
-
-                self.current_view.set_value(View::RenameItem {
-                    state: self.root.new_computed_from(state),
+                self.view.set_value(View::RenameItem {
+                    base_path: base_path.clone(),
+                    prev_name: select_item,
+                    prev_hash: content_hash,
+                    prev_content: get_content_string
                 });
             },
             None => {
@@ -136,13 +116,7 @@ impl State {
     }
 
     pub fn redirect_to_index(&self) {
-        self.current_view.set_value(View::Index {
-            state: index::State::new(
-                &self.root,
-                self.state_data.clone(),
-                self.self_state.clone(),
-            ),
-        });
+        self.view.set_value(View::Index);
     }
 
     pub fn redirect_to_index_with_path(&self, new_path: Vec<String>, new_item: Option<String>) {
@@ -158,18 +132,105 @@ impl State {
     }
 
     pub fn redirect_to_new_content(&self, parent: &Vec<String>, list: Computed<Vec<ListItem>>) {
-        let state = new_content::State::new(
-            &self.root,
-            parent.clone(),
-            &self.driver,
-            list,
-            self.self_state.clone(),
-        );
-
-        self.current_view.set_value(View::NewContent { state });
+        self.view.set_value(View::NewContent {
+            parent: parent.clone(),
+            list
+        });
     }
 }
 
+
+#[derive(PartialEq)]
+pub enum ViewState {
+    Index {
+        state: Computed<index::State>,
+    },
+    EditContent {
+        state: Computed<edit_content::State>,
+    },
+    NewContent {
+        state: Computed<new_content::State>,
+    },
+    RenameItem {
+        state: Computed<rename_item::State>,
+    }
+}
+
+#[derive(PartialEq)]
+pub struct State {
+    current_view: Computed<ViewState>,
+}
+
+impl State {
+    pub fn new(root: &Dependencies, driver: &DomDriver) -> Computed<State> {
+        let (view, state_view) = StateView::new(root, driver);
+
+        let current_view: Computed<ViewState> = view.to_computed().map({
+            let root = root.clone();
+
+            move |state| -> Rc<ViewState> {
+                let view = state.get_value();
+
+                let aa = match &(*view) {
+                    View::Index => {
+                        ViewState::Index {
+                            state: index::State::new(
+                                &state_view.root,
+                                state_view.state_data.clone(),
+                                state_view.clone(),
+                            )
+                        }
+                    },
+
+                    View::EditContent { full_path, file_hash, content } => {
+                        ViewState::EditContent {
+                            state: edit_content::State::new(
+                                full_path.clone(),
+                                file_hash.clone(),
+                                content.as_ref().clone(),
+                                &root,
+                                &state_view.driver,
+                                state_view.clone(),
+                            )
+                        }
+                    },
+
+                    View::RenameItem { base_path, prev_name, prev_hash, prev_content } => {
+                        ViewState::RenameItem {
+                            state: rename_item::State::new(
+                                base_path.clone(),
+                                prev_name.clone(),
+                                prev_hash.clone(),
+                                prev_content.clone(),
+                                &state_view.root,
+                                &state_view.driver,
+                                state_view.clone(),
+                            )
+                        }
+                    },
+
+                    View::NewContent { parent, list } => {
+                        ViewState::NewContent {
+                            state: new_content::State::new(
+                                &state_view.root,
+                                parent.clone(),
+                                &state_view.driver,
+                                list.clone(),
+                                state_view.clone(),
+                            )
+                        }
+                    }
+                };
+
+                Rc::new(aa)
+            }
+        });
+
+        root.new_computed_from(State {
+            current_view,
+        })
+    }
+}
 
 pub fn render(state: &Computed<State>) -> VDomElement {
 
@@ -177,16 +238,16 @@ pub fn render(state: &Computed<State>) -> VDomElement {
     let view = state_value.current_view.get_value();
 
     match view.as_ref() {
-        View::Index { state } => {
+        ViewState::Index { state } => {
             index::render(state)
         },
-        View::EditContent { state } => {
+        ViewState::EditContent { state } => {
             edit_content::render(state)
         },
-        View::NewContent { state } => {
+        ViewState::NewContent { state } => {
             new_content::render(state)
         },
-        View::RenameItem { state } => {
+        ViewState::RenameItem { state } => {
             rename_item::render(state)
         }
     }

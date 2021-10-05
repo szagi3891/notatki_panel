@@ -4,7 +4,7 @@ use vertigo::{
     computed::{Computed, Dependencies, Value},
 };
 
-use crate::{app::State as ParentState, request::Request};
+use crate::{app::StateView, request::Request};
 
 #[derive(PartialEq)]
 pub struct State {
@@ -20,12 +20,12 @@ pub struct State {
 
     pub save_enable: Computed<bool>,
 
-    parent_state: Computed<ParentState>,
+    parent_state: StateView,
 }
 
 impl State {
     pub fn redirect_to_index(&self) {
-        self.parent_state.get_value().redirect_to_index();
+        self.parent_state.redirect_to_index();
     }
 
     pub fn new(
@@ -35,8 +35,8 @@ impl State {
         prev_content: Option<String>,
         deep: &Dependencies,
         driver: &DomDriver,
-        parent_state: Computed<ParentState>,
-    ) -> State {
+        parent_state: StateView,
+    ) -> Computed<State> {
         let new_name = deep.new_value(prev_name.clone());
 
         let save_enable = {
@@ -62,7 +62,7 @@ impl State {
 
         let request = Request::new(driver);
 
-        State {
+        deep.new_computed_from(State {
             request,
 
             path,
@@ -75,7 +75,7 @@ impl State {
             action_save,
             save_enable,
             parent_state
-        }
+        })
     }
 
     pub fn get_full_path(&self) -> String {
@@ -120,7 +120,7 @@ impl State {
             .body(body)
             .post::<HandlerRenameItemResponse>();
 
-        let parent_state = self.parent_state.get_value();
+        let parent_state = self.parent_state.clone();
         let redirect_path = self.path.clone();
         let redirect_new_name = self.new_name.get_value().as_ref().clone();
 

@@ -4,7 +4,7 @@ use vertigo::{
     computed::{Computed, Dependencies, Value},
 };
 
-use crate::{app::{State as ParentState, index::ListItem}, request::Request};
+use crate::{app::{StateView, index::ListItem}, request::Request};
 
 #[derive(PartialEq)]
 pub struct State {
@@ -18,12 +18,12 @@ pub struct State {
 
     pub save_enable: Computed<bool>,
 
-    parent_state: Computed<ParentState>,
+    parent_state: StateView,
 }
 
 impl State {
     pub fn redirect_to_index(&self) {
-        self.parent_state.get_value().redirect_to_index();
+        self.parent_state.redirect_to_index();
     }
 
     pub fn new(
@@ -31,7 +31,7 @@ impl State {
         parent: Vec<String>,
         driver: &DomDriver,
         list: Computed<Vec<ListItem>>,
-        parent_state: Computed<ParentState>,
+        parent_state: StateView,
     ) -> Computed<State> {
         let action_save = deep.new_value(false);
         let new_name = super::new_name::NewName::new(deep, list, action_save.to_computed());
@@ -111,7 +111,7 @@ impl State {
             .body(body)
             .post::<HandlerCreateFileResponse>();
 
-        let callback = self.parent_state.get_value();
+        let callback = self.parent_state.clone();
 
 
         self.request.spawn_local({

@@ -129,7 +129,7 @@ impl RequestBuilder {
         };
 
         let result = match result {
-            Ok(result) => result,
+            Ok((_, result)) => result,
             Err(err) => {
                 return Err(err);
             }

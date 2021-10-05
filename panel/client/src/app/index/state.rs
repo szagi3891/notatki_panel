@@ -7,7 +7,7 @@ use vertigo::{
         Value
     },
 };
-use crate::app::State as ParentState;
+use crate::app::StateView;
 use crate::request::{ResourceError};
 use crate::state_data::{CurrentContent, TreeItem};
 use crate::state_data::StateData;
@@ -162,14 +162,14 @@ pub struct State {
     //aktualnie wyliczony wybrany content wskazywany przez current_path
     pub current_content: Computed<CurrentContent>,
 
-    parent_state: Computed<ParentState>,
+    parent_state: StateView,
 }
 
 impl State {
     pub fn new(
         root: &Dependencies,
         state_data: StateData,
-        parent_state: Computed<ParentState>,
+        parent_state: StateView,
     ) -> Computed<State> {
 
         let list_hash_map = create_list_hash_map(root, &state_data, &state_data.current_path_dir);
@@ -339,14 +339,14 @@ impl State {
     pub fn current_edit(&self) {
         let path = self.state_data.current_path_dir.get_value();
         let select_item = self.list_current_item.get_value();
-        self.parent_state.get_value().redirect_to_content(&path, &select_item);
+        self.parent_state.redirect_to_content(&path, &select_item);
     }
 
     pub fn create_file(&self) {
         let path = self.state_data.current_path_dir.get_value();
         let list = self.list.clone();
 
-        self.parent_state.get_value().redirect_to_new_content(path.as_ref(), list);
+        self.parent_state.redirect_to_new_content(path.as_ref(), list);
     }
 
     pub fn current_rename(&self) {
@@ -354,7 +354,7 @@ impl State {
         let select_item = self.list_current_item.get_value();
 
         if let Some(select_item) = select_item.as_ref() {
-            self.parent_state.get_value().redirect_to_rename_item(&path, &select_item);
+            self.parent_state.redirect_to_rename_item(&path, &select_item);
         } else {
             log::error!("current_rename fail");
         }
