@@ -7,7 +7,7 @@ use vertigo::{
         Value
     },
 };
-use crate::app::StateView;
+use crate::app::AppState;
 use crate::request::{ResourceError};
 use crate::state_data::{CurrentContent, TreeItem};
 use crate::state_data::StateData;
@@ -162,14 +162,14 @@ pub struct State {
     //aktualnie wyliczony wybrany content wskazywany przez current_path
     pub current_content: Computed<CurrentContent>,
 
-    parent_state: StateView,
+    parent_state: Rc<AppState>,
 }
 
 impl State {
     pub fn new(
         root: &Dependencies,
         state_data: StateData,
-        parent_state: StateView,
+        parent_state: Rc<AppState>,
     ) -> Computed<State> {
 
         let list_hash_map = create_list_hash_map(root, &state_data, &state_data.current_path_dir);

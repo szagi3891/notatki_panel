@@ -39,25 +39,25 @@ enum View {
 }
 
 #[derive(PartialEq, Clone)]
-pub struct StateView {
+pub struct AppState {
     root: Dependencies,
     driver: DomDriver,
     state_data: StateData,
     view: Value<View>,
 }
 
-impl StateView {
-    fn new(root: &Dependencies, driver: &DomDriver) -> StateView {
+impl AppState {
+    pub fn new(root: &Dependencies, driver: &DomDriver) -> Computed<AppState> {
         let state_data = StateData::new(root, driver);
 
         let view = root.new_value(View::Index);
 
-        StateView {
+        root.new_computed_from(AppState {
             root: root.clone(),
             driver: driver.clone(),
             state_data: state_data.clone(),
             view,
-        }
+        })
     }
 
     fn create_full_path(&self, path: &Vec<String>, select_item: &Option<String>) -> Vec<String> {
@@ -136,33 +136,17 @@ impl StateView {
     }
 }
 
-
-#[derive(PartialEq)]
-pub struct State {
-    state_view: StateView,
-}
-
-impl State {
-    pub fn new(root: &Dependencies, driver: &DomDriver) -> Computed<State> {
-        let state_view = StateView::new(root, driver);
-
-        root.new_computed_from(State {
-            state_view,
-        })
-    }
-}
-
-pub fn render(state_computed: &Computed<State>) -> VDomElement {
+pub fn render(state_computed: &Computed<AppState>) -> VDomElement {
 
     let state = state_computed.get_value();
-    let view = state.state_view.view.get_value();
+    let view = state.view.get_value();
 
     match view.as_ref() {
         View::Index => {
             let state = index::State::new(
-                &state.state_view.root,
-                state.state_view.state_data.clone(),
-                state.state_view.clone(),
+                &state.root,
+                state.state_data.clone(),
+                state.clone(),
             );
 
             index::render(&state)
@@ -179,20 +163,20 @@ pub fn render(state_computed: &Computed<State>) -> VDomElement {
                 full_path.clone(),
                 file_hash.clone(),
                 content.as_ref().clone(),
-                &state.state_view.root,
-                &state.state_view.driver,
-                state.state_view.clone(),
+                &state.root,
+                &state.driver,
+                state.clone(),
             );
 
             edit_content::render(&state)
         },
         View::NewContent { parent, list } => {
             let state = new_content::State::new(
-                &state.state_view.root,
+                &state.root,
                 parent.clone(),
-                &state.state_view.driver,
+                &state.driver,
                 list.clone(),
-                state.state_view.clone(),
+                state.clone(),
             );
 
             new_content::render(&state)
@@ -203,9 +187,9 @@ pub fn render(state_computed: &Computed<State>) -> VDomElement {
                 prev_name.clone(),
                 prev_hash.clone(),
                 prev_content.clone(),
-                &state.state_view.root,
-                &state.state_view.driver,
-                state.state_view.clone(),
+                &state.root,
+                &state.driver,
+                state.clone(),
             );
 
             rename_item::render(&state)

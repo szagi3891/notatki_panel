@@ -28,7 +28,7 @@ pub async fn start_application() {
 
     let root: Dependencies = Dependencies::default();
     let driver = DriverBrowser::new(&root);
-    let app_state = app::State::new(&root, &driver);
+    let app_state = app::AppState::new(&root, &driver);
 
     start_app(driver, VDomComponent::new(app_state, app::render)).await;
 }

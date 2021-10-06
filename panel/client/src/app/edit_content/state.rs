@@ -1,10 +1,12 @@
+use std::rc::Rc;
+
 use common::{HandlerSaveContentBody, HandlerSaveContentResponse};
 use vertigo::{
     DomDriver, 
     computed::{Computed, Dependencies, Value},
 };
 
-use crate::{app::StateView, request::Request};
+use crate::{app::AppState, request::Request};
 
 #[derive(PartialEq)]
 pub struct State {
@@ -17,7 +19,7 @@ pub struct State {
     pub edit_content: Value<String>,
     pub save_enable: Computed<bool>,
 
-    parent_state: StateView,
+    parent_state: Rc<AppState>,
 }
 
 impl State {
@@ -31,7 +33,7 @@ impl State {
         content: String,
         deep: &Dependencies,
         driver: &DomDriver,
-        parent_state: StateView,
+        parent_state: Rc<AppState>,
     ) -> Computed<State> {
         let edit_content = deep.new_value(content.clone());
 

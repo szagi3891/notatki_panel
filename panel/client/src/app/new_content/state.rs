@@ -1,10 +1,12 @@
+use std::rc::Rc;
+
 use common::{HandlerCreateFileBody, HandlerCreateFileResponse};
 use vertigo::{
     DomDriver, 
     computed::{Computed, Dependencies, Value},
 };
 
-use crate::{app::{StateView, index::ListItem}, request::Request};
+use crate::{app::{AppState, index::ListItem}, request::Request};
 
 #[derive(PartialEq)]
 pub struct State {
@@ -18,7 +20,7 @@ pub struct State {
 
     pub save_enable: Computed<bool>,
 
-    parent_state: StateView,
+    parent_state: Rc<AppState>,
 }
 
 impl State {
@@ -31,7 +33,7 @@ impl State {
         parent: Vec<String>,
         driver: &DomDriver,
         list: Computed<Vec<ListItem>>,
-        parent_state: StateView,
+        parent_state: Rc<AppState>,
     ) -> Computed<State> {
         let action_save = deep.new_value(false);
         let new_name = super::new_name::NewName::new(deep, list, action_save.to_computed());

@@ -1,10 +1,12 @@
+use std::rc::Rc;
+
 use common::{HandlerRenameItemBody, HandlerRenameItemResponse};
 use vertigo::{
     DomDriver, 
     computed::{Computed, Dependencies, Value},
 };
 
-use crate::{app::StateView, request::Request};
+use crate::{app::AppState, request::Request};
 
 #[derive(PartialEq)]
 pub struct State {
@@ -20,7 +22,7 @@ pub struct State {
 
     pub save_enable: Computed<bool>,
 
-    parent_state: StateView,
+    parent_state: Rc<AppState>,
 }
 
 impl State {
@@ -35,7 +37,7 @@ impl State {
         prev_content: Option<String>,
         deep: &Dependencies,
         driver: &DomDriver,
-        parent_state: StateView,
+        parent_state: Rc<AppState>,
     ) -> Computed<State> {
         let new_name = deep.new_value(prev_name.clone());
 
