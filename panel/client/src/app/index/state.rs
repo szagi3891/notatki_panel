@@ -147,8 +147,6 @@ fn create_current_content(
 
 #[derive(PartialEq)]
 pub struct State {
-    root: Dependencies,
-
     state_data: StateData,
 
     list_hash_map: Computed<Result<Rc<HashMap<String, TreeItem>>, ResourceError>>,
@@ -162,15 +160,15 @@ pub struct State {
     //aktualnie wyliczony wybrany content wskazywany przez current_path
     pub current_content: Computed<CurrentContent>,
 
-    parent_state: Rc<AppState>,
+    app_state: Rc<AppState>,
 }
 
 impl State {
     pub fn new(
-        root: &Dependencies,
-        state_data: StateData,
-        parent_state: Rc<AppState>,
+        app_state: Rc<AppState>,
     ) -> Computed<State> {
+        let root = &app_state.root.clone();
+        let state_data = app_state.state_data.clone();
 
         let list_hash_map = create_list_hash_map(root, &state_data, &state_data.current_path_dir);
         let list = create_list(root, &list_hash_map);
@@ -185,13 +183,12 @@ impl State {
         );
 
         root.new_computed_from(State {
-            root: root.clone(),
             state_data,
             list_hash_map,
             list,
             list_current_item,
             current_content,
-            parent_state,
+            app_state,
         })
     }
 
@@ -206,7 +203,7 @@ impl State {
     
         let (new_current_path, new_current_item_value) = calculate_next_path(current_path.as_ref(), path);
 
-        self.root.transaction(|| {
+        self.app_state.root.transaction(||{
             self.state_data.current_path_dir.set_value(new_current_path);
             self.state_data.current_path_item.set_value(new_current_item_value);
         });
@@ -339,14 +336,14 @@ impl State {
     pub fn current_edit(&self) {
         let path = self.state_data.current_path_dir.get_value();
         let select_item = self.list_current_item.get_value();
-        self.parent_state.redirect_to_content(&path, &select_item);
+        self.app_state.redirect_to_content(&path, &select_item);
     }
 
     pub fn create_file(&self) {
         let path = self.state_data.current_path_dir.get_value();
         let list = self.list.clone();
 
-        self.parent_state.redirect_to_new_content(path.as_ref(), list);
+        self.app_state.redirect_to_new_content(path.as_ref(), list);
     }
 
     pub fn current_rename(&self) {
@@ -354,7 +351,7 @@ impl State {
         let select_item = self.list_current_item.get_value();
 
         if let Some(select_item) = select_item.as_ref() {
-            self.parent_state.redirect_to_rename_item(&path, &select_item);
+            self.app_state.redirect_to_rename_item(&path, &select_item);
         } else {
             log::error!("current_rename fail");
         }

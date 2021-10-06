@@ -144,8 +144,6 @@ pub fn render(state_computed: &Computed<AppState>) -> VDomElement {
     match view.as_ref() {
         View::Index => {
             let state = index::State::new(
-                &state.root,
-                state.state_data.clone(),
                 state.clone(),
             );
 
