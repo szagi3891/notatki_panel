@@ -7,6 +7,7 @@ use vertigo::{
         Dependencies,
     },
 };
+use vertigo_html::html;
 use std::rc::Rc;
 use crate::state_data::CurrentContent;
 use crate::state_data::StateData;
@@ -76,6 +77,7 @@ impl AppState {
 
         match content {
             CurrentContent::File { file_hash, content, ..} => {
+                log::info!("redirect_to_content {:?}", full_path);
                 self.view.set_value(View::EditContent {
                     full_path,
                     file_hash,
@@ -99,6 +101,7 @@ impl AppState {
 
         match content_hash {
             Some(content_hash) => {
+                log::info!("redirect_to_rename_item {:?} {:?}", base_path, select_item);
                 self.view.set_value(View::RenameItem {
                     base_path: base_path.clone(),
                     prev_name: select_item,
@@ -113,6 +116,7 @@ impl AppState {
     }
 
     pub fn redirect_to_index(&self) {
+        log::info!("redirect_to_index");
         self.view.set_value(View::Index);
     }
 
@@ -129,6 +133,7 @@ impl AppState {
     }
 
     pub fn redirect_to_new_content(&self, parent: &Vec<String>, list: Computed<Vec<ListItem>>) {
+        log::info!("redirect_to_new_content {:?}", parent);
         self.view.set_value(View::NewContent {
             parent: parent.clone(),
             list
@@ -147,14 +152,11 @@ pub fn render(state_computed: &Computed<AppState>) -> VDomElement {
                 state.clone(),
             );
 
-            index::render(&state)
-
-            // html! {
-            //     <div>
-            //         "index ..."
-            //         <component {index::render} data={state} />
-            //     </div>
-            // }
+            html! {
+                <div>
+                    <component {index::render} data={state} />
+                </div>
+            }
         },
         View::EditContent { full_path, file_hash, content } => {
             let state = edit_content::State::new(
@@ -166,7 +168,11 @@ pub fn render(state_computed: &Computed<AppState>) -> VDomElement {
                 state.clone(),
             );
 
-            edit_content::render(&state)
+            html! {
+                <div>
+                    <component {edit_content::render} data={state} />
+                </div>
+            }
         },
         View::NewContent { parent, list } => {
             let state = new_content::State::new(
@@ -177,7 +183,11 @@ pub fn render(state_computed: &Computed<AppState>) -> VDomElement {
                 state.clone(),
             );
 
-            new_content::render(&state)
+            html! {
+                <div>
+                    <component {new_content::render} data={state} />
+                </div>
+            }
         },
         View::RenameItem { base_path, prev_name, prev_hash, prev_content } => {
             let state = rename_item::State::new(
@@ -190,7 +200,11 @@ pub fn render(state_computed: &Computed<AppState>) -> VDomElement {
                 state.clone(),
             );
 
-            rename_item::render(&state)
+            html! {
+                <div>
+                    <component {rename_item::render} data={state} />
+                </div>
+            }
         }
     }
 }

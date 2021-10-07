@@ -35,6 +35,7 @@ impl State {
         list: Computed<Vec<ListItem>>,
         parent_state: Rc<AppState>,
     ) -> Computed<State> {
+        log::info!("buduję stan dla new content");
         let action_save = deep.new_value(false);
         let new_name = super::new_name::NewName::new(deep, list, action_save.to_computed());
         let content = deep.new_value(String::from(""));
