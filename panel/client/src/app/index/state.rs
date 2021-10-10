@@ -198,7 +198,7 @@ impl State {
             }
         };
 
-        (root.new_computed_from_rc(state), keydown)
+        (root.new_computed_from(state), keydown)
     }
 
 
