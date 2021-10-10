@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use vertigo::{
     VDomElement,
     Css,
@@ -20,7 +22,7 @@ fn css_footer() -> Css {
     ")
 }
 
-pub fn render_menu(state: &Computed<State>) -> VDomElement {
+pub fn render_menu(state: &Computed<Rc<State>>) -> VDomElement {
     let state = state.get_value();
 
     let on_click = {

@@ -148,12 +148,12 @@ pub fn render(state_computed: &Computed<AppState>) -> VDomElement {
 
     match view.as_ref() {
         View::Index => {
-            let state = index::State::new(
+            let (state, on_keydown) = index::State::new(
                 app_state.clone(),
             );
 
             html! {
-                <div>
+                <div on_key_down={on_keydown}>
                     <component {index::render} data={state} />
                 </div>
             }

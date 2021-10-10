@@ -85,7 +85,7 @@ fn create_link(state: &Rc<State>, title: String, node_id: Vec<String>, create_cs
     }
 }
 
-pub fn render_header(state: &Computed<State>) -> VDomElement {
+pub fn render_header(state: &Computed<Rc<State>>) -> VDomElement {
     let state = state.get_value();
 
     let current_path = state.current_path_dir();
