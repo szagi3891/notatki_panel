@@ -1,8 +1,11 @@
-use std::rc::Rc;
-
-use vertigo::{Css, NodeRefs, VDomElement, computed::{
+use vertigo::{
+    Css,
+    NodeRefs,
+    VDomElement,
+    computed::{
         Computed,
-    }};
+    }
+};
 use vertigo_html::{css, html};
 
 use super::state::State;
@@ -227,7 +230,7 @@ fn remove_prefix(name: &String) -> String {
     out
 }
 
-pub fn render_list(state: &Computed<Rc<State>>) -> VDomElement {
+pub fn render_list(state: &Computed<State>) -> VDomElement {
     
     let mut out: Vec<VDomElement> = Vec::new();
 

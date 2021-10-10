@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use vertigo::{Css, VDomElement, computed::Computed};
 use vertigo_html::{css, html};
 
@@ -35,7 +33,7 @@ fn youtube_css() -> Css {
     ")
 }
 
-pub fn render_content(state: &Computed<Rc<State>>) -> VDomElement {
+pub fn render_content(state: &Computed<State>) -> VDomElement {
 
     let state = state.get_value();
 

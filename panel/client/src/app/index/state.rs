@@ -166,7 +166,7 @@ pub struct State {
 impl State {
     pub fn new(
         app_state: Rc<AppState>,
-    ) -> (Computed<Rc<State>>, impl Fn(vertigo::KeyDownEvent) -> bool) {
+    ) -> (Computed<State>, impl Fn(vertigo::KeyDownEvent) -> bool) {
         let root = &app_state.root.clone();
         let state_data = app_state.state_data.clone();
 
@@ -198,7 +198,7 @@ impl State {
             }
         };
 
-        (root.new_computed_from(state), keydown)
+        (root.new_computed_from_rc(state), keydown)
     }
 
 

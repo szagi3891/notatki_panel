@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use vertigo::{Css, KeyDownEvent, VDomElement, computed::{
     Computed,
 }};
@@ -56,7 +54,7 @@ fn css_content_content() -> Css {
     ")
 }
 
-pub fn render(state: &Computed<Rc<State>>) -> VDomElement {
+pub fn render(state: &Computed<State>) -> VDomElement {
 
     let state_value = state.get_value();
 
