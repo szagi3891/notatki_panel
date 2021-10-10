@@ -80,7 +80,7 @@ pub fn render(state: &Computed<State>) -> VDomElement {
     }
 
     html! {
-        <div id="root" css={css_wrapper()}>
+        <div css={css_wrapper()}>
             <style>
                 "
                 html, body {

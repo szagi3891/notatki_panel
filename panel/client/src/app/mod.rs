@@ -153,7 +153,7 @@ pub fn render(state_computed: &Computed<AppState>) -> VDomElement {
             );
 
             html! {
-                <div on_key_down={on_keydown}>
+                <div id="root" on_key_down={on_keydown}>
                     <component {index::render} data={state} />
                 </div>
             }
@@ -167,7 +167,7 @@ pub fn render(state_computed: &Computed<AppState>) -> VDomElement {
             );
 
             html! {
-                <div>
+                <div id="root">
                     <component {edit_content::render} data={state} />
                 </div>
             }
@@ -180,7 +180,7 @@ pub fn render(state_computed: &Computed<AppState>) -> VDomElement {
             );
 
             html! {
-                <div>
+                <div id="root">
                     <component {new_content::render} data={state} />
                 </div>
             }
@@ -195,7 +195,7 @@ pub fn render(state_computed: &Computed<AppState>) -> VDomElement {
             );
 
             html! {
-                <div>
+                <div id="root">
                     <component {rename_item::render} data={state} />
                 </div>
             }
