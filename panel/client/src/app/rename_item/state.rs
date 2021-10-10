@@ -2,8 +2,7 @@ use std::rc::Rc;
 
 use common::{HandlerRenameItemBody, HandlerRenameItemResponse};
 use vertigo::{
-    DomDriver, 
-    computed::{Computed, Dependencies, Value},
+    computed::{Computed, Value},
 };
 
 use crate::{app::AppState, request::Request};
@@ -22,30 +21,28 @@ pub struct State {
 
     pub save_enable: Computed<bool>,
 
-    parent_state: Rc<AppState>,
+    app_state: Rc<AppState>,
 }
 
 impl State {
     pub fn redirect_to_index(&self) {
-        self.parent_state.redirect_to_index();
+        self.app_state.redirect_to_index();
     }
 
     pub fn new(
+        app_state: Rc<AppState>,
         path: Vec<String>,
         prev_name: String,
         prev_hash: String,
         prev_content: Option<String>,
-        deep: &Dependencies,
-        driver: &DomDriver,
-        parent_state: Rc<AppState>,
     ) -> Computed<State> {
-        let new_name = deep.new_value(prev_name.clone());
+        let new_name = app_state.root.new_value(prev_name.clone());
 
         let save_enable = {
             let prev_name = prev_name.clone();
             let new_name = new_name.to_computed();
 
-            deep.from(move || -> bool {
+            app_state.root.from(move || -> bool {
                 let new_name = new_name.get_value();
                 
                 if new_name.as_ref().trim() == "" {
@@ -60,11 +57,11 @@ impl State {
             })
         };
 
-        let action_save = deep.new_value(false);
+        let action_save = app_state.root.new_value(false);
 
-        let request = Request::new(driver);
+        let request = Request::new(&app_state.driver);
 
-        deep.new_computed_from(State {
+        app_state.root.new_computed_from(State {
             request,
 
             path,
@@ -76,7 +73,7 @@ impl State {
 
             action_save,
             save_enable,
-            parent_state
+            app_state: app_state.clone(),
         })
     }
 
@@ -122,7 +119,7 @@ impl State {
             .body(body)
             .post::<HandlerRenameItemResponse>();
 
-        let parent_state = self.parent_state.clone();
+        let parent_state = self.app_state.clone();
         let redirect_path = self.path.clone();
         let redirect_new_name = self.new_name.get_value().as_ref().clone();
 

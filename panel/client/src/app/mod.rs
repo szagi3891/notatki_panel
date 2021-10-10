@@ -143,13 +143,13 @@ impl AppState {
 
 pub fn render(state_computed: &Computed<AppState>) -> VDomElement {
 
-    let state = state_computed.get_value();
-    let view = state.view.get_value();
+    let app_state = state_computed.get_value();
+    let view = app_state.view.get_value();
 
     match view.as_ref() {
         View::Index => {
             let state = index::State::new(
-                state.clone(),
+                app_state.clone(),
             );
 
             html! {
@@ -160,12 +160,10 @@ pub fn render(state_computed: &Computed<AppState>) -> VDomElement {
         },
         View::EditContent { full_path, file_hash, content } => {
             let state = edit_content::State::new(
+                app_state.clone(),
                 full_path.clone(),
                 file_hash.clone(),
                 content.as_ref().clone(),
-                &state.root,
-                &state.driver,
-                state.clone(),
             );
 
             html! {
@@ -176,11 +174,9 @@ pub fn render(state_computed: &Computed<AppState>) -> VDomElement {
         },
         View::NewContent { parent, list } => {
             let state = new_content::State::new(
-                &state.root,
+                app_state.clone(),
                 parent.clone(),
-                &state.driver,
                 list.clone(),
-                state.clone(),
             );
 
             html! {
@@ -191,13 +187,11 @@ pub fn render(state_computed: &Computed<AppState>) -> VDomElement {
         },
         View::RenameItem { base_path, prev_name, prev_hash, prev_content } => {
             let state = rename_item::State::new(
+                app_state.clone(),
                 base_path.clone(),
                 prev_name.clone(),
                 prev_hash.clone(),
                 prev_content.clone(),
-                &state.root,
-                &state.driver,
-                state.clone(),
             );
 
             html! {

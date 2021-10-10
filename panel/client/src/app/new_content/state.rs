@@ -2,8 +2,7 @@ use std::rc::Rc;
 
 use common::{HandlerCreateFileBody, HandlerCreateFileResponse};
 use vertigo::{
-    DomDriver, 
-    computed::{Computed, Dependencies, Value},
+    computed::{Computed, Value},
 };
 
 use crate::{app::{AppState, index::ListItem}, request::Request};
@@ -20,32 +19,30 @@ pub struct State {
 
     pub save_enable: Computed<bool>,
 
-    parent_state: Rc<AppState>,
+    app_state: Rc<AppState>,
 }
 
 impl State {
     pub fn redirect_to_index(&self) {
-        self.parent_state.redirect_to_index();
+        self.app_state.redirect_to_index();
     }
 
     pub fn new(
-        deep: &Dependencies,
+        app_state: Rc<AppState>,
         parent: Vec<String>,
-        driver: &DomDriver,
         list: Computed<Vec<ListItem>>,
-        parent_state: Rc<AppState>,
     ) -> Computed<State> {
         log::info!("buduję stan dla new content");
-        let action_save = deep.new_value(false);
-        let new_name = super::new_name::NewName::new(deep, list, action_save.to_computed());
-        let content = deep.new_value(String::from(""));
+        let action_save = app_state.root.new_value(false);
+        let new_name = super::new_name::NewName::new(&app_state, list, action_save.to_computed());
+        let content = app_state.root.new_value(String::from(""));
 
 
         let save_enable = {
             let new_name = new_name.clone();
             let content = content.to_computed();
 
-            deep.from(move || -> bool {
+            app_state.root.from(move || -> bool {
                 let new_name_is_valid = new_name.get_value().is_valid.get_value();
 
                 if !*new_name_is_valid  {
@@ -61,9 +58,9 @@ impl State {
             })
         };
 
-        let request = Request::new(driver);
+        let request = Request::new(&app_state.driver);
 
-        deep.new_computed_from(State {
+        app_state.root.new_computed_from(State {
             request,
 
             action_save,
@@ -74,7 +71,7 @@ impl State {
 
             save_enable,
 
-            parent_state,
+            app_state: app_state.clone(),
         })
     }
 
@@ -114,7 +111,7 @@ impl State {
             .body(body)
             .post::<HandlerCreateFileResponse>();
 
-        let callback = self.parent_state.clone();
+        let callback = self.app_state.clone();
 
 
         self.request.spawn_local({

@@ -2,8 +2,7 @@ use std::rc::Rc;
 
 use common::{HandlerSaveContentBody, HandlerSaveContentResponse};
 use vertigo::{
-    DomDriver, 
-    computed::{Computed, Dependencies, Value},
+    computed::{Computed, Value},
 };
 
 use crate::{app::AppState, request::Request};
@@ -19,39 +18,37 @@ pub struct State {
     pub edit_content: Value<String>,
     pub save_enable: Computed<bool>,
 
-    parent_state: Rc<AppState>,
+    app_state: Rc<AppState>,
 }
 
 impl State {
     pub fn redirect_to_index(&self) {
-        self.parent_state.redirect_to_index();
+        self.app_state.redirect_to_index();
     }
 
     pub fn new(
+        app_state: Rc<AppState>,
         path: Vec<String>,
         hash: String,
         content: String,
-        deep: &Dependencies,
-        driver: &DomDriver,
-        parent_state: Rc<AppState>,
     ) -> Computed<State> {
-        let edit_content = deep.new_value(content.clone());
+        let edit_content = app_state.root.new_value(content.clone());
 
         let save_enable = {
             let edit_content = edit_content.to_computed();
 
-            deep.from(move || -> bool {
+            app_state.root.from(move || -> bool {
                 let edit_content = edit_content.get_value();
                 let save_enabled = edit_content.as_ref() != &content;
                 save_enabled
             })
         };
 
-        let action_save = deep.new_value(false);
+        let action_save = app_state.root.new_value(false);
 
-        let request = Request::new(driver);
+        let request = Request::new(&app_state.driver);
 
-        deep.new_computed_from(State {
+        let state = State {
             request,
 
             path,
@@ -60,8 +57,10 @@ impl State {
             action_save,
             edit_content,
             save_enable,
-            parent_state
-        })
+            app_state: app_state.clone()
+        };
+
+        app_state.root.new_computed_from(state)
     }
 
     pub fn on_input(&self, new_text: String) {
@@ -96,7 +95,7 @@ impl State {
             .body(body)
             .post::<HandlerSaveContentResponse>();
 
-        let callback = self.parent_state.clone();
+        let callback = self.app_state.clone();
 
         self.request.spawn_local(async move {
 

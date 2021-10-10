@@ -1,13 +1,13 @@
 use std::{ops::Deref, rc::Rc};
 
 use vertigo::{ 
-    computed::{Computed, Dependencies, Value},
+    computed::{Computed, Value},
 };
 
 use vertigo::{Css, VDomElement};
 use vertigo_html::{css, html};
 
-use crate::{app::index::ListItem};
+use crate::{app::{AppState, index::ListItem}};
 
 
 fn is_exist_in_list(name: &String, list: Rc<Vec<ListItem>>) -> bool {
@@ -31,18 +31,18 @@ pub struct NewName {
 
 impl NewName {
     pub fn new(
-        deep: &Dependencies,
+        app_state: &Rc<AppState>,
         list: Computed<Vec<ListItem>>,
         action_save: Computed<bool>,
     ) -> Computed<NewName> {
-        let new_dir = deep.new_value(Vec::new());
-        let name = deep.new_value(String::from(""));
+        let new_dir = app_state.root.new_value(Vec::new());
+        let name = app_state.root.new_value(String::from(""));
 
         let name_exists = {
             let new_dir = new_dir.clone();
             let name = name.clone();
 
-            deep.from(move || -> bool {
+            app_state.root.from(move || -> bool {
                 let list = list.get_value();
 
                 let new_dir = new_dir.get_value();
@@ -60,7 +60,7 @@ impl NewName {
         let is_valid = {
             let name = name.clone();
 
-            deep.from(move || -> bool {
+            app_state.root.from(move || -> bool {
                 let name_exists = name_exists.get_value();
 
                 if *name_exists {
@@ -80,7 +80,7 @@ impl NewName {
             let new_dir = new_dir.clone();
             let name = name.clone();
 
-            deep.from(move || -> Vec<String> {
+            app_state.root.from(move || -> Vec<String> {
                 let mut new_dir = new_dir.get_value().deref().clone();
                 let name = name.get_value().deref().clone();
                 
@@ -89,7 +89,7 @@ impl NewName {
             })
         };
     
-        deep.new_computed_from(NewName {
+        app_state.root.new_computed_from(NewName {
             action_save,
             relative_path: new_dir,
             name,
