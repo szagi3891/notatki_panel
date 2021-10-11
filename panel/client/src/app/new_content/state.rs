@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use common::{HandlerCreateFileBody, HandlerCreateFileResponse};
+use common::{HandlerCreateFileBody, RootResponse};
 use vertigo::{
     computed::{Computed, Value},
 };
@@ -109,7 +109,7 @@ impl State {
         let request = self.request
             .fetch("/create_file")
             .body(body)
-            .post::<HandlerCreateFileResponse>();
+            .post::<RootResponse>();
 
         let callback = self.app_state.clone();
 

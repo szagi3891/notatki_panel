@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 pub type TimestampType = u128;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct HandlerFetchRootResponse {
+pub struct RootResponse {
     pub root: String,
 }
 
@@ -57,12 +57,6 @@ pub struct HandlerSaveContentBody {
 
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct HandlerSaveContentResponse {
-    pub new_root: String,
-}
-
-
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct HandlerCreateFileBody {
     pub path: Vec<String>,
     pub new_path: Vec<String>,
@@ -71,24 +65,10 @@ pub struct HandlerCreateFileBody {
 
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct HandlerCreateFileResponse {
-    pub new_root: String,
-}
-
-
-
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct HandlerCreateDirBody {
     pub path: Vec<String>,
     pub dir: String,
 }
-
-
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct HandlerCreateDirResponse {
-    pub new_root: String,
-}
-
 
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
@@ -101,18 +81,7 @@ pub struct HandlerRenameItemBody {
 
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct HandlerRenameItemResponse {
-    pub new_root: String,
-}
-
-
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct HandlerDeleteFileBody {
     pub path: Vec<String>,
     pub hash: String,
-}
-
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct HandlerDeleteFileResponse {
-    pub new_root: String,
 }

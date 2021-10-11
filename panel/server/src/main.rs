@@ -1,8 +1,19 @@
 #![allow(clippy::needless_lifetimes)]
 #![allow(clippy::ptr_arg)]
 
-use common::{HandlerCreateDirBody, HandlerCreateDirResponse, HandlerCreateFileBody, HandlerCreateFileResponse, HandlerDeleteFileBody, HandlerDeleteFileResponse, HandlerFetchDirBody, HandlerFetchDirResponse, HandlerFetchNodeBody, HandlerFetchNodeResponse, HandlerFetchRootResponse, HandlerRenameItemBody, HandlerRenameItemResponse, HandlerSaveContentBody, HandlerSaveContentResponse};
-use utils::{create_response, create_response_message};
+use common::{
+    RootResponse,
+    HandlerCreateDirBody,
+    HandlerCreateFileBody,
+    HandlerDeleteFileBody,
+    HandlerFetchDirBody,
+    HandlerFetchDirResponse,
+    HandlerFetchNodeBody,
+    HandlerFetchNodeResponse,
+    HandlerRenameItemBody,
+    HandlerSaveContentBody,
+};
+use utils::{ErrorProcess, create_response, create_response_message};
 use warp::{Filter, Reply, http::Response};
 use std::convert::Infallible;
 use std::net::Ipv4Addr;
@@ -40,6 +51,20 @@ fn inject_state<T: Clone + Sized + Send>(state: T) -> impl Filter<Extract = (T,)
     warp::any().map(move || state.clone())
 }
 
+fn response_with_root(result: Result<String, ErrorProcess>) -> Result<impl warp::Reply, Infallible> {
+    match result {
+        Ok(root) => {
+            let response = RootResponse {
+                root,
+            };
+            Ok(create_response(200, response))
+        },
+        Err(err) => {
+            Ok(err.to_response())
+        }
+    }
+}
+
 async fn handler_index() -> Result<impl Reply, Infallible> {
     Ok(Response::new(r##"<!DOCTYPE html>
     <html>
@@ -56,20 +81,8 @@ async fn handler_index() -> Result<impl Reply, Infallible> {
 }
 
 async fn handler_fetch_root(app_state: Arc<AppState>) -> Result<impl warp::Reply, Infallible> {
-    let root = app_state.git.main_commit().await;
-
-    let root = match root {
-        Ok(root) => root,
-        Err(message) => {
-            return Ok(message.to_response());
-        }
-    };
-
-    let body = HandlerFetchRootResponse {
-        root,
-    };
-
-    Ok(create_response(200, body))
+    let result = app_state.git.main_commit().await;
+    response_with_root(result)
 }
 
 async fn handler_fetch_dir(app_state: Arc<AppState>, body_request: HandlerFetchDirBody) -> Result<Response<String>, Infallible> {
@@ -135,17 +148,7 @@ async fn handler_save_content(app_state: Arc<AppState>, body_request: HandlerSav
         body_request.new_content
     ).await;
 
-    match result {
-        Ok(new_root) => {
-            let response = HandlerSaveContentResponse {
-                new_root,
-            };
-            Ok(create_response(200, response))
-        },
-        Err(err) => {
-            Ok(err.to_response())
-        }
-    }
+    response_with_root(result)
 }
 
 async fn handler_create_file(app_state: Arc<AppState>, body_request: HandlerCreateFileBody) -> Result<impl warp::Reply, Infallible> {
@@ -155,17 +158,7 @@ async fn handler_create_file(app_state: Arc<AppState>, body_request: HandlerCrea
         body_request.new_content
     ).await;
 
-    match result {
-        Ok(new_root) => {
-            let response = HandlerCreateFileResponse {
-                new_root,
-            };
-            Ok(create_response(200, response))
-        },
-        Err(err) => {
-            Ok(err.to_response())
-        }
-    }
+    response_with_root(result)
 }
 
 async fn handler_create_dir(app_state: Arc<AppState>, body_request: HandlerCreateDirBody) -> Result<impl warp::Reply, Infallible> {
@@ -174,17 +167,7 @@ async fn handler_create_dir(app_state: Arc<AppState>, body_request: HandlerCreat
         body_request.dir
     ).await;
 
-    match result {
-        Ok(new_root) => {
-            let response = HandlerCreateDirResponse {
-                new_root,
-            };
-            Ok(create_response(200, response))
-        },
-        Err(err) => {
-            Ok(err.to_response())
-        }
-    }
+    response_with_root(result)
 }
 
 async fn handler_rename_item(app_state: Arc<AppState>, body_request: HandlerRenameItemBody) -> Result<impl warp::Reply, Infallible> {
@@ -195,17 +178,7 @@ async fn handler_rename_item(app_state: Arc<AppState>, body_request: HandlerRena
         body_request.new_name
     ).await;
 
-    match result {
-        Ok(new_root) => {
-            let response = HandlerRenameItemResponse {
-                new_root,
-            };
-            Ok(create_response(200, response))
-        },
-        Err(err) => {
-            Ok(err.to_response())
-        }
-    }
+    response_with_root(result)
 }
 
 async fn handler_delete_file(app_state: Arc<AppState>, body_request: HandlerDeleteFileBody) -> Result<impl warp::Reply, Infallible> {
@@ -214,17 +187,7 @@ async fn handler_delete_file(app_state: Arc<AppState>, body_request: HandlerDele
         body_request.hash,
     ).await;
 
-    match result {
-        Ok(new_root) => {
-            let response = HandlerDeleteFileResponse {
-                new_root,
-            };
-            Ok(create_response(200, response))
-        },
-        Err(err) => {
-            Ok(err.to_response())
-        }
-    }
+    response_with_root(result)
 }
 
 

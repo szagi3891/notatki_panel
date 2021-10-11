@@ -1,4 +1,4 @@
-use common::HandlerFetchRootResponse;
+use common::RootResponse;
 use vertigo::{
     computed::{
         Dependencies,
@@ -13,14 +13,14 @@ use super::StateNodeDir;
 #[derive(PartialEq)]
 pub struct RootNode {
     state_node_dir: StateNodeDir,
-    pub value: Computed<Resource<HandlerFetchRootResponse>>,
+    pub value: Computed<Resource<RootResponse>>,
 }
 
 impl RootNode {
     fn new(request: &Request, dependencies: &Dependencies, state_node_dir: StateNodeDir) -> RootNode {
         let value = dependencies.new_value(Err(ResourceError::Loading));
         let value_read = value.to_computed();
-        let response = request.fetch("/fetch_root").get::<HandlerFetchRootResponse>();
+        let response = request.fetch("/fetch_root").get::<RootResponse>();
 
         request.spawn_local(async move {
             let response = response.await;

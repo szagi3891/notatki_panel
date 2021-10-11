@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use common::{HandlerSaveContentBody, HandlerSaveContentResponse};
+use common::{HandlerSaveContentBody, RootResponse};
 use vertigo::{
     computed::{Computed, Value},
 };
@@ -93,7 +93,7 @@ impl State {
         let request = self.request
             .fetch("/save_content")
             .body(body)
-            .post::<HandlerSaveContentResponse>();
+            .post::<RootResponse>();
 
         let callback = self.app_state.clone();
 

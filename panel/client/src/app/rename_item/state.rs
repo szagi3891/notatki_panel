@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use common::{HandlerRenameItemBody, HandlerRenameItemResponse};
+use common::{HandlerRenameItemBody, RootResponse};
 use vertigo::{
     computed::{Computed, Value},
 };
@@ -117,7 +117,7 @@ impl State {
         let request = self.request
             .fetch("/rename_item")
             .body(body)
-            .post::<HandlerRenameItemResponse>();
+            .post::<RootResponse>();
 
         let parent_state = self.app_state.clone();
         let redirect_path = self.path.clone();
