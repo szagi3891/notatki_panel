@@ -45,3 +45,13 @@ Content-Type: application/json
     "hash": "4fdf73a107e0a90f00ba248859f4c67c457469db"
 }
 
+###
+
+POST http://0.0.0.0:4000/create_dir
+Content-Type: application/json
+
+{
+    "path": ["_testowy"],
+    "dir": "pusty_katalog"
+}
+

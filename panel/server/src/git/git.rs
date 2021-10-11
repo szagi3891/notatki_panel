@@ -114,6 +114,20 @@ impl Git {
         session.commit().await
     }
 
+    pub async fn create_dir(
+        &self,
+        path: Vec<String>,
+        dir: String,
+    ) -> Result<String, ErrorProcess> {
+        let session = self.session().await?;
+
+        let (session, empty_dir) = session.create_empty_dir().await?;
+
+        let session = session.insert_child(&path, &dir, empty_dir).await?;
+
+        session.commit().await
+    }
+
 
     pub async fn rename_item(
         &self,

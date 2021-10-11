@@ -1,7 +1,7 @@
 #![allow(clippy::needless_lifetimes)]
 #![allow(clippy::ptr_arg)]
 
-use common::{HandlerCreateFileBody, HandlerCreateFileResponse, HandlerDeleteFileBody, HandlerDeleteFileResponse, HandlerFetchDirBody, HandlerFetchDirResponse, HandlerFetchNodeBody, HandlerFetchNodeResponse, HandlerFetchRootResponse, HandlerRenameItemBody, HandlerRenameItemResponse, HandlerSaveContentBody, HandlerSaveContentResponse};
+use common::{HandlerCreateDirBody, HandlerCreateDirResponse, HandlerCreateFileBody, HandlerCreateFileResponse, HandlerDeleteFileBody, HandlerDeleteFileResponse, HandlerFetchDirBody, HandlerFetchDirResponse, HandlerFetchNodeBody, HandlerFetchNodeResponse, HandlerFetchRootResponse, HandlerRenameItemBody, HandlerRenameItemResponse, HandlerSaveContentBody, HandlerSaveContentResponse};
 use utils::{create_response, create_response_message};
 use warp::{Filter, Reply, http::Response};
 use std::convert::Infallible;
@@ -168,6 +168,25 @@ async fn handler_create_file(app_state: Arc<AppState>, body_request: HandlerCrea
     }
 }
 
+async fn handler_create_dir(app_state: Arc<AppState>, body_request: HandlerCreateDirBody) -> Result<impl warp::Reply, Infallible> {
+    let result = app_state.git.create_dir(
+        body_request.path,
+        body_request.dir
+    ).await;
+
+    match result {
+        Ok(new_root) => {
+            let response = HandlerCreateDirResponse {
+                new_root,
+            };
+            Ok(create_response(200, response))
+        },
+        Err(err) => {
+            Ok(err.to_response())
+        }
+    }
+}
+
 async fn handler_rename_item(app_state: Arc<AppState>, body_request: HandlerRenameItemBody) -> Result<impl warp::Reply, Infallible> {
     let result = app_state.git.rename_item(
         body_request.path,
@@ -271,6 +290,13 @@ async fn main() {
         .and(warp::body::json())
         .and_then(handler_create_file);
     
+    let filter_create_dir =
+        warp::path!("create_dir")
+        .and(warp::post())
+        .and(inject_state(app_state.clone()))
+        .and(warp::body::json())
+        .and_then(handler_create_dir);
+    
     let filter_rename_item =
         warp::path!("rename_item")
         .and(warp::post())
@@ -301,6 +327,7 @@ async fn main() {
         .or(filter_fetch_node)
         .or(filter_save_content)
         .or(filter_create_file)
+        .or(filter_create_dir)
         .or(filter_rename_item)
         .or(filter_delete_item)
         .or(routes_default)

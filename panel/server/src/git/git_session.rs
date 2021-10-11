@@ -259,6 +259,17 @@ pub fn create_file_content<'repo>(
     }
 }
 
+pub fn create_empty_dir<'repo>(
+    session: &GitSession<'repo>,
+) -> Result<GitId, ErrorProcess> {
+    let builder = session.repo.treebuilder(None)?;
+    
+    let write_result = builder.write()?;
+    let write_result = find_id(session, write_result)?;
+
+    Ok(write_result)
+}
+
 fn tree_entry_is_file(child: &TreeEntry) -> Result<bool, ErrorProcess> {
     let child_kind = child.kind()
         .ok_or_else(|| ErrorProcess::user("Problem with reading the 'kind' for"))?;
@@ -405,6 +416,13 @@ impl<'repo> GitSession<'repo> {
     pub async fn create_file_content(self, new_path: &[String], content: &String) -> Result<(GitSession<'repo>, GitId), ErrorProcess> {
         task::block_in_place(move || {
             let new_content_id = create_file_content(&self, new_path, content)?;
+            Ok((self, new_content_id))
+        })
+    }
+
+    pub async fn create_empty_dir(self) -> Result<(GitSession<'repo>, GitId), ErrorProcess> {
+        task::block_in_place(move || {
+            let new_content_id = create_empty_dir(&self)?;
             Ok((self, new_content_id))
         })
     }
