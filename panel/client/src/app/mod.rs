@@ -36,6 +36,9 @@ enum View {
     NewContent {
         parent: Vec<String>,
         list: Computed<Vec<ListItem>>,
+    },
+    Mkdir {
+        parent: Rc<Vec<String>>,
     }
 }
 
@@ -127,6 +130,11 @@ impl AppState {
         self.state_data.state_root.refresh();
     }
 
+    pub fn redirect_to_mkdir(&self) {
+        let parent = self.state_data.current_path_dir.clone().get_value();
+        self.view.set_value(View::Mkdir { parent });
+    }
+
     pub fn redirect_to_index_with_root_refresh(&self) {
         self.state_data.state_root.refresh();
         self.redirect_to_index();
@@ -197,6 +205,22 @@ pub fn render(state_computed: &Computed<AppState>) -> VDomElement {
             html! {
                 <div id="root">
                     <component {rename_item::render} data={state} />
+                </div>
+            }
+        },
+        View::Mkdir { parent } => {
+
+            let on_click = move || {
+                app_state.redirect_to_index();
+            };
+
+            let label = format!("tworzenie katalogu w {} - wróć", parent.join("/"));
+
+            html! {
+                <div id="root">
+                    <div on_click={on_click}>
+                        { label }
+                    </div>
                 </div>
             }
         }

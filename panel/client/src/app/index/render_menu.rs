@@ -47,11 +47,20 @@ pub fn render_menu(state: &Computed<State>) -> VDomElement {
         }
     };
 
+    let on_mkdir = {
+        let state = state.clone();
+
+        move || {
+            state.redirect_to_mkdir();
+        }
+    };
+
     let mut out = Vec::new();
 
     out.push(button("Utwórz plik", on_create));
     out.push(button("Zmień nazwę", on_rename));
     out.push(button("Edycja pliku", on_click));
+    out.push(button("Utwórz katalog", on_mkdir));
 
     html! {
         <div css={css_footer()}>

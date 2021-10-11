@@ -355,6 +355,10 @@ impl State {
         self.app_state.redirect_to_new_content(path.as_ref(), list);
     }
 
+    pub fn redirect_to_mkdir(&self) {
+        self.app_state.redirect_to_mkdir();
+    }
+
     pub fn current_rename(&self) {
         let path = self.state_data.current_path_dir.get_value();
         let select_item = self.list_current_item.get_value();
