@@ -356,7 +356,7 @@ impl State {
     }
 
     pub fn redirect_to_mkdir(&self) {
-        self.app_state.redirect_to_mkdir();
+        self.app_state.redirect_to_mkdir(self.list.clone());
     }
 
     pub fn current_rename(&self) {

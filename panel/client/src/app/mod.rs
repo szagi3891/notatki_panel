@@ -17,6 +17,7 @@ use self::index::ListItem;
 mod index;
 mod edit_content;
 mod new_content;
+mod new_dir;
 mod rename_item;
 
 #[derive(PartialEq)]
@@ -39,6 +40,7 @@ enum View {
     },
     Mkdir {
         parent: Rc<Vec<String>>,
+        list: Computed<Vec<ListItem>>,
     }
 }
 
@@ -130,9 +132,9 @@ impl AppState {
         self.state_data.state_root.refresh();
     }
 
-    pub fn redirect_to_mkdir(&self) {
+    pub fn redirect_to_mkdir(&self, list: Computed<Vec<ListItem>>) {
         let parent = self.state_data.current_path_dir.clone().get_value();
-        self.view.set_value(View::Mkdir { parent });
+        self.view.set_value(View::Mkdir { parent, list });
     }
 
     pub fn redirect_to_index_with_root_refresh(&self) {
@@ -208,19 +210,12 @@ pub fn render(state_computed: &Computed<AppState>) -> VDomElement {
                 </div>
             }
         },
-        View::Mkdir { parent } => {
-
-            let on_click = move || {
-                app_state.redirect_to_index();
-            };
-
-            let label = format!("tworzenie katalogu w {} - wróć", parent.join("/"));
+        View::Mkdir { parent, list } => {
+            let state = new_dir::State::new(app_state.clone(), (*parent).to_vec(), list.clone());
 
             html! {
                 <div id="root">
-                    <div on_click={on_click}>
-                        { label }
-                    </div>
+                    <component {new_dir::render} data={state} />
                 </div>
             }
         }
