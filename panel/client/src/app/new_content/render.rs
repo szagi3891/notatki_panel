@@ -2,7 +2,7 @@ use vertigo::{Css, VDomElement, computed::Computed};
 use vertigo_html::{css, html};
 
 use super::{State};
-use crate::components::button;
+use crate::components::{button, new_name};
 
 fn css_wrapper() -> Css {
     css!("
@@ -95,7 +95,7 @@ pub fn render(state: &Computed<State>) -> VDomElement {
             <div css={css_header()}>
                 { ..buttons }
             </div>
-            <component {super::new_name::render} data={state_value.new_name.clone()} />
+            <component {new_name::render} data={state_value.new_name.clone()} />
             <component {render_input_content} data={state} />
         </div>
     }

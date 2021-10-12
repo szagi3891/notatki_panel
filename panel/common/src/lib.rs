@@ -59,7 +59,7 @@ pub struct HandlerSaveContentBody {
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct HandlerCreateFileBody {
     pub path: Vec<String>,
-    pub new_path: Vec<String>,
+    pub new_name: String,
     pub new_content: String,
 }
 

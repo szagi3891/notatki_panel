@@ -6,6 +6,7 @@ use vertigo::{
 };
 
 use crate::{app::{AppState, index::ListItem}, request::Request};
+use crate::components::new_name;
 
 #[derive(PartialEq)]
 pub struct State {
@@ -14,7 +15,7 @@ pub struct State {
     pub action_save: Value<bool>,
 
     pub parent: Vec<String>,
-    pub new_name: Computed<super::new_name::NewName>,
+    pub new_name: Computed<new_name::NewName>,
     pub content: Value<String>,
 
     pub save_enable: Computed<bool>,
@@ -34,7 +35,7 @@ impl State {
     ) -> Computed<State> {
         log::info!("buduję stan dla new content");
         let action_save = app_state.root.new_value(false);
-        let new_name = super::new_name::NewName::new(&app_state, list, action_save.to_computed());
+        let new_name = new_name::NewName::new(&app_state, list, action_save.to_computed());
         let content = app_state.root.new_value(String::from(""));
 
 
@@ -96,13 +97,12 @@ impl State {
 
         self.action_save.set_value(true);
 
-        let new_name_state = self.new_name.get_value();
-        let full_relative_new_path = (*new_name_state.full_relative_new_path.get_value()).clone();
-        let file_name = (*new_name_state.name.get_value()).clone();
+        let new_name_rc = self.new_name.get_value().name.get_value();
+        let new_name = (*new_name_rc).clone();
 
         let body: HandlerCreateFileBody = HandlerCreateFileBody {
             path: self.parent.clone(),
-            new_path: full_relative_new_path,
+            new_name: new_name.clone(),
             new_content: (*self.content.get_value()).clone(),
         };
 
@@ -115,20 +115,12 @@ impl State {
 
 
         self.request.spawn_local({
-            
-            let mut path_redirect = self.parent.clone();
-            let relative_new_path = (*new_name_state.relative_path.get_value()).clone();
-            path_redirect.extend(relative_new_path.into_iter());
-            
-            let file_name = Some(file_name);
+            let path_redirect = self.parent.clone();            
             
             async move {
-
                 let response = request.await.unwrap();
-
-                log::info!("Zapis udany {:?} -> przekierowanie na -> {:?} {:?}", response, path_redirect, file_name);
-
-                callback.redirect_to_index_with_path(path_redirect, file_name);
+                log::info!("Zapis udany {:?} -> przekierowanie na -> {:?} {:?}", response, path_redirect, new_name);
+                callback.redirect_to_index_with_path(path_redirect, Some(new_name));
             }
         });
     }

@@ -232,31 +232,11 @@ fn find_and_change_path<
 
 pub fn create_file_content<'repo>(
     session: &GitSession<'repo>,
-    path: &[String],
     new_content: &String,
 ) -> Result<GitId, ErrorProcess> {
-    if let Some((name_item, rest_path)) = path.split_first() {
-        
-        let rest_id = create_file_content(&session, rest_path, new_content)?;
-
-        let mut builder = session.repo.treebuilder(None)?;
-
-        if rest_id.is_file {
-            builder.insert(name_item, rest_id.id, 0o100644)?;
-        } else {
-            builder.insert(name_item, rest_id.id, 0o040000)?;
-        }
-        
-        let write_result = builder.write()?;
-        let write_result = find_id(session, write_result)?;
-
-        Ok(write_result)
-
-    } else {
-        let new_content_id = session.repo.blob(new_content.as_bytes())?;
-        let new_content_id = find_id(session, new_content_id)?;
-        Ok(new_content_id)
-    }
+    let new_content_id = session.repo.blob(new_content.as_bytes())?;
+    let new_content_id = find_id(session, new_content_id)?;
+    Ok(new_content_id)
 }
 
 pub fn create_empty_dir<'repo>(
@@ -413,9 +393,9 @@ impl<'repo> GitSession<'repo> {
         new_self
     }
 
-    pub async fn create_file_content(self, new_path: &[String], content: &String) -> Result<(GitSession<'repo>, GitId), ErrorProcess> {
+    pub async fn create_file_content(self, content: &String) -> Result<(GitSession<'repo>, GitId), ErrorProcess> {
         task::block_in_place(move || {
-            let new_content_id = create_file_content(&self, new_path, content)?;
+            let new_content_id = create_file_content(&self, content)?;
             Ok((self, new_content_id))
         })
     }

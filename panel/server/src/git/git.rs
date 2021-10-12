@@ -94,22 +94,20 @@ impl Git {
     pub async fn create_file(
         &self,
         path: Vec<String>,      //wskazuje na katalog w którym utworzymy nową treść
-        new_path: Vec<String>,  //mona od razu utworzyc potrzebne podktalogi
+        new_name: String,
         new_content: String,
     ) -> Result<String, ErrorProcess> {
         let session = self.session().await?;
 
-        let (new_path_first, new_path_rest) = split_first(&new_path)?;
+        let (session, new_content_id) = session.create_file_content(&new_content).await?;
 
-        let (session, new_content_id) = session.create_file_content(new_path_rest, &new_content).await?;
-
-        let (session, old_child) = session.remove_child(&path, new_path_first).await?;
+        let (session, old_child) = session.remove_child(&path, &new_name).await?;
 
         if old_child.is_some() {
-            return Err(ErrorProcess::user(format!("File exists in this location: {}", new_path_first)));
+            return Err(ErrorProcess::user(format!("File exists in this location: {}", &new_name)));
         }
 
-        let session = session.insert_child(&path, new_path_first, new_content_id).await?;
+        let session = session.insert_child(&path, &new_name, new_content_id).await?;
 
         session.commit().await
     }
