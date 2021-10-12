@@ -1,12 +1,5 @@
 
 
-dodać podgląd pozwalający na utworzenie nowego pliku
-podczas tworzenia będzie mozna okreslic nowe katalogi, oraz nową zawartość tego pliku
-    widok powinien być podobny do edycji, ale zawierać dodatkową informację o tworzonej ściezce
-
-
-
-
 
 dodać aktualną ściezke zeby byla dodawana po hashu
 to się przyda szczególnie wtedy gdy robi się F5
