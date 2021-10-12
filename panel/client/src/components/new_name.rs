@@ -94,12 +94,6 @@ fn css_wrapper() -> Css {
     ")
 }
 
-fn css_path() -> Css {
-    css!("
-        
-    ")
-}
-
 fn css_input_wrapper() -> Css {
     css!("
         display: flex;
@@ -119,23 +113,6 @@ fn css_input_name() -> Css {
         height: 30px;
         line-height: 30px;
         padding: 0 5px;
-    ")
-}
-
-fn css_button_dir() -> Css {
-    css!("
-        flex-shrink: 0;
-        margin-left: 5px;
-    ")
-}
-
-fn css_subdir() -> Css {
-    css!("
-        border: 1px solid black;
-        margin: 0 5px;
-        padding: 0 5px;
-        border-radius: 5px;
-        cursor: pointer;
     ")
 }
 

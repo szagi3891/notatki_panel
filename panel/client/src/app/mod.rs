@@ -14,7 +14,7 @@ use crate::state_data::StateData;
 
 use self::index::ListItem;
 
-mod index;
+pub mod index;
 mod edit_content;
 mod new_content;
 mod new_dir;
@@ -46,7 +46,7 @@ enum View {
 
 #[derive(PartialEq, Clone)]
 pub struct AppState {
-    root: Dependencies,
+    pub root: Dependencies,
     driver: DomDriver,
     state_data: StateData,
     view: Value<View>,

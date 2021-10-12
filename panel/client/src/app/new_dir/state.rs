@@ -6,6 +6,7 @@ use vertigo::{
 };
 
 use crate::{app::{AppState, index::ListItem}, request::Request};
+use crate::components::new_name;
 
 #[derive(PartialEq)]
 pub struct State {
@@ -14,7 +15,7 @@ pub struct State {
     pub action_save: Value<bool>,
 
     pub parent: Vec<String>,
-    pub new_name: Computed<super::new_name::NewName>,
+    pub new_name: Computed<new_name::NewName>,
 
     pub save_enable: Computed<bool>,
 
@@ -33,7 +34,7 @@ impl State {
     ) -> Computed<State> {
         log::info!("buduję stan dla new dir");
         let action_save = app_state.root.new_value(false);
-        let new_name = super::new_name::NewName::new(&app_state, list, action_save.to_computed());
+        let new_name = new_name::NewName::new(&app_state, list, action_save.to_computed());
 
         let save_enable = {
             let new_name = new_name.clone();
