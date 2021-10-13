@@ -10,6 +10,7 @@ use super::render_list::render_list;
 use super::render_header::render_header;
 use super::render_content::render_content;
 use super::render_menu::render_menu;
+use super::alert::render_alert;
 
 fn css_wrapper() -> Css {
     css!("
@@ -58,6 +59,8 @@ pub fn render(state: &Computed<State>) -> VDomElement {
 
     let state_value = state.get_value();
 
+    let alert = state_value.alert.clone();
+
     let on_keydown = move |event: KeyDownEvent| -> bool {
         state_value.keydown(event.code)
     };
@@ -85,6 +88,7 @@ pub fn render(state: &Computed<State>) -> VDomElement {
                     <component {render_content} data={state.clone()} />
                 </div>
             </div>
+            <component {render_alert} data={alert} />
         </div>
     }
 }

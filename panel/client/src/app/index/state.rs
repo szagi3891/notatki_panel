@@ -12,6 +12,8 @@ use crate::request::{ResourceError};
 use crate::state_data::{CurrentContent, TreeItem};
 use crate::state_data::StateData;
 
+use super::alert::AlertState;
+
 #[derive(PartialEq, Debug, Clone)]
 pub struct ListItem {
     pub name: String,
@@ -144,7 +146,6 @@ fn create_current_content(
     })
 }
 
-
 #[derive(PartialEq)]
 pub struct State {
     state_data: StateData,
@@ -161,6 +162,8 @@ pub struct State {
     pub current_content: Computed<CurrentContent>,
 
     app_state: Rc<AppState>,
+
+    pub alert: Computed<AlertState>,
 }
 
 impl State {
@@ -182,6 +185,8 @@ impl State {
             &list_current_item,
         );
 
+        let alert = AlertState::new(app_state.clone());
+
         let state = Rc::new(State {
             state_data,
             list_hash_map,
@@ -189,6 +194,7 @@ impl State {
             list_current_item,
             current_content,
             app_state,
+            alert,
         });
 
         let keydown = {
@@ -273,9 +279,8 @@ impl State {
 
     fn pointer_up(&self) {
         let list_pointer_rc = self.list_current_item.get_value();
-        let list_pointer = list_pointer_rc.as_ref();
 
-        if let Some(list_pointer) = list_pointer {
+        if let Some(list_pointer) = list_pointer_rc.as_ref() {
             if let Some(index) = self.find(list_pointer) {
                 if !self.try_set_pointer_to(index - 1) {
                     self.try_set_pointer_to_end();
@@ -288,9 +293,8 @@ impl State {
 
     fn pointer_down(&self) {
         let list_pointer_rc = self.list_current_item.get_value();
-        let list_pointer = list_pointer_rc.as_ref();
 
-        if let Some(list_pointer) = list_pointer {
+        if let Some(list_pointer) = list_pointer_rc.as_ref() {
             if let Some(index) = self.find(list_pointer) {
                 if !self.try_set_pointer_to(index + 1) {
                     self.try_set_pointer_to(0);

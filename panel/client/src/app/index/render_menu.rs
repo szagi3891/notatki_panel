@@ -55,12 +55,22 @@ pub fn render_menu(state: &Computed<State>) -> VDomElement {
         }
     };
 
+    let alert = state.alert.get_value();
+
+    let on_delete = {
+        move || {
+            alert.delete(String::from("jakiś komunikat o usuwniu"));
+        }
+    };
+
     let mut out = Vec::new();
 
     out.push(button("Utwórz plik", on_create));
     out.push(button("Zmień nazwę", on_rename));
     out.push(button("Edycja pliku", on_click));
     out.push(button("Utwórz katalog", on_mkdir));
+    
+    out.push(button("Usuń", on_delete));
 
     html! {
         <div css={css_footer()}>
