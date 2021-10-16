@@ -10,7 +10,7 @@ fn css_item() -> Css {
     css!("
         display: inline-block;
         border: 1px solid #a0a0a0;
-        margin: 5px 10px 5px 0;
+        margin: 5px;
         padding: 0 5px;
         border-radius: 3px;
         height: 25px;

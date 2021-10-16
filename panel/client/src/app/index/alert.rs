@@ -28,6 +28,7 @@ fn css_bg() -> Css {
 
 fn css_center() -> Css {
     css!("
+        position: relative;
         background: white;
         width: 400px;
 
@@ -51,6 +52,20 @@ fn css_message() -> Css {
     css!("
         display: flex;
         justify-content: center;
+    ")
+}
+
+fn css_progress() -> Css {
+    css!("
+        display: flex;
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        background-color: white;
+        justify-content: center;
+        align-items: center;
     ")
 }
 
@@ -119,7 +134,7 @@ fn render_progress(progress_computed: &Computed<bool>) -> VDomElement {
 
     if *progress {
         return html! {
-            <div>
+            <div css={css_progress()}>
                 "Przetwarzanie ..."
             </div>
         }
@@ -142,13 +157,6 @@ pub fn render_alert(state: &Computed<AlertState>) -> VDomElement {
         },
         AlertView::DeleteFile {message} => {
             let message = format!("aler delete file ... {}", message);
-
-            // let on_click = {
-            //     let alert_state= alert_state.clone();
-            //     move || {
-            //         alert_state.delete_message();
-            //     }
-            // };
 
             let on_click_yes = {
                 let alert_state = alert_state.clone();

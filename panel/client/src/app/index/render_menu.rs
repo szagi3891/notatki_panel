@@ -15,7 +15,6 @@ fn css_footer() -> Css {
         display: flex;
         flex-shrink: 0;
         line-height: 25px;
-        padding: 0 5px;
         border-bottom: 1px solid black;
     ")
 }
