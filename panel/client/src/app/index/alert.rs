@@ -48,7 +48,16 @@ impl AlertState {
         })
     }
 
+    fn is_precess(&self) -> bool {
+        let value = self.progress.get_value();
+        *value == true
+    }
+
     pub fn delete(&self, message: String) {
+        if self.is_precess() {
+            return;
+        }
+
         log::info!("delete akcja ...");
 
         self.view.set_value(AlertView::DeleteFile {
@@ -60,11 +69,23 @@ impl AlertState {
 
     //delete_yes ... przetwarzanie ...
     fn delete_yes(&self) {
+        if self.is_precess() {
+            return;
+        }
+
         log::info!("usuwamy ...");
+
+        //pyknac request
+        //przestawic process na true
+
+        
     }
 
     fn delete_no(&self) {
-        log::info!("anulujemy usuwanie ...");
+        if self.is_precess() {
+            return;
+        }
+
         self.view.set_value(AlertView::None);
     }
 }

@@ -146,6 +146,22 @@ fn create_current_content(
     })
 }
 
+fn create_avaible_delete_current(
+    root: &Dependencies,
+    current_content: Computed<CurrentContent>
+) -> Computed<bool> {
+
+    root.from(move || -> bool {
+        let current = current_content.get_value();
+
+        match current.as_ref() {
+            CurrentContent::None => false,
+            CurrentContent::File { .. } => true,
+            CurrentContent::Dir { list, ..} => list.len() == 0
+        }
+    })
+}
+
 #[derive(PartialEq)]
 pub struct State {
     state_data: StateData,
@@ -164,6 +180,9 @@ pub struct State {
     app_state: Rc<AppState>,
 
     pub alert: Computed<AlertState>,
+
+    //true - jeśli aktualnie podświetlony element jest mozliwy do usuniecia
+    pub avaible_delete_button: Computed<bool>,
 }
 
 impl State {
@@ -187,6 +206,8 @@ impl State {
 
         let alert = AlertState::new(app_state.clone());
 
+        let avaible_delete_current= create_avaible_delete_current(&root, current_content.clone());
+    
         let state = Rc::new(State {
             state_data,
             list_hash_map,
@@ -195,6 +216,7 @@ impl State {
             current_content,
             app_state,
             alert,
+            avaible_delete_button: avaible_delete_current,
         });
 
         let keydown = {
