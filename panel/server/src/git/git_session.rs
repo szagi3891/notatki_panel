@@ -380,7 +380,7 @@ impl<'repo> GitSession<'repo> {
         })
     }
 
-    pub async fn command_find_blob(
+    pub async fn get_from_id(
         self,
         id: &String
     ) -> Result<(GitSession<'repo>, Option<GitBlob>), ErrorProcess> {

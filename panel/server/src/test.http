@@ -37,12 +37,12 @@ Content-Type: application/json
 
 ###
 
-POST http://0.0.0.0:4000/delete_file
+POST http://0.0.0.0:4000/delete_item
 Content-Type: application/json
 
 {
-    "path": ["_testowy", "osika"],
-    "hash": "4fdf73a107e0a90f00ba248859f4c67c457469db"
+    "path": ["_testowy", "3=111"],
+    "hash": "52cee5da94451abd3fc17a2c831918861ac85fd7"
 }
 
 ###

@@ -87,7 +87,7 @@ impl Git {
 
     pub async fn get_from_id(&self, id: &String) -> Result<Option<GitBlob>, ErrorProcess> {
         let session = self.session().await?;
-        let (_, result) = session.command_find_blob(id).await?;
+        let (_, result) = session.get_from_id(id).await?;
         Ok(result)
     }
 
@@ -163,7 +163,7 @@ impl Git {
         Ok(new_root_id)
     }
 
-    pub async fn delete_file(
+    pub async fn delete_item(
         &self,
         path: Vec<String>,
         item_hash: String,
@@ -174,8 +174,23 @@ impl Git {
         let (session, child) = session.extract_child(path_base, &path_last).await?;
 
         session.should_eq(&child, &item_hash)?;
+        
+        let (session, result) = session.get_from_id(&child.id.to_string()).await?;
 
-        child.should_be_file()?;
+        match result {
+            Some(GitBlob::Tree { list }) => {
+                if list.len() > 0 {
+                    return Err(ErrorProcess::user(format!("non-empty directory cannot be deleted {:?}", path)));
+                }
+                //ok
+            },
+            Some(GitBlob::Blob { .. }) => {
+                //ok
+            },
+            None => {
+                return Err(ErrorProcess::user(format!("Missing hash {}", item_hash)));
+            }
+        };
 
         let new_root_id = session.commit().await?;
         Ok(new_root_id)

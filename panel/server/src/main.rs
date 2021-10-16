@@ -181,8 +181,8 @@ async fn handler_rename_item(app_state: Arc<AppState>, body_request: HandlerRena
     response_with_root(result)
 }
 
-async fn handler_delete_file(app_state: Arc<AppState>, body_request: HandlerDeleteFileBody) -> Result<impl warp::Reply, Infallible> {
-    let result = app_state.git.delete_file(
+async fn handler_delete_item(app_state: Arc<AppState>, body_request: HandlerDeleteFileBody) -> Result<impl warp::Reply, Infallible> {
+    let result = app_state.git.delete_item(
         body_request.path,
         body_request.hash,
     ).await;
@@ -268,11 +268,11 @@ async fn main() {
         .and_then(handler_rename_item);
 
     let filter_delete_item = 
-        warp::path!("delete_file")
+        warp::path!("delete_item")
         .and(warp::post())
         .and(inject_state(app_state.clone()))
         .and(warp::body::json())
-        .and_then(handler_delete_file);
+        .and_then(handler_delete_item);
 
     let routes_default =
         warp::any()
