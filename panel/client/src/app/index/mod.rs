@@ -7,5 +7,5 @@ mod render;
 mod state;
 mod alert;
 
-pub use state::{State, ListItem};
+pub use state::{AppIndexState, ListItem};
 pub use render::render;

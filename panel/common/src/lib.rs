@@ -81,7 +81,7 @@ pub struct HandlerRenameItemBody {
 
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub struct HandlerDeleteFileBody {
+pub struct HandlerDeleteItemBody {
     pub path: Vec<String>,
     pub hash: String,
 }

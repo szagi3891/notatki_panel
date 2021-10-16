@@ -10,7 +10,7 @@ use vertigo::{
 use vertigo_html::html;
 use std::rc::Rc;
 use crate::state_data::CurrentContent;
-use crate::state_data::StateData;
+use crate::state_data::DataState;
 
 use self::index::ListItem;
 
@@ -48,20 +48,20 @@ enum View {
 pub struct AppState {
     pub root: Dependencies,
     driver: DomDriver,
-    state_data: StateData,
+    pub data_state: DataState,
     view: Value<View>,
 }
 
 impl AppState {
     pub fn new(root: &Dependencies, driver: &DomDriver) -> Computed<AppState> {
-        let state_data = StateData::new(root, driver);
+        let state_data = DataState::new(root, driver);
 
         let view = root.new_value(View::Index);
 
         root.new_computed_from(AppState {
             root: root.clone(),
             driver: driver.clone(),
-            state_data: state_data.clone(),
+            data_state: state_data.clone(),
             view,
         })
     }
@@ -78,7 +78,7 @@ impl AppState {
     
     pub fn redirect_to_content(&self, base_path: &Vec<String>, select_item: &Option<String>) {
         let full_path = self.create_full_path(base_path, select_item);
-        let content = self.state_data.get_content_from_path(&full_path);
+        let content = self.data_state.get_content_from_path(&full_path);
 
         match content {
             CurrentContent::File { file_hash, content, ..} => {
@@ -101,8 +101,8 @@ impl AppState {
     pub fn redirect_to_rename_item(&self, base_path: &Vec<String>, select_item: &String) {
         let select_item = select_item.clone();
         let full_path = self.create_full_path(base_path, &Some(select_item.clone()));
-        let content_hash = self.state_data.get_content_hash(&full_path);
-        let get_content_string = self.state_data.get_content_string(&full_path);
+        let content_hash = self.data_state.get_content_hash(&full_path);
+        let get_content_string = self.data_state.get_content_string(&full_path);
 
         match content_hash {
             Some(content_hash) => {
@@ -127,18 +127,18 @@ impl AppState {
 
     pub fn redirect_to_index_with_path(&self, new_path: Vec<String>, new_item: Option<String>) {
         self.redirect_to_index();
-        self.state_data.current_path_dir.set_value(new_path);
-        self.state_data.current_path_item.set_value(new_item);
-        self.state_data.state_root.refresh();
+        self.data_state.current_path_dir.set_value(new_path);
+        self.data_state.current_path_item.set_value(new_item);
+        self.data_state.state_root.refresh();
     }
 
     pub fn redirect_to_mkdir(&self, list: Computed<Vec<ListItem>>) {
-        let parent = self.state_data.current_path_dir.clone().get_value();
+        let parent = self.data_state.current_path_dir.clone().get_value();
         self.view.set_value(View::Mkdir { parent, list });
     }
 
     pub fn redirect_to_index_with_root_refresh(&self) {
-        self.state_data.state_root.refresh();
+        self.data_state.state_root.refresh();
         self.redirect_to_index();
     }
 
@@ -158,7 +158,7 @@ pub fn render(state_computed: &Computed<AppState>) -> VDomElement {
 
     match view.as_ref() {
         View::Index => {
-            let (state, on_keydown) = index::State::new(
+            let (state, on_keydown) = index::AppIndexState::new(
                 app_state.clone(),
             );
 

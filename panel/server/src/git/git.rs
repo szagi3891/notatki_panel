@@ -5,14 +5,6 @@ use tokio::sync::{Mutex};
 use super::git_session::GitSession;
 use crate::git::GitBlob;
 
-fn split_first(path: &[String]) -> Result<(&String, &[String]), ErrorProcess> {
-    if let Some((first, rest)) = path.split_first() {
-        Ok((first, rest))
-    } else {
-        ErrorProcess::user_result("missing first element to split")
-    }
-}
-
 fn split_last(path: &[String]) -> Result<(&[String], &String), ErrorProcess> {    
     if let Some((last, begin)) = path.split_last() {
         Ok((begin, last))

@@ -4,7 +4,7 @@ use vertigo::{Css, KeyDownEvent, VDomElement, computed::{
 
 use vertigo_html::{html, css};
 
-use super::state::State;
+use super::state::AppIndexState;
 
 use super::render_list::render_list;
 use super::render_header::render_header;
@@ -55,7 +55,7 @@ fn css_content_content() -> Css {
     ")
 }
 
-pub fn render(state: &Computed<State>) -> VDomElement {
+pub fn render(state: &Computed<AppIndexState>) -> VDomElement {
 
     let state_value = state.get_value();
 

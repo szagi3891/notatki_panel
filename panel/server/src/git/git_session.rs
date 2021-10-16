@@ -48,14 +48,6 @@ impl GitId {
             is_file: false,
         }
     }
-
-    pub fn should_be_file(&self) -> Result<(), ErrorProcess> {
-        if self.is_file == false {
-            return Err(ErrorProcess::user("Expect file"));
-        }
-
-        Ok(())
-    }
 }
 
 

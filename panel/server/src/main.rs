@@ -5,7 +5,7 @@ use common::{
     RootResponse,
     HandlerCreateDirBody,
     HandlerCreateFileBody,
-    HandlerDeleteFileBody,
+    HandlerDeleteItemBody,
     HandlerFetchDirBody,
     HandlerFetchDirResponse,
     HandlerFetchNodeBody,
@@ -181,7 +181,7 @@ async fn handler_rename_item(app_state: Arc<AppState>, body_request: HandlerRena
     response_with_root(result)
 }
 
-async fn handler_delete_item(app_state: Arc<AppState>, body_request: HandlerDeleteFileBody) -> Result<impl warp::Reply, Infallible> {
+async fn handler_delete_item(app_state: Arc<AppState>, body_request: HandlerDeleteItemBody) -> Result<impl warp::Reply, Infallible> {
     let result = app_state.git.delete_item(
         body_request.path,
         body_request.hash,

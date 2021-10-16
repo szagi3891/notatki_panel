@@ -7,7 +7,7 @@ use vertigo::{
 };
 
 use vertigo_html::{html, css};
-use super::state::{State};
+use super::state::{AppIndexState};
 use crate::components::button;
 
 fn css_footer() -> Css {
@@ -19,7 +19,7 @@ fn css_footer() -> Css {
     ")
 }
 
-pub fn render_menu(state: &Computed<State>) -> VDomElement {
+pub fn render_menu(state: &Computed<AppIndexState>) -> VDomElement {
     let state = state.get_value();
 
     let on_click = {

@@ -10,7 +10,7 @@ use vertigo::{
 use crate::app::AppState;
 use crate::request::{ResourceError};
 use crate::state_data::{CurrentContent, TreeItem};
-use crate::state_data::StateData;
+use crate::state_data::DataState;
 
 use super::alert::AlertState;
 
@@ -22,7 +22,7 @@ pub struct ListItem {
 }
 
 
-fn create_list_hash_map(root: &Dependencies, state_data: &StateData, current_path: &Value<Vec<String>>) -> Computed<Result<Rc<HashMap<String, TreeItem>>, ResourceError>> {
+fn create_list_hash_map(root: &Dependencies, state_data: &DataState, current_path: &Value<Vec<String>>) -> Computed<Result<Rc<HashMap<String, TreeItem>>, ResourceError>> {
     let state_data = state_data.clone();
     let current_path = current_path.to_computed();
 
@@ -129,7 +129,7 @@ fn create_current_item_view(
 
 fn create_current_content(
     root: &Dependencies,
-    state_data: &StateData,
+    state_data: &DataState,
     current_path_dir: &Value<Vec<String>>,
     list_current_item: &Computed<Option<String>>
 ) -> Computed<CurrentContent> {
@@ -163,14 +163,15 @@ fn create_avaible_delete_current(
 }
 
 #[derive(PartialEq)]
-pub struct State {
-    state_data: StateData,
+pub struct AppIndexState {
+    data_state: DataState,
 
     list_hash_map: Computed<Result<Rc<HashMap<String, TreeItem>>, ResourceError>>,
 
     //aktualnie wyliczona lista
     pub list: Computed<Vec<ListItem>>,
-                                                                        //wybrany element z listy, dla widoku
+
+    //wybrany element z listy, dla widoku
     pub list_current_item: Computed<Option<String>>,
 
 
@@ -185,12 +186,12 @@ pub struct State {
     pub avaible_delete_button: Computed<bool>,
 }
 
-impl State {
+impl AppIndexState {
     pub fn new(
         app_state: Rc<AppState>,
-    ) -> (Computed<State>, impl Fn(vertigo::KeyDownEvent) -> bool) {
+    ) -> (Computed<AppIndexState>, impl Fn(vertigo::KeyDownEvent) -> bool) {
         let root = &app_state.root.clone();
-        let state_data = app_state.state_data.clone();
+        let state_data = app_state.data_state.clone();
 
         let list_hash_map = create_list_hash_map(root, &state_data, &state_data.current_path_dir);
         let list = create_list(root, &list_hash_map);
@@ -204,12 +205,16 @@ impl State {
             &list_current_item,
         );
 
-        let alert = AlertState::new(app_state.clone());
+        let alert = AlertState::new(
+            app_state.clone(),
+            list.clone(),
+            state_data.request.clone()
+        );
 
         let avaible_delete_current= create_avaible_delete_current(&root, current_content.clone());
     
-        let state = Rc::new(State {
-            state_data,
+        let state = Rc::new(AppIndexState {
+            data_state: state_data,
             list_hash_map,
             list,
             list_current_item,
@@ -231,7 +236,7 @@ impl State {
 
 
     pub fn set_path(&self, path: Vec<String>) {
-        let current_path = self.state_data.current_path_dir.get_value();
+        let current_path = self.data_state.current_path_dir.get_value();
 
         if current_path.as_ref().as_slice() == path.as_slice() {
             log::info!("path are equal");
@@ -241,8 +246,8 @@ impl State {
         let (new_current_path, new_current_item_value) = calculate_next_path(current_path.as_ref(), path);
 
         self.app_state.root.transaction(||{
-            self.state_data.current_path_dir.set_value(new_current_path);
-            self.state_data.current_path_item.set_value(new_current_item_value);
+            self.data_state.current_path_dir.set_value(new_current_path);
+            self.data_state.current_path_item.set_value(new_current_item_value);
         });
     }
 
@@ -252,11 +257,11 @@ impl State {
         if let Ok(list) = list_hash_map_rc.as_ref() {
             if let Some(node_details) = list.get(&node) {
                 if node_details.dir {
-                    let mut current = self.state_data.current_path_dir.get_value().as_ref().clone();
+                    let mut current = self.data_state.current_path_dir.get_value().as_ref().clone();
                     current.push(node.clone());
                     self.set_path(current);
                 } else {
-                    self.state_data.current_path_item.set_value(Some(node.clone()));
+                    self.data_state.current_path_item.set_value(Some(node.clone()));
                 }
                 return;
             }
@@ -287,7 +292,7 @@ impl State {
         let list = self.list.get_value();
 
         if let Some(first) = list.get(index) {
-            self.state_data.current_path_item.set_value(Some(first.name.clone()));
+            self.data_state.current_path_item.set_value(Some(first.name.clone()));
             return true;
         }
 
@@ -338,7 +343,7 @@ impl State {
     }
 
     fn backspace(&self) {
-        let current_path = self.state_data.current_path_dir.get_value();
+        let current_path = self.data_state.current_path_dir.get_value();
         let mut current_path = current_path.as_ref().clone();
 
         current_path.pop();
@@ -354,7 +359,7 @@ impl State {
             self.pointer_down();
             return true;
         } else if code == "Escape" {
-            self.state_data.current_path_item.set_value(None);
+            self.data_state.current_path_item.set_value(None);
             return true;
         } else if code == "ArrowRight" || code == "Enter" {
             self.pointer_enter();
@@ -369,13 +374,13 @@ impl State {
     }
 
     pub fn current_edit(&self) {
-        let path = self.state_data.current_path_dir.get_value();
+        let path = self.data_state.current_path_dir.get_value();
         let select_item = self.list_current_item.get_value();
         self.app_state.redirect_to_content(&path, &select_item);
     }
 
     pub fn create_file(&self) {
-        let path = self.state_data.current_path_dir.get_value();
+        let path = self.data_state.current_path_dir.get_value();
         let list = self.list.clone();
 
         self.app_state.redirect_to_new_content(path.as_ref(), list);
@@ -386,7 +391,7 @@ impl State {
     }
 
     pub fn current_rename(&self) {
-        let path = self.state_data.current_path_dir.get_value();
+        let path = self.data_state.current_path_dir.get_value();
         let select_item = self.list_current_item.get_value();
 
         if let Some(select_item) = select_item.as_ref() {
@@ -397,7 +402,7 @@ impl State {
     }
 
     pub fn current_path_dir(&self) -> Rc<Vec<String>> {
-        self.state_data.current_path_dir.get_value()
+        self.data_state.current_path_dir.get_value()
     }
 }
 

@@ -8,7 +8,7 @@ use vertigo::{
 };
 use vertigo_html::{css, html};
 
-use super::state::State;
+use super::state::AppIndexState;
 
 fn css_wrapper() -> Css {
     css!("
@@ -230,7 +230,7 @@ fn remove_prefix(name: &String) -> String {
     out
 }
 
-pub fn render_list(state: &Computed<State>) -> VDomElement {
+pub fn render_list(state: &Computed<AppIndexState>) -> VDomElement {
     
     let mut out: Vec<VDomElement> = Vec::new();
 

@@ -1,7 +1,7 @@
 use vertigo::{Css, VDomElement, computed::Computed};
 use vertigo_html::{css, html};
 
-use super::state::State;
+use super::state::AppIndexState;
 use crate::{
     content::{
         parse_text,
@@ -33,7 +33,7 @@ fn youtube_css() -> Css {
     ")
 }
 
-pub fn render_content(state: &Computed<State>) -> VDomElement {
+pub fn render_content(state: &Computed<AppIndexState>) -> VDomElement {
 
     let state = state.get_value();
 

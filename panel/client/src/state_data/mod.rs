@@ -11,37 +11,6 @@ use state_root::StateRoot;
 use vertigo::{DomDriver, computed::{Dependencies, Value}};
 use crate::request::{ResourceError, Request};
 
-#[derive(Clone, PartialEq)]
-pub struct StateData {
-    pub state_node_dir: StateNodeDir,
-    pub state_node_content: StateNodeContent,
-    pub state_root: StateRoot,
-    pub current_path_dir: Value<Vec<String>>,
-    pub current_path_item: Value<Option<String>>,
-}
-
-impl StateData {
-    pub fn new(root: &Dependencies, driver: &DomDriver) -> StateData {
-
-        let request = Request::new(driver);
-
-        let state_node_dir = StateNodeDir::new(&request, root);
-        let state_node_content = StateNodeContent::new(&request, root);
-        let state_root = StateRoot::new(&request, root, state_node_dir.clone());
-
-        let current_path_dir: Value<Vec<String>> = root.new_value(Vec::new());
-        let current_path_item: Value<Option<String>> = root.new_value(None);
-
-        StateData {
-            state_node_dir,
-            state_node_content,
-            state_root,
-            current_path_dir,
-            current_path_item,
-        }
-    }
-}
-
 pub use state_node_dir::{TreeItem};
 
 
@@ -58,7 +27,7 @@ fn get_item_from_map<'a>(current_wsk: &'a Rc<HashMap<String, TreeItem>>, path_it
     Ok(wsk_child)
 }
 
-fn move_pointer(state_data: &StateData, list: Rc<HashMap<String, TreeItem>>, path_item: &String) -> Result<Rc<HashMap<String, TreeItem>>, ResourceError> {
+fn move_pointer(state_data: &DataState, list: Rc<HashMap<String, TreeItem>>, path_item: &String) -> Result<Rc<HashMap<String, TreeItem>>, ResourceError> {
 
     let child = get_item_from_map(&list, path_item)?;
 
@@ -114,7 +83,38 @@ impl CurrentContent {
 }
 
 
-impl StateData {
+#[derive(Clone, PartialEq)]
+pub struct DataState {
+    pub request: Request,
+    pub state_node_dir: StateNodeDir,
+    pub state_node_content: StateNodeContent,
+    pub state_root: StateRoot,
+    pub current_path_dir: Value<Vec<String>>,
+    pub current_path_item: Value<Option<String>>,
+}
+
+impl DataState {
+    pub fn new(root: &Dependencies, driver: &DomDriver) -> DataState {
+
+        let request = Request::new(driver);
+
+        let state_node_dir = StateNodeDir::new(&request, root);
+        let state_node_content = StateNodeContent::new(&request, root);
+        let state_root = StateRoot::new(&request, root, state_node_dir.clone());
+
+        let current_path_dir: Value<Vec<String>> = root.new_value(Vec::new());
+        let current_path_item: Value<Option<String>> = root.new_value(None);
+
+        DataState {
+            request,
+            state_node_dir,
+            state_node_content,
+            state_root,
+            current_path_dir,
+            current_path_item,
+        }
+    }
+
     pub fn get_dir_content(&self, path: &[String]) -> Result<Rc<HashMap<String, TreeItem>>, ResourceError> {
         let root_wsk = self.state_root.get_current_root()?;
 
@@ -204,5 +204,15 @@ impl StateData {
             CurrentContent::Dir { .. } => None,
             CurrentContent::None => None,
         }
+    }
+
+    pub fn get_full_current_path(&self) -> Vec<String> {
+        let mut dir = self.current_path_dir.get_value().as_ref().clone();
+
+        if let Some(current) = self.current_path_item.get_value().as_ref() {
+            dir.push(current.clone());
+        }
+
+        dir
     }
 }
