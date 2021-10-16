@@ -68,7 +68,7 @@ pub fn render_menu(state: &Computed<AppIndexState>) -> VDomElement {
 
         let on_delete = {
             move || {
-                alert.delete(String::from("jakiś komunikat o usuwniu"));
+                alert.delete();
             }
         };
 

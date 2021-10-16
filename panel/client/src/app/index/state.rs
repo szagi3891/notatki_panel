@@ -127,6 +127,25 @@ fn create_current_item_view(
     })
 }
 
+fn create_current_full_path(
+    root: &Dependencies,
+    current_path_dir: &Value<Vec<String>>,
+    list_current_item: &Computed<Option<String>>,
+) -> Computed<Vec<String>> {
+    let current_path_dir = current_path_dir.clone();
+    let list_current_item = list_current_item.clone();
+
+    root.from(move || -> Vec<String> {
+        let mut current_path_dir = current_path_dir.get_value().as_ref().clone();
+
+        if let Some(list_current_item) = list_current_item.get_value().as_ref() {
+            current_path_dir.push(list_current_item.clone());
+        }
+
+        current_path_dir
+    })
+}
+
 fn create_current_content(
     root: &Dependencies,
     state_data: &DataState,
@@ -174,6 +193,7 @@ pub struct AppIndexState {
     //wybrany element z listy, dla widoku
     pub list_current_item: Computed<Option<String>>,
 
+    // pub current_full_path: Computed<Vec<String>>,
 
     //aktualnie wyliczony wybrany content wskazywany przez current_path
     pub current_content: Computed<CurrentContent>,
@@ -197,7 +217,6 @@ impl AppIndexState {
         let list = create_list(root, &list_hash_map);
 
         let list_current_item = create_current_item_view(&root, &state_data.current_path_item, &list);
-
         let current_content = create_current_content(
             root,
             &state_data,
@@ -205,8 +224,15 @@ impl AppIndexState {
             &list_current_item,
         );
 
+        let current_full_path = create_current_full_path(
+            &root,
+            &state_data.current_path_dir,
+            &list_current_item,
+        );
+
         let alert = AlertState::new(
             app_state.clone(),
+            current_full_path,
             list.clone(),
             state_data.request.clone()
         );

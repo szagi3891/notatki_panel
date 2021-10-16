@@ -17,10 +17,7 @@ use super::ListItem;
 #[derive(PartialEq)]
 pub enum AlertView {
     None,
-    DeleteFile {
-        message: String,
-    },
-    //delete dir
+    DeleteFile,
 }
 
 #[derive(PartialEq, Clone)]
@@ -31,6 +28,8 @@ pub struct AlertState {
     progress: Value<bool>,
     progress_computed: Computed<bool>,
     view: Value<AlertView>,
+    current_full_path: Computed<Vec<String>>,
+
     // None,
     // DeleteFile {
     //     message: String,
@@ -41,7 +40,12 @@ pub struct AlertState {
 }
 
 impl AlertState {
-    pub fn new(app_state: Rc<AppState>, list: Computed<Vec<ListItem>>, request: Request) -> Computed<AlertState> {
+    pub fn new(
+        app_state: Rc<AppState>,
+        current_full_path: Computed<Vec<String>>,
+        list: Computed<Vec<ListItem>>,
+        request: Request
+    ) -> Computed<AlertState> {
         let view = app_state.root.new_value(AlertView::None);
         let progress = app_state.root.new_value(false);
         let progress_computed = progress.to_computed();
@@ -53,6 +57,7 @@ impl AlertState {
             progress,
             progress_computed,
             view,
+            current_full_path,
         })
     }
 
@@ -61,14 +66,12 @@ impl AlertState {
         *value == true
     }
 
-    pub fn delete(&self, message: String) {
+    pub fn delete(&self) {
         if self.is_precess() {
             return;
         }
 
-        self.view.set_value(AlertView::DeleteFile {
-            message,
-        });
+        self.view.set_value(AlertView::DeleteFile);
     }
 
     fn redirect_after_delete(&self) {
@@ -106,7 +109,7 @@ impl AlertState {
             return;
         }
 
-        let current_path = self.app_state.data_state.get_full_current_path();
+        let current_path = self.current_full_path.get_value().as_ref().clone();
         let current_hash = self.app_state.data_state.get_content_hash(&current_path);
     
         let current_hash = match current_hash {
@@ -160,23 +163,25 @@ pub fn render_alert(state: &Computed<AlertState>) -> VDomElement {
                 <div />
             }
         },
-        AlertView::DeleteFile {message} => {
-            let message = format!("aler delete file ... {}", message);
+        AlertView::DeleteFile => {
+            let full_path = alert_state.current_full_path.get_value();
+
+            let message = format!("Czy usunąć -> {} ?", full_path.join("/"));
             let computed = alert_state.progress_computed.clone();
 
             let mut alert = AlertBox::new(message, computed);
-
-            alert.button("Nie", {
-                let alert_state = alert_state.clone();
-                move || {
-                    alert_state.delete_no();
-                }
-            });
 
             alert.button("Tak", {
                 let alert_state = alert_state.clone();
                 move || {
                     alert_state.delete_yes();
+                }
+            });
+
+            alert.button("Nie", {
+                let alert_state = alert_state.clone();
+                move || {
+                    alert_state.delete_no();
                 }
             });
 

@@ -205,14 +205,4 @@ impl DataState {
             CurrentContent::None => None,
         }
     }
-
-    pub fn get_full_current_path(&self) -> Vec<String> {
-        let mut dir = self.current_path_dir.get_value().as_ref().clone();
-
-        if let Some(current) = self.current_path_item.get_value().as_ref() {
-            dir.push(current.clone());
-        }
-
-        dir
-    }
 }
