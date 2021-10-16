@@ -1,80 +1,20 @@
 use std::rc::Rc;
 use vertigo::VDomElement;
 use vertigo::{
-    Css,
     computed::{
         Computed,
         Value
     },
 };
-use vertigo_html::{html, css};
+use vertigo_html::{html};
 use crate::app::AppState;
-use crate::components::button;
-
-fn css_bg() -> Css {
-    css!("
-        position: fixed;
-        left: 0;
-        right: 0;
-        top: 0;
-        bottom: 0;
-        background-color: #00000080;
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    ")
-}
-
-fn css_center() -> Css {
-    css!("
-        position: relative;
-        background: white;
-        width: 400px;
-
-        justify-content: center;
-        padding-top: 20px;
-        padding-bottom: 20px;
-        display: flex;
-        flex-direction: column;
-    ")
-}
-
-fn css_buttons_wrapper() -> Css {
-    css!("
-        display: flex;
-        justify-content: center;
-        margin-top: 20px;
-    ")
-}
-
-fn css_message() -> Css {
-    css!("
-        display: flex;
-        justify-content: center;
-    ")
-}
-
-fn css_progress() -> Css {
-    css!("
-        display: flex;
-        position: absolute;
-        left: 0;
-        right: 0;
-        top: 0;
-        bottom: 0;
-        background-color: white;
-        justify-content: center;
-        align-items: center;
-    ")
-}
+use crate::components::AlertBox;
 
 #[derive(PartialEq)]
 pub enum AlertView {
     None,
     DeleteFile {
         message: String,
-        // progress: Value<bool>,
     },
     //delete dir
 }
@@ -129,22 +69,6 @@ impl AlertState {
     }
 }
 
-fn render_progress(progress_computed: &Computed<bool>) -> VDomElement {
-    let progress = progress_computed.get_value();
-
-    if *progress {
-        return html! {
-            <div css={css_progress()}>
-                "Przetwarzanie ..."
-            </div>
-        }
-    }
-
-    html! {
-        <div/>
-    }
-}
-
 pub fn render_alert(state: &Computed<AlertState>) -> VDomElement {
     let alert_state = state.get_value();
     let alert = alert_state.view.get_value();
@@ -157,40 +81,25 @@ pub fn render_alert(state: &Computed<AlertState>) -> VDomElement {
         },
         AlertView::DeleteFile {message} => {
             let message = format!("aler delete file ... {}", message);
+            let computed = alert_state.progress_computed.clone();
 
-            let on_click_yes = {
-                let alert_state = alert_state.clone();
-                move || {
-                    alert_state.delete_yes();
-                }
-            };
+            let mut alert = AlertBox::new(message, computed);
 
-            let on_click_no = {
+            alert.button("Nie", {
                 let alert_state = alert_state.clone();
                 move || {
                     alert_state.delete_no();
                 }
-            };
+            });
 
-            let button_no = button("Nie", on_click_no);
-            let button_yes = button("Tak", on_click_yes);
-    
-            html! {
-                <div css={css_bg()}>
-                    <div css={css_center()}>
-                        <div css={css_message()}>
-                            { message }
-                        </div>
+            alert.button("Tak", {
+                let alert_state = alert_state.clone();
+                move || {
+                    alert_state.delete_yes();
+                }
+            });
 
-                        <component {render_progress} data={alert_state.progress_computed} />
-
-                        <div css={css_buttons_wrapper()}>
-                            { button_no }
-                            { button_yes }
-                        </div>
-                    </div>
-                </div>
-            }
+            alert.render()
         }
     }
 }

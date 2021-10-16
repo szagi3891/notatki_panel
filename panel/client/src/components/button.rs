@@ -5,7 +5,6 @@ use vertigo::{
 
 use vertigo_html::{html, css};
 
-//display: block;
 fn css_item() -> Css {
     css!("
         display: inline-block;
