@@ -9,6 +9,7 @@ use vertigo::{
 };
 use vertigo_html::{html, css};
 use crate::app::AppState;
+use crate::components::button;
 
 fn css_bg() -> Css {
     css!("
@@ -29,7 +30,27 @@ fn css_center() -> Css {
     css!("
         background: white;
         width: 400px;
-        height: 300px;
+
+        justify-content: center;
+        padding-top: 20px;
+        padding-bottom: 20px;
+        display: flex;
+        flex-direction: column;
+    ")
+}
+
+fn css_buttons_wrapper() -> Css {
+    css!("
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+    ")
+}
+
+fn css_message() -> Css {
+    css!("
+        display: flex;
+        justify-content: center;
     ")
 }
 
@@ -82,7 +103,13 @@ impl AlertState {
         //trzeba przełączyć się na alert który pyta czy skasować
     }
 
-    pub fn delete_message(&self) {
+    //delete_yes ... przetwarzanie ...
+    fn delete_yes(&self) {
+        log::info!("usuwamy ...");
+    }
+
+    fn delete_no(&self) {
+        log::info!("anulujemy usuwanie ...");
         self.view.set_value(AlertView::None);
     }
 }
@@ -116,20 +143,43 @@ pub fn render_alert(state: &Computed<AlertState>) -> VDomElement {
         AlertView::DeleteFile {message} => {
             let message = format!("aler delete file ... {}", message);
 
-            let on_click = {
-                let alert_state= alert_state.clone();
+            // let on_click = {
+            //     let alert_state= alert_state.clone();
+            //     move || {
+            //         alert_state.delete_message();
+            //     }
+            // };
+
+            let on_click_yes = {
+                let alert_state = alert_state.clone();
                 move || {
-                    alert_state.delete_message();
+                    alert_state.delete_yes();
                 }
             };
 
+            let on_click_no = {
+                let alert_state = alert_state.clone();
+                move || {
+                    alert_state.delete_no();
+                }
+            };
+
+            let button_no = button("Nie", on_click_no);
+            let button_yes = button("Tak", on_click_yes);
+    
             html! {
                 <div css={css_bg()}>
                     <div css={css_center()}>
-                        <div on_click={on_click}>
+                        <div css={css_message()}>
                             { message }
                         </div>
+
                         <component {render_progress} data={alert_state.progress_computed} />
+
+                        <div css={css_buttons_wrapper()}>
+                            { button_no }
+                            { button_yes }
+                        </div>
                     </div>
                 </div>
             }
