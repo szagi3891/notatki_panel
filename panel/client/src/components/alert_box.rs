@@ -53,6 +53,7 @@ fn css_message() -> Css {
     css!("
         display: flex;
         justify-content: center;
+        padding: 0 20px;
     ")
 }
 
