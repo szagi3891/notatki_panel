@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use warp::http::Response;
+use axum::{http::StatusCode};
 use git2::Error;
 use super::create_response_message;
 
@@ -43,13 +43,13 @@ impl ErrorProcess {
         })
     }
 
-    pub fn to_response(self) -> Response<String> {
+    pub fn to_response(self) -> (StatusCode, String) {
         match self {
             ErrorProcess::Server { message, context } => {
-                create_response_message(500, format_message(context, message))
+                create_response_message(StatusCode::INTERNAL_SERVER_ERROR, format_message(context, message))
             },
             ErrorProcess::User { message, context } => {
-                create_response_message(400, format_message(context, message))
+                create_response_message(StatusCode::NOT_FOUND, format_message(context, message))
             }
         }
     }

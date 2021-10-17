@@ -14,11 +14,25 @@ use common::{
     HandlerSaveContentBody,
 };
 use utils::{ErrorProcess, create_response, create_response_message};
-use warp::{Filter, Reply, http::Response};
-use std::convert::Infallible;
 use std::net::Ipv4Addr;
-use serde::Deserialize;
 use std::sync::Arc;
+use axum::{
+    http::StatusCode,
+    response::Html,
+    routing::service_method_routing as service,
+    handler::Handler,
+};
+
+use axum::{
+    routing::{get, post},
+    extract::Extension,
+    Json, Router,
+    AddExtensionLayer,
+};
+use serde::{Deserialize};
+use std::net::SocketAddr;
+use tower_http::{services::ServeDir, trace::TraceLayer};
+
 
 mod git;
 mod utils;
@@ -47,56 +61,59 @@ impl AppState {
     }
 }
 
-fn inject_state<T: Clone + Sized + Send>(state: T) -> impl Filter<Extract = (T,), Error = Infallible> + Clone {
-    warp::any().map(move || state.clone())
-}
-
-fn response_with_root(result: Result<String, ErrorProcess>) -> Result<impl warp::Reply, Infallible> {
+fn response_with_root(result: Result<String, ErrorProcess>) -> (StatusCode, String) { //Box<dyn IntoResponse> {
     match result {
         Ok(root) => {
             let response = RootResponse {
                 root,
             };
-            Ok(create_response(200, response))
+            create_response(StatusCode::OK, response)
         },
         Err(err) => {
-            Ok(err.to_response())
+            err.to_response()
         }
     }
 }
 
-async fn handler_index() -> Result<impl Reply, Infallible> {
-    Ok(Response::new(r##"<!DOCTYPE html>
-    <html>
-        <head>
-            <meta charset="utf-8"/>
-            <style type="text/css">
-                * {
-                    box-sizing: border-box;
-                }
-            </style>
-            <script type="module">
-                import init from "/build/app.js";
-                init("/build/app_bg.wasm");
-            </script>
-        </head>
-        <body></body>
-    </html>
-"##))
+async fn handler_index() -> Html<&'static str> {
+    Html(
+        r##"<!DOCTYPE html>
+            <html>
+                <head>
+                    <meta charset="utf-8"/>
+                    <style type="text/css">
+                    * {
+                        box-sizing: border-box;
+                    }
+                </style>
+                    <script type="module">
+                        import init from "/build/app.js";
+                        init("/build/app_bg.wasm");
+                    </script>
+                </head>
+                <body></body>
+            </html>
+        "##
+    )
 }
 
-async fn handler_fetch_root(app_state: Arc<AppState>) -> Result<impl warp::Reply, Infallible> {
+async fn handler_fetch_root(
+    Extension(app_state): Extension<Arc<AppState>>,
+) -> (StatusCode, String) {
     let result = app_state.git.main_commit().await;
     response_with_root(result)
 }
 
-async fn handler_fetch_dir(app_state: Arc<AppState>, body_request: HandlerFetchDirBody) -> Result<Response<String>, Infallible> {
+async fn handler_fetch_dir(
+    Extension(app_state): Extension<Arc<AppState>>,
+    Json(body_request): Json<HandlerFetchDirBody>,
+) -> (StatusCode, String) {
     let root = app_state.git.get_from_id(&body_request.id).await;
 
     let root = match root {
         Ok(root) => root,
         Err(message) => {
-            return Ok(message.to_response());
+            return message.to_response();
         }
     };
 
@@ -106,13 +123,16 @@ async fn handler_fetch_dir(app_state: Arc<AppState>, body_request: HandlerFetchD
             response.add(item);
         }
 
-        return Ok(create_response(200, response));
+        return create_response(StatusCode::OK, response);
     }
 
-    Ok(create_response_message(404, "missing"))
+    create_response_message(StatusCode::NOT_FOUND, "missing")
 }
 
-async fn handler_fetch_node(app_state: Arc<AppState>, body_request: HandlerFetchNodeBody) -> Result<impl warp::Reply, Infallible> {
+async fn handler_fetch_node(
+    Extension(app_state): Extension<Arc<AppState>>,
+    Json(body_request): Json<HandlerFetchNodeBody>,
+) -> (StatusCode, String) {
 
     let hash_id = body_request.hash;
 
@@ -121,7 +141,7 @@ async fn handler_fetch_node(app_state: Arc<AppState>, body_request: HandlerFetch
     let data = match data {
         Ok(data) => data,
         Err(message) => {
-            return Ok(message.to_response());
+            return message.to_response();
         }
     };
 
@@ -134,18 +154,21 @@ async fn handler_fetch_node(app_state: Arc<AppState>, body_request: HandlerFetch
                     content
                 };
 
-                Ok(create_response(200, response))
+                create_response(StatusCode::OK, response)
             },
             Err(_) => {
-                Ok(create_response_message(500, "content is not correctly encoded in utf8"))
+                create_response_message(StatusCode::INTERNAL_SERVER_ERROR, "content is not correctly encoded in utf8")
             }
         };
     }
 
-    Ok(create_response_message(404, format!("missing content {}", hash_id)))
+    create_response_message(StatusCode::NOT_FOUND, format!("missing content {}", hash_id))
 }
 
-async fn handler_save_content(app_state: Arc<AppState>, body_request: HandlerSaveContentBody) -> Result<impl warp::Reply, Infallible> {
+async fn handler_save_content(
+    Extension(app_state): Extension<Arc<AppState>>,
+    Json(body_request): Json<HandlerSaveContentBody>,
+) -> (StatusCode, String) {
 
     let result = app_state.git.save_content(
         body_request.path,
@@ -156,7 +179,10 @@ async fn handler_save_content(app_state: Arc<AppState>, body_request: HandlerSav
     response_with_root(result)
 }
 
-async fn handler_create_file(app_state: Arc<AppState>, body_request: HandlerCreateFileBody) -> Result<impl warp::Reply, Infallible> {
+async fn handler_create_file(
+    Extension(app_state): Extension<Arc<AppState>>,
+    Json(body_request): Json<HandlerCreateFileBody>,
+) -> (StatusCode, String) {
     let result = app_state.git.create_file(
         body_request.path,
         body_request.new_name,
@@ -166,7 +192,10 @@ async fn handler_create_file(app_state: Arc<AppState>, body_request: HandlerCrea
     response_with_root(result)
 }
 
-async fn handler_create_dir(app_state: Arc<AppState>, body_request: HandlerCreateDirBody) -> Result<impl warp::Reply, Infallible> {
+async fn handler_create_dir(
+    Extension(app_state): Extension<Arc<AppState>>,
+    Json(body_request): Json<HandlerCreateDirBody>,
+) -> (StatusCode, String) {
     let result = app_state.git.create_dir(
         body_request.path,
         body_request.dir
@@ -175,7 +204,10 @@ async fn handler_create_dir(app_state: Arc<AppState>, body_request: HandlerCreat
     response_with_root(result)
 }
 
-async fn handler_rename_item(app_state: Arc<AppState>, body_request: HandlerRenameItemBody) -> Result<impl warp::Reply, Infallible> {
+async fn handler_rename_item(
+    Extension(app_state): Extension<Arc<AppState>>,
+    Json(body_request): Json<HandlerRenameItemBody>,
+) -> (StatusCode, String) {
     let result = app_state.git.rename_item(
         body_request.path,
         body_request.prev_name,
@@ -186,7 +218,10 @@ async fn handler_rename_item(app_state: Arc<AppState>, body_request: HandlerRena
     response_with_root(result)
 }
 
-async fn handler_delete_item(app_state: Arc<AppState>, body_request: HandlerDeleteItemBody) -> Result<impl warp::Reply, Infallible> {
+async fn handler_delete_item(
+    Extension(app_state): Extension<Arc<AppState>>,
+    Json(body_request): Json<HandlerDeleteItemBody>,
+) -> (StatusCode, String) {
     let result = app_state.git.delete_item(
         body_request.path,
         body_request.hash,
@@ -195,6 +230,9 @@ async fn handler_delete_item(app_state: Arc<AppState>, body_request: HandlerDele
     response_with_root(result)
 }
 
+async fn error404() -> (StatusCode, String) {
+    (StatusCode::NOT_FOUND, "aa".into())
+}
 
 #[tokio::main]
 async fn main() {
@@ -214,119 +252,53 @@ async fn main() {
     //chwilowo wyłączamy synchronizację
     // let task_synchronize = start_sync(config.git_repo.clone()).await;
 
-    let route_index =
-        warp::path::end()
-        .and_then(handler_index);
-
-    let route_build = {
-        use warp::http::header::{HeaderMap, HeaderValue};
-        let mut headers = HeaderMap::new();
-
-        //cache-control: private, no-cache, no-store, must-revalidate, max-age=0
-        headers.insert(
-            "cache-control", 
-            HeaderValue::from_static("private, no-cache, no-store, must-revalidate, max-age=0")
-        );
-
-        warp::path("build")
-            .and(warp::fs::dir("build"))
-            .with(warp::reply::with::headers(headers))
-    };
-
-    let filter_fetch_root =
-        warp::path!("fetch_root")
-        .and(warp::get())
-        .and(inject_state(app_state.clone()))
-        .and_then(handler_fetch_root);
-
-
-    let filter_fetch_dir =
-        warp::path!("fetch_tree_item")
-        .and(warp::post())
-        .and(inject_state(app_state.clone()))
-        .and(warp::body::json())
-        .and_then(handler_fetch_dir);
-
-
-    let filter_fetch_node =
-        warp::path!("fetch_node")
-        .and(warp::post())
-        .and(inject_state(app_state.clone()))
-        .and(warp::body::json())
-        .and_then(handler_fetch_node);
-
-    let filter_save_content =
-        warp::path!("save_content")
-        .and(warp::post())
-        .and(inject_state(app_state.clone()))
-        .and(warp::body::json())
-        .and_then(handler_save_content);
-
-    let filter_create_file =
-        warp::path!("create_file")
-        .and(warp::post())
-        .and(inject_state(app_state.clone()))
-        .and(warp::body::json())
-        .and_then(handler_create_file);
-    
-    let filter_create_dir =
-        warp::path!("create_dir")
-        .and(warp::post())
-        .and(inject_state(app_state.clone()))
-        .and(warp::body::json())
-        .and_then(handler_create_dir);
-    
-    let filter_rename_item =
-        warp::path!("rename_item")
-        .and(warp::post())
-        .and(inject_state(app_state.clone()))
-        .and(warp::body::json())
-        .and_then(handler_rename_item);
-
-    let filter_delete_item = 
-        warp::path!("delete_item")
-        .and(warp::post())
-        .and(inject_state(app_state.clone()))
-        .and(warp::body::json())
-        .and_then(handler_delete_item);
-
-    let routes_default =
-        warp::any()
-        .map(|| {
-            warp::http::Response::builder()
-                .status(404)
-                .body("error 404")
-        });
-
-    let routes =
-        route_index
-        .or(route_build)
-        .or(filter_fetch_root)
-        .or(filter_fetch_dir)
-        .or(filter_fetch_node)
-        .or(filter_save_content)
-        .or(filter_create_file)
-        .or(filter_create_dir)
-        .or(filter_rename_item)
-        .or(filter_delete_item)
-        .or(routes_default)
-    ;
-
     log::info!("Start - {}:{}", config.http_host, config.http_port);
 
-    let logger = warp::filters::log::custom(|info| {
-        log::info!(
-            "Request {} {} {} - elapsed: {:?}",
-            info.status(),
-            info.method(),
-            info.path(),
-            info.elapsed()
-        );
-    });
+    //TODO - do builda trzeba dodać jakoś te nagłówki przeciw keszowaniu
+    // //cache-control: private, no-cache, no-store, must-revalidate, max-age=0
+    // headers.insert(
+    //     "cache-control", 
+    //     HeaderValue::from_static("private, no-cache, no-store, must-revalidate, max-age=0")
+    // );
 
-    warp::serve(routes.with(logger))
-        .run((config.http_host, config.http_port))
-        .await;
+    let app = Router::new()
+        .route("/", get(handler_index))
+        .nest(
+            "/build",
+            {
+                use axum::error_handling::HandleErrorExt;
+
+                service::get(ServeDir::new("build")).handle_error(|error: std::io::Error| {
+                    (
+                        StatusCode::INTERNAL_SERVER_ERROR,
+                        format!("Unhandled internal error: {}", error),
+                    )
+                })
+            }
+        )
+        .route("/fetch_root", get(handler_fetch_root))
+        .route("/fetch_tree_item", post(handler_fetch_dir))
+        .route("/fetch_node", post(handler_fetch_node))
+        .route("/save_content", post(handler_save_content))
+        .route("/create_file", post(handler_create_file))
+        .route("/create_dir", post(handler_create_dir))
+        .route("/rename_item", post(handler_rename_item))
+        .route("/delete_item", post(handler_delete_item))
+        .fallback(error404.into_service())
+        .layer(AddExtensionLayer::new(app_state))
+        .layer(TraceLayer::new_for_http())
+    ;
+
+    let addr = SocketAddr::from(([0, 0, 0, 0], config.http_port));
+    
+    //TODO ....
+    //.run((config.http_host, config.http_port))
+
+    //tracing::debug!("listening on {}", addr);
+    axum::Server::bind(&addr)
+        .serve(app.into_make_service())
+        .await
+        .unwrap();
 
     // task_synchronize.off();
 }
