@@ -1,29 +1,20 @@
-use warp::http::Response;
 use serde::Serialize;
+use axum::{http::StatusCode};
 
-pub fn create_response<R: Serialize>(code: u16, response: R) -> Response<String> {
+pub fn create_response<R: Serialize>(code: StatusCode, response: R) -> (StatusCode, String) {
     let out = serde_json::to_string(&response);
 
     match out {
         Ok(out) => {
-            Response::builder()
-                .status(code)
-                .body(out)
-                .unwrap()
+            (code, out)
         },
         Err(err) => {
-            Response::builder()
-                .status(500)
-                .body(format!("Serde error: {}", err))
-                .unwrap()
+            (StatusCode::INTERNAL_SERVER_ERROR, format!("Serde error: {}", err))
         }
     }
 }
 
-pub fn create_response_message<M: Into<String>>(code: u16, response: M) -> Response<String> {
-    Response::builder()
-        .status(code)
-        .body(response.into())
-        .unwrap()
+pub fn create_response_message<M: Into<String>>(code: StatusCode, response: M) -> (StatusCode, String) {
+    (code, response.into())
 }
 
