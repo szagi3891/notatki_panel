@@ -52,6 +52,8 @@ fn css_content_content() -> Css {
         overflow-y: scroll;
 
         display: flex;
+        background-color: #e8e8e8;
+        font-size: 20px;
     ")
 }
 
