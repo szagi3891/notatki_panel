@@ -53,8 +53,8 @@ fn css_content_content() -> Css {
 
         display: flex;
         background-color: #e8e8e8;
-        font-size: 20px;
     ")
+    //font-size: 20px;
 }
 
 pub fn render(state: &Computed<AppIndexState>) -> VDomElement {
