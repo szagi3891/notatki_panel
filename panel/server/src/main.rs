@@ -213,9 +213,20 @@ async fn main() {
         warp::path::end()
         .and_then(handler_index);
 
-    let route_build =
+    let route_build = {
+        use warp::http::header::{HeaderMap, HeaderValue};
+        let mut headers = HeaderMap::new();
+
+        //cache-control: private, no-cache, no-store, must-revalidate, max-age=0
+        headers.insert(
+            "cache-control", 
+            HeaderValue::from_static("private, no-cache, no-store, must-revalidate, max-age=0")
+        );
+
         warp::path("build")
-        .and(warp::fs::dir("build"));
+            .and(warp::fs::dir("build"))
+            .with(warp::reply::with::headers(headers))
+    };
 
     let filter_fetch_root =
         warp::path!("fetch_root")

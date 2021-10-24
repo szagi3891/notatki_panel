@@ -1,6 +1,6 @@
 use std::rc::Rc;
 use common::{HandlerDeleteItemBody, RootResponse};
-use vertigo::VDomElement;
+use vertigo::{VDomElement};
 use vertigo::{
     computed::{
         Computed,
@@ -13,30 +13,24 @@ use crate::components::AlertBox;
 use crate::request::Request;
 
 use super::ListItem;
+use super::alert_search::AlertSearch;
 
 #[derive(PartialEq)]
 pub enum AlertView {
     None,
     DeleteFile,
+    SearchInPath,
 }
 
 #[derive(PartialEq, Clone)]
 pub struct AlertState {
     request: Request,
-    app_state: Rc<AppState>,
+    pub app_state: Rc<AppState>,
     list: Computed<Vec<ListItem>>,
     progress: Value<bool>,
     progress_computed: Computed<bool>,
     view: Value<AlertView>,
     current_full_path: Computed<Vec<String>>,
-
-    // None,
-    // DeleteFile {
-    //     message: String,
-    //     app_state: Rc<AppState>,
-    //     progress: Value<bool>,
-    // },
-    //delete dir
 }
 
 impl AlertState {
@@ -151,6 +145,22 @@ impl AlertState {
 
         self.view.set_value(AlertView::None);
     }
+
+    pub fn redirect_to_search(&self) {
+        if self.is_precess() {
+            return;
+        }
+
+        self.view.set_value(AlertView::SearchInPath);
+    }
+
+    pub fn search_close(&self) {
+        if self.is_precess() {
+            return;
+        }
+
+        self.view.set_value(AlertView::None);
+    }
 }
 
 pub fn render_alert(state: &Computed<AlertState>) -> VDomElement {
@@ -186,6 +196,16 @@ pub fn render_alert(state: &Computed<AlertState>) -> VDomElement {
             });
 
             alert.render()
+        },
+        AlertView::SearchInPath => {
+            let state = AlertSearch::new(&alert_state);
+
+            html! {
+                <div>
+                    <component {AlertSearch::render} data={state} />
+                </div>
+            }
         }
     }
 }
+

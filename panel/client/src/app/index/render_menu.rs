@@ -75,6 +75,14 @@ pub fn render_menu(state: &Computed<AppIndexState>) -> VDomElement {
         out.push(button("Usuń", on_delete));
     }
 
+    out.push(button("Wyszukaj", {
+        let alert = state.alert.get_value();
+
+        move || {
+            alert.redirect_to_search();
+        }
+    }));
+
     html! {
         <div css={css_footer()}>
             { ..out }

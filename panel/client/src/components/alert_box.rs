@@ -88,7 +88,6 @@ fn render_progress(progress_computed: &Computed<bool>) -> VDomElement {
     }
 }
 
-
 pub struct AlertBox {
     message: String,
     progress: Computed<bool>,
@@ -108,23 +107,33 @@ impl AlertBox {
         self.buttons.push(button(label, on_click))
     }
 
-    pub fn render(self) -> VDomElement {
-        let AlertBox { message, progress, buttons } = self;
-
+    pub fn render_popup(content: VDomElement) -> VDomElement {
         html! {
             <div css={css_bg()}>
                 <div css={css_center()}>
-                    <div css={css_message()}>
-                        { message }
-                    </div>
-
-                    <component {render_progress} data={progress} />
-
-                    <div css={css_buttons_wrapper()}>
-                        { ..buttons }
-                    </div>
+                    {content}
                 </div>
             </div>
         }
+    }
+
+    pub fn render(self) -> VDomElement {
+        let AlertBox { message, progress, buttons } = self;
+
+        let content = html! {
+            <div>
+                <div css={css_message()}>
+                    { message }
+                </div>
+
+                <component {render_progress} data={progress} />
+
+                <div css={css_buttons_wrapper()}>
+                    { ..buttons }
+                </div>
+            </div>
+        };
+
+        Self::render_popup(content)
     }
 }
