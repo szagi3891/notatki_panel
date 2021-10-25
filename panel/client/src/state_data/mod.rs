@@ -205,4 +205,12 @@ impl DataState {
             CurrentContent::None => None,
         }
     }
+
+    pub fn redirect_to(&self, path: &Vec<String>) {
+        let mut path = path.clone();
+        let last = path.pop();
+
+        self.current_path_dir.set_value(path);
+        self.current_path_item.set_value(last);
+    }
 }

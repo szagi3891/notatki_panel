@@ -186,8 +186,18 @@ impl AlertSearch {
             let icon_el = icon::icon_render(item.dir);
             let path = item.get_path();
 
+            let on_click = {
+                let alert_search_state = alert_search_state.clone();
+                let path = item.path.clone();
+
+                move || {
+                    alert_search_state.alert_state.search_close();
+                    alert_search_state.alert_state.app_state.data_state.redirect_to(&path)
+                }
+            };
+
             list.push(html! {
-                <div css={css_result_row()}>
+                <div css={css_result_row()} on_click={on_click}>
                     <div css={css_result_icon()}>
                         {icon_el}
                     </div>
