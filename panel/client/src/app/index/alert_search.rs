@@ -3,8 +3,15 @@ use std::{rc::Rc};
 use vertigo::{Css, KeyDownEvent, VDomElement, computed::{Computed, Dependencies, Value}};
 use vertigo_html::{css, html};
 use crate::{components::AlertBox, request::ResourceError, state_data::{DataState}};
+use crate::components::icon;
 
 use super::alert::AlertState;
+
+fn css_content() -> Css {
+    css!("
+        padding: 0 20px;
+    ")
+}
 
 fn css_result() -> Css {
     css!("
@@ -13,9 +20,53 @@ fn css_result() -> Css {
     ")
 }
 
+fn css_close() -> Css {
+    css!("
+        cursor: pointer;
+    ")
+}
+
+fn css_result_row() -> Css {
+    css!("
+        display: flex;
+        margin-right: 5px;
+        margin-bottom: 5px;
+    ")
+}
+
+fn css_result_icon() -> Css {
+    css!("
+        margin-right: 5px;
+    ")
+}
+
+#[derive(PartialEq)]
+struct ResultItem {
+    path: Vec<String>,
+    dir: bool,
+}
+
+impl ResultItem {
+    fn new_dir(path: Vec<String>) -> ResultItem {
+        ResultItem {
+            path,
+            dir: true
+        }
+    }
+    fn new_file(path: Vec<String>) -> ResultItem {
+        ResultItem {
+            path,
+            dir: false
+        }
+    }
+    fn get_path(&self) -> String {
+        self.path.as_slice().join("/")
+    }
+}
+
 fn push_list<F: Fn(&String) -> bool>(
     data_state: &DataState,
-    result: &mut Vec<Vec<String>>,
+    result: &mut Vec<ResultItem>,
     base: &Vec<String>,
     test_name: &F
 ) -> Result<(), ResourceError> {
@@ -23,7 +74,7 @@ fn push_list<F: Fn(&String) -> bool>(
 
     if let Some(last) = base.last() {
         if test_name(last) {
-            result.push(base.clone());
+            result.push(ResultItem::new_dir(base.clone()));
         }
     }
 
@@ -44,7 +95,7 @@ fn push_list<F: Fn(&String) -> bool>(
         let mut new_base = base.clone();
         new_base.push(file);
 
-        result.push(new_base);
+        result.push(ResultItem::new_file(new_base));
     }
 
     let dirs = {
@@ -70,11 +121,11 @@ fn push_list<F: Fn(&String) -> bool>(
     Ok(())
 }
 
-fn new_results(dependencies: &Dependencies, data_state: &DataState, phrase: Computed<String>) -> Computed<Vec<Vec<String>>> {
+fn new_results(dependencies: &Dependencies, data_state: &DataState, phrase: Computed<String>) -> Computed<Vec<ResultItem>> {
     let data_state = data_state.clone();
 
     dependencies.from(move || {
-        let mut result = Vec::<Vec<String>>::new();
+        let mut result = Vec::<ResultItem>::new();
         let phrase_value = phrase.get_value();
 
         if phrase_value.len() < 2 {
@@ -90,7 +141,8 @@ fn new_results(dependencies: &Dependencies, data_state: &DataState, phrase: Comp
 
         match result_push {
             Ok(()) => {},
-            Err(err) => {
+            Err(ResourceError::Loading) => {},
+            Err(ResourceError::Error(err)) => {
                 log::error!("Error push list {:?}", err);
             }
         };
@@ -103,7 +155,7 @@ fn new_results(dependencies: &Dependencies, data_state: &DataState, phrase: Comp
 pub struct AlertSearch {
     alert_state: Rc<AlertState>,
     pub phrase: Value<String>,
-    results: Computed<Vec<Vec<String>>>,
+    results: Computed<Vec<ResultItem>>,
 }
 
 impl AlertSearch {
@@ -131,10 +183,15 @@ impl AlertSearch {
         let mut list = Vec::<VDomElement>::new();
 
         for item in results.iter() {
-            let path = item.as_slice().join("/");
+            let icon_el = icon::icon_render(item.dir);
+            let path = item.get_path();
+
             list.push(html! {
-                <div>
-                    { path }
+                <div css={css_result_row()}>
+                    <div css={css_result_icon()}>
+                        {icon_el}
+                    </div>
+                    {path}
                 </div>
             });
         }
@@ -158,23 +215,35 @@ impl AlertSearch {
             }
         };
 
-        let on_keydown = move |_event: KeyDownEvent| -> bool {
-            false
+        let alert_state = alert_search_state.alert_state.clone();
+
+        let on_keydown = {
+            let alert_state = alert_state.clone();
+
+            move |event: KeyDownEvent| -> bool {
+                if event.key == "Escape" {
+                    alert_state.search_close();
+                }
+
+                //TODO - dodać wskaźnik i nawigację klawiaturą po elemencie z listy wyników
+
+                false
+            }
         };
     
         let on_close = {
-            let alert_state = alert_search_state.alert_state.clone();
+            let alert_state = alert_state.clone();
             move || {
                 alert_state.search_close();
             }
         };
 
         let content = html! {
-            <div>
-                <input value={current_value.as_ref()} on_input={on_input} on_key_down={on_keydown} />
+            <div css={css_content()} on_key_down={on_keydown}>
+                <input autofocus="" value={current_value.as_ref()} on_input={on_input} />
                 <br/>
                 
-                <div on_click={on_close}>
+                <div css={css_close()} on_click={on_close}>
                     "zamknij"
                 </div>
 
