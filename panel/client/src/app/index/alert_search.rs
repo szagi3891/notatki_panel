@@ -31,6 +31,7 @@ fn css_result_row() -> Css {
         display: flex;
         margin-right: 5px;
         margin-bottom: 5px;
+        cursor: pointer;
     ")
 }
 
