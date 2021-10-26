@@ -33,6 +33,12 @@ fn youtube_css() -> Css {
     ")
 }
 
+fn open_css() -> Css {
+    css!("
+        cursor: pointer;
+    ")
+}
+
 pub fn render_content(state: &Computed<AppIndexState>) -> VDomElement {
 
     let state = state.get_value();
@@ -40,6 +46,8 @@ pub fn render_content(state: &Computed<AppIndexState>) -> VDomElement {
     let current_content = state.current_content.get_value();
 
     let content = current_content.to_string();
+
+    let alert = state.alert.get_value();
 
     if let Some(content) = content {
         let chunks = parse_text(content.as_str());
@@ -52,18 +60,35 @@ pub fn render_content(state: &Computed<AppIndexState>) -> VDomElement {
                     let url = url.to_string();
                     let thumb = get_thumbnail(url.as_str());
 
+                    let on_click = {
+                        let alert = alert.clone();
+                        let url = url.clone();
+                        
+                        move || {
+                            alert.open_iframe(url.clone());
+                        }
+                    };
+
                     if let Some(thumb) = thumb {
                         out.push(html!{
-                            <a href={url.clone()} target="_blank" css={link_css()}>
-                                <span>{url}</span>
-                                <img css={youtube_css()} src={thumb} />
-                            </a>
+                            <span>
+                                <a href={url.clone()} target="_blank" css={link_css()}>
+                                    <span>{url}</span>
+                                    <img css={youtube_css()} src={thumb} />
+                                </a>
+                                " "
+                                <span on_click={on_click} css={open_css()}>"(otwórz)"</span>
+                            </span>
                         });
                     } else {
                         out.push(html!{
-                            <a href={url.clone()} target="_blank" css={link_css()}>
-                                {url}
-                            </a>
+                            <span>
+                                <a href={url.clone()} target="_blank" css={link_css()}>
+                                    {url}
+                                </a>
+                                " "
+                                <span on_click={on_click} css={open_css()}>"(otwórz)"</span>
+                            </span>
                         });
                     }
                 },
