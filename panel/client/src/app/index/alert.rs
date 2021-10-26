@@ -22,7 +22,6 @@ fn css_iframe_bg() -> Css {
         top: 0;
         right: 0;
         bottom: 0;
-        background: white;
     ")
 }
 
@@ -30,8 +29,10 @@ fn css_iframe() -> Css {
     css!("
         position: absolute;
         overflow-y: scroll;
-        width: 100%;
-        height: 100%;
+        width: 90%;
+        height: 96%;
+        margin-top: 2%;
+        margin-left: 5%;
     ")
 }
 
