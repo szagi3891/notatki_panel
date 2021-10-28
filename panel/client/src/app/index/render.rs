@@ -1,6 +1,10 @@
-use vertigo::{Css, KeyDownEvent, VDomElement, computed::{
-    Computed,
-}};
+use vertigo::{
+    Css,
+    VDomElement,
+    computed::{
+        Computed,
+    }
+};
 
 use vertigo_html::{html, css};
 
@@ -57,18 +61,14 @@ fn css_content_content() -> Css {
     //font-size: 20px;
 }
 
-pub fn render(state: &Computed<AppIndexState>) -> VDomElement {
+pub fn render_index(state: &Computed<AppIndexState>) -> VDomElement {
 
     let state_value = state.get_value();
 
     let alert = state_value.alert.clone();
 
-    let on_keydown = move |event: KeyDownEvent| -> bool {
-        state_value.keydown(event.code)
-    };
-
     html! {
-        <div css={css_wrapper()} on_key_down={on_keydown}>
+        <div css={css_wrapper()}>
             <style>
                 "
                 html, body {
@@ -92,5 +92,73 @@ pub fn render(state: &Computed<AppIndexState>) -> VDomElement {
             </div>
             <component {render_alert} data={alert} />
         </div>
+    }
+}
+
+
+fn css_iframe_bg() -> Css {
+    css!("
+        position: fixed;
+        left: 0;
+        top: 0;
+        right: 0;
+        bottom: 0;
+    ")
+}
+
+fn css_iframe() -> Css {
+    css!("
+        position: absolute;
+        overflow-y: scroll;
+        width: 90%;
+        height: 96%;
+        margin-top: 2%;
+        margin-left: 5%;
+    ")
+}
+
+fn css_iframe_close() -> Css {
+    css!("
+        position: absolute;
+        top: 0;
+        right: 0;
+        height: 30px;
+
+        background: red;
+        color: white;
+        line-height: 30px;
+        padding: 0 20px;
+        cursor: pointer;
+    ")
+}
+
+pub fn render(state: &Computed<AppIndexState>) -> VDomElement {
+
+    let app_index_state = state.get_value();
+
+    let tabs = app_index_state.tabs_url.get_value();
+    if let Some(src) = tabs.first() {
+        let on_click = {
+            let src = src.clone();
+
+            move || {
+                app_index_state.tabs_remove(src.clone());
+            }
+        };
+
+        html! {
+            <div css={css_iframe_bg()}>
+                <iframe src={src} css={css_iframe()} />
+                <div on_click={on_click} css={css_iframe_close()}>
+                    "close"
+                </div>
+            </div>
+        }
+    } else {
+        html! {
+            <div>
+                <component {render_index} data={state.clone()} />
+            </div>
+        }
     }
 }

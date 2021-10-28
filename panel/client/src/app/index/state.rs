@@ -204,6 +204,9 @@ pub struct AppIndexState {
 
     //true - jeśli aktualnie podświetlony element jest mozliwy do usuniecia
     pub avaible_delete_button: Computed<bool>,
+
+    pub tabs_url: Value<Vec<String>>,
+    pub tabs_active: Value<Option<String>>,
 }
 
 impl AppIndexState {
@@ -239,6 +242,9 @@ impl AppIndexState {
 
         let avaible_delete_current= create_avaible_delete_current(&root, current_content.clone());
     
+        let tabs_url = root.new_value(Vec::new());
+        let tabs_active = root.new_value(None);
+
         let state = Rc::new(AppIndexState {
             data_state: state_data,
             list_hash_map,
@@ -248,6 +254,8 @@ impl AppIndexState {
             app_state,
             alert,
             avaible_delete_button: avaible_delete_current,
+            tabs_url,
+            tabs_active,
         });
 
         let keydown = {
@@ -429,6 +437,56 @@ impl AppIndexState {
 
     pub fn current_path_dir(&self) -> Rc<Vec<String>> {
         self.data_state.current_path_dir.get_value()
+    }
+
+    pub fn tabs_has(&self, url: &String) -> bool {
+        let tabs_url = self.tabs_url.get_value();
+        tabs_url.contains(url)
+    }
+
+    pub fn tabs_add(&self, url: String) {
+        log::info!("add ... {}", &url);
+        let tabs_url = self.tabs_url.get_value();
+
+        if tabs_url.contains(&url) {
+            log::error!("is contain {}", url);
+            return;
+        }
+
+        let mut tabs_url = tabs_url.as_ref().clone();
+        tabs_url.push(url);
+        self.tabs_url.set_value(tabs_url);
+    }
+
+    pub fn tabs_remove(&self, url: String) {
+        let tabs_url = self.tabs_url.get_value();
+
+        if !tabs_url.contains(&url) {
+            log::error!("not contain {}", url);
+            return;
+        }
+        
+        let tabs_url = tabs_url.as_ref().clone();
+        let mut new_tabs = Vec::<String>::with_capacity(tabs_url.len());
+
+        for tab_url in tabs_url.into_iter() {
+            if tab_url != url {
+                new_tabs.push(tab_url);
+            }
+        }
+
+        self.tabs_url.set_value(new_tabs);
+    }
+
+    pub fn tabs_set(&self, url: String) {
+        let tabs_url = self.tabs_url.get_value();
+
+        if !tabs_url.contains(&url) {
+            log::error!("not contain {}", url);
+            return;
+        }
+
+        self.tabs_active.set_value(Some(url));
     }
 }
 

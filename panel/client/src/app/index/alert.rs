@@ -1,13 +1,13 @@
 use std::rc::Rc;
 use common::{HandlerDeleteItemBody, RootResponse};
-use vertigo::{Css, VDomElement};
+use vertigo::{VDomElement};
 use vertigo::{
     computed::{
         Computed,
         Value
     },
 };
-use vertigo_html::{html, css};
+use vertigo_html::{html};
 use crate::app::AppState;
 use crate::components::AlertBox;
 use crate::request::Request;
@@ -15,48 +15,11 @@ use crate::request::Request;
 use super::ListItem;
 use super::alert_search::AlertSearch;
 
-fn css_iframe_bg() -> Css {
-    css!("
-        position: fixed;
-        left: 0;
-        top: 0;
-        right: 0;
-        bottom: 0;
-    ")
-}
-
-fn css_iframe() -> Css {
-    css!("
-        position: absolute;
-        overflow-y: scroll;
-        width: 90%;
-        height: 96%;
-        margin-top: 2%;
-        margin-left: 5%;
-    ")
-}
-
-fn css_iframe_close() -> Css {
-    css!("
-        position: absolute;
-        top: 0;
-        right: 0;
-        height: 30px;
-
-        background: red;
-        color: white;
-        line-height: 30px;
-        padding: 0 20px;
-        cursor: pointer;
-    ")
-}
-
 #[derive(PartialEq)]
 pub enum AlertView {
     None,
     DeleteFile,
     SearchInPath,
-    Iframe { src: String },
 }
 
 #[derive(PartialEq, Clone)]
@@ -198,10 +161,6 @@ impl AlertState {
 
         self.view.set_value(AlertView::None);
     }
-
-    pub fn open_iframe(&self, src: String) {
-        self.view.set_value(AlertView::Iframe { src });
-    }
 }
 
 pub fn render_alert(state: &Computed<AlertState>) -> VDomElement {
@@ -244,25 +203,6 @@ pub fn render_alert(state: &Computed<AlertState>) -> VDomElement {
             html! {
                 <div>
                     <component {AlertSearch::render} data={state} />
-                </div>
-            }
-        },
-        AlertView::Iframe { src } => {
-
-            let on_click = {
-                let alert_state = alert_state.clone();
-                
-                move || {
-                    alert_state.search_close()
-                }
-            };
-
-            html! {
-                <div css={css_iframe_bg()}>
-                    <iframe src={src} css={css_iframe()} />
-                    <div on_click={on_click} css={css_iframe_close()}>
-                        "close"
-                    </div>
                 </div>
             }
         }

@@ -47,8 +47,6 @@ pub fn render_content(state: &Computed<AppIndexState>) -> VDomElement {
 
     let content = current_content.to_string();
 
-    let alert = state.alert.get_value();
-
     if let Some(content) = content {
         let chunks = parse_text(content.as_str());
 
@@ -60,12 +58,33 @@ pub fn render_content(state: &Computed<AppIndexState>) -> VDomElement {
                     let url = url.to_string();
                     let thumb = get_thumbnail(url.as_str());
 
-                    let on_click = {
-                        let alert = alert.clone();
-                        let url = url.clone();
-                        
-                        move || {
-                            alert.open_iframe(url.clone());
+                    let has_open = state.tabs_has(&url);
+
+                    let open_link = if has_open {
+                        let on_click = {
+                            let state = state.clone();
+                            let url = url.clone();
+                            
+                            move || {
+                                state.tabs_remove(url.clone());
+                            }
+                        };
+
+                        html! {
+                            <span on_click={on_click} css={open_css()}>"(zamknij)"</span>
+                        }
+                    } else {
+                        let on_click = {
+                            let state = state.clone();
+                            let url = url.clone();
+                            
+                            move || {
+                                state.tabs_add(url.clone());
+                            }
+                        };
+
+                        html! {
+                            <span on_click={on_click} css={open_css()}>"(otwórz)"</span>
                         }
                     };
 
@@ -77,7 +96,7 @@ pub fn render_content(state: &Computed<AppIndexState>) -> VDomElement {
                                     <img css={youtube_css()} src={thumb} />
                                 </a>
                                 " "
-                                <span on_click={on_click} css={open_css()}>"(otwórz)"</span>
+                                { open_link }
                             </span>
                         });
                     } else {
@@ -87,7 +106,7 @@ pub fn render_content(state: &Computed<AppIndexState>) -> VDomElement {
                                     {url}
                                 </a>
                                 " "
-                                <span on_click={on_click} css={open_css()}>"(otwórz)"</span>
+                                { open_link }
                             </span>
                         });
                     }
