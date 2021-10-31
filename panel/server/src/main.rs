@@ -70,6 +70,11 @@ async fn handler_index() -> Result<impl Reply, Infallible> {
     <html>
         <head>
             <meta charset="utf-8"/>
+            <style type="text/css">
+                * {
+                    box-sizing: border-box;
+                }
+            </style>
             <script type="module">
                 import init from "/build/app.js";
                 init("/build/app_bg.wasm");

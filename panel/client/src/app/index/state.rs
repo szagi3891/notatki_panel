@@ -488,6 +488,10 @@ impl AppIndexState {
 
         self.tabs_active.set_value(Some(url));
     }
+
+    pub fn tabs_default(&self) {
+        self.tabs_active.set_value(None);
+    }
 }
 
 

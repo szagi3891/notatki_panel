@@ -13,7 +13,7 @@ fn css_item() -> Css {
         padding: 0 5px;
         border-radius: 3px;
         height: 25px;
-        line-height: 25px;
+        line-height: 23px;
         font-size: 14px;
 
         :hover {
@@ -23,8 +23,9 @@ fn css_item() -> Css {
     ")
 }
 
-pub fn button<F: Fn() + 'static>(label: &'static str, on_click: F) -> VDomElement {
+pub fn button(label: &'static str, on_click: impl Fn() + 'static) -> VDomElement {
     html! {
         <span css={css_item()} on_click={on_click}>{label}</span>
     }
 }
+
