@@ -191,6 +191,26 @@ pub fn render(state: &Computed<AppIndexState>) -> VDomElement {
         let mut tabs_iframe = Vec::new();
         let mut tabs_menu = Vec::new();
 
+    
+        let is_select_default = active.is_none();
+
+        tabs_menu.push({
+            let app_index_state = app_index_state.clone();
+            let on_click = move || {
+                app_index_state.tabs_default();
+            };
+
+            button("default", on_click, is_select_default)
+        });
+
+        if is_select_default {
+            tabs_iframe.push(html! {
+                <div css={css_iframe(true)}>
+                    <component {render_index} data={state.clone()} />
+                </div>
+            });
+        }
+
         for tab_item in tabs.iter() {
             let tab_item = tab_item.clone();
 
@@ -214,35 +234,6 @@ pub fn render(state: &Computed<AppIndexState>) -> VDomElement {
     
             tabs_menu.push(button(tab_item, on_click, is_select));
         }
-    
-        let is_select_default = active.is_none();
-
-        tabs_menu.push({
-            let app_index_state = app_index_state.clone();
-            let on_click = move || {
-                app_index_state.tabs_default();
-            };
-
-            button("default", on_click, is_select_default)
-        });
-
-        if is_select_default {
-            tabs_iframe.push(html! {
-                <div css={css_iframe(true)}>
-                    <component {render_index} data={state.clone()} />
-                </div>
-            });
-        } else {                                        //TODO - trzeba poprawić algorytm do synchronizacji dom-a
-                                                        //wtedy nie trzeba będzie tworzyć pustego div-a
-            tabs_iframe.push(html! {
-                <div/>
-            });
-        }
-
-        /*
-            synchronizacja wszystkich elementów w obrębie komponentu
-            wszystkie elementy 
-        */
 
         return html! {
             <div css={css_iframe_bg()}>
