@@ -170,12 +170,27 @@ fn css_button(active: bool) -> Css {
     }
 }
 
-fn button(label: impl Into<String>, on_click: impl Fn() + 'static, active: bool) -> VDomElement {
+fn button(
+    label: impl Into<String>,
+    on_click: impl Fn() + 'static,
+    on_close: Option<impl Fn() + 'static>,
+    active: bool
+) -> VDomElement {
     let label: String = label.into();
+
+    let close = match on_close {
+        Some(on_close) => html! {
+            <div on_click={on_close}>
+                "x"
+            </div>
+        },
+        None => html! { <div/> }
+    };
 
     html!{
         <div on_click={on_click} css={css_button(active)}>
             { label }
+            { close }
         </div>
     }
 }
@@ -200,7 +215,7 @@ pub fn render(state: &Computed<AppIndexState>) -> VDomElement {
                 app_index_state.tabs_default();
             };
 
-            button("default", on_click, is_select_default)
+            button("default", on_click, None::<fn()>, is_select_default)
         });
 
         if is_select_default {
@@ -231,8 +246,16 @@ pub fn render(state: &Computed<AppIndexState>) -> VDomElement {
                     app_index_state.tabs_set(tab_item.clone());
                 }
             };
+
+            let on_close = {
+                let app_index_state = app_index_state.clone();
+                let tab_item = tab_item.clone();
+                move || {
+                    app_index_state.tabs_remove(tab_item.clone());
+                }
+            };
     
-            tabs_menu.push(button(tab_item, on_click, is_select));
+            tabs_menu.push(button(tab_item, on_click, Some(on_close), is_select));
         }
 
         return html! {
