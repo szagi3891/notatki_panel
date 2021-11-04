@@ -476,6 +476,11 @@ impl AppIndexState {
         }
 
         self.tabs_url.set_value(new_tabs);
+
+        let tabs_active = self.tabs_active.get_value();
+        if *tabs_active == Some(url) {
+            self.tabs_default();
+        }
     }
 
     pub fn tabs_set(&self, url: String) {
