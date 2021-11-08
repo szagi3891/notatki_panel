@@ -1,14 +1,14 @@
 use std::{collections::HashMap, rc::Rc};
 use common::{GitTreeItem, HandlerFetchDirBody, HandlerFetchDirResponse};
 use vertigo::{
+    Resource,
+    DomDriver,
     computed::{
         Computed,
         Dependencies,
         AutoMap,
     },
 };
-
-use crate::request::{Request, Resource, ResourceError};
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct TreeItem {
@@ -33,19 +33,24 @@ pub struct NodeDir {
 }
 
 impl NodeDir {
-    pub fn new(request: &Request, dependencies: &Dependencies, id: &String) -> NodeDir {
-        let value = dependencies.new_value(Err(ResourceError::Loading));
+    pub fn new(request: &DomDriver, dependencies: &Dependencies, id: &String) -> NodeDir {
+        let value = dependencies.new_value(Resource::Loading);
         let value_read = value.to_computed();
 
         let response = request
-            .fetch("/fetch_tree_item")
-            .body(&HandlerFetchDirBody {
+            .request("/fetch_tree_item")
+            .body_json(HandlerFetchDirBody {
                 id: id.clone(),
             })
-            .post::<HandlerFetchDirResponse>();
+            .post();
 
-        request.spawn_local(async move {
-            let response = response.await;
+        request.spawn(async move {
+            let response = response.await.into(|status, body| {
+                if status == 200 {
+                    return Some(body.into::<HandlerFetchDirResponse>());
+                }
+                None
+            });
             value.set_value(response.map(convert));
         });
 
@@ -58,15 +63,8 @@ impl NodeDir {
         self.value.get_value()
     }
 
-    pub fn get_list(&self) -> Result<Rc<HashMap<String, TreeItem>>, ResourceError> {
-        let list = self.get();
-
-        let value = match list.as_ref() {
-            Ok(inner) => inner,
-            Err(err) => return Err(err.clone()),
-        };
-
-        Ok(value.clone())
+    pub fn get_list(&self) -> Resource<Rc<HashMap<String, TreeItem>>> {
+        self.get().ref_clone()
     }
 }
 
@@ -76,7 +74,7 @@ pub struct StateNodeDir {
 }
 
 impl StateNodeDir {
-    pub fn new(request: &Request, dependencies: &Dependencies) -> StateNodeDir {
+    pub fn new(request: &DomDriver, dependencies: &Dependencies) -> StateNodeDir {
         let data = {
             let request = request.clone();
             let dependencies = dependencies.clone();
@@ -89,7 +87,7 @@ impl StateNodeDir {
         }
     }
 
-    pub fn get_list(&self, id: &String) -> Result<Rc<HashMap<String, TreeItem>>, ResourceError> {
+    pub fn get_list(&self, id: &String) -> Resource<Rc<HashMap<String, TreeItem>>> {
         self.data.get_value(id).get_list()
     }
 }

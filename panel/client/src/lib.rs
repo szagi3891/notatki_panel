@@ -10,7 +10,6 @@ use vertigo::{
 
 use vertigo_browserdriver::DriverBrowser;
 
-mod request;
 mod content;
 mod state_data;
 mod components;

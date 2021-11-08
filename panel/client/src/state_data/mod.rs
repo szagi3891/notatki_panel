@@ -8,36 +8,35 @@ use state_node_dir::StateNodeDir;
 use state_node_content::StateNodeContent;
 use state_root::StateRoot;
 
-use vertigo::{DomDriver, computed::{Dependencies, Value}};
-use crate::request::{ResourceError, Request};
+use vertigo::{DomDriver, Resource, computed::{Dependencies, Value}};
 
 pub use state_node_dir::{TreeItem};
 
 
-fn get_item_from_map<'a>(current_wsk: &'a Rc<HashMap<String, TreeItem>>, path_item: &String) -> Result<&'a TreeItem, ResourceError> {
+fn get_item_from_map<'a>(current_wsk: &'a Rc<HashMap<String, TreeItem>>, path_item: &String) -> Resource<&'a TreeItem> {
     let wsk_child = current_wsk.get(path_item);
 
     let wsk_child = match wsk_child {
         Some(wsk_child) => wsk_child,
         None => {
-            return Err(ResourceError::Error(format!("missing tree_item {}", path_item)));
+            return Resource::Error(format!("missing tree_item {}", path_item));
         }
     };
 
-    Ok(wsk_child)
+    Resource::Ready(wsk_child)
 }
 
-fn move_pointer(state_data: &DataState, list: Rc<HashMap<String, TreeItem>>, path_item: &String) -> Result<Rc<HashMap<String, TreeItem>>, ResourceError> {
+fn move_pointer(state_data: &DataState, list: Rc<HashMap<String, TreeItem>>, path_item: &String) -> Resource<Rc<HashMap<String, TreeItem>>> {
 
     let child = get_item_from_map(&list, path_item)?;
 
     if child.dir {
         let child_list = state_data.state_node_dir.get_list(&child.id)?;
 
-        return Ok(child_list);
+        return Resource::Ready(child_list);
     }
 
-    return Err(ResourceError::Error(format!("dir expected {}", path_item)));
+    return Resource::Error(format!("dir expected {}", path_item));
 }
 
 
@@ -85,7 +84,7 @@ impl CurrentContent {
 
 #[derive(Clone, PartialEq)]
 pub struct DataState {
-    pub request: Request,
+    pub driver: DomDriver,
     pub state_node_dir: StateNodeDir,
     pub state_node_content: StateNodeContent,
     pub state_root: StateRoot,
@@ -96,17 +95,15 @@ pub struct DataState {
 impl DataState {
     pub fn new(root: &Dependencies, driver: &DomDriver) -> DataState {
 
-        let request = Request::new(driver);
-
-        let state_node_dir = StateNodeDir::new(&request, root);
-        let state_node_content = StateNodeContent::new(&request, root);
-        let state_root = StateRoot::new(&request, root, state_node_dir.clone());
+        let state_node_dir = StateNodeDir::new(&driver, root);
+        let state_node_content = StateNodeContent::new(&driver, root);
+        let state_root = StateRoot::new(&driver, root, state_node_dir.clone());
 
         let current_path_dir: Value<Vec<String>> = root.new_value(Vec::new());
         let current_path_item: Value<Option<String>> = root.new_value(None);
 
         DataState {
-            request,
+            driver: driver.clone(),
             state_node_dir,
             state_node_content,
             state_root,
@@ -115,7 +112,7 @@ impl DataState {
         }
     }
 
-    pub fn get_dir_content(&self, path: &[String]) -> Result<Rc<HashMap<String, TreeItem>>, ResourceError> {
+    pub fn get_dir_content(&self, path: &[String]) -> Resource<Rc<HashMap<String, TreeItem>>> {
         let root_wsk = self.state_root.get_current_root()?;
 
         let mut result = self.state_node_dir.get_list(&root_wsk)?;
@@ -124,16 +121,16 @@ impl DataState {
             result = move_pointer(self, result, &path_item)?;
         }
 
-        Ok(result)
+        Resource::Ready(result)
     }
 
-    fn get_content_inner(&self, base_dir: &[String], current_item: &Option<String>) -> Result<CurrentContent, ResourceError> {
+    fn get_content_inner(&self, base_dir: &[String], current_item: &Option<String>) -> Resource<CurrentContent> {
         let list = self.get_dir_content(base_dir)?;
 
         let current_item = match current_item {
             Some(current_item) => current_item,
             None => {
-                return Ok(CurrentContent::None);
+                return Resource::Ready(CurrentContent::None);
             }
         };
 
@@ -141,35 +138,26 @@ impl DataState {
 
         if let Some(current_value) = current_value {
             if current_value.dir {
-                let list = self.state_node_dir.get_list(&current_value.id);
-
-                if let Ok(list) = list {
-                    return Ok(CurrentContent::dir(current_item.clone(), current_value.id.clone(), list));
-                }
-                
-                //return Ok(CurrentContent::None);
+                let list = self.state_node_dir.get_list(&current_value.id)?;
+                return Resource::Ready(CurrentContent::dir(current_item.clone(), current_value.id.clone(), list));
             } else {
-                let content = self.state_node_content.get(&current_value.id);
-
-                if let Ok(content) = content {
-                    return Ok(CurrentContent::file(current_item.clone(), current_value.id.clone(), content.clone()));
-                }
-
-                //return Ok(CurrentContent::None);
+                let content = self.state_node_content.get(&current_value.id)?;
+                return Resource::Ready(CurrentContent::file(current_item.clone(), current_value.id.clone(), content.clone()));
             }
         }
 
-        Ok(CurrentContent::None)
+        Resource::Ready(CurrentContent::None)
     }
 
     pub fn get_content(&self, base_dir: &[String], item: &Option<String>) -> CurrentContent {
 
         let result = self.get_content_inner(base_dir, item);
 
-        match result {
-            Ok(result) => result,
-            Err(_) => CurrentContent::None,
+        if let Resource::Ready(result) = result {
+            return result;
         }
+
+        CurrentContent::None
     }
 
     pub fn get_content_from_path(&self, path: &[String]) -> CurrentContent {

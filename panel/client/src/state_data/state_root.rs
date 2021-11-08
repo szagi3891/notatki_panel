@@ -1,12 +1,13 @@
 use common::RootResponse;
 use vertigo::{
+    DomDriver,
+    Resource,
     computed::{
         Dependencies,
         Value,
         Computed,
-    },
+    }
 };
-use crate::request::{Request, Resource, ResourceError};
 
 use super::StateNodeDir;
 
@@ -17,13 +18,19 @@ pub struct RootNode {
 }
 
 impl RootNode {
-    fn new(request: &Request, dependencies: &Dependencies, state_node_dir: StateNodeDir) -> RootNode {
-        let value = dependencies.new_value(Err(ResourceError::Loading));
+    fn new(request: &DomDriver, dependencies: &Dependencies, state_node_dir: StateNodeDir) -> RootNode {
+        let value = dependencies.new_value(Resource::Loading);
         let value_read = value.to_computed();
-        let response = request.fetch("/fetch_root").get::<RootResponse>();
+        let response = request.request("/fetch_root").get();
 
-        request.spawn_local(async move {
-            let response = response.await;
+        request.spawn(async move {
+            let response = response.await.into(|status, body| {
+                if status == 200 {
+                    return Some(body.into::<RootResponse>());
+                }
+                None
+            });
+
             value.set_value(response);
         });
 
@@ -33,19 +40,15 @@ impl RootNode {
         }
     }
 
-    pub fn get(&self) -> Result<String, ResourceError> {
+    pub fn get(&self) -> Resource<String> {
         let handler_root = self.value.get_value();
-
-        match handler_root.as_ref() {
-            Ok(inner) => Ok(inner.root.clone()),
-            Err(err) => return Err(err.clone()),
-        }
+        handler_root.ref_map(|item| item.root.clone())
     }
 }
 
 #[derive(PartialEq, Clone)]
 pub struct StateRoot {
-    request: Request,
+    request: DomDriver,
     dependencies: Dependencies,
     state_node_dir: StateNodeDir,
     pub current: Value<RootNode>,
@@ -53,7 +56,7 @@ pub struct StateRoot {
 }
 
 impl StateRoot {
-    pub fn new(request: &Request, dependencies: &Dependencies, state_node_dir: StateNodeDir) -> StateRoot {
+    pub fn new(request: &DomDriver, dependencies: &Dependencies, state_node_dir: StateNodeDir) -> StateRoot {
         let current = RootNode::new(request, dependencies, state_node_dir.clone());
         let current = dependencies.new_value(current);
        
@@ -64,12 +67,11 @@ impl StateRoot {
             current,
         }
     }
-    
-    pub fn get_current_root(&self) -> Result<String, ResourceError> {
+
+    pub fn get_current_root(&self) -> Resource<String> {
         let current = self.current.get_value();
         current.get()
     }
-
 
     pub fn refresh(&self) {
         let current = RootNode::new(&self.request, &self.dependencies, self.state_node_dir.clone());

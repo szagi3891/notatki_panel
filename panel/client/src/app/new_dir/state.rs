@@ -1,16 +1,14 @@
 use std::rc::Rc;
 
-use common::{HandlerCreateDirBody, RootResponse};
-use vertigo::{
-    computed::{Computed, Value},
-};
+use common::{HandlerCreateDirBody};
+use vertigo::{DomDriver, computed::{Computed, Value}};
 
-use crate::{app::{AppState, index::ListItem}, request::Request};
+use crate::{app::{AppState, index::ListItem}};
 use crate::components::new_name;
 
 #[derive(PartialEq)]
 pub struct State {
-    request: Request,
+    driver: DomDriver,
 
     pub action_save: Value<bool>,
 
@@ -50,10 +48,8 @@ impl State {
             })
         };
 
-        let request = Request::new(&app_state.driver);
-
         app_state.root.new_computed_from(State {
-            request,
+            driver: app_state.driver.clone(),
 
             action_save,
 
@@ -84,19 +80,19 @@ impl State {
             dir: new_dir_name.clone(),
         };
 
-        let request = self.request
-            .fetch("/create_dir")
-            .body(body)
-            .post::<RootResponse>();
+        let request = self.driver
+            .request("/create_dir")
+            .body_json(body)
+            .post();
 
         let callback = self.app_state.clone();
         let parent = self.parent.clone();
 
 
-        self.request.spawn_local(async move {
-            let response = request.await.unwrap();
+        self.driver.spawn(async move {
+            let _ = request.await;
             let parent_string = parent.join("/");
-            log::info!("Tworzenie katalogu {:?} udane {:?} -> przekierowanie na -> {:?}", new_dir_name, response, parent_string);
+            log::info!("Tworzenie katalogu {:?} udane -> przekierowanie na -> {:?}", new_dir_name, parent_string);
 
             callback.redirect_to_index_with_path(parent, Some(new_dir_name));
         });

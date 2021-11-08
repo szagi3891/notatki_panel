@@ -1,6 +1,6 @@
 use std::rc::Rc;
-use common::{HandlerDeleteItemBody, RootResponse};
-use vertigo::{VDomElement};
+use common::{HandlerDeleteItemBody};
+use vertigo::{DomDriver, VDomElement};
 use vertigo::{
     computed::{
         Computed,
@@ -10,7 +10,6 @@ use vertigo::{
 use vertigo_html::{html};
 use crate::app::AppState;
 use crate::components::AlertBox;
-use crate::request::Request;
 
 use super::ListItem;
 use super::alert_search::AlertSearch;
@@ -24,7 +23,7 @@ pub enum AlertView {
 
 #[derive(PartialEq, Clone)]
 pub struct AlertState {
-    request: Request,
+    driver: DomDriver,
     pub app_state: Rc<AppState>,
     list: Computed<Vec<ListItem>>,
     progress: Value<bool>,
@@ -38,14 +37,14 @@ impl AlertState {
         app_state: Rc<AppState>,
         current_full_path: Computed<Vec<String>>,
         list: Computed<Vec<ListItem>>,
-        request: Request
+        driver: DomDriver
     ) -> Computed<AlertState> {
         let view = app_state.root.new_value(AlertView::None);
         let progress = app_state.root.new_value(false);
         let progress_computed = progress.to_computed();
 
         app_state.root.new_computed_from(AlertState {
-            request,
+            driver,
             app_state: app_state.clone(),
             list,
             progress,
@@ -117,19 +116,19 @@ impl AlertState {
         log::info!("usuwamy ...");
         self.progress.set_value(true);
 
-        let response = self.request
-            .fetch("/delete_item")
-            .body(&HandlerDeleteItemBody {
+        let response = self.driver
+            .request("/delete_item")
+            .body_json(HandlerDeleteItemBody {
                 path: current_path,
                 hash: current_hash
                 
             })
-            .post::<RootResponse>();
+            .post();    //::<RootResponse>();
 
         let progress = self.progress.clone();
         let self_copy = self.clone();
 
-        self.request.spawn_local(async move {
+        self.driver.spawn(async move {
             let _ = response.await;
             progress.set_value(false);
             self_copy.redirect_after_delete();

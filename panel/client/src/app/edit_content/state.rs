@@ -1,15 +1,13 @@
 use std::rc::Rc;
 
-use common::{HandlerSaveContentBody, RootResponse};
-use vertigo::{
-    computed::{Computed, Value},
-};
+use common::{HandlerSaveContentBody};
+use vertigo::{DomDriver, computed::{Computed, Value}};
 
-use crate::{app::AppState, request::Request};
+use crate::{app::AppState};
 
 #[derive(PartialEq)]
 pub struct State {
-    request: Request,
+    driver: DomDriver,
 
     pub path: Vec<String>,          //edutowany element
     pub hash: String,               //hash poprzedniej zawartosci
@@ -46,10 +44,8 @@ impl State {
 
         let action_save = app_state.root.new_value(false);
 
-        let request = Request::new(&app_state.driver);
-
         let state = State {
-            request,
+            driver: app_state.driver.clone(),
 
             path,
             hash,
@@ -90,18 +86,18 @@ impl State {
             new_content: (*self.edit_content.get_value()).clone(),
         };
 
-        let request = self.request
-            .fetch("/save_content")
-            .body(body)
-            .post::<RootResponse>();
+        let request = self.driver
+            .request("/save_content")
+            .body_json(body)
+            .post();
 
         let callback = self.app_state.clone();
 
-        self.request.spawn_local(async move {
+        self.driver.spawn(async move {
 
-            let response = request.await.unwrap();
+            let _ = request.await;
 
-            log::info!("Zapis udany {:?}", response);
+            log::info!("Zapis udany");
 
             callback.redirect_to_index_with_root_refresh();
         });

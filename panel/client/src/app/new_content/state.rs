@@ -1,16 +1,14 @@
 use std::rc::Rc;
 
-use common::{HandlerCreateFileBody, RootResponse};
-use vertigo::{
-    computed::{Computed, Value},
-};
+use common::{HandlerCreateFileBody};
+use vertigo::{DomDriver, computed::{Computed, Value}};
 
-use crate::{app::{AppState, index::ListItem}, request::Request};
+use crate::{app::{AppState, index::ListItem}};
 use crate::components::new_name;
 
 #[derive(PartialEq)]
 pub struct State {
-    request: Request,
+    driver: DomDriver,
 
     pub action_save: Value<bool>,
 
@@ -59,10 +57,8 @@ impl State {
             })
         };
 
-        let request = Request::new(&app_state.driver);
-
         app_state.root.new_computed_from(State {
-            request,
+            driver: app_state.driver.clone(),
 
             action_save,
             
@@ -106,20 +102,20 @@ impl State {
             new_content: (*self.content.get_value()).clone(),
         };
 
-        let request = self.request
-            .fetch("/create_file")
-            .body(body)
-            .post::<RootResponse>();
+        let request = self.driver
+            .request("/create_file")
+            .body_json(body)
+            .post();
 
         let callback = self.app_state.clone();
 
 
-        self.request.spawn_local({
+        self.driver.spawn({
             let path_redirect = self.parent.clone();            
             
             async move {
-                let response = request.await.unwrap();
-                log::info!("Zapis udany {:?} -> przekierowanie na -> {:?} {:?}", response, path_redirect, new_name);
+                let _ = request.await;
+                log::info!("Zapis udany -> przekierowanie na -> {:?} {:?}", path_redirect, new_name);
                 callback.redirect_to_index_with_path(path_redirect, Some(new_name));
             }
         });

@@ -1,14 +1,14 @@
 use std::rc::Rc;
 use common::{HandlerFetchNodeBody, HandlerFetchNodeResponse};
 use vertigo::{
+    Resource,
+    DomDriver,
     computed::{
         Computed,
         Dependencies,
         AutoMap,
     },
 };
-
-use crate::request::{Request, Resource, ResourceError};
 
 #[derive(PartialEq, Clone)]
 pub struct TreeItem {
@@ -22,19 +22,25 @@ pub struct NodeContent {
 }
 
 impl NodeContent {
-    pub fn new(request: &Request, dependencies: &Dependencies, hash: &String) -> NodeContent {
-        let value = dependencies.new_value(Err(ResourceError::Loading));
+    pub fn new(request: &DomDriver, dependencies: &Dependencies, hash: &String) -> NodeContent {
+        let value = dependencies.new_value(Resource::Loading);
         let value_read = value.to_computed();
 
         let response = request
-            .fetch("/fetch_node")
-            .body(&HandlerFetchNodeBody {
+            .request("/fetch_node")
+            .body_json(HandlerFetchNodeBody {
                 hash: hash.clone(),
             })
-            .post::<HandlerFetchNodeResponse>();
+            .post();
 
-        request.spawn_local(async move {
-            let response = response.await;
+
+        request.spawn(async move {
+            let response = response.await.into(|status, body| {
+                if status == 200 {
+                    return Some(body.into::<HandlerFetchNodeResponse>());
+                }
+                None
+            });
             value.set_value(response.map(|item| Rc::new(item.content)));
         });
 
@@ -43,11 +49,8 @@ impl NodeContent {
         }
     }
 
-    pub fn get(&self) -> Result<Rc<String>, ResourceError> {
-        match self.value.get_value().as_ref() {
-            Ok(content) => Ok(content.clone()),
-            Err(err) => Err(err.clone()),
-        }
+    fn get(&self) -> Resource<Rc<String>> {
+        self.value.get_value().ref_clone()
     }
 }
 
@@ -57,7 +60,7 @@ pub struct StateNodeContent {
 }
 
 impl StateNodeContent {
-    pub fn new(request: &Request, dependencies: &Dependencies) -> StateNodeContent {
+    pub fn new(request: &DomDriver, dependencies: &Dependencies) -> StateNodeContent {
         let data = {
             let request = request.clone();
             let dependencies = dependencies.clone();
@@ -70,7 +73,7 @@ impl StateNodeContent {
         }
     }
 
-    pub fn get(&self, id: &String) -> Result<Rc<String>, ResourceError> {
+    pub fn get(&self, id: &String) -> Resource<Rc<String>> {
         self.data.get_value(id).get()
     }
 }

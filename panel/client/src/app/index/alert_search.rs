@@ -1,8 +1,8 @@
 use std::{rc::Rc};
 
-use vertigo::{Css, KeyDownEvent, VDomElement, computed::{Computed, Dependencies, Value}};
+use vertigo::{Css, KeyDownEvent, VDomElement, Resource, computed::{Computed, Dependencies, Value}};
 use vertigo_html::{css, html};
-use crate::{components::AlertBox, request::ResourceError, state_data::{DataState}};
+use crate::{components::AlertBox, state_data::{DataState}};
 use crate::components::icon;
 
 use super::alert::AlertState;
@@ -70,7 +70,7 @@ fn push_list<F: Fn(&String) -> bool>(
     result: &mut Vec<ResultItem>,
     base: &Vec<String>,
     test_name: &F
-) -> Result<(), ResourceError> {
+) -> Resource<()> {
     let list = data_state.get_dir_content(base.as_slice())?;
 
     if let Some(last) = base.last() {
@@ -119,7 +119,7 @@ fn push_list<F: Fn(&String) -> bool>(
         push_list(data_state, result, &new_base, test_name)?;
     }
 
-    Ok(())
+    Resource::Ready(())
 }
 
 fn new_results(dependencies: &Dependencies, data_state: &DataState, phrase: Computed<String>) -> Computed<Vec<ResultItem>> {
@@ -141,9 +141,9 @@ fn new_results(dependencies: &Dependencies, data_state: &DataState, phrase: Comp
         let result_push = push_list(&data_state, &mut result, &Vec::new(), &test_name);
 
         match result_push {
-            Ok(()) => {},
-            Err(ResourceError::Loading) => {},
-            Err(ResourceError::Error(err)) => {
+            Resource::Ready(()) => {},
+            Resource::Loading => {},
+            Resource::Error(err) => {
                 log::error!("Error push list {:?}", err);
             }
         };

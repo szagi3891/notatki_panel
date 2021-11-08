@@ -1,6 +1,7 @@
 use std::{cmp::Ordering, collections::HashMap};
 use std::rc::Rc;
 use vertigo::{
+    Resource,
     computed::{
         Computed,
         Dependencies,
@@ -8,7 +9,6 @@ use vertigo::{
     },
 };
 use crate::app::AppState;
-use crate::request::{ResourceError};
 use crate::state_data::{CurrentContent, TreeItem};
 use crate::state_data::DataState;
 
@@ -22,11 +22,11 @@ pub struct ListItem {
 }
 
 
-fn create_list_hash_map(root: &Dependencies, state_data: &DataState, current_path: &Value<Vec<String>>) -> Computed<Result<Rc<HashMap<String, TreeItem>>, ResourceError>> {
+fn create_list_hash_map(root: &Dependencies, state_data: &DataState, current_path: &Value<Vec<String>>) -> Computed<Resource<Rc<HashMap<String, TreeItem>>>> {
     let state_data = state_data.clone();
     let current_path = current_path.to_computed();
 
-    root.from(move || -> Result<Rc<HashMap<String, TreeItem>>, ResourceError> {
+    root.from(move || -> Resource<Rc<HashMap<String, TreeItem>>> {
         let current_path_rc = current_path.get_value();
         let current_path = current_path_rc.as_ref();
 
@@ -46,7 +46,7 @@ fn get_list_item_prirority(name: &String) -> u8 {
     1
 }
 
-fn create_list(root: &Dependencies, list: &Computed<Result<Rc<HashMap<String, TreeItem>>, ResourceError>>) -> Computed<Vec<ListItem>> {
+fn create_list(root: &Dependencies, list: &Computed<Resource<Rc<HashMap<String, TreeItem>>>>) -> Computed<Vec<ListItem>> {
     let list = list.clone();
 
     root.from(move || -> Vec<ListItem> {
@@ -55,7 +55,7 @@ fn create_list(root: &Dependencies, list: &Computed<Result<Rc<HashMap<String, Tr
         let result = list.get_value();
 
         match result.as_ref() {
-            Ok(current_view) => {
+            Resource::Ready(current_view) => {
                 for (name, item) in current_view.as_ref() {
                     list_out.push(ListItem {
                         name: name.clone(),
@@ -91,11 +91,11 @@ fn create_list(root: &Dependencies, list: &Computed<Result<Rc<HashMap<String, Tr
 
                 list_out
             },
-            Err(ResourceError::Loading) => {
+            Resource::Loading => {
                 log::info!("Create list --> Loading");
                 Vec::new()
             },
-            Err(err) => {
+            Resource::Error(err) => {
                 log::error!("Create list --> {:?}", err);
                 Vec::new()
             }
@@ -185,7 +185,7 @@ fn create_avaible_delete_current(
 pub struct AppIndexState {
     data_state: DataState,
 
-    list_hash_map: Computed<Result<Rc<HashMap<String, TreeItem>>, ResourceError>>,
+    list_hash_map: Computed<Resource<Rc<HashMap<String, TreeItem>>>>,
 
     //aktualnie wyliczona lista
     pub list: Computed<Vec<ListItem>>,
@@ -237,7 +237,7 @@ impl AppIndexState {
             app_state.clone(),
             current_full_path,
             list.clone(),
-            state_data.request.clone()
+            state_data.driver.clone()
         );
 
         let avaible_delete_current= create_avaible_delete_current(&root, current_content.clone());
@@ -288,7 +288,7 @@ impl AppIndexState {
     pub fn click_list_item(&self, node: String) {
         let list_hash_map_rc = self.list_hash_map.get_value();
 
-        if let Ok(list) = list_hash_map_rc.as_ref() {
+        if let Resource::Ready(list) = list_hash_map_rc.as_ref() {
             if let Some(node_details) = list.get(&node) {
                 if node_details.dir {
                     let mut current = self.data_state.current_path_dir.get_value().as_ref().clone();

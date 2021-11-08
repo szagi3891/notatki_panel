@@ -1,15 +1,13 @@
 use std::rc::Rc;
 
-use common::{HandlerRenameItemBody, RootResponse};
-use vertigo::{
-    computed::{Computed, Value},
-};
+use common::{HandlerRenameItemBody};
+use vertigo::{DomDriver, computed::{Computed, Value}};
 
-use crate::{app::AppState, request::Request};
+use crate::{app::AppState};
 
 #[derive(PartialEq)]
 pub struct State {
-    request: Request,
+    driver: DomDriver,
 
     pub path: Vec<String>,          //edutowany element
     pub prev_name: String,
@@ -59,10 +57,8 @@ impl State {
 
         let action_save = app_state.root.new_value(false);
 
-        let request = Request::new(&app_state.driver);
-
         app_state.root.new_computed_from(State {
-            request,
+            driver: app_state.driver.clone(),
 
             path,
             prev_name,
@@ -114,20 +110,20 @@ impl State {
             new_name: (*self.new_name.get_value()).clone(),
         };
 
-        let request = self.request
-            .fetch("/rename_item")
-            .body(body)
-            .post::<RootResponse>();
+        let request = self.driver
+            .request("/rename_item")
+            .body_json(body)
+            .post();
 
         let parent_state = self.app_state.clone();
         let redirect_path = self.path.clone();
         let redirect_new_name = self.new_name.get_value().as_ref().clone();
 
-        self.request.spawn_local(async move {
+        self.driver.spawn(async move {
 
-            let response = request.await.unwrap();
+            let _ = request.await;
 
-            log::info!("Zapis udany {:?}", response);
+            log::info!("Zapis udany");
 
             parent_state.redirect_to_index_with_path(redirect_path, Some(redirect_new_name));
         });
