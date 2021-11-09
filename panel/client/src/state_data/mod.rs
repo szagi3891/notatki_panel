@@ -8,7 +8,7 @@ use state_node_dir::StateNodeDir;
 use state_node_content::StateNodeContent;
 use state_root::StateRoot;
 
-use vertigo::{DomDriver, Resource, computed::{Dependencies, Value}};
+use vertigo::{Driver, Resource, computed::{Dependencies, Value}};
 
 pub use state_node_dir::{TreeItem};
 
@@ -84,7 +84,7 @@ impl CurrentContent {
 
 #[derive(Clone, PartialEq)]
 pub struct DataState {
-    pub driver: DomDriver,
+    pub driver: Driver,
     pub state_node_dir: StateNodeDir,
     pub state_node_content: StateNodeContent,
     pub state_root: StateRoot,
@@ -93,7 +93,7 @@ pub struct DataState {
 }
 
 impl DataState {
-    pub fn new(root: &Dependencies, driver: &DomDriver) -> DataState {
+    pub fn new(root: &Dependencies, driver: &Driver) -> DataState {
 
         let state_node_dir = StateNodeDir::new(&driver, root);
         let state_node_content = StateNodeContent::new(&driver, root);

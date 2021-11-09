@@ -1,5 +1,5 @@
 use vertigo::{
-    DomDriver,
+    Driver,
     VDomElement,
     computed::{
         Value,
@@ -47,13 +47,13 @@ enum View {
 #[derive(PartialEq, Clone)]
 pub struct AppState {
     pub root: Dependencies,
-    driver: DomDriver,
+    driver: Driver,
     pub data_state: DataState,
     view: Value<View>,
 }
 
 impl AppState {
-    pub fn new(root: &Dependencies, driver: &DomDriver) -> Computed<AppState> {
+    pub fn new(root: &Dependencies, driver: &Driver) -> Computed<AppState> {
         let state_data = DataState::new(root, driver);
 
         let view = root.new_value(View::Index);

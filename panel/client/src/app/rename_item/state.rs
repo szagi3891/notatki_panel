@@ -1,13 +1,13 @@
 use std::rc::Rc;
 
 use common::{HandlerRenameItemBody};
-use vertigo::{DomDriver, computed::{Computed, Value}};
+use vertigo::{Driver, computed::{Computed, Value}};
 
 use crate::{app::AppState};
 
 #[derive(PartialEq)]
 pub struct State {
-    driver: DomDriver,
+    driver: Driver,
 
     pub path: Vec<String>,          //edutowany element
     pub prev_name: String,

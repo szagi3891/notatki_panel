@@ -1,6 +1,6 @@
 use std::rc::Rc;
 use common::{HandlerDeleteItemBody};
-use vertigo::{DomDriver, VDomElement};
+use vertigo::{Driver, VDomElement};
 use vertigo::{
     computed::{
         Computed,
@@ -23,7 +23,7 @@ pub enum AlertView {
 
 #[derive(PartialEq, Clone)]
 pub struct AlertState {
-    driver: DomDriver,
+    driver: Driver,
     pub app_state: Rc<AppState>,
     list: Computed<Vec<ListItem>>,
     progress: Value<bool>,
@@ -37,7 +37,7 @@ impl AlertState {
         app_state: Rc<AppState>,
         current_full_path: Computed<Vec<String>>,
         list: Computed<Vec<ListItem>>,
-        driver: DomDriver
+        driver: Driver
     ) -> Computed<AlertState> {
         let view = app_state.root.new_value(AlertView::None);
         let progress = app_state.root.new_value(false);

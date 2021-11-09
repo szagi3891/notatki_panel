@@ -1,6 +1,6 @@
 use common::RootResponse;
 use vertigo::{
-    DomDriver,
+    Driver,
     Resource,
     computed::{
         Dependencies,
@@ -18,7 +18,7 @@ pub struct RootNode {
 }
 
 impl RootNode {
-    fn new(request: &DomDriver, dependencies: &Dependencies, state_node_dir: StateNodeDir) -> RootNode {
+    fn new(request: &Driver, dependencies: &Dependencies, state_node_dir: StateNodeDir) -> RootNode {
         let value = dependencies.new_value(Resource::Loading);
         let value_read = value.to_computed();
         let response = request.request("/fetch_root").get();
@@ -48,7 +48,7 @@ impl RootNode {
 
 #[derive(PartialEq, Clone)]
 pub struct StateRoot {
-    request: DomDriver,
+    driver: Driver,
     dependencies: Dependencies,
     state_node_dir: StateNodeDir,
     pub current: Value<RootNode>,
@@ -56,12 +56,12 @@ pub struct StateRoot {
 }
 
 impl StateRoot {
-    pub fn new(request: &DomDriver, dependencies: &Dependencies, state_node_dir: StateNodeDir) -> StateRoot {
-        let current = RootNode::new(request, dependencies, state_node_dir.clone());
+    pub fn new(driver: &Driver, dependencies: &Dependencies, state_node_dir: StateNodeDir) -> StateRoot {
+        let current = RootNode::new(driver, dependencies, state_node_dir.clone());
         let current = dependencies.new_value(current);
        
         StateRoot {
-            request: request.clone(),
+            driver: driver.clone(),
             dependencies: dependencies.clone(),
             state_node_dir,
             current,
@@ -74,7 +74,7 @@ impl StateRoot {
     }
 
     pub fn refresh(&self) {
-        let current = RootNode::new(&self.request, &self.dependencies, self.state_node_dir.clone());
+        let current = RootNode::new(&self.driver, &self.dependencies, self.state_node_dir.clone());
         self.current.set_value(current);
     }
 }

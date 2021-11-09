@@ -2,7 +2,7 @@ use std::{collections::HashMap, rc::Rc};
 use common::{GitTreeItem, HandlerFetchDirBody, HandlerFetchDirResponse};
 use vertigo::{
     Resource,
-    DomDriver,
+    Driver,
     computed::{
         Computed,
         Dependencies,
@@ -33,18 +33,18 @@ pub struct NodeDir {
 }
 
 impl NodeDir {
-    pub fn new(request: &DomDriver, dependencies: &Dependencies, id: &String) -> NodeDir {
+    pub fn new(driver: &Driver, dependencies: &Dependencies, id: &String) -> NodeDir {
         let value = dependencies.new_value(Resource::Loading);
         let value_read = value.to_computed();
 
-        let response = request
+        let response = driver
             .request("/fetch_tree_item")
             .body_json(HandlerFetchDirBody {
                 id: id.clone(),
             })
             .post();
 
-        request.spawn(async move {
+        driver.spawn(async move {
             let response = response.await.into(|status, body| {
                 if status == 200 {
                     return Some(body.into::<HandlerFetchDirResponse>());
@@ -74,9 +74,9 @@ pub struct StateNodeDir {
 }
 
 impl StateNodeDir {
-    pub fn new(request: &DomDriver, dependencies: &Dependencies) -> StateNodeDir {
+    pub fn new(driver: &Driver, dependencies: &Dependencies) -> StateNodeDir {
         let data = {
-            let request = request.clone();
+            let request = driver.clone();
             let dependencies = dependencies.clone();
 
             AutoMap::new(move |id: &String| NodeDir::new(&request, &dependencies, id))

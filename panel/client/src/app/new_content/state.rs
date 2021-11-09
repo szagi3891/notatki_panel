@@ -1,14 +1,14 @@
 use std::rc::Rc;
 
 use common::{HandlerCreateFileBody};
-use vertigo::{DomDriver, computed::{Computed, Value}};
+use vertigo::{Driver, computed::{Computed, Value}};
 
 use crate::{app::{AppState, index::ListItem}};
 use crate::components::new_name;
 
 #[derive(PartialEq)]
 pub struct State {
-    driver: DomDriver,
+    driver: Driver,
 
     pub action_save: Value<bool>,
 
