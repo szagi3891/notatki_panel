@@ -1,4 +1,4 @@
-Vertigo - reactive webassembly
+Note management application. The database is a git repository.
 ===================
 
 Installation and usage of demo application
