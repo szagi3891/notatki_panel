@@ -17,13 +17,13 @@ wasm-bindgen-futures = "0.4.23"
 wasm-logger = "0.2.0"
 wee_alloc = "0.4.5"
 
-#vertigo = { git="https://github.com/vertigo-web/vertigo" }
-#browserdriver = { git = "https://github.com/vertigo-web/vertigo" }
-#vertigo-html = { git = "https://github.com/vertigo-web/vertigo" }
+vertigo = { git="https://github.com/vertigo-web/vertigo" }
+vertigo-browserdriver = { git = "https://github.com/vertigo-web/vertigo" }
+vertigo-html = { git = "https://github.com/vertigo-web/vertigo" }
 
-vertigo = { path = "../../../vertigo/crates/vertigo" }
-vertigo-browserdriver = { path = "../../../vertigo/crates/vertigo-browserdriver" }
-vertigo-html = { path = "../../../vertigo/crates/vertigo-html" }
+#vertigo = { path = "../../../vertigo/crates/vertigo" }
+#vertigo-browserdriver = { path = "../../../vertigo/crates/vertigo-browserdriver" }
+#vertigo-html = { path = "../../../vertigo/crates/vertigo-html" }
 
 serde = { version = "1.0.125", features = ["derive"] }
 serde_json = "1.0.64"
