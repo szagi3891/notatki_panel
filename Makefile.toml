@@ -1,79 +1,36 @@
-[env]
-PORT = "8000"
-
 [config]
-skip_core_tasks = true
+default_to_workspace = false
 
-# ---- BASIC ----
 
-[tasks.watch]
-description = "Watch files and recompile the project on change"
-run_task = [
-    { name = "build" },
+[tasks.wasm32-target]
+install_script = '''
+    if [ "$(rustup target list | grep wasm32-unknown-unknown | grep installed)" = "" ];
+    then
+        rustup target add wasm32-unknown-unknown;
+    fi
+'''
+
+[tasks.client-clean]
+script = "rm -Rf ./build"
+
+[tasks.client-build]
+dependencies = [ "wasm32-target", "client-clean" ]
+install_crate = { crate_name = "wasm-pack", binary = "wasm-pack", test_arg = ["--version"] }
+script = [
+    "wasm-pack build panel/client --no-typescript --target web --out-dir ../../build --out-name app --release",
+    "rm ./build/.gitignore",
+    "rm ./build/package.json",
 ]
-watch = true
-
-[tasks.serve]
-description = "Start server"
-install_crate = { crate_name = "microserver", binary = "microserver", test_arg = "-h" }
-command = "microserver"
-args = ["--port", "${PORT}"]
-
-[tasks.verify]
-description = "Format, lint with Clippy and run tests"
-dependencies = ["fmt", "clippy", "test_h_firefox"]
-
-# ---- BUILD ----
-
-[tasks.buildclient]
-description = "Build with wasm-pack"
-install_crate = { crate_name = "wasm-pack", binary = "wasm-pack", test_arg = "-V" }
-command = "wasm-pack"
-args = ["build", "--target", "web", "--out-name", "package", "--dev"]
 
 
-[tasks.build]
-description = "Build with wasm-pack"
-install_crate = { crate_name = "wasm-pack", binary = "wasm-pack", test_arg = "-V" }
-command = "wasm-pack"
-args = ["build", "--target", "web", "--out-name", "package", "--dev"]
-
-
-[tasks.build_release]
-description = "Build with wasm-pack in release mode"
-install_crate = { crate_name = "wasm-pack", binary = "wasm-pack", test_arg = "-V" }
-command = "wasm-pack"
-args = ["build", "--target", "web", "--out-name", "package"]
-
-# ---- LINT ----
-
-[tasks.clippy]
-description = "Lint with Clippy"
-install_crate = { rustup_component_name = "clippy", binary = "cargo-clippy", test_arg = "--help" }
+[tasks.app-serve]
 command = "cargo"
-args = ["clippy", "--all-features", "--", "--deny", "warnings", "--deny", "clippy::pedantic", "--deny", "clippy::nursery"]
-
-[tasks.fmt]
-description = "Format with rustfmt"
-install_crate = { rustup_component_name = "rustfmt", binary = "rustfmt", test_arg = "-V" }
-command = "cargo"
-args = ["fmt"]
+env = { "RUST_LOG" = "info", "HTTP_HOST" = "0.0.0.0", "HTTP_PORT" = "4000", "GIT_REPO" = "/Users/grzegorzszeliga/Desktop/notatki_main/notatki" }
+args = [ "run", "--bin", "server" ]
 
 
-# ---- TEST ----
-
-[tasks.test_h]
-description = "Run headless tests. Ex: 'cargo make test_h firefox'. Test envs: [chrome, firefox, safari]"
-extend = "test"
-args = ["test", "--headless", "--${@}"]
-
-[tasks.test_h_firefox]
-description = "Run headless tests with Firefox."
-extend = "test"
-args = ["test", "--headless", "--firefox"]
-
-[tasks.test]
-description = "Run tests. Ex: 'cargo make test firefox'. Test envs: [chrome, firefox, safari]"
-install_crate = { crate_name = "wasm-pack", binary = "wasm-pack", test_arg = "-V" }
-command = "wasm-pack"
-args = ["test", "--${@}"]
+[tasks.app-start]
+dependencies = [
+    "client-build",
+    "app-serve"
+]
