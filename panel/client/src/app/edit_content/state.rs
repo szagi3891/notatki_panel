@@ -30,19 +30,19 @@ impl State {
         hash: String,
         content: String,
     ) -> Computed<State> {
-        let edit_content = app_state.root.new_value(content.clone());
+        let edit_content = app_state.driver.new_value(content.clone());
 
         let save_enable = {
             let edit_content = edit_content.to_computed();
 
-            app_state.root.from(move || -> bool {
+            app_state.driver.from(move || -> bool {
                 let edit_content = edit_content.get_value();
                 let save_enabled = edit_content.as_ref() != &content;
                 save_enabled
             })
         };
 
-        let action_save = app_state.root.new_value(false);
+        let action_save = app_state.driver.new_value(false);
 
         let state = State {
             driver: app_state.driver.clone(),
@@ -56,7 +56,7 @@ impl State {
             app_state: app_state.clone()
         };
 
-        app_state.root.new_computed_from(state)
+        app_state.driver.new_computed_from(state)
     }
 
     pub fn on_input(&self, new_text: String) {

@@ -5,7 +5,6 @@ use vertigo::{
     Driver,
     computed::{
         Computed,
-        Dependencies,
         AutoMap,
     },
 };
@@ -22,8 +21,8 @@ pub struct NodeContent {
 }
 
 impl NodeContent {
-    pub fn new(driver: &Driver, dependencies: &Dependencies, hash: &String) -> NodeContent {
-        let value = dependencies.new_value(Resource::Loading);
+    pub fn new(driver: &Driver, hash: &String) -> NodeContent {
+        let value = driver.new_value(Resource::Loading);
         let value_read = value.to_computed();
 
         let response = driver
@@ -60,12 +59,11 @@ pub struct StateNodeContent {
 }
 
 impl StateNodeContent {
-    pub fn new(driver: &Driver, dependencies: &Dependencies) -> StateNodeContent {
+    pub fn new(driver: &Driver) -> StateNodeContent {
         let data = {
             let request = driver.clone();
-            let dependencies = dependencies.clone();
 
-            AutoMap::new(move |id: &String| NodeContent::new(&request, &dependencies, id))
+            AutoMap::new(move |id: &String| NodeContent::new(&request, id))
         };
 
         StateNodeContent {

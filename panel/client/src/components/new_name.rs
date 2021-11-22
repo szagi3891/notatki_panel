@@ -33,12 +33,12 @@ impl NewName {
         list: Computed<Vec<ListItem>>,
         action_save: Computed<bool>,
     ) -> Computed<NewName> {
-        let name = app_state.root.new_value(String::from(""));
+        let name = app_state.driver.new_value(String::from(""));
 
         let name_exists = {
             let name = name.clone();
 
-            app_state.root.from(move || -> bool {
+            app_state.driver.from(move || -> bool {
                 let list = list.get_value();
 
                 let name = name.get_value();
@@ -49,7 +49,7 @@ impl NewName {
         let is_valid = {
             let name = name.clone();
 
-            app_state.root.from(move || -> bool {
+            app_state.driver.from(move || -> bool {
                 let name_exists = name_exists.get_value();
 
                 if *name_exists {
@@ -65,7 +65,7 @@ impl NewName {
             })
         };
 
-        app_state.root.new_computed_from(NewName {
+        app_state.driver.new_computed_from(NewName {
             action_save,
             name,
             is_valid,

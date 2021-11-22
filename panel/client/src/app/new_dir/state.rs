@@ -31,13 +31,13 @@ impl State {
         list: Computed<Vec<ListItem>>,
     ) -> Computed<State> {
         log::info!("buduję stan dla new dir");
-        let action_save = app_state.root.new_value(false);
+        let action_save = app_state.driver.new_value(false);
         let new_name = new_name::NewName::new(&app_state, list, action_save.to_computed());
 
         let save_enable = {
             let new_name = new_name.clone();
 
-            app_state.root.from(move || -> bool {
+            app_state.driver.from(move || -> bool {
                 let new_name_is_valid = new_name.get_value().is_valid.get_value();
 
                 if !*new_name_is_valid  {
@@ -48,7 +48,7 @@ impl State {
             })
         };
 
-        app_state.root.new_computed_from(State {
+        app_state.driver.new_computed_from(State {
             driver: app_state.driver.clone(),
 
             action_save,

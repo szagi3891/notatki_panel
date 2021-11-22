@@ -34,13 +34,13 @@ impl State {
         prev_hash: String,
         prev_content: Option<String>,
     ) -> Computed<State> {
-        let new_name = app_state.root.new_value(prev_name.clone());
+        let new_name = app_state.driver.new_value(prev_name.clone());
 
         let save_enable = {
             let prev_name = prev_name.clone();
             let new_name = new_name.to_computed();
 
-            app_state.root.from(move || -> bool {
+            app_state.driver.from(move || -> bool {
                 let new_name = new_name.get_value();
                 
                 if new_name.as_ref().trim() == "" {
@@ -55,9 +55,9 @@ impl State {
             })
         };
 
-        let action_save = app_state.root.new_value(false);
+        let action_save = app_state.driver.new_value(false);
 
-        app_state.root.new_computed_from(State {
+        app_state.driver.new_computed_from(State {
             driver: app_state.driver.clone(),
 
             path,

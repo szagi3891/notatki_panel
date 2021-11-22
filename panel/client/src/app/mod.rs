@@ -4,7 +4,6 @@ use vertigo::{
     computed::{
         Value,
         Computed,
-        Dependencies,
     },
 };
 use vertigo_html::html;
@@ -46,20 +45,18 @@ enum View {
 
 #[derive(PartialEq, Clone)]
 pub struct AppState {
-    pub root: Dependencies,
-    driver: Driver,
+    pub driver: Driver,
     pub data_state: DataState,
     view: Value<View>,
 }
 
 impl AppState {
-    pub fn new(root: &Dependencies, driver: &Driver) -> Computed<AppState> {
-        let state_data = DataState::new(root, driver);
+    pub fn new(driver: &Driver) -> Computed<AppState> {
+        let state_data = DataState::new(driver);
 
-        let view = root.new_value(View::Index);
+        let view = driver.new_value(View::Index);
 
-        root.new_computed_from(AppState {
-            root: root.clone(),
+        driver.new_computed_from(AppState {
             driver: driver.clone(),
             data_state: state_data.clone(),
             view,
@@ -82,7 +79,7 @@ impl AppState {
 
         match content {
             CurrentContent::File { file_hash, content, ..} => {
-                log::info!("redirect_to_content {:?}", full_path);
+                log::info!("redirect_to_content {full_path:?}");
                 self.view.set_value(View::EditContent {
                     full_path,
                     file_hash,
@@ -106,7 +103,7 @@ impl AppState {
 
         match content_hash {
             Some(content_hash) => {
-                log::info!("redirect_to_rename_item {:?} {:?}", base_path, select_item);
+                log::info!("redirect_to_rename_item {base_path:?} {select_item:?}");
                 self.view.set_value(View::RenameItem {
                     base_path: base_path.clone(),
                     prev_name: select_item,
@@ -115,7 +112,7 @@ impl AppState {
                 });
             },
             None => {
-                log::error!("redirect_to_rename_item fail - {:?} {:?}", base_path, select_item);
+                log::error!("redirect_to_rename_item fail - {base_path:?} {select_item:?}");
             }
         }
     }

@@ -1,10 +1,10 @@
 use std::{cmp::Ordering, collections::HashMap};
 use std::rc::Rc;
+use vertigo::Driver;
 use vertigo::{
     Resource,
     computed::{
         Computed,
-        Dependencies,
         Value
     },
 };
@@ -22,11 +22,11 @@ pub struct ListItem {
 }
 
 
-fn create_list_hash_map(root: &Dependencies, state_data: &DataState, current_path: &Value<Vec<String>>) -> Computed<Resource<Rc<HashMap<String, TreeItem>>>> {
+fn create_list_hash_map(driver: &Driver, state_data: &DataState, current_path: &Value<Vec<String>>) -> Computed<Resource<Rc<HashMap<String, TreeItem>>>> {
     let state_data = state_data.clone();
     let current_path = current_path.to_computed();
 
-    root.from(move || -> Resource<Rc<HashMap<String, TreeItem>>> {
+    driver.from(move || -> Resource<Rc<HashMap<String, TreeItem>>> {
         let current_path_rc = current_path.get_value();
         let current_path = current_path_rc.as_ref();
 
@@ -46,10 +46,10 @@ fn get_list_item_prirority(name: &String) -> u8 {
     1
 }
 
-fn create_list(root: &Dependencies, list: &Computed<Resource<Rc<HashMap<String, TreeItem>>>>) -> Computed<Vec<ListItem>> {
+fn create_list(driver: &Driver, list: &Computed<Resource<Rc<HashMap<String, TreeItem>>>>) -> Computed<Vec<ListItem>> {
     let list = list.clone();
 
-    root.from(move || -> Vec<ListItem> {
+    driver.from(move || -> Vec<ListItem> {
         let mut list_out: Vec<ListItem> = Vec::new();
 
         let result = list.get_value();
@@ -104,14 +104,14 @@ fn create_list(root: &Dependencies, list: &Computed<Resource<Rc<HashMap<String, 
 }
 
 fn create_current_item_view(
-    root: &Dependencies,
+    driver: &Driver,
     current_item: &Value<Option<String>>,
     list: &Computed<Vec<ListItem>>
 ) -> Computed<Option<String>> {
     let current_item = current_item.clone();
     let list = list.clone();
 
-    root.from(move || -> Option<String> {
+    driver.from(move || -> Option<String> {
         let current_item = current_item.get_value();
 
         if let Some(current_item) = current_item.as_ref() {
@@ -128,14 +128,14 @@ fn create_current_item_view(
 }
 
 fn create_current_full_path(
-    root: &Dependencies,
+    driver: &Driver,
     current_path_dir: &Value<Vec<String>>,
     list_current_item: &Computed<Option<String>>,
 ) -> Computed<Vec<String>> {
     let current_path_dir = current_path_dir.clone();
     let list_current_item = list_current_item.clone();
 
-    root.from(move || -> Vec<String> {
+    driver.from(move || -> Vec<String> {
         let mut current_path_dir = current_path_dir.get_value().as_ref().clone();
 
         if let Some(list_current_item) = list_current_item.get_value().as_ref() {
@@ -147,7 +147,7 @@ fn create_current_full_path(
 }
 
 fn create_current_content(
-    root: &Dependencies,
+    driver: &Driver,
     state_data: &DataState,
     current_path_dir: &Value<Vec<String>>,
     list_current_item: &Computed<Option<String>>
@@ -157,7 +157,7 @@ fn create_current_content(
     let current_path_dir = current_path_dir.to_computed();
     let list_current_item = list_current_item.clone();
 
-    root.from(move || -> CurrentContent {
+    driver.from(move || -> CurrentContent {
         let current_path_dir = current_path_dir.get_value();
         let list_current_item = list_current_item.get_value();
 
@@ -166,11 +166,11 @@ fn create_current_content(
 }
 
 fn create_avaible_delete_current(
-    root: &Dependencies,
+    driver: &Driver,
     current_content: Computed<CurrentContent>
 ) -> Computed<bool> {
 
-    root.from(move || -> bool {
+    driver.from(move || -> bool {
         let current = current_content.get_value();
 
         match current.as_ref() {
@@ -213,22 +213,22 @@ impl AppIndexState {
     pub fn new(
         app_state: Rc<AppState>,
     ) -> (Computed<AppIndexState>, impl Fn(vertigo::KeyDownEvent) -> bool) {
-        let root = &app_state.root.clone();
+        let driver = &app_state.driver.clone();
         let state_data = app_state.data_state.clone();
 
-        let list_hash_map = create_list_hash_map(root, &state_data, &state_data.current_path_dir);
-        let list = create_list(root, &list_hash_map);
+        let list_hash_map = create_list_hash_map(driver, &state_data, &state_data.current_path_dir);
+        let list = create_list(driver, &list_hash_map);
 
-        let list_current_item = create_current_item_view(&root, &state_data.current_path_item, &list);
+        let list_current_item = create_current_item_view(&driver, &state_data.current_path_item, &list);
         let current_content = create_current_content(
-            root,
+            driver,
             &state_data,
             &state_data.current_path_dir,
             &list_current_item,
         );
 
         let current_full_path = create_current_full_path(
-            &root,
+            &driver,
             &state_data.current_path_dir,
             &list_current_item,
         );
@@ -240,10 +240,10 @@ impl AppIndexState {
             state_data.driver.clone()
         );
 
-        let avaible_delete_current= create_avaible_delete_current(&root, current_content.clone());
+        let avaible_delete_current= create_avaible_delete_current(&driver, current_content.clone());
     
-        let tabs_url = root.new_value(Vec::new());
-        let tabs_active = root.new_value(None);
+        let tabs_url = driver.new_value(Vec::new());
+        let tabs_active = driver.new_value(None);
 
         let state = Rc::new(AppIndexState {
             data_state: state_data,
@@ -265,7 +265,7 @@ impl AppIndexState {
             }
         };
 
-        (root.new_computed_from(state), keydown)
+        (driver.new_computed_from(state), keydown)
     }
 
 
@@ -279,7 +279,7 @@ impl AppIndexState {
     
         let (new_current_path, new_current_item_value) = calculate_next_path(current_path.as_ref(), path);
 
-        self.app_state.root.transaction(||{
+        self.app_state.driver.transaction(||{
             self.data_state.current_path_dir.set_value(new_current_path);
             self.data_state.current_path_item.set_value(new_current_item_value);
         });

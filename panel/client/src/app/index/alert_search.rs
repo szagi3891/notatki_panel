@@ -1,6 +1,6 @@
 use std::{rc::Rc};
 
-use vertigo::{Css, KeyDownEvent, VDomElement, Resource, computed::{Computed, Dependencies, Value}};
+use vertigo::{Css, Driver, KeyDownEvent, Resource, VDomElement, computed::{Computed, Value}};
 use vertigo_html::{css, html};
 use crate::{components::AlertBox, state_data::{DataState}};
 use crate::components::icon;
@@ -122,10 +122,10 @@ fn push_list<F: Fn(&String) -> bool>(
     Resource::Ready(())
 }
 
-fn new_results(dependencies: &Dependencies, data_state: &DataState, phrase: Computed<String>) -> Computed<Vec<ResultItem>> {
+fn new_results(driver: &Driver, data_state: &DataState, phrase: Computed<String>) -> Computed<Vec<ResultItem>> {
     let data_state = data_state.clone();
 
-    dependencies.from(move || {
+    driver.from(move || {
         let mut result = Vec::<ResultItem>::new();
         let phrase_value = phrase.get_value();
 
@@ -161,15 +161,15 @@ pub struct AlertSearch {
 
 impl AlertSearch {
     pub fn new(alert_state: &Rc<AlertState>) -> Computed<AlertSearch> {
-        let phrase = alert_state.app_state.root.new_value("".to_string());
+        let phrase = alert_state.app_state.driver.new_value("".to_string());
 
         let results = new_results(
-            &alert_state.app_state.root,
+            &alert_state.app_state.driver,
             &alert_state.app_state.data_state,
             phrase.to_computed(),
         );
 
-        alert_state.app_state.root.new_computed_from(AlertSearch {
+        alert_state.app_state.driver.new_computed_from(AlertSearch {
             alert_state: alert_state.clone(),
             phrase,
             results,

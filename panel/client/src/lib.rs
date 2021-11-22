@@ -1,3 +1,5 @@
+#![feature(format_args_capture)]
+
 #![allow(clippy::nonstandard_macro_braces)]
 
 use wasm_bindgen::prelude::wasm_bindgen;
@@ -5,7 +7,6 @@ use wasm_bindgen::prelude::wasm_bindgen;
 use vertigo::{
     start_app,
     VDomComponent,
-    computed::Dependencies,
 };
 
 use vertigo_browserdriver::DriverBrowser;
@@ -25,9 +26,8 @@ pub async fn start_application() {
 
     log::info!("Start rustowego modułu ...");
 
-    let root: Dependencies = Dependencies::default();
-    let driver = DriverBrowser::new(&root);
-    let app_state = app::AppState::new(&root, &driver);
+    let driver = DriverBrowser::new();
+    let app_state = app::AppState::new(&driver);
 
     start_app(driver, VDomComponent::new(app_state, app::render)).await;
 }

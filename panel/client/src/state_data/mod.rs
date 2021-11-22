@@ -8,7 +8,7 @@ use state_node_dir::StateNodeDir;
 use state_node_content::StateNodeContent;
 use state_root::StateRoot;
 
-use vertigo::{Driver, Resource, computed::{Dependencies, Value}};
+use vertigo::{Driver, Resource, computed::Value};
 
 pub use state_node_dir::{TreeItem};
 
@@ -93,14 +93,14 @@ pub struct DataState {
 }
 
 impl DataState {
-    pub fn new(root: &Dependencies, driver: &Driver) -> DataState {
+    pub fn new(driver: &Driver) -> DataState {
 
-        let state_node_dir = StateNodeDir::new(&driver, root);
-        let state_node_content = StateNodeContent::new(&driver, root);
-        let state_root = StateRoot::new(&driver, root, state_node_dir.clone());
+        let state_node_dir = StateNodeDir::new(driver);
+        let state_node_content = StateNodeContent::new(driver);
+        let state_root = StateRoot::new(driver, state_node_dir.clone());
 
-        let current_path_dir: Value<Vec<String>> = root.new_value(Vec::new());
-        let current_path_item: Value<Option<String>> = root.new_value(None);
+        let current_path_dir: Value<Vec<String>> = driver.new_value(Vec::new());
+        let current_path_item: Value<Option<String>> = driver.new_value(None);
 
         DataState {
             driver: driver.clone(),

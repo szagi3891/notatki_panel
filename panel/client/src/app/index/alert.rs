@@ -39,11 +39,11 @@ impl AlertState {
         list: Computed<Vec<ListItem>>,
         driver: Driver
     ) -> Computed<AlertState> {
-        let view = app_state.root.new_value(AlertView::None);
-        let progress = app_state.root.new_value(false);
+        let view = app_state.driver.new_value(AlertView::None);
+        let progress = app_state.driver.new_value(false);
         let progress_computed = progress.to_computed();
 
-        app_state.root.new_computed_from(AlertState {
+        app_state.driver.new_computed_from(AlertState {
             driver,
             app_state: app_state.clone(),
             list,

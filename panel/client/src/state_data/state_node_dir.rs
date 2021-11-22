@@ -5,7 +5,6 @@ use vertigo::{
     Driver,
     computed::{
         Computed,
-        Dependencies,
         AutoMap,
     },
 };
@@ -33,8 +32,8 @@ pub struct NodeDir {
 }
 
 impl NodeDir {
-    pub fn new(driver: &Driver, dependencies: &Dependencies, id: &String) -> NodeDir {
-        let value = dependencies.new_value(Resource::Loading);
+    pub fn new(driver: &Driver, id: &String) -> NodeDir {
+        let value = driver.new_value(Resource::Loading);
         let value_read = value.to_computed();
 
         let response = driver
@@ -44,7 +43,7 @@ impl NodeDir {
             })
             .post();
 
-        driver.spawn(async move {
+            driver.spawn(async move {
             let response = response.await.into(|status, body| {
                 if status == 200 {
                     return Some(body.into::<HandlerFetchDirResponse>());
@@ -74,12 +73,11 @@ pub struct StateNodeDir {
 }
 
 impl StateNodeDir {
-    pub fn new(driver: &Driver, dependencies: &Dependencies) -> StateNodeDir {
+    pub fn new(driver: &Driver) -> StateNodeDir {
         let data = {
             let request = driver.clone();
-            let dependencies = dependencies.clone();
 
-            AutoMap::new(move |id: &String| NodeDir::new(&request, &dependencies, id))
+            AutoMap::new(move |id: &String| NodeDir::new(&request, id))
         };
 
         StateNodeDir {
