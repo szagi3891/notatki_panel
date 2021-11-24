@@ -6,7 +6,7 @@ use vertigo::{
     }
 };
 
-use vertigo_html::{html, css};
+use vertigo::{html, css};
 use super::state::{AppIndexState};
 use crate::components::button;
 

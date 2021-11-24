@@ -6,7 +6,7 @@ use vertigo::{
         Computed,
     }
 };
-use vertigo_html::{html, css};
+use vertigo::{html, css};
 use super::state::AppIndexState;
 
 fn css_header() -> Css {

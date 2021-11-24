@@ -6,7 +6,7 @@ use vertigo::{
         Computed,
     },
 };
-use vertigo_html::html;
+use vertigo::html;
 use std::rc::Rc;
 use crate::state_data::CurrentContent;
 use crate::state_data::DataState;

@@ -2,7 +2,7 @@ use vertigo::{
     Css,
     VDomElement,
 };
-use vertigo_html::{css, html};
+use vertigo::{css, html};
 
 
 fn icon_dir_css() -> Css {

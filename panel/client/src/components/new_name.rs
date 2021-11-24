@@ -5,7 +5,7 @@ use vertigo::{
 };
 
 use vertigo::{Css, VDomElement};
-use vertigo_html::{css, html};
+use vertigo::{css, html};
 
 use crate::{app::{AppState, index::ListItem}};
 

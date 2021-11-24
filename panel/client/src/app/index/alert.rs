@@ -7,7 +7,7 @@ use vertigo::{
         Value
     },
 };
-use vertigo_html::{html};
+use vertigo::{html};
 use crate::app::AppState;
 use crate::components::AlertBox;
 

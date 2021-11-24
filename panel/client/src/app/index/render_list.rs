@@ -6,7 +6,7 @@ use vertigo::{
         Computed,
     }
 };
-use vertigo_html::{css, html};
+use vertigo::{css, html};
 use crate::components::icon;
 
 use super::state::AppIndexState;

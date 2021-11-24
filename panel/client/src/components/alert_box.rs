@@ -6,7 +6,7 @@ use vertigo::{
         Computed,
     }
 };
-use vertigo_html::{html, css};
+use vertigo::{html, css};
 
 
 use crate::components::button;

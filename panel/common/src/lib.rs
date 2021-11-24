@@ -1,32 +1,29 @@
 use serde::{Deserialize, Serialize};
-use vertigo::{RequestTrait, make_serde_request_trait};
+use vertigo::SerdeRequest;
 
 pub type TimestampType = u128;
 
 
-make_serde_request_trait!(RootResponse);
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, SerdeRequest)]
 pub struct RootResponse {
     pub root: String,
 }
 
 
-make_serde_request_trait!(HandlerFetchDirBody);
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, SerdeRequest)]
 pub struct HandlerFetchDirBody {
     pub id: String,
 }
 
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, SerdeRequest)]
 pub struct GitTreeItem {
     pub dir: bool,
     pub id: String,
     pub name: String,
 }
 
-make_serde_request_trait!(HandlerFetchDirResponse);
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, SerdeRequest)]
 pub struct HandlerFetchDirResponse {
     pub list: Vec<GitTreeItem>,
 }
@@ -44,22 +41,19 @@ impl HandlerFetchDirResponse {
     }
 }
 
-make_serde_request_trait!(HandlerFetchNodeBody);
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, SerdeRequest)]
 pub struct HandlerFetchNodeBody {
     pub hash: String,
 }
 
 
-make_serde_request_trait!(HandlerFetchNodeResponse);
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, SerdeRequest)]
 pub struct HandlerFetchNodeResponse {
     pub content: String,
 }
 
 
-make_serde_request_trait!(HandlerSaveContentBody);
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, SerdeRequest)]
 pub struct HandlerSaveContentBody {
     pub path: Vec<String>,
     pub prev_hash: String,
@@ -67,8 +61,7 @@ pub struct HandlerSaveContentBody {
 }
 
 
-make_serde_request_trait!(HandlerCreateFileBody);
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, SerdeRequest)]
 pub struct HandlerCreateFileBody {
     pub path: Vec<String>,
     pub new_name: String,
@@ -77,16 +70,14 @@ pub struct HandlerCreateFileBody {
 
 
 
-make_serde_request_trait!(HandlerCreateDirBody);
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, SerdeRequest)]
 pub struct HandlerCreateDirBody {
     pub path: Vec<String>,
     pub dir: String,
 }
 
 
-make_serde_request_trait!(HandlerRenameItemBody);
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, SerdeRequest)]
 pub struct HandlerRenameItemBody {
     pub path: Vec<String>,
     pub prev_name: String,
@@ -96,8 +87,7 @@ pub struct HandlerRenameItemBody {
 
 
 
-make_serde_request_trait!(HandlerDeleteItemBody);
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, SerdeRequest)]
 pub struct HandlerDeleteItemBody {
     pub path: Vec<String>,
     pub hash: String,

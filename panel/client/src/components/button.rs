@@ -3,7 +3,7 @@ use vertigo::{
     Css,
 };
 
-use vertigo_html::{html, css};
+use vertigo::{html, css};
 
 fn css_item() -> Css {
     css!("

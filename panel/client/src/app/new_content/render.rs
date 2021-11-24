@@ -1,5 +1,5 @@
 use vertigo::{Css, VDomElement, computed::Computed};
-use vertigo_html::{css, html};
+use vertigo::{css, html};
 
 use super::{State};
 use crate::components::{button, new_name};

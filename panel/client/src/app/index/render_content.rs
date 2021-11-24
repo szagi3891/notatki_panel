@@ -1,5 +1,5 @@
 use vertigo::{Css, VDomElement, computed::Computed};
-use vertigo_html::{css, html};
+use vertigo::{css, html};
 
 use super::state::AppIndexState;
 use crate::{
