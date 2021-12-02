@@ -19,15 +19,12 @@ use std::sync::Arc;
 use axum::{
     http::StatusCode,
     response::Html,
-    routing::service_method_routing as service,
     handler::Handler,
-};
-
-use axum::{
     routing::{get, post},
     extract::Extension,
     Json, Router,
     AddExtensionLayer,
+    routing::get_service,
 };
 use serde::{Deserialize};
 use std::net::SocketAddr;
@@ -265,17 +262,14 @@ async fn main() {
         .route("/", get(handler_index))
         .nest(
             "/build",
-            {
-                use axum::error_handling::HandleErrorExt;
-
-                service::get(ServeDir::new("build")).handle_error(|error: std::io::Error| {
-                    (
-                        StatusCode::INTERNAL_SERVER_ERROR,
-                        format!("Unhandled internal error: {}", error),
-                    )
-                })
-            }
+            get_service(ServeDir::new("build")).handle_error(|error: std::io::Error| async move {
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    format!("Unhandled internal error: {}", error),
+                )
+            }),
         )
+
         .route("/fetch_root", get(handler_fetch_root))
         .route("/fetch_tree_item", post(handler_fetch_dir))
         .route("/fetch_node", post(handler_fetch_node))
