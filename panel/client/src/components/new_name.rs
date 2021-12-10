@@ -1,7 +1,7 @@
 use std::{rc::Rc};
 
 use vertigo::{ 
-    computed::{Computed, Value},
+    Computed, Value,
 };
 
 use vertigo::{Css, VDomElement};

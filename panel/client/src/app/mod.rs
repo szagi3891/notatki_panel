@@ -1,10 +1,8 @@
 use vertigo::{
     Driver,
     VDomElement,
-    computed::{
-        Value,
-        Computed,
-    },
+    Value,
+    Computed,
 };
 use vertigo::html;
 use std::rc::Rc;

@@ -1,9 +1,7 @@
 use vertigo::{
     VDomElement,
     Css,
-    computed::{
-        Computed,
-    }
+    Computed,
 };
 
 use vertigo::{html, css};

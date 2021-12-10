@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use common::{HandlerRenameItemBody};
-use vertigo::{Driver, computed::{Computed, Value}};
+use vertigo::{Driver, Computed, Value};
 
 use crate::{app::AppState};
 

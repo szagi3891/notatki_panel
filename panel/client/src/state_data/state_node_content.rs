@@ -3,10 +3,8 @@ use common::{HandlerFetchNodeBody, HandlerFetchNodeResponse};
 use vertigo::{
     Resource,
     Driver,
-    computed::{
-        Computed,
-        AutoMap,
-    },
+    Computed,
+    AutoMap,
 };
 
 #[derive(PartialEq, Clone)]

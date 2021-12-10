@@ -8,7 +8,7 @@ use state_node_dir::StateNodeDir;
 use state_node_content::StateNodeContent;
 use state_root::StateRoot;
 
-use vertigo::{Driver, Resource, computed::Value};
+use vertigo::{Driver, Resource, Value};
 
 pub use state_node_dir::{TreeItem};
 

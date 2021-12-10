@@ -3,10 +3,8 @@ use common::{GitTreeItem, HandlerFetchDirBody, HandlerFetchDirResponse};
 use vertigo::{
     Resource,
     Driver,
-    computed::{
-        Computed,
-        AutoMap,
-    },
+    Computed,
+    AutoMap,
 };
 
 #[derive(PartialEq, Clone, Debug)]

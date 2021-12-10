@@ -3,10 +3,8 @@ use std::rc::Rc;
 use vertigo::Driver;
 use vertigo::{
     Resource,
-    computed::{
-        Computed,
-        Value
-    },
+    Computed,
+    Value
 };
 use crate::app::AppState;
 use crate::state_data::{CurrentContent, TreeItem};

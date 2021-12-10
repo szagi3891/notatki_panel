@@ -1,4 +1,4 @@
-use vertigo::{Css, VDomElement, computed::Computed};
+use vertigo::{Css, VDomElement, Computed};
 use vertigo::{css, html};
 
 use super::{State};

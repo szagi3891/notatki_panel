@@ -2,9 +2,7 @@ use vertigo::{
     Css,
     NodeRefs,
     VDomElement,
-    computed::{
-        Computed,
-    }
+    Computed,
 };
 use vertigo::{css, html};
 use crate::components::icon;

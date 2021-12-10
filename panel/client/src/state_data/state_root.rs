@@ -2,10 +2,8 @@ use common::RootResponse;
 use vertigo::{
     Driver,
     Resource,
-    computed::{
-        Value,
-        Computed,
-    }
+    Value,
+    Computed,
 };
 
 use super::StateNodeDir;

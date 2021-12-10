@@ -2,9 +2,7 @@ use vertigo::VDomElement;
 
 use vertigo::{
     Css,
-    computed::{
-        Computed,
-    }
+    Computed,
 };
 use vertigo::{html, css};
 

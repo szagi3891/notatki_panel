@@ -2,9 +2,7 @@ use std::rc::Rc;
 use vertigo::{
     VDomElement,
     Css,
-    computed::{
-        Computed,
-    }
+    Computed,
 };
 use vertigo::{html, css};
 use super::state::AppIndexState;

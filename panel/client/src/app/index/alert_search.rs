@@ -1,6 +1,6 @@
 use std::{rc::Rc};
 
-use vertigo::{Css, Driver, KeyDownEvent, Resource, VDomElement, computed::{Computed, Value}};
+use vertigo::{Css, Driver, KeyDownEvent, Resource, VDomElement, Computed, Value};
 use vertigo::{css, html};
 use crate::{components::AlertBox, state_data::{DataState}};
 use crate::components::icon;

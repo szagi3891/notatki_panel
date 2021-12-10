@@ -1,5 +1,3 @@
-#![feature(format_args_capture)]
-
 #![allow(clippy::nonstandard_macro_braces)]
 
 use wasm_bindgen::prelude::wasm_bindgen;

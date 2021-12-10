@@ -2,10 +2,8 @@ use std::rc::Rc;
 use common::{HandlerDeleteItemBody};
 use vertigo::{Driver, VDomElement};
 use vertigo::{
-    computed::{
-        Computed,
-        Value
-    },
+    Computed,
+    Value
 };
 use vertigo::{html};
 use crate::app::AppState;
