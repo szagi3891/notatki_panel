@@ -1,6 +1,6 @@
+use vertigo::dev::NodeRefs;
 use vertigo::{
     Css,
-    NodeRefs,
     VDomElement,
     Computed,
 };
