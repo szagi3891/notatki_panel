@@ -45,5 +45,5 @@ run_task = "app-serve"
 
 
 [tasks.app-my-start]
-env = { "GIT_REPO" = "/Users/grzegorzszeliga/Desktop/notatki_main/notatki" }
+env = { "GIT_REPO" = "/Users/grzegorzszeliga/Desktop/notatki_main/notatki_dane" }
 run_task = "app-start"
