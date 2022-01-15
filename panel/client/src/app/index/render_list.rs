@@ -127,8 +127,8 @@ fn dom_apply(node_refs: &NodeRefs) {
             return;
         }
 
-        let wrapper_y2 = wrapper_rect_y + wrapper_rect_height;
-        let active_y2 = active_rect_y + active_rect_height;
+        let wrapper_y2 = wrapper_rect_y + wrapper_rect_height as i32;
+        let active_y2 = active_rect_y + active_rect_height as i32;
 
         if active_y2 > wrapper_y2 {
             let offset = active_y2 - wrapper_y2;

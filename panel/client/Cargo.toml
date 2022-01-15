@@ -11,8 +11,6 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 log = "0.4.14"
-wasm-bindgen = {version = "0.2.73", features = ["nightly"]}
-wasm-bindgen-futures = "0.4.23"
 
 vertigo = { git="https://github.com/vertigo-web/vertigo" }
 vertigo-browserdriver = { git = "https://github.com/vertigo-web/vertigo" }

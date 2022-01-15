@@ -15,13 +15,12 @@ script = "rm -Rf ./build"
 
 [tasks.client-build]
 dependencies = [ "wasm32-target", "client-clean" ]
-install_crate = { crate_name = "wasm-pack", binary = "wasm-pack", test_arg = ["--version"] }
 script = [
-    "wasm-pack build panel/client --no-typescript --target web --out-dir ../../build --out-name app --release",
-    "rm ./build/.gitignore",
-    "rm ./build/package.json",
+    "mkdir -p ./build",
+    "cargo build -p client --release --target wasm32-unknown-unknown",
+    "cp ${CARGO_MAKE_CRATE_TARGET_DIRECTORY}/wasm32-unknown-unknown/release/wasm_run.js ./build/wasm_run.js",
+    "wasm-opt -Os --strip-debug -o ./build/client.wasm ${CARGO_MAKE_CRATE_TARGET_DIRECTORY}/wasm32-unknown-unknown/release/client.wasm",
 ]
-
 
 #example
 #cargo make --env GIT_REPO=/Users/grzegorzszeliga/Desktop/notatki_main/notatki app-serve

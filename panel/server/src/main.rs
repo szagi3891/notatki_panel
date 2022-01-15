@@ -74,18 +74,19 @@ fn response_with_root(result: Result<String, ErrorProcess>) -> (StatusCode, Stri
 
 async fn handler_index() -> Html<&'static str> {
     Html(
-        r##"<!DOCTYPE html>
+        r##"
+            <!DOCTYPE html>
             <html>
                 <head>
                     <meta charset="utf-8"/>
                     <style type="text/css">
-                    * {
-                        box-sizing: border-box;
-                    }
-                </style>
+                        * {
+                            box-sizing: border-box;
+                        }
+                    </style>
                     <script type="module">
-                        import init from "/build/app.js";
-                        init("/build/app_bg.wasm");
+                        import { runModule } from "./build/wasm_run.js";
+                        runModule("./build/client.wasm");
                     </script>
                 </head>
                 <body></body>
