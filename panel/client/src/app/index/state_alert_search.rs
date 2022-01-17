@@ -1,11 +1,11 @@
 use std::{rc::Rc};
 
-use vertigo::{Css, Driver, KeyDownEvent, Resource, VDomElement, Computed, Value};
+use vertigo::{Css, Driver, Resource, VDomElement, Computed, Value};
 use vertigo::{css, html};
 use crate::{components::AlertBox, state_data::{DataState}};
 use crate::components::icon;
 
-use super::alert::AlertState;
+use super::state_alert::StateAlert;
 
 fn css_content() -> Css {
     css!("
@@ -153,14 +153,14 @@ fn new_results(driver: &Driver, data_state: &DataState, phrase: Computed<String>
 }
 
 #[derive(PartialEq)]
-pub struct AlertSearch {
-    alert_state: Rc<AlertState>,
+pub struct StateAlertSearch {
+    alert_state: Rc<StateAlert>,
     pub phrase: Value<String>,
     results: Computed<Vec<ResultItem>>,
 }
 
-impl AlertSearch {
-    pub fn new(alert_state: &Rc<AlertState>) -> Computed<AlertSearch> {
+impl StateAlertSearch {
+    pub fn new(alert_state: &Rc<StateAlert>) -> Computed<StateAlertSearch> {
         let phrase = alert_state.app_state.driver.new_value("".to_string());
 
         let results = new_results(
@@ -169,14 +169,14 @@ impl AlertSearch {
             phrase.to_computed(),
         );
 
-        alert_state.app_state.driver.new_computed_from(AlertSearch {
+        alert_state.app_state.driver.new_computed_from(StateAlertSearch {
             alert_state: alert_state.clone(),
             phrase,
             results,
         })
     }
 
-    fn render_results(state: &Computed<AlertSearch>) -> VDomElement {
+    fn render_results(state: &Computed<StateAlertSearch>) -> VDomElement {
         let alert_search_state = state.get_value();
 
         let results = alert_search_state.results.get_value();
@@ -214,7 +214,7 @@ impl AlertSearch {
         }
     }
 
-    pub fn render(state: &Computed<AlertSearch>) -> VDomElement {
+    pub fn render(state: &Computed<StateAlertSearch>) -> VDomElement {
         let alert_search_state = state.get_value();
         let phrase = alert_search_state.phrase.clone();
         let current_value = phrase.get_value();
@@ -228,20 +228,6 @@ impl AlertSearch {
 
         let alert_state = alert_search_state.alert_state.clone();
 
-        let on_keydown = {
-            let alert_state = alert_state.clone();
-
-            move |event: KeyDownEvent| -> bool {
-                if event.key == "Escape" {
-                    alert_state.search_close();
-                }
-
-                //TODO - dodać wskaźnik i nawigację klawiaturą po elemencie z listy wyników
-
-                false
-            }
-        };
-    
         let on_close = {
             let alert_state = alert_state.clone();
             move || {
@@ -250,7 +236,7 @@ impl AlertSearch {
         };
 
         let content = html! {
-            <div css={css_content()} on_key_down={on_keydown}>
+            <div css={css_content()}>
                 <input autofocus="" value={current_value.as_ref()} on_input={on_input} />
                 <br/>
                 
@@ -261,7 +247,7 @@ impl AlertSearch {
                 <br/>
                 <br/>
 
-                <component {AlertSearch::render_results} data={state.clone()} />
+                <component {StateAlertSearch::render_results} data={state.clone()} />
             </div>
         };
 

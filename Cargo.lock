@@ -891,9 +891,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.74"
+version = "1.0.75"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ee2bb9cd061c5865d345bb02ca49fcef1391741b672b54a0bf7b679badec3142"
+checksum = "c059c05b48c5c0067d4b4b2b4f0732dd65feb52daf7e0ea09cd87e7dadc1af79"
 dependencies = [
  "itoa 1.0.1",
  "ryu",
@@ -1234,7 +1234,7 @@ checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
 [[package]]
 name = "vertigo"
 version = "0.1.0-beta.2"
-source = "git+https://github.com/vertigo-web/vertigo#644003b5cf68a4372154002661c63d3e9fb9134f"
+source = "git+https://github.com/vertigo-web/vertigo#f8c2c9b6f4373df8f184c41d19ecf5f53f379f41"
 dependencies = [
  "log",
  "serde_json",
@@ -1244,7 +1244,7 @@ dependencies = [
 [[package]]
 name = "vertigo-browserdriver"
 version = "0.1.0-beta.2"
-source = "git+https://github.com/vertigo-web/vertigo#644003b5cf68a4372154002661c63d3e9fb9134f"
+source = "git+https://github.com/vertigo-web/vertigo#f8c2c9b6f4373df8f184c41d19ecf5f53f379f41"
 dependencies = [
  "log",
  "vertigo",
@@ -1253,7 +1253,7 @@ dependencies = [
 [[package]]
 name = "vertigo-macro"
 version = "0.1.0-beta.2"
-source = "git+https://github.com/vertigo-web/vertigo#644003b5cf68a4372154002661c63d3e9fb9134f"
+source = "git+https://github.com/vertigo-web/vertigo#f8c2c9b6f4373df8f184c41d19ecf5f53f379f41"
 dependencies = [
  "itertools",
  "pest",

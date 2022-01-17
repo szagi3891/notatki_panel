@@ -10,7 +10,7 @@ use crate::app::AppState;
 use crate::state_data::{CurrentContent, TreeItem};
 use crate::state_data::DataState;
 
-use super::alert::AlertState;
+use super::state_alert::StateAlert;
 
 #[derive(PartialEq, Debug, Clone)]
 pub struct ListItem {
@@ -198,7 +198,7 @@ pub struct AppIndexState {
 
     app_state: Rc<AppState>,
 
-    pub alert: Computed<AlertState>,
+    pub alert: Computed<StateAlert>,
 
     //true - jeśli aktualnie podświetlony element jest mozliwy do usuniecia
     pub avaible_delete_button: Computed<bool>,
@@ -231,7 +231,7 @@ impl AppIndexState {
             &list_current_item,
         );
 
-        let alert = AlertState::new(
+        let alert = StateAlert::new(
             app_state.clone(),
             current_full_path,
             list.clone(),
@@ -384,6 +384,19 @@ impl AppIndexState {
     }
 
     pub fn keydown(&self, code: String) -> bool {
+        let alert_state = self.alert.get_value();
+
+        if alert_state.is_visible() {
+            if code == "Escape" {
+                alert_state.search_close();
+                return true;
+            }
+
+            //TODO - dodać wskaźnik i nawigację klawiaturą po elemencie z listy wyników
+
+            return false;
+        }
+
         if code == "ArrowUp" {
             self.pointer_up();
             return true;

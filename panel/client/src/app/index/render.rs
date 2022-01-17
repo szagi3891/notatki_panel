@@ -12,7 +12,7 @@ use super::render_list::render_list;
 use super::render_header::render_header;
 use super::render_content::render_content;
 use super::render_menu::render_menu;
-use super::alert::render_alert;
+use super::state_alert::render_alert;
 
 fn css_wrapper() -> Css {
     css!("

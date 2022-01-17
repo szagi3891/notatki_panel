@@ -10,7 +10,7 @@ use crate::app::AppState;
 use crate::components::AlertBox;
 
 use super::ListItem;
-use super::alert_search::AlertSearch;
+use super::state_alert_search::StateAlertSearch;
 
 #[derive(PartialEq)]
 pub enum AlertView {
@@ -20,7 +20,7 @@ pub enum AlertView {
 }
 
 #[derive(PartialEq, Clone)]
-pub struct AlertState {
+pub struct StateAlert {
     driver: Driver,
     pub app_state: Rc<AppState>,
     list: Computed<Vec<ListItem>>,
@@ -30,18 +30,18 @@ pub struct AlertState {
     current_full_path: Computed<Vec<String>>,
 }
 
-impl AlertState {
+impl StateAlert {
     pub fn new(
         app_state: Rc<AppState>,
         current_full_path: Computed<Vec<String>>,
         list: Computed<Vec<ListItem>>,
         driver: Driver
-    ) -> Computed<AlertState> {
+    ) -> Computed<StateAlert> {
         let view = app_state.driver.new_value(AlertView::None);
         let progress = app_state.driver.new_value(false);
         let progress_computed = progress.to_computed();
 
-        app_state.driver.new_computed_from(AlertState {
+        app_state.driver.new_computed_from(StateAlert {
             driver,
             app_state: app_state.clone(),
             list,
@@ -50,6 +50,11 @@ impl AlertState {
             view,
             current_full_path,
         })
+    }
+
+    pub fn is_visible(&self) -> bool {
+        let view = self.view.get_value();
+        *view != AlertView::None
     }
 
     fn is_precess(&self) -> bool {
@@ -160,7 +165,7 @@ impl AlertState {
     }
 }
 
-pub fn render_alert(state: &Computed<AlertState>) -> VDomElement {
+pub fn render_alert(state: &Computed<StateAlert>) -> VDomElement {
     let alert_state = state.get_value();
     let alert = alert_state.view.get_value();
 
@@ -195,11 +200,11 @@ pub fn render_alert(state: &Computed<AlertState>) -> VDomElement {
             alert.render()
         },
         AlertView::SearchInPath => {
-            let state = AlertSearch::new(&alert_state);
+            let state = StateAlertSearch::new(&alert_state);
 
             html! {
                 <div>
-                    <component {AlertSearch::render} data={state} />
+                    <component {StateAlertSearch::render} data={state} />
                 </div>
             }
         }
