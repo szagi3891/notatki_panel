@@ -127,14 +127,14 @@ fn new_results(driver: &Driver, data_state: &DataState, phrase: Computed<String>
 
     driver.from(move || {
         let mut result = Vec::<ResultItem>::new();
-        let phrase_value = phrase.get_value();
+        let phrase_value = phrase.get_value().to_lowercase();
 
         if phrase_value.len() < 2 {
             return result;
         }
 
         let test_name = move |name: &String| -> bool {
-            let result = name.contains(phrase_value.as_ref());
+            let result = name.to_lowercase().contains(phrase_value.as_str());
             result
         };
 
