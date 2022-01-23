@@ -1,7 +1,7 @@
 use vertigo::{Css, VDomElement, Computed};
 use vertigo::{css, html};
 
-use super::AppRenameItemState;
+use super::StateAppRenameItem;
 use crate::components::button;
 
 fn css_wrapper() -> Css {
@@ -48,7 +48,7 @@ fn css_textarea() -> Css {
     ")
 }
 
-fn render_input(state: &Computed<AppRenameItemState>) -> VDomElement {
+fn render_input(state: &Computed<StateAppRenameItem>) -> VDomElement {
     let state = state.get_value();
 
     let content = &state.new_name.get_value();
@@ -63,7 +63,7 @@ fn render_input(state: &Computed<AppRenameItemState>) -> VDomElement {
 }
 
 
-fn render_textarea(state: &Computed<AppRenameItemState>) -> VDomElement {
+fn render_textarea(state: &Computed<StateAppRenameItem>) -> VDomElement {
     let state = state.get_value();
 
     let prev_content = state.prev_content.clone();
@@ -83,7 +83,7 @@ fn render_textarea(state: &Computed<AppRenameItemState>) -> VDomElement {
 }
 
 
-pub fn render(state: &Computed<AppRenameItemState>) -> VDomElement {
+pub fn render(state: &Computed<StateAppRenameItem>) -> VDomElement {
 
     let state_value = state.get_value();
 

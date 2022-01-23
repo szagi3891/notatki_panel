@@ -1,7 +1,7 @@
 use vertigo::{Css, VDomElement, Computed};
 use vertigo::{css, html};
 
-use super::{State};
+use super::{StateAppNewDir};
 use crate::components::{button, new_name};
 
 fn css_wrapper() -> Css {
@@ -22,7 +22,7 @@ fn css_header() -> Css {
     ")
 }
 
-pub fn render(state: &Computed<State>) -> VDomElement {
+pub fn render(state: &Computed<StateAppNewDir>) -> VDomElement {
 
     let state_value = state.get_value();
 

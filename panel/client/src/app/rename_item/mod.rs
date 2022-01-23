@@ -7,10 +7,10 @@ use std::rc::Rc;
 use common::{HandlerRenameItemBody};
 use vertigo::{Driver, Computed, Value, VDomElement};
 
-use crate::{app::AppState};
+use crate::{app::StateApp};
 
-#[derive(PartialEq)]
-pub struct AppRenameItemState {
+#[derive(PartialEq, Clone)]
+pub struct StateAppRenameItem {
     driver: Driver,
 
     pub path: Vec<String>,          //edutowany element
@@ -23,21 +23,21 @@ pub struct AppRenameItemState {
 
     pub save_enable: Computed<bool>,
 
-    app_state: Rc<AppState>,
+    app_state: Rc<StateApp>,
 }
 
-impl AppRenameItemState {
+impl StateAppRenameItem {
     pub fn redirect_to_index(&self) {
         self.app_state.redirect_to_index();
     }
 
     pub fn new(
-        app_state: Rc<AppState>,
+        app_state: Rc<StateApp>,
         path: Vec<String>,
         prev_name: String,
         prev_hash: String,
         prev_content: Option<String>,
-    ) -> Computed<AppRenameItemState> {
+    ) -> StateAppRenameItem {
         let new_name = app_state.driver.new_value(prev_name.clone());
 
         let save_enable = {
@@ -61,7 +61,7 @@ impl AppRenameItemState {
 
         let action_save = app_state.driver.new_value(false);
 
-        app_state.driver.new_computed_from(AppRenameItemState {
+        StateAppRenameItem {
             driver: app_state.driver.clone(),
 
             path,
@@ -74,7 +74,7 @@ impl AppRenameItemState {
             action_save,
             save_enable,
             app_state: app_state.clone(),
-        })
+        }
     }
 
     pub fn get_full_path(&self) -> String {
@@ -133,8 +133,9 @@ impl AppRenameItemState {
         });
     }
 
-    pub fn render(state: &Computed<AppRenameItemState>) -> VDomElement {
-        render(&state)
+    pub fn render(self) -> VDomElement {
+        let self_computed = self.driver.clone().new_computed_from(self);
+        render(&self_computed)
     }
 }
 

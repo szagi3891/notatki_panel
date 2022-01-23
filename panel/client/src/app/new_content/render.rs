@@ -1,7 +1,7 @@
 use vertigo::{Css, VDomElement, Computed};
 use vertigo::{css, html};
 
-use super::{State};
+use super::{StateAppNewContent};
 use crate::components::{button, new_name};
 
 fn css_wrapper() -> Css {
@@ -35,7 +35,7 @@ fn css_input_content() -> Css {
     ")
 }
 
-fn render_input_content(state: &Computed<State>) -> VDomElement {
+fn render_input_content(state: &Computed<StateAppNewContent>) -> VDomElement {
     let state = state.get_value();
 
     let content = &state.content.get_value();
@@ -49,7 +49,7 @@ fn render_input_content(state: &Computed<State>) -> VDomElement {
     }
 }
 
-pub fn render(state: &Computed<State>) -> VDomElement {
+pub fn render(state: &Computed<StateAppNewContent>) -> VDomElement {
 
     let state_value = state.get_value();
 

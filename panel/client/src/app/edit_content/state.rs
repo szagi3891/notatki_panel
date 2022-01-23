@@ -3,7 +3,7 @@ use std::rc::Rc;
 use common::{HandlerSaveContentBody};
 use vertigo::{Driver, Computed, Value};
 
-use crate::{app::AppState};
+use crate::{app::StateApp};
 
 #[derive(PartialEq)]
 pub struct State {
@@ -16,7 +16,7 @@ pub struct State {
     pub edit_content: Value<String>,
     pub save_enable: Computed<bool>,
 
-    app_state: Rc<AppState>,
+    app_state: Rc<StateApp>,
 }
 
 impl State {
@@ -25,7 +25,7 @@ impl State {
     }
 
     pub fn new(
-        app_state: Rc<AppState>,
+        app_state: Rc<StateApp>,
         path: Vec<String>,
         hash: String,
         content: String,

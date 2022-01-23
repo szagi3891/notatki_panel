@@ -7,6 +7,6 @@ mod app;
 
 #[no_mangle]
 pub fn start_application() {
-    start_browser_app(app::AppState::new, app::render);
+    start_browser_app(app::StateApp::new, app::render);
 }
 

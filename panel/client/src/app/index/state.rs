@@ -5,7 +5,7 @@ use vertigo::{
     Computed,
     Value
 };
-use crate::app::AppState;
+use crate::app::StateApp;
 use crate::data::{CurrentContent};
 use crate::data::DataState;
 
@@ -108,7 +108,7 @@ pub struct AppIndexState {
     //aktualnie wyliczony wybrany content wskazywany przez current_path
     pub current_content: Computed<CurrentContent>,
 
-    app_state: Rc<AppState>,
+    app_state: Rc<StateApp>,
 
     pub alert: Computed<StateAlert>,
 
@@ -121,7 +121,7 @@ pub struct AppIndexState {
 
 impl AppIndexState {
     pub fn new(
-        app_state: Rc<AppState>,
+        app_state: Rc<StateApp>,
     ) -> (Computed<AppIndexState>, impl Fn(vertigo::KeyDownEvent) -> bool) {
         let driver = &app_state.driver.clone();
         let state_data = app_state.data.clone();

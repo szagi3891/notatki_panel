@@ -7,7 +7,7 @@ use vertigo::{
 use vertigo::{Css, VDomElement};
 use vertigo::{css, html};
 
-use crate::{app::{AppState, index::ListItem}};
+use crate::{app::{StateApp, index::ListItem}};
 
 
 fn is_exist_in_list(name: &String, list: Rc<Vec<ListItem>>) -> bool {
@@ -29,7 +29,7 @@ pub struct NewName {
 
 impl NewName {
     pub fn new(
-        app_state: &Rc<AppState>,
+        app_state: &Rc<StateApp>,
         list: Computed<Vec<ListItem>>,
         action_save: Computed<bool>,
     ) -> Computed<NewName> {

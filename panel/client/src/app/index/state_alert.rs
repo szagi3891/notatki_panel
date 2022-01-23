@@ -6,7 +6,7 @@ use vertigo::{
     Value
 };
 use vertigo::{html};
-use crate::app::AppState;
+use crate::app::StateApp;
 use crate::components::AlertBox;
 
 use super::ListItem;
@@ -22,7 +22,7 @@ pub enum AlertView {
 #[derive(PartialEq, Clone)]
 pub struct StateAlert {
     driver: Driver,
-    pub app_state: Rc<AppState>,
+    pub app_state: Rc<StateApp>,
     list: Computed<Vec<ListItem>>,
     progress: Value<bool>,
     progress_computed: Computed<bool>,
@@ -32,7 +32,7 @@ pub struct StateAlert {
 
 impl StateAlert {
     pub fn new(
-        app_state: Rc<AppState>,
+        app_state: Rc<StateApp>,
         current_full_path: Computed<Vec<String>>,
         list: Computed<Vec<ListItem>>,
         driver: Driver

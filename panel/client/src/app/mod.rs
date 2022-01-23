@@ -42,19 +42,19 @@ enum View {
 }
 
 #[derive(PartialEq, Clone)]
-pub struct AppState {
+pub struct StateApp {
     pub driver: Driver,
     pub data: DataState,
     view: Value<View>,
 }
 
-impl AppState {
-    pub fn new(driver: &Driver) -> Computed<AppState> {
+impl StateApp {
+    pub fn new(driver: &Driver) -> Computed<StateApp> {
         let state_data = DataState::new(driver);
 
         let view = driver.new_value(View::Index);
 
-        driver.new_computed_from(AppState {
+        driver.new_computed_from(StateApp {
             driver: driver.clone(),
             data: state_data.clone(),
             view,
@@ -146,7 +146,7 @@ impl AppState {
     }
 }
 
-pub fn render(state_computed: &Computed<AppState>) -> VDomElement {
+pub fn render(state_computed: &Computed<StateApp>) -> VDomElement {
 
     let app_state = state_computed.get_value();
     let view = app_state.view.get_value();
@@ -178,7 +178,7 @@ pub fn render(state_computed: &Computed<AppState>) -> VDomElement {
             }
         },
         View::NewContent { parent, list } => {
-            let state = new_content::State::new(
+            let state = new_content::StateAppNewContent::new(
                 app_state.clone(),
                 parent.clone(),
                 list.clone(),
@@ -186,12 +186,12 @@ pub fn render(state_computed: &Computed<AppState>) -> VDomElement {
 
             html! {
                 <div id="root">
-                    <component {new_content::render} data={state} />
+                    { state.render() }
                 </div>
             }
         },
         View::RenameItem { base_path, prev_name, prev_hash, prev_content } => {
-            let state = rename_item::AppRenameItemState::new(
+            let state = rename_item::StateAppRenameItem::new(
                 app_state.clone(),
                 base_path.clone(),
                 prev_name.clone(),
@@ -201,16 +201,16 @@ pub fn render(state_computed: &Computed<AppState>) -> VDomElement {
 
             html! {
                 <div id="root">
-                    <component {rename_item::AppRenameItemState::render} data={state} />
+                    {state.render()}
                 </div>
             }
         },
         View::Mkdir { parent, list } => {
-            let state = new_dir::State::new(app_state.clone(), (*parent).to_vec(), list.clone());
+            let state = new_dir::StateAppNewDir::new(app_state.clone(), (*parent).to_vec(), list.clone());
 
             html! {
                 <div id="root">
-                    <component {new_dir::render} data={state} />
+                    { state.render() }
                 </div>
             }
         }
