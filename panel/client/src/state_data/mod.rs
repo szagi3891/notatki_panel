@@ -1,43 +1,12 @@
-mod state_root;
-mod state_node_dir;
-mod state_node_content;
-
+mod git;
 use std::{collections::HashMap, rc::Rc};
 
-use state_node_dir::StateNodeDir;
-use state_node_content::StateNodeContent;
-use state_root::StateRoot;
+use vertigo::{Driver, Resource, Value, Computed};
 
-use vertigo::{Driver, Resource, Value};
+use crate::app::index::ListItem;
+use std::{cmp::Ordering};
 
-pub use state_node_dir::{TreeItem};
-
-
-fn get_item_from_map<'a>(current_wsk: &'a Rc<HashMap<String, TreeItem>>, path_item: &String) -> Resource<&'a TreeItem> {
-    let wsk_child = current_wsk.get(path_item);
-
-    let wsk_child = match wsk_child {
-        Some(wsk_child) => wsk_child,
-        None => {
-            return Resource::Error(format!("missing tree_item {}", path_item));
-        }
-    };
-
-    Resource::Ready(wsk_child)
-}
-
-fn move_pointer(state_data: &DataState, list: Rc<HashMap<String, TreeItem>>, path_item: &String) -> Resource<Rc<HashMap<String, TreeItem>>> {
-
-    let child = get_item_from_map(&list, path_item)?;
-
-    if child.dir {
-        let child_list = state_data.state_node_dir.get_list(&child.id)?;
-
-        return Resource::Ready(child_list);
-    }
-
-    return Resource::Error(format!("dir expected {}", path_item));
-}
+use self::git::{Git, StateNodeDir, StateNodeContent, StateRoot, TreeItem};
 
 
 #[derive(PartialEq, Clone, Debug)]
@@ -82,115 +51,140 @@ impl CurrentContent {
 }
 
 
+
+
+fn create_list_hash_map(driver: &Driver, git: &Git, current_path: &Value<Vec<String>>) -> Computed<Resource<Rc<HashMap<String, TreeItem>>>> {
+    let git = git.clone();
+    let current_path = current_path.to_computed();
+
+    driver.from(move || -> Resource<Rc<HashMap<String, TreeItem>>> {
+        let current_path_rc = current_path.get_value();
+        let current_path = current_path_rc.as_ref();
+
+        git.dir_list(current_path)
+    })
+}
+
+fn get_list_item_prirority(name: &String) -> u8 {
+    if name.get(0..2) == Some("__") {
+        return 0
+    }
+
+    if name.get(0..1) == Some("_") {
+        return 2
+    }
+
+    1
+}
+
+fn create_list(driver: &Driver, list: &Computed<Resource<Rc<HashMap<String, TreeItem>>>>) -> Computed<Vec<ListItem>> {
+    let list = list.clone();
+
+    driver.from(move || -> Vec<ListItem> {
+        let mut list_out: Vec<ListItem> = Vec::new();
+
+        let result = list.get_value();
+
+        match result.as_ref() {
+            Resource::Ready(current_view) => {
+                for (name, item) in current_view.as_ref() {
+                    list_out.push(ListItem {
+                        name: name.clone(),
+                        dir: item.dir,
+                        prirority: get_list_item_prirority(name),
+                    });
+                }
+
+                list_out.sort_by(|a: &ListItem, b: &ListItem| -> Ordering {
+                    let a_prirority = get_list_item_prirority(&a.name);
+                    let b_prirority = get_list_item_prirority(&b.name);
+
+                    if a_prirority == 2 && b_prirority == 2 {
+                        if a.dir && !b.dir {
+                            return Ordering::Less;
+                        }
+
+                        if !a.dir && b.dir {
+                            return Ordering::Greater;
+                        }
+                    }
+
+                    if a_prirority > b_prirority {
+                        return Ordering::Less;
+                    }
+
+                    if a_prirority < b_prirority {
+                        return Ordering::Greater;
+                    }
+
+                    a.name.to_lowercase().cmp(&b.name.to_lowercase())
+                });
+
+                list_out
+            },
+            Resource::Loading => {
+                log::info!("Create list --> Loading");
+                Vec::new()
+            },
+            Resource::Error(err) => {
+                log::error!("Create list --> {:?}", err);
+                Vec::new()
+            }
+        }
+    })
+}
+
+
+
 #[derive(Clone, PartialEq)]
 pub struct DataState {
     pub driver: Driver,
-    pub state_node_dir: StateNodeDir,
-    pub state_node_content: StateNodeContent,
-    pub state_root: StateRoot,
-    pub current_path_dir: Value<Vec<String>>,
+    pub git: Git,
+
+    #[deprecated(note="please use `git.dir` instead")]
+    pub dir: StateNodeDir,
+    #[deprecated(note="please use `git.content` instead")]
+    pub content: StateNodeContent,
+    #[deprecated(note="please use `git.root` instead")]
+    pub root: StateRoot,
+
+
+    #[deprecated(note="Zrobić prywatne")]
+    pub current_path_dir: Value<Vec<String>>,               //TODO - zrobić mozliwość 
+    #[deprecated(note="Zrobić prywatne")]
     pub current_path_item: Value<Option<String>>,
+
+
+    //Te dwie zmienne poniej trafią do stanu który będzie reprezentował taby ...
+
+    pub list_hash_map: Computed<Resource<Rc<HashMap<String, TreeItem>>>>,
+    //aktualnie wyliczona lista
+    pub list: Computed<Vec<ListItem>>,
 }
 
 impl DataState {
     pub fn new(driver: &Driver) -> DataState {
 
-        let state_node_dir = StateNodeDir::new(driver);
-        let state_node_content = StateNodeContent::new(driver);
-        let state_root = StateRoot::new(driver, state_node_dir.clone());
+        let git = Git::new(driver);
+
 
         let current_path_dir: Value<Vec<String>> = driver.new_value(Vec::new());
         let current_path_item: Value<Option<String>> = driver.new_value(None);
 
+        let list_hash_map = create_list_hash_map(driver, &git, &current_path_dir);
+        let list = create_list(driver, &list_hash_map);
+
+
         DataState {
             driver: driver.clone(),
-            state_node_dir,
-            state_node_content,
-            state_root,
+            dir: git.dir.clone(),
+            content: git.content.clone(),
+            root: git.root.clone(),
+            git,
             current_path_dir,
             current_path_item,
-        }
-    }
-
-    pub fn get_dir_content(&self, path: &[String]) -> Resource<Rc<HashMap<String, TreeItem>>> {
-        let root_wsk = self.state_root.get_current_root()?;
-
-        let mut result = self.state_node_dir.get_list(&root_wsk)?;
-
-        for path_item in path {
-            result = move_pointer(self, result, &path_item)?;
-        }
-
-        Resource::Ready(result)
-    }
-
-    fn get_content_inner(&self, base_dir: &[String], current_item: &Option<String>) -> Resource<CurrentContent> {
-        let list = self.get_dir_content(base_dir)?;
-
-        let current_item = match current_item {
-            Some(current_item) => current_item,
-            None => {
-                return Resource::Ready(CurrentContent::None);
-            }
-        };
-
-        let current_value = list.get(current_item);
-
-        if let Some(current_value) = current_value {
-            if current_value.dir {
-                let list = self.state_node_dir.get_list(&current_value.id)?;
-                return Resource::Ready(CurrentContent::dir(current_item.clone(), current_value.id.clone(), list));
-            } else {
-                let content = self.state_node_content.get(&current_value.id)?;
-                return Resource::Ready(CurrentContent::file(current_item.clone(), current_value.id.clone(), content.clone()));
-            }
-        }
-
-        Resource::Ready(CurrentContent::None)
-    }
-
-    pub fn get_content(&self, base_dir: &[String], item: &Option<String>) -> CurrentContent {
-
-        let result = self.get_content_inner(base_dir, item);
-
-        if let Resource::Ready(result) = result {
-            return result;
-        }
-
-        CurrentContent::None
-    }
-
-    pub fn get_content_from_path(&self, path: &[String]) -> CurrentContent {
-        let mut path: Vec<String> = Vec::from(path);
-
-        let last = path.pop();
-
-        self.get_content(path.as_slice(), &last)
-    }
-
-    pub fn get_content_hash(&self, path: &[String]) -> Option<String> {
-        let result = self.get_content_from_path(path);
-
-        match result {
-            CurrentContent::File { file_hash, .. } => {
-                Some(file_hash)
-            },
-            CurrentContent::Dir { dir_hash, .. } => {
-                Some(dir_hash)
-            },
-            CurrentContent::None => None,
-        }
-    }
-
-    pub fn get_content_string(&self, path: &[String]) -> Option<String> {
-        let result = self.get_content_from_path(path);
-
-        match result {
-            CurrentContent::File { content, .. } => {
-                Some(content.as_ref().clone())
-            },
-            CurrentContent::Dir { .. } => None,
-            CurrentContent::None => None,
+            list_hash_map,
+            list
         }
     }
 
@@ -200,5 +194,39 @@ impl DataState {
 
         self.current_path_dir.set_value(path);
         self.current_path_item.set_value(last);
+    }
+
+    pub fn current_path_dir(&self) -> Rc<Vec<String>> {
+        self.current_path_dir.get_value()
+    }
+
+    pub fn redirect_after_delete(&self) {
+        let current_path_item = self.current_path_item.get_value();
+        let list = self.list.get_value();
+
+        fn find_index(list: &Vec<ListItem>, value: &Option<String>) -> Option<usize> {
+            if let Some(value) = value {
+                for (index, item) in list.iter().enumerate() {
+                    if item.name == *value {
+                        return Some(index);
+                    }
+                }
+            }
+            None
+        }
+
+        if let Some(current_index) = find_index(list.as_ref(), current_path_item.as_ref()) {
+            if current_index > 0 {
+                if let Some(prev) = list.get(current_index - 1) {
+                    self.current_path_item.set_value(Some(prev.name.clone()));
+                    return;
+                }
+            }
+
+            if let Some(prev) = list.get(current_index + 1) {
+                self.current_path_item.set_value(Some(prev.name.clone()));
+                return;
+            }
+        };
     }
 }

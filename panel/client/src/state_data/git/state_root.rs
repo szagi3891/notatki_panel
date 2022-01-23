@@ -6,7 +6,7 @@ use vertigo::{
     Computed,
 };
 
-use super::StateNodeDir;
+use super::state_node_dir::StateNodeDir;
 
 #[derive(PartialEq)]
 pub struct RootNode {

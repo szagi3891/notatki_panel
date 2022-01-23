@@ -71,7 +71,7 @@ impl StateAlert {
     }
 
     fn redirect_after_delete(&self) {
-        let current_path_item = self.app_state.data_state.current_path_item.get_value();
+        let current_path_item = self.app_state.data.current_path_item.get_value();
         let list = self.list.get_value();
 
         fn find_index(list: &Vec<ListItem>, value: &Option<String>) -> Option<usize> {
@@ -88,13 +88,13 @@ impl StateAlert {
         if let Some(current_index) = find_index(list.as_ref(), current_path_item.as_ref()) {
             if current_index > 0 {
                 if let Some(prev) = list.get(current_index - 1) {
-                    self.app_state.data_state.current_path_item.set_value(Some(prev.name.clone()));
+                    self.app_state.data.current_path_item.set_value(Some(prev.name.clone()));
                     return;
                 }
             }
 
             if let Some(prev) = list.get(current_index + 1) {
-                self.app_state.data_state.current_path_item.set_value(Some(prev.name.clone()));
+                self.app_state.data.current_path_item.set_value(Some(prev.name.clone()));
                 return;
             }
         };
@@ -106,7 +106,7 @@ impl StateAlert {
         }
 
         let current_path = self.current_full_path.get_value().as_ref().clone();
-        let current_hash = self.app_state.data_state.get_content_hash(&current_path);
+        let current_hash = self.app_state.data.git.content_hash(&current_path);
     
         let current_hash = match current_hash {
             Some(current_hash) => current_hash,
@@ -135,7 +135,7 @@ impl StateAlert {
             let _ = response.await;
             progress.set_value(false);
             self_copy.redirect_after_delete();
-            self_copy.app_state.data_state.state_root.refresh();
+            self_copy.app_state.data.root.refresh();
             self_copy.view.set_value(AlertView::None);
         });
     }

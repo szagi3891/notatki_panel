@@ -71,7 +71,7 @@ fn push_list<F: Fn(&String) -> bool>(
     base: &Vec<String>,
     test_name: &F
 ) -> Resource<()> {
-    let list = data_state.get_dir_content(base.as_slice())?;
+    let list = data_state.git.dir_list(base.as_slice())?;
 
     if let Some(last) = base.last() {
         if test_name(last) {
@@ -165,7 +165,7 @@ impl StateAlertSearch {
 
         let results = new_results(
             &alert_state.app_state.driver,
-            &alert_state.app_state.data_state,
+            &alert_state.app_state.data,
             phrase.to_computed(),
         );
 
@@ -193,7 +193,7 @@ impl StateAlertSearch {
 
                 move || {
                     alert_search_state.alert_state.search_close();
-                    alert_search_state.alert_state.app_state.data_state.redirect_to(&path)
+                    alert_search_state.alert_state.app_state.data.redirect_to(&path)
                 }
             };
 

@@ -44,7 +44,7 @@ enum View {
 #[derive(PartialEq, Clone)]
 pub struct AppState {
     pub driver: Driver,
-    pub data_state: DataState,
+    pub data: DataState,
     view: Value<View>,
 }
 
@@ -56,7 +56,7 @@ impl AppState {
 
         driver.new_computed_from(AppState {
             driver: driver.clone(),
-            data_state: state_data.clone(),
+            data: state_data.clone(),
             view,
         })
     }
@@ -73,7 +73,7 @@ impl AppState {
     
     pub fn redirect_to_content(&self, base_path: &Vec<String>, select_item: &Option<String>) {
         let full_path = self.create_full_path(base_path, select_item);
-        let content = self.data_state.get_content_from_path(&full_path);
+        let content = self.data.git.content_from_path(&full_path);
 
         match content {
             CurrentContent::File { file_hash, content, ..} => {
@@ -96,8 +96,8 @@ impl AppState {
     pub fn redirect_to_rename_item(&self, base_path: &Vec<String>, select_item: &String) {
         let select_item = select_item.clone();
         let full_path = self.create_full_path(base_path, &Some(select_item.clone()));
-        let content_hash = self.data_state.get_content_hash(&full_path);
-        let get_content_string = self.data_state.get_content_string(&full_path);
+        let content_hash = self.data.git.content_hash(&full_path);
+        let get_content_string = self.data.git.get_content_string(&full_path);
 
         match content_hash {
             Some(content_hash) => {
@@ -122,18 +122,18 @@ impl AppState {
 
     pub fn redirect_to_index_with_path(&self, new_path: Vec<String>, new_item: Option<String>) {
         self.redirect_to_index();
-        self.data_state.current_path_dir.set_value(new_path);
-        self.data_state.current_path_item.set_value(new_item);
-        self.data_state.state_root.refresh();
+        self.data.current_path_dir.set_value(new_path);
+        self.data.current_path_item.set_value(new_item);
+        self.data.root.refresh();
     }
 
     pub fn redirect_to_mkdir(&self, list: Computed<Vec<ListItem>>) {
-        let parent = self.data_state.current_path_dir.clone().get_value();
+        let parent = self.data.current_path_dir.clone().get_value();
         self.view.set_value(View::Mkdir { parent, list });
     }
 
     pub fn redirect_to_index_with_root_refresh(&self) {
-        self.data_state.state_root.refresh();
+        self.data.root.refresh();
         self.redirect_to_index();
     }
 

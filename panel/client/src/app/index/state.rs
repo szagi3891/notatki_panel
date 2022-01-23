@@ -1,4 +1,3 @@
-use std::{cmp::Ordering, collections::HashMap};
 use std::rc::Rc;
 use vertigo::Driver;
 use vertigo::{
@@ -7,7 +6,7 @@ use vertigo::{
     Value
 };
 use crate::app::AppState;
-use crate::state_data::{CurrentContent, TreeItem};
+use crate::state_data::{CurrentContent};
 use crate::state_data::DataState;
 
 use super::state_alert::StateAlert;
@@ -17,88 +16,6 @@ pub struct ListItem {
     pub name: String,
     pub dir: bool,
     pub prirority: u8,
-}
-
-
-fn create_list_hash_map(driver: &Driver, state_data: &DataState, current_path: &Value<Vec<String>>) -> Computed<Resource<Rc<HashMap<String, TreeItem>>>> {
-    let state_data = state_data.clone();
-    let current_path = current_path.to_computed();
-
-    driver.from(move || -> Resource<Rc<HashMap<String, TreeItem>>> {
-        let current_path_rc = current_path.get_value();
-        let current_path = current_path_rc.as_ref();
-
-        state_data.get_dir_content(current_path)
-    })
-}
-
-fn get_list_item_prirority(name: &String) -> u8 {
-    if name.get(0..2) == Some("__") {
-        return 0
-    }
-
-    if name.get(0..1) == Some("_") {
-        return 2
-    }
-
-    1
-}
-
-fn create_list(driver: &Driver, list: &Computed<Resource<Rc<HashMap<String, TreeItem>>>>) -> Computed<Vec<ListItem>> {
-    let list = list.clone();
-
-    driver.from(move || -> Vec<ListItem> {
-        let mut list_out: Vec<ListItem> = Vec::new();
-
-        let result = list.get_value();
-
-        match result.as_ref() {
-            Resource::Ready(current_view) => {
-                for (name, item) in current_view.as_ref() {
-                    list_out.push(ListItem {
-                        name: name.clone(),
-                        dir: item.dir,
-                        prirority: get_list_item_prirority(name),
-                    });
-                }
-
-                list_out.sort_by(|a: &ListItem, b: &ListItem| -> Ordering {
-                    let a_prirority = get_list_item_prirority(&a.name);
-                    let b_prirority = get_list_item_prirority(&b.name);
-
-                    if a_prirority == 2 && b_prirority == 2 {
-                        if a.dir && !b.dir {
-                            return Ordering::Less;
-                        }
-
-                        if !a.dir && b.dir {
-                            return Ordering::Greater;
-                        }
-                    }
-
-                    if a_prirority > b_prirority {
-                        return Ordering::Less;
-                    }
-
-                    if a_prirority < b_prirority {
-                        return Ordering::Greater;
-                    }
-
-                    a.name.to_lowercase().cmp(&b.name.to_lowercase())
-                });
-
-                list_out
-            },
-            Resource::Loading => {
-                log::info!("Create list --> Loading");
-                Vec::new()
-            },
-            Resource::Error(err) => {
-                log::error!("Create list --> {:?}", err);
-                Vec::new()
-            }
-        }
-    })
 }
 
 fn create_current_item_view(
@@ -159,7 +76,7 @@ fn create_current_content(
         let current_path_dir = current_path_dir.get_value();
         let list_current_item = list_current_item.get_value();
 
-        state_data.get_content(current_path_dir.as_ref(), list_current_item.as_ref())
+        state_data.git.get_content(current_path_dir.as_ref(), list_current_item.as_ref())
     })
 }
 
@@ -181,12 +98,7 @@ fn create_avaible_delete_current(
 
 #[derive(PartialEq)]
 pub struct AppIndexState {
-    data_state: DataState,
-
-    list_hash_map: Computed<Resource<Rc<HashMap<String, TreeItem>>>>,
-
-    //aktualnie wyliczona lista
-    pub list: Computed<Vec<ListItem>>,
+    pub data_state: DataState,
 
     //wybrany element z listy, dla widoku
     pub list_current_item: Computed<Option<String>>,
@@ -212,12 +124,9 @@ impl AppIndexState {
         app_state: Rc<AppState>,
     ) -> (Computed<AppIndexState>, impl Fn(vertigo::KeyDownEvent) -> bool) {
         let driver = &app_state.driver.clone();
-        let state_data = app_state.data_state.clone();
+        let state_data = app_state.data.clone();
 
-        let list_hash_map = create_list_hash_map(driver, &state_data, &state_data.current_path_dir);
-        let list = create_list(driver, &list_hash_map);
-
-        let list_current_item = create_current_item_view(&driver, &state_data.current_path_item, &list);
+        let list_current_item = create_current_item_view(&driver, &state_data.current_path_item, &state_data.list);
         let current_content = create_current_content(
             driver,
             &state_data,
@@ -234,7 +143,7 @@ impl AppIndexState {
         let alert = StateAlert::new(
             app_state.clone(),
             current_full_path,
-            list.clone(),
+            state_data.list.clone(),
             state_data.driver.clone()
         );
 
@@ -245,8 +154,6 @@ impl AppIndexState {
 
         let state = Rc::new(AppIndexState {
             data_state: state_data,
-            list_hash_map,
-            list,
             list_current_item,
             current_content,
             app_state,
@@ -284,7 +191,7 @@ impl AppIndexState {
     }
 
     pub fn click_list_item(&self, node: String) {
-        let list_hash_map_rc = self.list_hash_map.get_value();
+        let list_hash_map_rc = self.data_state.list_hash_map.get_value();
 
         if let Resource::Ready(list) = list_hash_map_rc.as_ref() {
             if let Some(node_details) = list.get(&node) {
@@ -303,7 +210,7 @@ impl AppIndexState {
     }
 
     fn find(&self, item_finding: &String) -> Option<isize> {
-        let list = self.list.get_value();
+        let list = self.data_state.list.get_value();
 
         for (index, item) in list.as_ref().iter().enumerate() {
             if item.name == *item_finding {
@@ -321,7 +228,7 @@ impl AppIndexState {
 
         let index = index as usize;
 
-        let list = self.list.get_value();
+        let list = self.data_state.list.get_value();
 
         if let Some(first) = list.get(index) {
             self.data_state.current_path_item.set_value(Some(first.name.clone()));
@@ -332,7 +239,7 @@ impl AppIndexState {
     }
 
     fn try_set_pointer_to_end(&self) {
-        let len = self.list.get_value().len() as isize;
+        let len = self.data_state.list.get_value().len() as isize;
         self.try_set_pointer_to(len - 1);
     }
 
@@ -426,13 +333,13 @@ impl AppIndexState {
 
     pub fn create_file(&self) {
         let path = self.data_state.current_path_dir.get_value();
-        let list = self.list.clone();
+        let list = self.data_state.list.clone();
 
         self.app_state.redirect_to_new_content(path.as_ref(), list);
     }
 
     pub fn redirect_to_mkdir(&self) {
-        self.app_state.redirect_to_mkdir(self.list.clone());
+        self.app_state.redirect_to_mkdir(self.data_state.list.clone());
     }
 
     pub fn current_rename(&self) {
