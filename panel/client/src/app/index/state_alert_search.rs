@@ -2,7 +2,7 @@ use std::{rc::Rc};
 
 use vertigo::{Css, Driver, Resource, VDomElement, Computed, Value};
 use vertigo::{css, html};
-use crate::{components::AlertBox, data::{DataState}};
+use crate::{components::AlertBox, data::{StateData}};
 use crate::components::icon;
 
 use super::state_alert::StateAlert;
@@ -66,7 +66,7 @@ impl ResultItem {
 }
 
 fn push_list<F: Fn(&String) -> bool>(
-    data_state: &DataState,
+    data_state: &StateData,
     result: &mut Vec<ResultItem>,
     base: &Vec<String>,
     test_name: &F
@@ -122,7 +122,7 @@ fn push_list<F: Fn(&String) -> bool>(
     Resource::Ready(())
 }
 
-fn new_results(driver: &Driver, data_state: &DataState, phrase: Computed<String>) -> Computed<Vec<ResultItem>> {
+fn new_results(driver: &Driver, data_state: &StateData, phrase: Computed<String>) -> Computed<Vec<ResultItem>> {
     let data_state = data_state.clone();
 
     driver.from(move || {

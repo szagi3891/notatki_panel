@@ -7,7 +7,7 @@ use vertigo::{
 use vertigo::{css, html};
 use crate::components::icon;
 
-use super::state::AppIndexState;
+use super::AppIndexState;
 
 fn css_wrapper() -> Css {
     css!("

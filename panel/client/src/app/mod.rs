@@ -7,7 +7,7 @@ use vertigo::{
 use vertigo::html;
 use std::rc::Rc;
 use crate::data::CurrentContent;
-use crate::data::DataState;
+use crate::data::StateData;
 
 use self::index::ListItem;
 
@@ -44,13 +44,13 @@ enum View {
 #[derive(PartialEq, Clone)]
 pub struct StateApp {
     pub driver: Driver,
-    pub data: DataState,
+    pub data: StateData,
     view: Value<View>,
 }
 
 impl StateApp {
     pub fn new(driver: &Driver) -> Computed<StateApp> {
-        let state_data = DataState::new(driver);
+        let state_data = StateData::new(driver);
 
         let view = driver.new_value(View::Index);
 
@@ -164,7 +164,7 @@ pub fn render(state_computed: &Computed<StateApp>) -> VDomElement {
             }
         },
         View::EditContent { full_path, file_hash, content } => {
-            let state = edit_content::State::new(
+            let state = edit_content::StateAppEditContent::new(
                 app_state.clone(),
                 full_path.clone(),
                 file_hash.clone(),
@@ -173,7 +173,7 @@ pub fn render(state_computed: &Computed<StateApp>) -> VDomElement {
 
             html! {
                 <div id="root">
-                    <component {edit_content::render} data={state} />
+                    { state.render() }
                 </div>
             }
         },

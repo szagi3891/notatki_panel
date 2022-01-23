@@ -6,7 +6,7 @@ use vertigo::{
 
 use vertigo::{html, css};
 
-use super::state::AppIndexState;
+use super::AppIndexState;
 
 use super::render_list::render_list;
 use super::render_header::render_header;

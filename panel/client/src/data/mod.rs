@@ -6,7 +6,7 @@ use vertigo::{Driver, Resource, Value, Computed};
 use crate::app::index::ListItem;
 use std::{cmp::Ordering};
 
-use self::git::{Git, StateNodeDir, StateNodeContent, StateRoot, TreeItem};
+use self::git::{StateDataGit, StateDataGitNodeDir, StateDataGitNodeContent, StateDataGitRoot, TreeItem};
 
 
 #[derive(PartialEq, Clone, Debug)]
@@ -53,7 +53,7 @@ impl CurrentContent {
 
 
 
-fn create_list_hash_map(driver: &Driver, git: &Git, current_path: &Value<Vec<String>>) -> Computed<Resource<Rc<HashMap<String, TreeItem>>>> {
+fn create_list_hash_map(driver: &Driver, git: &StateDataGit, current_path: &Value<Vec<String>>) -> Computed<Resource<Rc<HashMap<String, TreeItem>>>> {
     let git = git.clone();
     let current_path = current_path.to_computed();
 
@@ -137,16 +137,16 @@ fn create_list(driver: &Driver, list: &Computed<Resource<Rc<HashMap<String, Tree
 
 
 #[derive(Clone, PartialEq)]
-pub struct DataState {
+pub struct StateData {
     pub driver: Driver,
-    pub git: Git,
+    pub git: StateDataGit,
 
     #[deprecated(note="please use `git.dir` instead")]
-    pub dir: StateNodeDir,
+    pub dir: StateDataGitNodeDir,
     #[deprecated(note="please use `git.content` instead")]
-    pub content: StateNodeContent,
+    pub content: StateDataGitNodeContent,
     #[deprecated(note="please use `git.root` instead")]
-    pub root: StateRoot,
+    pub root: StateDataGitRoot,
 
 
     #[deprecated(note="Zrobić prywatne")]
@@ -162,10 +162,10 @@ pub struct DataState {
     pub list: Computed<Vec<ListItem>>,
 }
 
-impl DataState {
-    pub fn new(driver: &Driver) -> DataState {
+impl StateData {
+    pub fn new(driver: &Driver) -> StateData {
 
-        let git = Git::new(driver);
+        let git = StateDataGit::new(driver);
 
 
         let current_path_dir: Value<Vec<String>> = driver.new_value(Vec::new());
@@ -175,7 +175,7 @@ impl DataState {
         let list = create_list(driver, &list_hash_map);
 
 
-        DataState {
+        StateData {
             driver: driver.clone(),
             dir: git.dir.clone(),
             content: git.content.clone(),

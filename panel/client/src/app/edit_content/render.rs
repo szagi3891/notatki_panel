@@ -1,7 +1,7 @@
 use vertigo::{Css, VDomElement, Computed};
 use vertigo::{css, html};
 
-use super::State;
+use super::StateAppEditContent;
 use crate::components::button;
 
 fn css_wrapper() -> Css {
@@ -35,7 +35,7 @@ fn css_body() -> Css {
     ")
 }
 
-fn render_textarea(state: &Computed<State>) -> VDomElement {
+fn render_textarea(state: &Computed<StateAppEditContent>) -> VDomElement {
     let state = state.get_value();
 
     let content = &state.edit_content.get_value();
@@ -49,7 +49,7 @@ fn render_textarea(state: &Computed<State>) -> VDomElement {
     }
 }
 
-pub fn render(state: &Computed<State>) -> VDomElement {
+pub fn render(state: &Computed<StateAppEditContent>) -> VDomElement {
 
     let state_value = state.get_value();
 

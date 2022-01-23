@@ -6,16 +6,16 @@ use vertigo::{
     Computed,
 };
 
-use super::state_node_dir::StateNodeDir;
+use super::node_dir::StateDataGitNodeDir;
 
 #[derive(PartialEq)]
 pub struct RootNode {
-    state_node_dir: StateNodeDir,
+    state_node_dir: StateDataGitNodeDir,
     pub value: Computed<Resource<RootResponse>>,
 }
 
 impl RootNode {
-    fn new(request: &Driver, state_node_dir: StateNodeDir) -> RootNode {
+    fn new(request: &Driver, state_node_dir: StateDataGitNodeDir) -> RootNode {
         let value = request.new_value(Resource::Loading);
         let value_read = value.to_computed();
         let response = request.request("/fetch_root").get();
@@ -44,19 +44,19 @@ impl RootNode {
 }
 
 #[derive(PartialEq, Clone)]
-pub struct StateRoot {
+pub struct StateDataGitRoot {
     driver: Driver,
-    state_node_dir: StateNodeDir,
+    state_node_dir: StateDataGitNodeDir,
     pub current: Value<RootNode>,
     //list: Value<VecDeque<RootNode>>,      //todo zaimplementowach historie, zeby zniwelowac ilosc migań
 }
 
-impl StateRoot {
-    pub fn new(driver: &Driver, state_node_dir: StateNodeDir) -> StateRoot {
+impl StateDataGitRoot {
+    pub fn new(driver: &Driver, state_node_dir: StateDataGitNodeDir) -> StateDataGitRoot {
         let current = RootNode::new(driver, state_node_dir.clone());
         let current = driver.new_value(current);
        
-        StateRoot {
+        StateDataGitRoot {
             driver: driver.clone(),
             state_node_dir,
             current,

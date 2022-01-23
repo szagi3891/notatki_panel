@@ -5,7 +5,7 @@ use vertigo::{
 };
 
 use vertigo::{html, css};
-use super::state::{AppIndexState};
+use super::AppIndexState;
 use crate::components::button;
 
 fn css_footer() -> Css {

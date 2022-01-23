@@ -1,7 +1,7 @@
 use vertigo::{Css, VDomElement, Computed};
 use vertigo::{css, html};
 
-use super::state::AppIndexState;
+use super::AppIndexState;
 use crate::{
     content::{
         parse_text,

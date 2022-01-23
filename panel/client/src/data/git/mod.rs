@@ -2,13 +2,13 @@ use std::{collections::HashMap, rc::Rc};
 
 use vertigo::{Driver, Resource};
 
-mod state_node_dir;
-mod state_node_content;
-mod state_root;
+mod node_dir;
+mod node_content;
+mod root;
 
-pub use state_node_dir::{StateNodeDir, TreeItem};
-pub use state_node_content::StateNodeContent;
-pub use state_root::StateRoot;
+pub use node_dir::{StateDataGitNodeDir, TreeItem};
+pub use node_content::StateDataGitNodeContent;
+pub use root::StateDataGitRoot;
 
 use super::CurrentContent;
 
@@ -26,7 +26,7 @@ fn get_item_from_map<'a>(current_wsk: &'a Rc<HashMap<String, TreeItem>>, path_it
     Resource::Ready(wsk_child)
 }
 
-fn move_pointer(state_data: &Git, list: Rc<HashMap<String, TreeItem>>, path_item: &String) -> Resource<Rc<HashMap<String, TreeItem>>> {
+fn move_pointer(state_data: &StateDataGit, list: Rc<HashMap<String, TreeItem>>, path_item: &String) -> Resource<Rc<HashMap<String, TreeItem>>> {
 
     let child = get_item_from_map(&list, path_item)?;
 
@@ -41,20 +41,20 @@ fn move_pointer(state_data: &Git, list: Rc<HashMap<String, TreeItem>>, path_item
 
 
 #[derive(Clone, PartialEq)]
-pub struct Git {
+pub struct StateDataGit {
     pub driver: Driver,
-    pub dir: StateNodeDir,
-    pub content: StateNodeContent,
-    pub root: StateRoot
+    pub dir: StateDataGitNodeDir,
+    pub content: StateDataGitNodeContent,
+    pub root: StateDataGitRoot
 }
 
-impl Git {
-    pub fn new(driver: &Driver) -> Git {
-        let dir = StateNodeDir::new(driver);
-        let content = StateNodeContent::new(driver);
-        let root = StateRoot::new(driver, dir.clone());
+impl StateDataGit {
+    pub fn new(driver: &Driver) -> StateDataGit {
+        let dir = StateDataGitNodeDir::new(driver);
+        let content = StateDataGitNodeContent::new(driver);
+        let root = StateDataGitRoot::new(driver, dir.clone());
 
-        Git {
+        StateDataGit {
             driver: driver.clone(),
             dir,
             content,
