@@ -9,4 +9,3 @@ mod state_alert;
 mod state_alert_search;
 
 pub use state::{AppIndexState, ListItem};
-pub use render::render;

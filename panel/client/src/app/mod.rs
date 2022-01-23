@@ -159,7 +159,7 @@ pub fn render(state_computed: &Computed<StateApp>) -> VDomElement {
 
             html! {
                 <div id="root" on_key_down={on_keydown}>
-                    <component {index::render} data={state} />
+                    { state.render() }
                 </div>
             }
         },

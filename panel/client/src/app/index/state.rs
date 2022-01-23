@@ -1,5 +1,5 @@
 use std::rc::Rc;
-use vertigo::Driver;
+use vertigo::{Driver, VDomElement};
 use vertigo::{
     Resource,
     Computed,
@@ -9,6 +9,7 @@ use crate::app::StateApp;
 use crate::data::{CurrentContent};
 use crate::data::DataState;
 
+use super::render;
 use super::state_alert::StateAlert;
 
 #[derive(PartialEq, Debug, Clone)]
@@ -96,8 +97,9 @@ fn create_avaible_delete_current(
     })
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 pub struct AppIndexState {
+    driver: Driver,
     pub data_state: DataState,
 
     //wybrany element z listy, dla widoku
@@ -120,9 +122,7 @@ pub struct AppIndexState {
 }
 
 impl AppIndexState {
-    pub fn new(
-        app_state: Rc<StateApp>,
-    ) -> (Computed<AppIndexState>, impl Fn(vertigo::KeyDownEvent) -> bool) {
+    pub fn new(app_state: Rc<StateApp>) -> (Rc<AppIndexState>, impl Fn(vertigo::KeyDownEvent) -> bool) {
         let driver = &app_state.driver.clone();
         let state_data = app_state.data.clone();
 
@@ -153,6 +153,7 @@ impl AppIndexState {
         let tabs_active = driver.new_value(None);
 
         let state = Rc::new(AppIndexState {
+            driver: driver.clone(),
             data_state: state_data,
             list_current_item,
             current_content,
@@ -170,7 +171,7 @@ impl AppIndexState {
             }
         };
 
-        (driver.new_computed_from(state), keydown)
+        (state, keydown)
     }
 
 
@@ -414,6 +415,11 @@ impl AppIndexState {
 
     pub fn tabs_default(&self) {
         self.tabs_active.set_value(None);
+    }
+
+    pub fn render(&self) -> VDomElement {
+        let self_computed = self.driver.clone().new_computed_from(self.clone());
+        render::render(&self_computed)
     }
 }
 
