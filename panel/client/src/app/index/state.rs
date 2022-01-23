@@ -6,8 +6,8 @@ use vertigo::{
     Value
 };
 use crate::app::AppState;
-use crate::state_data::{CurrentContent};
-use crate::state_data::DataState;
+use crate::data::{CurrentContent};
+use crate::data::DataState;
 
 use super::state_alert::StateAlert;
 

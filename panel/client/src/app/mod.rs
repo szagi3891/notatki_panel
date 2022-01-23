@@ -6,8 +6,8 @@ use vertigo::{
 };
 use vertigo::html;
 use std::rc::Rc;
-use crate::state_data::CurrentContent;
-use crate::state_data::DataState;
+use crate::data::CurrentContent;
+use crate::data::DataState;
 
 use self::index::ListItem;
 
@@ -191,7 +191,7 @@ pub fn render(state_computed: &Computed<AppState>) -> VDomElement {
             }
         },
         View::RenameItem { base_path, prev_name, prev_hash, prev_content } => {
-            let state = rename_item::State::new(
+            let state = rename_item::AppRenameItemState::new(
                 app_state.clone(),
                 base_path.clone(),
                 prev_name.clone(),
@@ -201,7 +201,7 @@ pub fn render(state_computed: &Computed<AppState>) -> VDomElement {
 
             html! {
                 <div id="root">
-                    <component {rename_item::render} data={state} />
+                    <component {rename_item::AppRenameItemState::render} data={state} />
                 </div>
             }
         },

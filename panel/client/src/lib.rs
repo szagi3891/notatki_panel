@@ -1,7 +1,7 @@
 use vertigo_browserdriver::{start_browser_app};
 
 mod content;
-mod state_data;
+mod data;
 mod components;
 mod app;
 

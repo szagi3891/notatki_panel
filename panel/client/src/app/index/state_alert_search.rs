@@ -2,7 +2,7 @@ use std::{rc::Rc};
 
 use vertigo::{Css, Driver, Resource, VDomElement, Computed, Value};
 use vertigo::{css, html};
-use crate::{components::AlertBox, state_data::{DataState}};
+use crate::{components::AlertBox, data::{DataState}};
 use crate::components::icon;
 
 use super::state_alert::StateAlert;
