@@ -41,24 +41,48 @@ enum View {
     }
 }
 
+
+pub struct ViewState {
+    view: Computed<VDomElement>,
+}
+
+impl ViewState {
+    pub fn new<T: PartialEq + 'static>(driver: &Driver, state: T, render: fn (&Computed<T>) -> VDomElement) -> ViewState {
+        let computed = driver.new_computed_from(state);
+        let view = computed.map_for_render::<VDomElement>(render);
+        ViewState {
+            view
+        }
+    }
+
+    pub fn render(&self) -> Computed<VDomElement> {
+        self.view.clone()
+    }
+}
+
+
 #[derive(PartialEq, Clone)]
 pub struct StateApp {
     pub driver: Driver,
     pub data: StateData,
     view: Value<View>,
+
+    //TODO - kontekst renderowania, idgrafu
 }
 
 impl StateApp {
-    pub fn new(driver: &Driver) -> Computed<StateApp> {
+    pub fn new(driver: &Driver) -> ViewState {
         let state_data = StateData::new(driver);
 
         let view = driver.new_value(View::Index);
 
-        driver.new_computed_from(StateApp {
+        let state = StateApp {
             driver: driver.clone(),
             data: state_data.clone(),
             view,
-        })
+        };
+
+        ViewState::new(&driver, state, render)
     }
 
     fn create_full_path(&self, path: &Vec<String>, select_item: &Option<String>) -> Vec<String> {
@@ -144,9 +168,19 @@ impl StateApp {
             list
         });
     }
+
+    fn render(&self, fun: fn (&Computed<StateApp>) -> VDomElement) -> VDomElement {
+
+        //coś takiego trzeba zaimplementować
+        todo!()
+    }
+
+    fn render_ddd(&self) -> VDomElement {
+        self.render(render)
+    }
 }
 
-pub fn render(state_computed: &Computed<StateApp>) -> VDomElement {
+fn render(state_computed: &Computed<StateApp>) -> VDomElement {
 
     let app_state = state_computed.get_value();
     let view = app_state.view.get_value();
