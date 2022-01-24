@@ -42,25 +42,6 @@ enum View {
 }
 
 
-pub struct ViewState {
-    view: Computed<VDomElement>,
-}
-
-impl ViewState {
-    pub fn new<T: PartialEq + 'static>(driver: &Driver, state: T, render: fn (&Computed<T>) -> VDomElement) -> ViewState {
-        let computed = driver.new_computed_from(state);
-        let view = computed.map_for_render::<VDomElement>(render);
-        ViewState {
-            view
-        }
-    }
-
-    pub fn render(&self) -> Computed<VDomElement> {
-        self.view.clone()
-    }
-}
-
-
 #[derive(PartialEq, Clone)]
 pub struct StateApp {
     pub driver: Driver,
@@ -71,7 +52,7 @@ pub struct StateApp {
 }
 
 impl StateApp {
-    pub fn new(driver: &Driver) -> ViewState {
+    pub fn new(driver: &Driver) -> Computed<VDomElement> {
         let state_data = StateData::new(driver);
 
         let view = driver.new_value(View::Index);
@@ -82,7 +63,7 @@ impl StateApp {
             view,
         };
 
-        ViewState::new(&driver, state, render)
+        driver.bind_render(state, render)
     }
 
     fn create_full_path(&self, path: &Vec<String>, select_item: &Option<String>) -> Vec<String> {
