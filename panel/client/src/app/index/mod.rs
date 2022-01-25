@@ -10,7 +10,7 @@ mod state_alert_search;
 
 
 use std::rc::Rc;
-use vertigo::{Driver, VDomElement, VDomComponent};
+use vertigo::{Driver, VDomComponent};
 use vertigo::{
     Resource,
     Computed,
@@ -133,11 +133,11 @@ pub struct AppIndexState {
 }
 
 impl AppIndexState {
-    pub fn new(app_state: &StateApp) -> (VDomComponent, impl Fn(vertigo::KeyDownEvent) -> bool) {
+    pub fn component(app_state: &StateApp) -> (VDomComponent, impl Fn(vertigo::KeyDownEvent) -> bool) {
         let driver = &app_state.driver.clone();
         let state_data = app_state.data.clone();
 
-        let list_current_item = create_current_item_view(&driver, &state_data.current_path_item, &state_data.list);
+        let list_current_item = create_current_item_view(driver, &state_data.current_path_item, &state_data.list);
         let current_content = create_current_content(
             driver,
             &state_data,
@@ -146,7 +146,7 @@ impl AppIndexState {
         );
 
         let current_full_path = create_current_full_path(
-            &driver,
+            driver,
             &state_data.current_path_dir,
             &list_current_item,
         );
@@ -158,7 +158,7 @@ impl AppIndexState {
             state_data.driver.clone()
         );
 
-        let avaible_delete_current= create_avaible_delete_current(&driver, current_content.clone());
+        let avaible_delete_current= create_avaible_delete_current(driver, current_content.clone());
     
         let tabs_url = driver.new_value(Vec::new());
         let tabs_active = driver.new_value(None);
@@ -289,7 +289,7 @@ impl AppIndexState {
         let list_pointer = self.list_current_item.get_value();
 
         if let Some(list_pointer) = list_pointer.as_ref() {
-            if let Some(_) = self.find(list_pointer) {
+            if self.find(list_pointer).is_some() {
                 self.click_list_item(list_pointer.clone());
             }
         }
@@ -359,7 +359,7 @@ impl AppIndexState {
         let select_item = self.list_current_item.get_value();
 
         if let Some(select_item) = select_item.as_ref() {
-            self.app_state.redirect_to_rename_item(&path, &select_item);
+            self.app_state.redirect_to_rename_item(&path, select_item);
         } else {
             log::error!("current_rename fail");
         }
@@ -437,7 +437,7 @@ fn calculate_next_path(prev_path: &[String], new_path: Vec<String>) -> (Vec<Stri
 
     if prev_path[0..new_path.len()] == new_path[0..] {
         let last = prev_path.get(new_path.len());
-        let last = last.map(|item| item.clone());
+        let last = last.cloned();
         return (new_path, last);
     }
 

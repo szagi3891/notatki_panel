@@ -29,7 +29,7 @@ impl StateAppEditContent {
         self.app_state.redirect_to_index();
     }
 
-    pub fn new(
+    pub fn component(
         app_state: Rc<StateApp>,
         path: Vec<String>,
         hash: String,

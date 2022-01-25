@@ -25,7 +25,7 @@ pub struct NewName {
 }
 
 impl NewName {
-    pub fn new(
+    pub fn component(
         driver: &Driver,
         list: Computed<Vec<ListItem>>,
         name: Value<String>,
@@ -133,8 +133,6 @@ pub fn render(state_computed: &Computed<NewName>) -> VDomElement {
     let content = &state.name.get_value();
 
     let on_input = {
-        let state = state.clone();
-
         move |new_value: String| {
             state.on_input_name(new_value);
         }

@@ -61,7 +61,7 @@ impl StateAlert {
 
     fn is_precess(&self) -> bool {
         let value = self.progress.get_value();
-        *value == true
+        *value
     }
 
     pub fn delete(&self) {
@@ -137,7 +137,7 @@ impl StateAlert {
             let _ = response.await;
             progress.set_value(false);
             self_copy.redirect_after_delete();
-            self_copy.app_state.data.root.refresh();
+            self_copy.app_state.data.git.root.refresh();
             self_copy.view.set_value(AlertView::None);
         });
     }
@@ -193,7 +193,6 @@ fn render_alert(state: &Computed<StateAlert>) -> VDomElement {
             });
 
             alert.button("Nie", {
-                let alert_state = alert_state.clone();
                 move || {
                     alert_state.delete_no();
                 }
@@ -202,7 +201,7 @@ fn render_alert(state: &Computed<StateAlert>) -> VDomElement {
             alert.render()
         },
         AlertView::SearchInPath => {
-            let view = StateAlertSearch::new(&alert_state);
+            let view = StateAlertSearch::component(&alert_state);
 
             html! {
                 <div>

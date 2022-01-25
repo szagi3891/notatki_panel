@@ -2,7 +2,7 @@ use vertigo::{Css, VDomElement, Computed};
 use vertigo::{css, html};
 
 use super::{StateAppNewContent};
-use crate::components::{button, new_name};
+use crate::components::{button};
 
 fn css_wrapper() -> Css {
     css!("

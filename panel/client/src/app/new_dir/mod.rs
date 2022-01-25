@@ -28,7 +28,7 @@ impl StateAppNewDir {
         self.app_state.redirect_to_index();
     }
 
-    pub fn new(
+    pub fn component(
         app_state: Rc<StateApp>,
         parent: Vec<String>,
         list: Computed<Vec<ListItem>>,
@@ -37,7 +37,7 @@ impl StateAppNewDir {
         let action_save = app_state.driver.new_value(false);
         let new_name = app_state.driver.new_value(String::from(""));
 
-        let (_is_valid, save_enable, new_name_view) = new_name::NewName::new(
+        let (_is_valid, save_enable, new_name_view) = new_name::NewName::component(
             &app_state.driver,
             list,
             new_name.clone(),

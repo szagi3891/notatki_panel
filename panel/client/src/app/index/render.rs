@@ -129,13 +129,11 @@ fn css_iframe(active: bool) -> Css {
         border: 0;
     ");
 
-    let style = if active {
+    if active {
         style
     } else {
         style.push_str("visibility: hidden;")
-    };
-
-    style
+    }
 }
 
 fn css_right() -> Css {

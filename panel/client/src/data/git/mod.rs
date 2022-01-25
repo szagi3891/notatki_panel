@@ -69,7 +69,7 @@ impl StateDataGit {
         let mut result = self.dir.get_list(&root_wsk)?;
 
         for path_item in path {
-            result = move_pointer(self, result, &path_item)?;
+            result = move_pointer(self, result, path_item)?;
         }
 
         Resource::Ready(result)
@@ -93,7 +93,7 @@ impl StateDataGit {
                 return Resource::Ready(CurrentContent::dir(current_item.clone(), current_value.id.clone(), list));
             } else {
                 let content = self.content.get(&current_value.id)?;
-                return Resource::Ready(CurrentContent::file(current_item.clone(), current_value.id.clone(), content.clone()));
+                return Resource::Ready(CurrentContent::file(current_item.clone(), current_value.id.clone(), content));
             }
         }
 

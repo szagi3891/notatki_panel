@@ -5,7 +5,7 @@ use render::render;
 use std::rc::Rc;
 
 use common::{HandlerRenameItemBody};
-use vertigo::{Driver, Computed, Value, VDomElement, VDomComponent};
+use vertigo::{Driver, Computed, Value, VDomComponent};
 
 use crate::{app::StateApp};
 
@@ -31,7 +31,7 @@ impl StateAppRenameItem {
         self.app_state.redirect_to_index();
     }
 
-    pub fn new(
+    pub fn component(
         app_state: Rc<StateApp>,
         path: Vec<String>,
         prev_name: String,

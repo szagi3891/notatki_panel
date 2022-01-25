@@ -70,7 +70,7 @@ pub fn render(state: &Computed<StateAppEditContent>) -> VDomElement {
 
     if *save_enable {
         let on_save = {
-            let state = state_value.clone();
+            let state = state_value;
             move || {
                 state.on_save();
             }

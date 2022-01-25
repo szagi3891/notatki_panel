@@ -53,14 +53,14 @@ pub struct StateApp {
 }
 
 impl StateApp {
-    pub fn new(driver: &Driver) -> VDomComponent {
+    pub fn component(driver: &Driver) -> VDomComponent {
         let state_data = StateData::new(driver);
 
         let view = driver.new_value(View::Index);
 
         let state = StateApp {
             driver: driver.clone(),
-            data: state_data.clone(),
+            data: state_data,
             view,
         };
 
@@ -130,7 +130,7 @@ impl StateApp {
         self.redirect_to_index();
         self.data.current_path_dir.set_value(new_path);
         self.data.current_path_item.set_value(new_item);
-        self.data.root.refresh();
+        self.data.git.root.refresh();
     }
 
     pub fn redirect_to_mkdir(&self, list: Computed<Vec<ListItem>>) {
@@ -139,7 +139,7 @@ impl StateApp {
     }
 
     pub fn redirect_to_index_with_root_refresh(&self) {
-        self.data.root.refresh();
+        self.data.git.root.refresh();
         self.redirect_to_index();
     }
 
@@ -159,7 +159,7 @@ fn render(state_computed: &Computed<StateApp>) -> VDomElement {
 
     match view.as_ref() {
         View::Index => {
-            let (view, on_keydown) = index::AppIndexState::new(&app_state);
+            let (view, on_keydown) = index::AppIndexState::component(&app_state);
 
             html! {
                 <div id="root" on_key_down={on_keydown}>
@@ -168,8 +168,8 @@ fn render(state_computed: &Computed<StateApp>) -> VDomElement {
             }
         },
         View::EditContent { full_path, file_hash, content } => {
-            let view = edit_content::StateAppEditContent::new(
-                app_state.clone(),
+            let view = edit_content::StateAppEditContent::component(
+                app_state,
                 full_path.clone(),
                 file_hash.clone(),
                 content.as_ref().clone(),
@@ -182,8 +182,8 @@ fn render(state_computed: &Computed<StateApp>) -> VDomElement {
             }
         },
         View::NewContent { parent, list } => {
-            let view = new_content::StateAppNewContent::new(
-                app_state.clone(),
+            let view = new_content::StateAppNewContent::component(
+                app_state,
                 parent.clone(),
                 list.clone(),
             );
@@ -195,8 +195,8 @@ fn render(state_computed: &Computed<StateApp>) -> VDomElement {
             }
         },
         View::RenameItem { base_path, prev_name, prev_hash, prev_content } => {
-            let view = rename_item::StateAppRenameItem::new(
-                app_state.clone(),
+            let view = rename_item::StateAppRenameItem::component(
+                app_state,
                 base_path.clone(),
                 prev_name.clone(),
                 prev_hash.clone(),
@@ -210,7 +210,7 @@ fn render(state_computed: &Computed<StateApp>) -> VDomElement {
             }
         },
         View::Mkdir { parent, list } => {
-            let view = new_dir::StateAppNewDir::new(app_state.clone(), (*parent).to_vec(), list.clone());
+            let view = new_dir::StateAppNewDir::component(app_state, (*parent).to_vec(), list.clone());
 
             html! {
                 <div id="root">

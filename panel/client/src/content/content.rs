@@ -30,7 +30,7 @@ impl Text {
     }
 
     pub fn sum(text1: Text, text2: Text) -> Text {
-        let mut list = text1.list.clone();
+        let mut list = text1.list;
         list.extend(text2.list.as_slice());
 
         Text {
@@ -98,7 +98,7 @@ fn parse_link_prefix(text: &Text) -> Option<(Text, Text)> {
 fn parse_until_whitespace(text: &Text) -> Option<(Text, Text)> {
     let text = text.as_slice();
 
-    for (index, char) in text.into_iter().enumerate() {
+    for (index, char) in text.iter().enumerate() {
         if char.is_whitespace() {
             if index == 0 {
                 return None;
@@ -151,7 +151,7 @@ fn get_first_char(text: &Text) -> Option<(char, Text)> {
 
     if let Some(first) = first {
         return Some((
-            first.clone(),
+            *first,
             Text::from_slice(&text[1..])
         ));
     }

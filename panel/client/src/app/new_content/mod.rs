@@ -29,7 +29,7 @@ impl StateAppNewContent {
         self.app_state.redirect_to_index();
     }
 
-    pub fn new(
+    pub fn component(
         app_state: Rc<StateApp>,
         parent: Vec<String>,
         list: Computed<Vec<ListItem>>,
@@ -39,7 +39,7 @@ impl StateAppNewContent {
         // let name = new_name::NewName::new(&app_state, list, action_save.to_computed());
 
         let name = app_state.driver.new_value(String::from(""));
-        let (is_valid, new_name_save_enable, new_name_view) = new_name::NewName::new(
+        let (is_valid, _new_name_save_enable, new_name_view) = new_name::NewName::component(
             &app_state.driver,
             list,
             name.clone(),
@@ -50,7 +50,6 @@ impl StateAppNewContent {
 
 
         let save_enable = {
-            let name = name.clone();
             let content = content.to_computed();
 
             app_state.driver.from(move || -> bool {

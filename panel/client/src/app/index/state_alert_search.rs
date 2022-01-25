@@ -158,7 +158,7 @@ pub struct StateAlertSearch {
 }
 
 impl StateAlertSearch {
-    pub fn new(alert_state: &StateAlert) -> VDomComponent {
+    pub fn component(alert_state: &StateAlert) -> VDomComponent {
         let phrase = alert_state.app_state.driver.new_value("".to_string());
 
         let results = new_results(
@@ -222,7 +222,6 @@ pub fn render(state: &Computed<StateAlertSearch>) -> VDomElement {
     let current_value = phrase.get_value();
 
     let on_input = {
-        let phrase = phrase.clone();
         move |new_value: String| {
             phrase.set_value(new_value);
         }
@@ -231,7 +230,6 @@ pub fn render(state: &Computed<StateAlertSearch>) -> VDomElement {
     let alert_state = alert_search_state.alert_state.clone();
 
     let on_close = {
-        let alert_state = alert_state.clone();
         move || {
             alert_state.search_close();
         }

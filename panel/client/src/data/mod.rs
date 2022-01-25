@@ -145,8 +145,6 @@ pub struct StateData {
     pub dir: StateDataGitNodeDir,
     #[deprecated(note="please use `git.content` instead")]
     pub content: StateDataGitNodeContent,
-    #[deprecated(note="please use `git.root` instead")]
-    pub root: StateDataGitRoot,
 
 
     #[deprecated(note="Zrobić prywatne")]
@@ -179,7 +177,6 @@ impl StateData {
             driver: driver.clone(),
             dir: git.dir.clone(),
             content: git.content.clone(),
-            root: git.root.clone(),
             git,
             current_path_dir,
             current_path_item,
@@ -196,37 +193,37 @@ impl StateData {
         self.current_path_item.set_value(last);
     }
 
-    pub fn current_path_dir(&self) -> Rc<Vec<String>> {
-        self.current_path_dir.get_value()
-    }
+    // pub fn current_path_dir(&self) -> Rc<Vec<String>> {
+    //     self.current_path_dir.get_value()
+    // }
 
-    pub fn redirect_after_delete(&self) {
-        let current_path_item = self.current_path_item.get_value();
-        let list = self.list.get_value();
+    // pub fn redirect_after_delete(&self) {
+    //     let current_path_item = self.current_path_item.get_value();
+    //     let list = self.list.get_value();
 
-        fn find_index(list: &Vec<ListItem>, value: &Option<String>) -> Option<usize> {
-            if let Some(value) = value {
-                for (index, item) in list.iter().enumerate() {
-                    if item.name == *value {
-                        return Some(index);
-                    }
-                }
-            }
-            None
-        }
+    //     fn find_index(list: &Vec<ListItem>, value: &Option<String>) -> Option<usize> {
+    //         if let Some(value) = value {
+    //             for (index, item) in list.iter().enumerate() {
+    //                 if item.name == *value {
+    //                     return Some(index);
+    //                 }
+    //             }
+    //         }
+    //         None
+    //     }
 
-        if let Some(current_index) = find_index(list.as_ref(), current_path_item.as_ref()) {
-            if current_index > 0 {
-                if let Some(prev) = list.get(current_index - 1) {
-                    self.current_path_item.set_value(Some(prev.name.clone()));
-                    return;
-                }
-            }
+    //     if let Some(current_index) = find_index(list.as_ref(), current_path_item.as_ref()) {
+    //         if current_index > 0 {
+    //             if let Some(prev) = list.get(current_index - 1) {
+    //                 self.current_path_item.set_value(Some(prev.name.clone()));
+    //                 return;
+    //             }
+    //         }
 
-            if let Some(prev) = list.get(current_index + 1) {
-                self.current_path_item.set_value(Some(prev.name.clone()));
-                return;
-            }
-        };
-    }
+    //         if let Some(prev) = list.get(current_index + 1) {
+    //             self.current_path_item.set_value(Some(prev.name.clone()));
+    //             return;
+    //         }
+    //     };
+    // }
 }

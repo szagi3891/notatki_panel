@@ -1,5 +1,7 @@
 #![allow(clippy::needless_lifetimes)]
 #![allow(clippy::ptr_arg)]
+#![allow(clippy::module_inception)]
+#![allow(clippy::wrong_self_convention)]
 
 use common::{
     RootResponse,
@@ -33,7 +35,7 @@ use tower_http::{services::ServeDir, trace::TraceLayer};
 
 mod git;
 mod utils;
-mod sync;
+// mod sync;
 
 // use sync::start_sync;
 
