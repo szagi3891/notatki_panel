@@ -1,3 +1,4 @@
+use vertigo::VDomComponent;
 use vertigo::{
     Driver,
     VDomElement,
@@ -52,7 +53,7 @@ pub struct StateApp {
 }
 
 impl StateApp {
-    pub fn new(driver: &Driver) -> Computed<VDomElement> {
+    pub fn new(driver: &Driver) -> VDomComponent {
         let state_data = StateData::new(driver);
 
         let view = driver.new_value(View::Index);
@@ -149,16 +150,6 @@ impl StateApp {
             list
         });
     }
-
-    fn render(&self, fun: fn (&Computed<StateApp>) -> VDomElement) -> VDomElement {
-
-        //coś takiego trzeba zaimplementować
-        todo!()
-    }
-
-    fn render_ddd(&self) -> VDomElement {
-        self.render(render)
-    }
 }
 
 fn render(state_computed: &Computed<StateApp>) -> VDomElement {
@@ -168,18 +159,16 @@ fn render(state_computed: &Computed<StateApp>) -> VDomElement {
 
     match view.as_ref() {
         View::Index => {
-            let (state, on_keydown) = index::AppIndexState::new(
-                app_state.clone(),
-            );
+            let (view, on_keydown) = index::AppIndexState::new(&app_state);
 
             html! {
                 <div id="root" on_key_down={on_keydown}>
-                    { state.render() }
+                    { view }
                 </div>
             }
         },
         View::EditContent { full_path, file_hash, content } => {
-            let state = edit_content::StateAppEditContent::new(
+            let view = edit_content::StateAppEditContent::new(
                 app_state.clone(),
                 full_path.clone(),
                 file_hash.clone(),
@@ -188,12 +177,12 @@ fn render(state_computed: &Computed<StateApp>) -> VDomElement {
 
             html! {
                 <div id="root">
-                    { state.render() }
+                    { view }
                 </div>
             }
         },
         View::NewContent { parent, list } => {
-            let state = new_content::StateAppNewContent::new(
+            let view = new_content::StateAppNewContent::new(
                 app_state.clone(),
                 parent.clone(),
                 list.clone(),
@@ -201,12 +190,12 @@ fn render(state_computed: &Computed<StateApp>) -> VDomElement {
 
             html! {
                 <div id="root">
-                    { state.render() }
+                    { view }
                 </div>
             }
         },
         View::RenameItem { base_path, prev_name, prev_hash, prev_content } => {
-            let state = rename_item::StateAppRenameItem::new(
+            let view = rename_item::StateAppRenameItem::new(
                 app_state.clone(),
                 base_path.clone(),
                 prev_name.clone(),
@@ -216,16 +205,16 @@ fn render(state_computed: &Computed<StateApp>) -> VDomElement {
 
             html! {
                 <div id="root">
-                    {state.render()}
+                    {view}
                 </div>
             }
         },
         View::Mkdir { parent, list } => {
-            let state = new_dir::StateAppNewDir::new(app_state.clone(), (*parent).to_vec(), list.clone());
+            let view = new_dir::StateAppNewDir::new(app_state.clone(), (*parent).to_vec(), list.clone());
 
             html! {
                 <div id="root">
-                    { state.render() }
+                    { view }
                 </div>
             }
         }

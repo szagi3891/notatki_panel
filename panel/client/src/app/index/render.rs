@@ -12,7 +12,6 @@ use super::render_list::render_list;
 use super::render_header::render_header;
 use super::render_content::render_content;
 use super::render_menu::render_menu;
-use super::state_alert::render_alert;
 
 fn css_wrapper() -> Css {
     css!("
@@ -63,7 +62,7 @@ pub fn render_index(state: &Computed<AppIndexState>) -> VDomElement {
 
     let state_value = state.get_value();
 
-    let alert = state_value.alert.clone();
+    let alert = state_value.alert_view.clone();
 
     html! {
         <div css={css_wrapper()}>
@@ -88,7 +87,7 @@ pub fn render_index(state: &Computed<AppIndexState>) -> VDomElement {
                     <component {render_content} data={state.clone()} />
                 </div>
             </div>
-            <component {render_alert} data={alert} />
+            { alert }
         </div>
     }
 }

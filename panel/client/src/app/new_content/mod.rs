@@ -3,7 +3,7 @@ mod render;
 use std::rc::Rc;
 
 use common::{HandlerCreateFileBody};
-use vertigo::{Driver, Computed, Value, VDomElement};
+use vertigo::{Driver, Computed, Value, VDomComponent};
 
 use crate::{app::{StateApp, index::ListItem}};
 use crate::components::new_name;
@@ -15,7 +15,8 @@ pub struct StateAppNewContent {
     pub action_save: Value<bool>,
 
     pub parent: Vec<String>,
-    pub new_name: Computed<new_name::NewName>,
+    pub name: Value<String>,
+    pub new_name_view: VDomComponent,
     pub content: Value<String>,
 
     pub save_enable: Computed<bool>,
@@ -32,19 +33,28 @@ impl StateAppNewContent {
         app_state: Rc<StateApp>,
         parent: Vec<String>,
         list: Computed<Vec<ListItem>>,
-    ) -> StateAppNewContent {
+    ) -> VDomComponent {
         log::info!("buduję stan dla new content");
         let action_save = app_state.driver.new_value(false);
-        let new_name = new_name::NewName::new(&app_state, list, action_save.to_computed());
+        // let name = new_name::NewName::new(&app_state, list, action_save.to_computed());
+
+        let name = app_state.driver.new_value(String::from(""));
+        let (is_valid, new_name_save_enable, new_name_view) = new_name::NewName::new(
+            &app_state.driver,
+            list,
+            name.clone(),
+            action_save.to_computed(),
+        );
+
         let content = app_state.driver.new_value(String::from(""));
 
 
         let save_enable = {
-            let new_name = new_name.clone();
+            let name = name.clone();
             let content = content.to_computed();
 
             app_state.driver.from(move || -> bool {
-                let new_name_is_valid = new_name.get_value().is_valid.get_value();
+                let new_name_is_valid = is_valid.get_value();
 
                 if !*new_name_is_valid  {
                     return false;
@@ -59,19 +69,22 @@ impl StateAppNewContent {
             })
         };
 
-        StateAppNewContent {
+        let state = StateAppNewContent {
             driver: app_state.driver.clone(),
 
             action_save,
             
             parent,
-            new_name,
+            name,
+            new_name_view,
             content,
 
             save_enable,
 
             app_state: app_state.clone(),
-        }
+        };
+
+        app_state.driver.bind_render(state, render::render)
     }
 
     pub fn on_input_content(&self, new_value: String) {
@@ -95,7 +108,7 @@ impl StateAppNewContent {
 
         self.action_save.set_value(true);
 
-        let new_name_rc = self.new_name.get_value().name.get_value();
+        let new_name_rc = self.name.get_value();
         let new_name = (*new_name_rc).clone();
 
         let body: HandlerCreateFileBody = HandlerCreateFileBody {
@@ -121,10 +134,5 @@ impl StateAppNewContent {
                 callback.redirect_to_index_with_path(path_redirect, Some(new_name));
             }
         });
-    }
-
-    pub fn render(self) -> VDomElement {
-        let self_computed = self.driver.clone().new_computed_from(self);
-        render::render(&self_computed)
     }
 }

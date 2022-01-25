@@ -10,7 +10,7 @@ mod state_alert_search;
 
 
 use std::rc::Rc;
-use vertigo::{Driver, VDomElement};
+use vertigo::{Driver, VDomElement, VDomComponent};
 use vertigo::{
     Resource,
     Computed,
@@ -120,9 +120,10 @@ pub struct AppIndexState {
     //aktualnie wyliczony wybrany content wskazywany przez current_path
     pub current_content: Computed<CurrentContent>,
 
-    app_state: Rc<StateApp>,
+    app_state: StateApp,
 
-    pub alert: Computed<StateAlert>,
+    pub alert: StateAlert,
+    pub alert_view: VDomComponent,
 
     //true - jeśli aktualnie podświetlony element jest mozliwy do usuniecia
     pub avaible_delete_button: Computed<bool>,
@@ -132,7 +133,7 @@ pub struct AppIndexState {
 }
 
 impl AppIndexState {
-    pub fn new(app_state: Rc<StateApp>) -> (Rc<AppIndexState>, impl Fn(vertigo::KeyDownEvent) -> bool) {
+    pub fn new(app_state: &StateApp) -> (VDomComponent, impl Fn(vertigo::KeyDownEvent) -> bool) {
         let driver = &app_state.driver.clone();
         let state_data = app_state.data.clone();
 
@@ -150,7 +151,7 @@ impl AppIndexState {
             &list_current_item,
         );
 
-        let alert = StateAlert::new(
+        let (alert, alert_view) = StateAlert::new(
             app_state.clone(),
             current_full_path,
             state_data.list.clone(),
@@ -162,17 +163,18 @@ impl AppIndexState {
         let tabs_url = driver.new_value(Vec::new());
         let tabs_active = driver.new_value(None);
 
-        let state = Rc::new(AppIndexState {
+        let state = AppIndexState {
             driver: driver.clone(),
             data_state: state_data,
             list_current_item,
             current_content,
-            app_state,
+            app_state: app_state.clone(),
             alert,
+            alert_view,
             avaible_delete_button: avaible_delete_current,
             tabs_url,
             tabs_active,
-        });
+        };
 
         let keydown = {
             let state = state.clone();
@@ -181,7 +183,8 @@ impl AppIndexState {
             }
         };
 
-        (state, keydown)
+        let view = driver.bind_render(state, render::render);
+        (view, keydown)
     }
 
 
@@ -302,11 +305,9 @@ impl AppIndexState {
     }
 
     pub fn keydown(&self, code: String) -> bool {
-        let alert_state = self.alert.get_value();
-
-        if alert_state.is_visible() {
+        if self.alert.is_visible() {
             if code == "Escape" {
-                alert_state.search_close();
+                self.alert.search_close();
                 return true;
             }
 
@@ -425,11 +426,6 @@ impl AppIndexState {
 
     pub fn tabs_default(&self) {
         self.tabs_active.set_value(None);
-    }
-
-    pub fn render(&self) -> VDomElement {
-        let self_computed = self.driver.clone().new_computed_from(self.clone());
-        render::render(&self_computed)
     }
 }
 

@@ -95,7 +95,7 @@ pub fn render(state: &Computed<StateAppNewContent>) -> VDomElement {
             <div css={css_header()}>
                 { ..buttons }
             </div>
-            <component {new_name::render} data={state_value.new_name.clone()} />
+            { state_value.new_name_view.clone() }
             <component {render_input_content} data={state} />
         </div>
     }

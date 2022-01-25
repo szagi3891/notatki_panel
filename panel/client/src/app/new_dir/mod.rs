@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use common::{HandlerCreateDirBody};
-use vertigo::{Driver, Computed, Value, VDomElement};
+use vertigo::{Driver, Computed, Value, VDomComponent};
 
 use crate::{app::{StateApp, index::ListItem}};
 use crate::components::new_name;
@@ -15,7 +15,8 @@ pub struct StateAppNewDir {
     pub action_save: Value<bool>,
 
     pub parent: Vec<String>,
-    pub new_name: Computed<new_name::NewName>,
+    pub new_name: Value<String>,
+    pub new_name_view: VDomComponent,
 
     pub save_enable: Computed<bool>,
 
@@ -31,37 +32,33 @@ impl StateAppNewDir {
         app_state: Rc<StateApp>,
         parent: Vec<String>,
         list: Computed<Vec<ListItem>>,
-    ) -> StateAppNewDir {
-        log::info!("buduję stan dla new dir");
+    ) -> VDomComponent {
+        log::info!("buduję stan dla new dir");
         let action_save = app_state.driver.new_value(false);
-        let new_name = new_name::NewName::new(&app_state, list, action_save.to_computed());
+        let new_name = app_state.driver.new_value(String::from(""));
 
-        let save_enable = {
-            let new_name = new_name.clone();
+        let (_is_valid, save_enable, new_name_view) = new_name::NewName::new(
+            &app_state.driver,
+            list,
+            new_name.clone(),
+            action_save.to_computed(),
+        );
 
-            app_state.driver.from(move || -> bool {
-                let new_name_is_valid = new_name.get_value().is_valid.get_value();
-
-                if !*new_name_is_valid  {
-                    return false;
-                }
-
-                true
-            })
-        };
-
-        StateAppNewDir {
+        let state = StateAppNewDir {
             driver: app_state.driver.clone(),
 
             action_save,
 
             parent,
             new_name,
+            new_name_view,
 
             save_enable,
 
             app_state: app_state.clone(),
-        }
+        };
+
+        app_state.driver.bind_render(state, render::render)
     }
 
     pub fn on_save(&self) {
@@ -74,8 +71,7 @@ impl StateAppNewDir {
 
         self.action_save.set_value(true);
 
-        let new_name_state = self.new_name.get_value();
-        let new_dir_name = (*new_name_state.name.get_value()).clone();
+        let new_dir_name = (*self.new_name.get_value()).clone();
 
         let body = HandlerCreateDirBody {
             path: self.parent.clone(),
@@ -98,10 +94,5 @@ impl StateAppNewDir {
 
             callback.redirect_to_index_with_path(parent, Some(new_dir_name));
         });
-    }
-
-    pub fn render(self) -> VDomElement {
-        let self_computed = self.driver.clone().new_computed_from(self);
-        render::render(&self_computed)
     }
 }

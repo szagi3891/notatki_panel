@@ -1,14 +1,12 @@
-use std::{rc::Rc};
+use std::rc::Rc;
 
 use vertigo::{ 
-    Computed, Value,
+    Computed, Value, VDomComponent, Driver,
 };
 
 use vertigo::{Css, VDomElement};
 use vertigo::{css, html};
-
-use crate::{app::{StateApp, index::ListItem}};
-
+use crate::app::index::ListItem;
 
 fn is_exist_in_list(name: &String, list: Rc<Vec<ListItem>>) -> bool {
     for item in list.as_ref() {
@@ -19,7 +17,6 @@ fn is_exist_in_list(name: &String, list: Rc<Vec<ListItem>>) -> bool {
     false
 }
 
-
 #[derive(PartialEq)]
 pub struct NewName {
     pub action_save: Computed<bool>,
@@ -29,16 +26,15 @@ pub struct NewName {
 
 impl NewName {
     pub fn new(
-        app_state: &Rc<StateApp>,
+        driver: &Driver,
         list: Computed<Vec<ListItem>>,
+        name: Value<String>,
         action_save: Computed<bool>,
-    ) -> Computed<NewName> {
-        let name = app_state.driver.new_value(String::from(""));
-
+    ) -> (Computed<bool>, Computed<bool>, VDomComponent) {
         let name_exists = {
             let name = name.clone();
 
-            app_state.driver.from(move || -> bool {
+            driver.from(move || -> bool {
                 let list = list.get_value();
 
                 let name = name.get_value();
@@ -49,15 +45,14 @@ impl NewName {
         let is_valid = {
             let name = name.clone();
 
-            app_state.driver.from(move || -> bool {
+            driver.from(move || -> bool {
                 let name_exists = name_exists.get_value();
 
                 if *name_exists {
                     return false;
                 }
 
-                let name = name.get_value();
-                if name.is_empty() {
+                if name.get_value().is_empty() {
                     return false;
                 }
 
@@ -65,11 +60,27 @@ impl NewName {
             })
         };
 
-        app_state.driver.new_computed_from(NewName {
+        let save_enable = {
+            let is_valid = is_valid.clone();
+
+            driver.from(move || -> bool {
+                let new_name_is_valid = is_valid.get_value();
+
+                if !*new_name_is_valid  {
+                    return false;
+                }
+
+                true
+            })
+        };
+
+        let state = NewName {
             action_save,
             name,
-            is_valid,
-        })
+            is_valid: is_valid.clone(),
+        };
+
+        (is_valid, save_enable, driver.bind_render(state, render))
     }
 
 

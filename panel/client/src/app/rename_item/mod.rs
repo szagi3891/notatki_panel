@@ -5,7 +5,7 @@ use render::render;
 use std::rc::Rc;
 
 use common::{HandlerRenameItemBody};
-use vertigo::{Driver, Computed, Value, VDomElement};
+use vertigo::{Driver, Computed, Value, VDomElement, VDomComponent};
 
 use crate::{app::StateApp};
 
@@ -37,7 +37,7 @@ impl StateAppRenameItem {
         prev_name: String,
         prev_hash: String,
         prev_content: Option<String>,
-    ) -> StateAppRenameItem {
+    ) -> VDomComponent {
         let new_name = app_state.driver.new_value(prev_name.clone());
 
         let save_enable = {
@@ -61,7 +61,7 @@ impl StateAppRenameItem {
 
         let action_save = app_state.driver.new_value(false);
 
-        StateAppRenameItem {
+        let state = StateAppRenameItem {
             driver: app_state.driver.clone(),
 
             path,
@@ -74,7 +74,9 @@ impl StateAppRenameItem {
             action_save,
             save_enable,
             app_state: app_state.clone(),
-        }
+        };
+
+        app_state.driver.bind_render(state, render)
     }
 
     pub fn get_full_path(&self) -> String {
@@ -131,11 +133,6 @@ impl StateAppRenameItem {
 
             parent_state.redirect_to_index_with_path(redirect_path, Some(redirect_new_name));
         });
-    }
-
-    pub fn render(self) -> VDomElement {
-        let self_computed = self.driver.clone().new_computed_from(self);
-        render(&self_computed)
     }
 }
 

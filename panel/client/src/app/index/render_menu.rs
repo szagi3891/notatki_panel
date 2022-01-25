@@ -62,8 +62,7 @@ pub fn render_menu(state: &Computed<AppIndexState>) -> VDomElement {
     let avaible_delete_button = state.avaible_delete_button.get_value();
 
     if *avaible_delete_button {
-        let alert = state.alert.get_value();
-
+        let alert = state.alert.clone();
         let on_delete = {
             move || {
                 alert.delete();
@@ -74,8 +73,7 @@ pub fn render_menu(state: &Computed<AppIndexState>) -> VDomElement {
     }
 
     out.push(button("Wyszukaj", {
-        let alert = state.alert.get_value();
-
+        let alert = state.alert.clone();
         move || {
             alert.redirect_to_search();
         }

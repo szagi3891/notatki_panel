@@ -1,6 +1,5 @@
-use std::rc::Rc;
 use common::{HandlerDeleteItemBody};
-use vertigo::{Driver, VDomElement};
+use vertigo::{Driver, VDomElement, VDomComponent};
 use vertigo::{
     Computed,
     Value
@@ -22,7 +21,7 @@ pub enum AlertView {
 #[derive(PartialEq, Clone)]
 pub struct StateAlert {
     driver: Driver,
-    pub app_state: Rc<StateApp>,
+    pub app_state: StateApp,
     list: Computed<Vec<ListItem>>,
     progress: Value<bool>,
     progress_computed: Computed<bool>,
@@ -32,16 +31,16 @@ pub struct StateAlert {
 
 impl StateAlert {
     pub fn new(
-        app_state: Rc<StateApp>,
+        app_state: StateApp,
         current_full_path: Computed<Vec<String>>,
         list: Computed<Vec<ListItem>>,
         driver: Driver
-    ) -> Computed<StateAlert> {
+    ) -> (StateAlert, VDomComponent) {
         let view = app_state.driver.new_value(AlertView::None);
         let progress = app_state.driver.new_value(false);
         let progress_computed = progress.to_computed();
 
-        app_state.driver.new_computed_from(StateAlert {
+        let state = StateAlert {
             driver,
             app_state: app_state.clone(),
             list,
@@ -49,7 +48,10 @@ impl StateAlert {
             progress_computed,
             view,
             current_full_path,
-        })
+        };
+
+        let view = app_state.driver.bind_render(state.clone(), render_alert);
+        (state, view)
     }
 
     pub fn is_visible(&self) -> bool {
@@ -165,7 +167,7 @@ impl StateAlert {
     }
 }
 
-pub fn render_alert(state: &Computed<StateAlert>) -> VDomElement {
+fn render_alert(state: &Computed<StateAlert>) -> VDomElement {
     let alert_state = state.get_value();
     let alert = alert_state.view.get_value();
 
@@ -200,11 +202,11 @@ pub fn render_alert(state: &Computed<StateAlert>) -> VDomElement {
             alert.render()
         },
         AlertView::SearchInPath => {
-            let state = StateAlertSearch::new(&alert_state);
+            let view = StateAlertSearch::new(&alert_state);
 
             html! {
                 <div>
-                    <component {StateAlertSearch::render} data={state} />
+                    { view }
                 </div>
             }
         }

@@ -6,7 +6,7 @@ pub use render::render;
 use std::rc::Rc;
 
 use common::{HandlerSaveContentBody};
-use vertigo::{Driver, Computed, Value, VDomElement};
+use vertigo::{Driver, Computed, Value, VDomComponent};
 
 use crate::{app::StateApp};
 
@@ -34,7 +34,7 @@ impl StateAppEditContent {
         path: Vec<String>,
         hash: String,
         content: String,
-    ) -> StateAppEditContent {
+    ) -> VDomComponent {
         let edit_content = app_state.driver.new_value(content.clone());
 
         let save_enable = {
@@ -61,7 +61,7 @@ impl StateAppEditContent {
             app_state: app_state.clone()
         };
 
-        state
+        app_state.driver.bind_render(state, render::render)
     }
 
     pub fn on_input(&self, new_text: String) {
@@ -106,11 +106,6 @@ impl StateAppEditContent {
 
             callback.redirect_to_index_with_root_refresh();
         });
-    }
-
-    pub fn render(self) -> VDomElement {
-        let self_computed = self.driver.clone().new_computed_from(self);
-        render::render(&self_computed)
     }
 }
 

@@ -1,6 +1,4 @@
-use std::{rc::Rc};
-
-use vertigo::{Css, Driver, Resource, VDomElement, Computed, Value};
+use vertigo::{Css, Driver, Resource, VDomElement, Computed, Value, VDomComponent};
 use vertigo::{css, html};
 use crate::{components::AlertBox, data::{StateData}};
 use crate::components::icon;
@@ -154,13 +152,13 @@ fn new_results(driver: &Driver, data_state: &StateData, phrase: Computed<String>
 
 #[derive(PartialEq)]
 pub struct StateAlertSearch {
-    alert_state: Rc<StateAlert>,
+    alert_state: StateAlert,
     pub phrase: Value<String>,
     results: Computed<Vec<ResultItem>>,
 }
 
 impl StateAlertSearch {
-    pub fn new(alert_state: &Rc<StateAlert>) -> Computed<StateAlertSearch> {
+    pub fn new(alert_state: &StateAlert) -> VDomComponent {
         let phrase = alert_state.app_state.driver.new_value("".to_string());
 
         let results = new_results(
@@ -169,89 +167,91 @@ impl StateAlertSearch {
             phrase.to_computed(),
         );
 
-        alert_state.app_state.driver.new_computed_from(StateAlertSearch {
+        let state = StateAlertSearch {
             alert_state: alert_state.clone(),
             phrase,
             results,
-        })
-    }
-
-    fn render_results(state: &Computed<StateAlertSearch>) -> VDomElement {
-        let alert_search_state = state.get_value();
-
-        let results = alert_search_state.results.get_value();
-
-        let mut list = Vec::<VDomElement>::new();
-
-        for item in results.iter() {
-            let icon_el = icon::icon_render(item.dir);
-            let path = item.get_path();
-
-            let on_click = {
-                let alert_search_state = alert_search_state.clone();
-                let path = item.path.clone();
-
-                move || {
-                    alert_search_state.alert_state.search_close();
-                    alert_search_state.alert_state.app_state.data.redirect_to(&path)
-                }
-            };
-
-            list.push(html! {
-                <div css={css_result_row()} on_click={on_click}>
-                    <div css={css_result_icon()}>
-                        {icon_el}
-                    </div>
-                    {path}
-                </div>
-            });
-        }
-
-        html! {
-            <div css={css_result()}>
-                {..list}
-            </div>
-        }
-    }
-
-    pub fn render(state: &Computed<StateAlertSearch>) -> VDomElement {
-        let alert_search_state = state.get_value();
-        let phrase = alert_search_state.phrase.clone();
-        let current_value = phrase.get_value();
-
-        let on_input = {
-            let phrase = phrase.clone();
-            move |new_value: String| {
-                phrase.set_value(new_value);
-            }
         };
 
-        let alert_state = alert_search_state.alert_state.clone();
-
-        let on_close = {
-            let alert_state = alert_state.clone();
-            move || {
-                alert_state.search_close();
-            }
-        };
-
-        let content = html! {
-            <div css={css_content()}>
-                <input autofocus="" value={current_value.as_ref()} on_input={on_input} />
-                <br/>
-                
-                <div css={css_close()} on_click={on_close}>
-                    "zamknij"
-                </div>
-
-                <br/>
-                <br/>
-
-                <component {StateAlertSearch::render_results} data={state.clone()} />
-            </div>
-        };
-
-        AlertBox::render_popup(content)
+        alert_state.app_state.driver.bind_render(state, render)
     }
 }
 
+
+fn render_results(state: &Computed<StateAlertSearch>) -> VDomElement {
+    let alert_search_state = state.get_value();
+
+    let results = alert_search_state.results.get_value();
+
+    let mut list = Vec::<VDomElement>::new();
+
+    for item in results.iter() {
+        let icon_el = icon::icon_render(item.dir);
+        let path = item.get_path();
+
+        let on_click = {
+            let alert_search_state = alert_search_state.clone();
+            let path = item.path.clone();
+
+            move || {
+                alert_search_state.alert_state.search_close();
+                alert_search_state.alert_state.app_state.data.redirect_to(&path)
+            }
+        };
+
+        list.push(html! {
+            <div css={css_result_row()} on_click={on_click}>
+                <div css={css_result_icon()}>
+                    {icon_el}
+                </div>
+                {path}
+            </div>
+        });
+    }
+
+    html! {
+        <div css={css_result()}>
+            {..list}
+        </div>
+    }
+}
+
+pub fn render(state: &Computed<StateAlertSearch>) -> VDomElement {
+    let alert_search_state = state.get_value();
+    let phrase = alert_search_state.phrase.clone();
+    let current_value = phrase.get_value();
+
+    let on_input = {
+        let phrase = phrase.clone();
+        move |new_value: String| {
+            phrase.set_value(new_value);
+        }
+    };
+
+    let alert_state = alert_search_state.alert_state.clone();
+
+    let on_close = {
+        let alert_state = alert_state.clone();
+        move || {
+            alert_state.search_close();
+        }
+    };
+
+    let content = html! {
+        <div css={css_content()}>
+            <input autofocus="" value={current_value.as_ref()} on_input={on_input} />
+            <br/>
+            
+            <div css={css_close()} on_click={on_close}>
+                "zamknij"
+            </div>
+
+            <br/>
+            <br/>
+
+            <component {render_results} data={state.clone()} />
+        </div>
+    };
+
+    AlertBox::render_popup(content)
+}
