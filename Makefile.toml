@@ -46,3 +46,13 @@ run_task = "app-serve"
 [tasks.app-my-start]
 env = { "GIT_REPO" = "../notatki_dane" }
 run_task = "app-start"
+
+
+
+[tasks.clippy-wasm32]
+dependencies = [ "wasm32-target" ]
+command = "cargo"
+args = [
+    "clippy", "--all-features", "--target", "wasm32-unknown-unknown",
+    "-p", "panel/common", "-p", "panel/client", "-p", "panel/server"
+]
