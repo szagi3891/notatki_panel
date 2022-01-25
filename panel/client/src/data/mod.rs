@@ -1,4 +1,3 @@
-mod git;
 use std::{collections::HashMap, rc::Rc};
 
 use vertigo::{Driver, Resource, Value, Computed};
@@ -6,8 +5,10 @@ use vertigo::{Driver, Resource, Value, Computed};
 use crate::app::index::ListItem;
 use std::{cmp::Ordering};
 
-use self::git::{StateDataGit, StateDataGitNodeDir, StateDataGitNodeContent, StateDataGitRoot, TreeItem};
+use self::git::{StateDataGit, TreeItem};
 
+mod git;
+mod tabs;
 
 #[derive(PartialEq, Clone, Debug)]
 pub enum CurrentContent {
@@ -135,22 +136,22 @@ fn create_list(driver: &Driver, list: &Computed<Resource<Rc<HashMap<String, Tree
 }
 
 
+#[derive(Clone, PartialEq)]
+pub struct TabPath {
+    pub dir: Value<Vec<String>>,               //TODO - zrobić mozliwość 
+    pub file: Value<Option<String>>,
+}
 
 #[derive(Clone, PartialEq)]
 pub struct StateData {
     pub driver: Driver,
     pub git: StateDataGit,
+    pub tab: TabPath,
 
-    #[deprecated(note="please use `git.dir` instead")]
-    pub dir: StateDataGitNodeDir,
-    #[deprecated(note="please use `git.content` instead")]
-    pub content: StateDataGitNodeContent,
-
-
-    #[deprecated(note="Zrobić prywatne")]
-    pub current_path_dir: Value<Vec<String>>,               //TODO - zrobić mozliwość 
-    #[deprecated(note="Zrobić prywatne")]
-    pub current_path_item: Value<Option<String>>,
+    // #[deprecated(note="Zrobić prywatne")]
+    // pub current_path_dir: Value<Vec<String>>,               //TODO - zrobić mozliwość 
+    // #[deprecated(note="Zrobić prywatne")]
+    // pub current_path_item: Value<Option<String>>,
 
 
     //Te dwie zmienne poniej trafią do stanu który będzie reprezentował taby ...
@@ -169,17 +170,19 @@ impl StateData {
         let current_path_dir: Value<Vec<String>> = driver.new_value(Vec::new());
         let current_path_item: Value<Option<String>> = driver.new_value(None);
 
+        let tab = TabPath {
+            dir: current_path_dir.clone(),
+            file: current_path_item,
+        };
+
         let list_hash_map = create_list_hash_map(driver, &git, &current_path_dir);
         let list = create_list(driver, &list_hash_map);
 
 
         StateData {
             driver: driver.clone(),
-            dir: git.dir.clone(),
-            content: git.content.clone(),
             git,
-            current_path_dir,
-            current_path_item,
+            tab,
             list_hash_map,
             list
         }
@@ -189,41 +192,39 @@ impl StateData {
         let mut path = path.clone();
         let last = path.pop();
 
-        self.current_path_dir.set_value(path);
-        self.current_path_item.set_value(last);
+        self.tab.dir.set_value(path);
+        self.tab.file.set_value(last);
     }
 
-    // pub fn current_path_dir(&self) -> Rc<Vec<String>> {
-    //     self.current_path_dir.get_value()
-    // }
 
-    // pub fn redirect_after_delete(&self) {
-    //     let current_path_item = self.current_path_item.get_value();
-    //     let list = self.list.get_value();
+    pub fn redirect_after_delete(&self) {
+        let current_path_item = self.tab.file.get_value();
+        let list = self.list.get_value();
 
-    //     fn find_index(list: &Vec<ListItem>, value: &Option<String>) -> Option<usize> {
-    //         if let Some(value) = value {
-    //             for (index, item) in list.iter().enumerate() {
-    //                 if item.name == *value {
-    //                     return Some(index);
-    //                 }
-    //             }
-    //         }
-    //         None
-    //     }
+        fn find_index(list: &Vec<ListItem>, value: &Option<String>) -> Option<usize> {
+            if let Some(value) = value {
+                for (index, item) in list.iter().enumerate() {
+                    if item.name == *value {
+                        return Some(index);
+                    }
+                }
+            }
+            None
+        }
 
-    //     if let Some(current_index) = find_index(list.as_ref(), current_path_item.as_ref()) {
-    //         if current_index > 0 {
-    //             if let Some(prev) = list.get(current_index - 1) {
-    //                 self.current_path_item.set_value(Some(prev.name.clone()));
-    //                 return;
-    //             }
-    //         }
+        if let Some(current_index) = find_index(list.as_ref(), current_path_item.as_ref()) {
+            if current_index > 0 {
+                if let Some(prev) = list.get(current_index - 1) {
+                    self.tab.file.set_value(Some(prev.name.clone()));
+                    return;
+                }
+            }
 
-    //         if let Some(prev) = list.get(current_index + 1) {
-    //             self.current_path_item.set_value(Some(prev.name.clone()));
-    //             return;
-    //         }
-    //     };
-    // }
+            if let Some(prev) = list.get(current_index + 1) {
+                self.tab.file.set_value(Some(prev.name.clone()));
+                return;
+            }
+        };
+    }
+
 }

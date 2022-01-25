@@ -72,36 +72,6 @@ impl StateAlert {
         self.view.set_value(AlertView::DeleteFile);
     }
 
-    fn redirect_after_delete(&self) {
-        let current_path_item = self.app_state.data.current_path_item.get_value();
-        let list = self.list.get_value();
-
-        fn find_index(list: &Vec<ListItem>, value: &Option<String>) -> Option<usize> {
-            if let Some(value) = value {
-                for (index, item) in list.iter().enumerate() {
-                    if item.name == *value {
-                        return Some(index);
-                    }
-                }
-            }
-            None
-        }
-
-        if let Some(current_index) = find_index(list.as_ref(), current_path_item.as_ref()) {
-            if current_index > 0 {
-                if let Some(prev) = list.get(current_index - 1) {
-                    self.app_state.data.current_path_item.set_value(Some(prev.name.clone()));
-                    return;
-                }
-            }
-
-            if let Some(prev) = list.get(current_index + 1) {
-                self.app_state.data.current_path_item.set_value(Some(prev.name.clone()));
-                return;
-            }
-        };
-    }
-
     fn delete_yes(&self) {
         if self.is_precess() {
             return;
@@ -136,7 +106,7 @@ impl StateAlert {
         self.driver.spawn(async move {
             let _ = response.await;
             progress.set_value(false);
-            self_copy.redirect_after_delete();
+            self_copy.app_state.data.redirect_after_delete();
             self_copy.app_state.data.git.root.refresh();
             self_copy.view.set_value(AlertView::None);
         });

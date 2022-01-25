@@ -137,17 +137,17 @@ impl AppIndexState {
         let driver = &app_state.driver.clone();
         let state_data = app_state.data.clone();
 
-        let list_current_item = create_current_item_view(driver, &state_data.current_path_item, &state_data.list);
+        let list_current_item = create_current_item_view(driver, &state_data.tab.file, &state_data.list);
         let current_content = create_current_content(
             driver,
             &state_data,
-            &state_data.current_path_dir,
+            &state_data.tab.dir,
             &list_current_item,
         );
 
         let current_full_path = create_current_full_path(
             driver,
-            &state_data.current_path_dir,
+            &state_data.tab.dir,
             &list_current_item,
         );
 
@@ -189,7 +189,7 @@ impl AppIndexState {
 
 
     pub fn set_path(&self, path: Vec<String>) {
-        let current_path = self.data_state.current_path_dir.get_value();
+        let current_path = self.data_state.tab.dir.get_value();
 
         if current_path.as_ref().as_slice() == path.as_slice() {
             log::info!("path are equal");
@@ -199,8 +199,8 @@ impl AppIndexState {
         let (new_current_path, new_current_item_value) = calculate_next_path(current_path.as_ref(), path);
 
         self.app_state.driver.transaction(||{
-            self.data_state.current_path_dir.set_value(new_current_path);
-            self.data_state.current_path_item.set_value(new_current_item_value);
+            self.data_state.tab.dir.set_value(new_current_path);
+            self.data_state.tab.file.set_value(new_current_item_value);
         });
     }
 
@@ -210,11 +210,11 @@ impl AppIndexState {
         if let Resource::Ready(list) = list_hash_map_rc.as_ref() {
             if let Some(node_details) = list.get(&node) {
                 if node_details.dir {
-                    let mut current = self.data_state.current_path_dir.get_value().as_ref().clone();
+                    let mut current = self.data_state.tab.dir.get_value().as_ref().clone();
                     current.push(node.clone());
                     self.set_path(current);
                 } else {
-                    self.data_state.current_path_item.set_value(Some(node.clone()));
+                    self.data_state.tab.file.set_value(Some(node.clone()));
                 }
                 return;
             }
@@ -245,7 +245,7 @@ impl AppIndexState {
         let list = self.data_state.list.get_value();
 
         if let Some(first) = list.get(index) {
-            self.data_state.current_path_item.set_value(Some(first.name.clone()));
+            self.data_state.tab.file.set_value(Some(first.name.clone()));
             return true;
         }
 
@@ -296,7 +296,7 @@ impl AppIndexState {
     }
 
     fn backspace(&self) {
-        let current_path = self.data_state.current_path_dir.get_value();
+        let current_path = self.data_state.tab.dir.get_value();
         let mut current_path = current_path.as_ref().clone();
 
         current_path.pop();
@@ -323,7 +323,7 @@ impl AppIndexState {
             self.pointer_down();
             return true;
         } else if code == "Escape" {
-            self.data_state.current_path_item.set_value(None);
+            self.data_state.tab.file.set_value(None);
             return true;
         } else if code == "ArrowRight" || code == "Enter" {
             self.pointer_enter();
@@ -338,13 +338,13 @@ impl AppIndexState {
     }
 
     pub fn current_edit(&self) {
-        let path = self.data_state.current_path_dir.get_value();
+        let path = self.data_state.tab.dir.get_value();
         let select_item = self.list_current_item.get_value();
         self.app_state.redirect_to_content(&path, &select_item);
     }
 
     pub fn create_file(&self) {
-        let path = self.data_state.current_path_dir.get_value();
+        let path = self.data_state.tab.dir.get_value();
         let list = self.data_state.list.clone();
 
         self.app_state.redirect_to_new_content(path.as_ref(), list);
@@ -355,7 +355,7 @@ impl AppIndexState {
     }
 
     pub fn current_rename(&self) {
-        let path = self.data_state.current_path_dir.get_value();
+        let path = self.data_state.tab.dir.get_value();
         let select_item = self.list_current_item.get_value();
 
         if let Some(select_item) = select_item.as_ref() {
@@ -366,7 +366,7 @@ impl AppIndexState {
     }
 
     pub fn current_path_dir(&self) -> Rc<Vec<String>> {
-        self.data_state.current_path_dir.get_value()
+        self.data_state.tab.dir.get_value()
     }
 
     pub fn tabs_has(&self, url: &String) -> bool {

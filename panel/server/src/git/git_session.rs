@@ -21,18 +21,18 @@ impl GitId {
     pub fn new_kind(id: Oid, kind: Option<ObjectType>) -> Result<GitId, ErrorProcess> {
         match kind {
             Some(ObjectType::Tree) => {
-                return Ok(GitId::new_dir(id));
+                Ok(GitId::new_dir(id))
             }, 
             Some(ObjectType::Blob) => {
-                return Ok(GitId::new_file(id));
+                Ok(GitId::new_file(id))
             },
             Some(kind) => {
-                return Err(ErrorProcess::user(format!("Incorrect type object = {}, {}", id, kind)));
+                Err(ErrorProcess::user(format!("Incorrect type object = {}, {}", id, kind)))
             },
             None => {
-                return ErrorProcess::user_result(format!("It was not possible to determine the type of this object = {}", id));
+                ErrorProcess::user_result(format!("It was not possible to determine the type of this object = {}", id))
             },
-        };
+        }
     }
 
     pub fn new_file(id: Oid) -> GitId {
@@ -104,7 +104,7 @@ impl<'repo> GitTreeBuilder<'repo> {
 }
 
 fn create_id(hash: &String) -> Result<Oid, ErrorProcess> {
-    match Oid::from_str(&hash) {
+    match Oid::from_str(hash) {
         Ok(id) => Ok(id),
         Err(err) => {
             ErrorProcess::user_result(format!("Invalid hash {} {}", hash, err))
@@ -138,7 +138,7 @@ fn get_child_tree<'repo, 'session: 'repo>(
     
     for item in tree {
         if item.name() == Some(name.as_str()) {
-            let tree = find_tree(&session, item.id())?;
+            let tree = find_tree(session, item.id())?;
             return Ok(tree);
         }
     }
@@ -187,9 +187,9 @@ fn find_and_change_path_small<
 ) -> Result<(Oid, R), ErrorProcess> {
     if let Some((first, rest_path)) = path.split_first() {
         
-        let child_tree = get_child_tree(&session, &tree, first)?;
-        let (child_tree_modify, result) = find_and_change_path_small(&session, &child_tree, rest_path, modify)?;
-        let tree_modify = put_child_tree(&session, &tree, first, child_tree_modify)?;
+        let child_tree = get_child_tree(session, tree, first)?;
+        let (child_tree_modify, result) = find_and_change_path_small(session, &child_tree, rest_path, modify)?;
+        let tree_modify = put_child_tree(session, tree, first, child_tree_modify)?;
 
         Ok((tree_modify, result))
 
@@ -293,7 +293,7 @@ fn command_find_blob<'repo>(
 pub fn commit<'repo>(
     session: GitSession<'repo>,
 ) -> Result<String, ErrorProcess> {
-    let new_tree = find_tree(&session, session.root.clone())?;
+    let new_tree = find_tree(&session, session.root)?;
 
     let branch = session.repo.find_branch(session.branch_name.as_str(), BranchType::Local)?;
     let reference = branch.get();
@@ -377,12 +377,10 @@ impl<'repo> GitSession<'repo> {
         id: &String
     ) -> Result<(GitSession<'repo>, Option<GitBlob>), ErrorProcess> {
         
-        let new_self = task::block_in_place(move || {
+        task::block_in_place(move || {
             let result = command_find_blob(&self, id)?;
             Ok((self, result))
-        });
-
-        new_self
+        })
     }
 
     pub async fn create_file_content(self, content: &String) -> Result<(GitSession<'repo>, GitId), ErrorProcess> {
@@ -401,7 +399,7 @@ impl<'repo> GitSession<'repo> {
 
     pub async fn insert_child(mut self, path: &[String], new_child_item: &String, new_content_id: GitId) -> Result<GitSession<'repo>, ErrorProcess> {
         task::block_in_place(move || -> Result<GitSession<'repo>, ErrorProcess> {
-            let (new_root, _) = find_and_change_path(&self, &path, move |tree_builder: &mut GitTreeBuilder<'repo>| -> Result<(), ErrorProcess> {
+            let (new_root, _) = find_and_change_path(&self, path, move |tree_builder: &mut GitTreeBuilder<'repo>| -> Result<(), ErrorProcess> {
                 let is_exist = tree_builder.is_exist(new_child_item.as_str())?;
 
                 if is_exist {
@@ -421,7 +419,7 @@ impl<'repo> GitSession<'repo> {
 
     pub async fn remove_child(mut self, path: &[String], child_name: &String) -> Result<(GitSession<'repo>, Option<GitId>), ErrorProcess> {
         task::block_in_place(move || {
-            let (new_root, result)  = find_and_change_path(&self, &path, move |tree_builder: &mut GitTreeBuilder<'repo>| -> Result<Option<GitId>, ErrorProcess> {
+            let (new_root, result)  = find_and_change_path(&self, path, move |tree_builder: &mut GitTreeBuilder<'repo>| -> Result<Option<GitId>, ErrorProcess> {
                 let child_id = tree_builder.get_child(child_name.as_str())?;
 
                 match child_id {
@@ -443,7 +441,7 @@ impl<'repo> GitSession<'repo> {
     }
 
     pub async fn extract_child(self, path: &[String], child_name: &String) -> Result<(GitSession<'repo>, GitId), ErrorProcess> {
-        let (session, child) = self.remove_child(&path, &child_name).await?;
+        let (session, child) = self.remove_child(path, child_name).await?;
 
         let child = match child {
             Some(child) => child,
@@ -462,7 +460,7 @@ impl<'repo> GitSession<'repo> {
     }
 
     pub fn should_eq(&self, child: &GitId, hash: &String) -> Result<(), ErrorProcess> {
-        let hash = self.create_id(&hash)?;
+        let hash = self.create_id(hash)?;
 
         if hash != *child {
             return ErrorProcess::user_result(format!("'hash' does not match - child={:?} hash={:?}", child, hash));

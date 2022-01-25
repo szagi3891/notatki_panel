@@ -145,7 +145,7 @@ impl Git {
         let (new_path_base, new_path_last) = split_last(&new_path)?;
 
         let session = self.session().await?;
-        let (session, child) = session.extract_child(path_base, &path_last).await?;
+        let (session, child) = session.extract_child(path_base, path_last).await?;
 
         session.should_eq(&child, &item_hash)?;
 
@@ -163,7 +163,7 @@ impl Git {
         let (path_base, path_last) = split_last(&path)?;
         
         let session = self.session().await?;
-        let (session, child) = session.extract_child(path_base, &path_last).await?;
+        let (session, child) = session.extract_child(path_base, path_last).await?;
 
         session.should_eq(&child, &item_hash)?;
         

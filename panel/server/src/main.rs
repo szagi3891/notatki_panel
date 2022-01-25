@@ -2,6 +2,7 @@
 #![allow(clippy::ptr_arg)]
 #![allow(clippy::module_inception)]
 #![allow(clippy::wrong_self_convention)]
+#![allow(clippy::len_zero)]
 
 use common::{
     RootResponse,

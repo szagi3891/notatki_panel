@@ -128,13 +128,13 @@ impl StateApp {
 
     pub fn redirect_to_index_with_path(&self, new_path: Vec<String>, new_item: Option<String>) {
         self.redirect_to_index();
-        self.data.current_path_dir.set_value(new_path);
-        self.data.current_path_item.set_value(new_item);
+        self.data.tab.dir.set_value(new_path);
+        self.data.tab.file.set_value(new_item);
         self.data.git.root.refresh();
     }
 
     pub fn redirect_to_mkdir(&self, list: Computed<Vec<ListItem>>) {
-        let parent = self.data.current_path_dir.clone().get_value();
+        let parent = self.data.tab.dir.clone().get_value();
         self.view.set_value(View::Mkdir { parent, list });
     }
 
