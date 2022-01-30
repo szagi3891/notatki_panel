@@ -1,4 +1,5 @@
-use common::{HandlerDeleteItemBody};
+use std::rc::Rc;
+
 use vertigo::{Driver, VDomElement, VDomComponent};
 use vertigo::{
     Computed,
@@ -6,25 +7,25 @@ use vertigo::{
 };
 use vertigo::{html};
 use crate::app::StateApp;
-use crate::components::AlertBox;
 
 use super::ListItem;
 use super::state_alert_search::StateAlertSearch;
+use super::state_alert_delete::StateAlertDelete;
 
 #[derive(PartialEq)]
 pub enum AlertView {
     None,
     DeleteFile,
     SearchInPath,
+    MoveItem,                       //TODO - zaimplementować
 }
 
 #[derive(PartialEq, Clone)]
 pub struct StateAlert {
     driver: Driver,
     pub app_state: StateApp,
-    list: Computed<Vec<ListItem>>,
     progress: Value<bool>,
-    progress_computed: Computed<bool>,
+    list: Computed<Vec<ListItem>>,
     view: Value<AlertView>,
     current_full_path: Computed<Vec<String>>,
 }
@@ -38,14 +39,12 @@ impl StateAlert {
     ) -> (StateAlert, VDomComponent) {
         let view = app_state.driver.new_value(AlertView::None);
         let progress = app_state.driver.new_value(false);
-        let progress_computed = progress.to_computed();
 
         let state = StateAlert {
             driver,
             app_state: app_state.clone(),
-            list,
             progress,
-            progress_computed,
+            list,
             view,
             current_full_path,
         };
@@ -70,54 +69,6 @@ impl StateAlert {
         }
 
         self.view.set_value(AlertView::DeleteFile);
-    }
-
-    fn delete_yes(&self) {
-        if self.is_precess() {
-            return;
-        }
-
-        let current_path = self.current_full_path.get_value().as_ref().clone();
-        let current_hash = self.app_state.data.git.content_hash(&current_path);
-    
-        let current_hash = match current_hash {
-            Some(current_hash) => current_hash,
-            None => {
-                log::error!("Problem z usunięciem ...");
-                return;
-            }
-        };
-
-        log::info!("usuwamy ...");
-        self.progress.set_value(true);
-
-        let response = self.driver
-            .request("/delete_item")
-            .body_json(HandlerDeleteItemBody {
-                path: current_path,
-                hash: current_hash
-                
-            })
-            .post();    //::<RootResponse>();
-
-        let progress = self.progress.clone();
-        let self_copy = self.clone();
-
-        self.driver.spawn(async move {
-            let _ = response.await;
-            progress.set_value(false);
-            self_copy.app_state.data.tab.redirect_after_delete();
-            self_copy.app_state.data.git.root.refresh();
-            self_copy.view.set_value(AlertView::None);
-        });
-    }
-
-    fn delete_no(&self) {
-        if self.is_precess() {
-            return;
-        }
-
-        self.view.set_value(AlertView::None);
     }
 
     pub fn redirect_to_search(&self) {
@@ -149,26 +100,19 @@ fn render_alert(state: &Computed<StateAlert>) -> VDomElement {
         },
         AlertView::DeleteFile => {
             let full_path = alert_state.current_full_path.get_value();
-
-            let message = format!("Czy usunąć -> {} ?", full_path.join("/"));
-            let computed = alert_state.progress_computed.clone();
-
-            let mut alert = AlertBox::new(message, computed);
-
-            alert.button("Tak", {
-                let alert_state = alert_state.clone();
+            let progress = alert_state.progress.clone();
+            let back = Rc::new({
+                let view = alert_state.view.clone();
                 move || {
-                    alert_state.delete_yes();
+                    view.set_value(AlertView::None);
                 }
             });
 
-            alert.button("Nie", {
-                move || {
-                    alert_state.delete_no();
-                }
-            });
-
-            alert.render()
+            html! {
+                <div>
+                    { StateAlertDelete::render(alert_state, full_path, progress, back) }
+                </div>
+            }
         },
         AlertView::SearchInPath => {
             let view = StateAlertSearch::component(&alert_state);
@@ -176,6 +120,15 @@ fn render_alert(state: &Computed<StateAlert>) -> VDomElement {
             html! {
                 <div>
                     { view }
+                </div>
+            }
+        },
+        AlertView::MoveItem => {
+            let full_path = alert_state.current_full_path.get_value();
+
+            html! {
+                <div>
+                    "przenoszenie elementu -> " {full_path.join("/")}
                 </div>
             }
         }

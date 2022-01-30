@@ -6,8 +6,7 @@ mod render_menu;
 mod render;
 mod state_alert;
 mod state_alert_search;
-
-
+mod state_alert_delete;
 
 use std::rc::Rc;
 use vertigo::{Driver, VDomComponent};

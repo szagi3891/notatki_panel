@@ -11,11 +11,6 @@ pub struct StateData {
     pub driver: Driver,
     pub git: StateDataGit,
     pub tab: TabPath,
-
-    // #[deprecated(note="Zrobić prywatne")]
-    // pub current_path_dir: Value<Vec<String>>,               //TODO - zrobić mozliwość 
-    // #[deprecated(note="Zrobić prywatne")]
-    // pub current_path_item: Value<Option<String>>,
 }
 
 impl StateData {
