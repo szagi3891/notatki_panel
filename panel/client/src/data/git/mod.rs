@@ -10,7 +10,72 @@ pub use node_dir::{StateDataGitNodeDir, TreeItem};
 pub use node_content::StateDataGitNodeContent;
 pub use root::StateDataGitRoot;
 
-use super::CurrentContent;
+
+#[derive(PartialEq, Clone, Debug)]
+pub enum CurrentContent {
+    File {
+        file_name: String,      //name
+        file_hash: String,      //hash
+        content: Rc<String>,    //content file
+    },
+    Dir {
+        dir: String,            //hash
+        dir_hash: String,
+        list: Rc<HashMap<String, TreeItem>>,
+    },
+    None
+}
+
+impl CurrentContent {
+    fn file(file_name: String, file_hash: String, content: Rc<String>) -> CurrentContent {
+        CurrentContent::File {
+            file_name,
+            file_hash,
+            content,
+        }
+    }
+
+    fn dir(dir: String, dir_hash: String, list: Rc<HashMap<String, TreeItem>>) -> CurrentContent {
+        CurrentContent::Dir {
+            dir,
+            dir_hash,
+            list,
+        }
+    }
+
+    pub fn to_string(&self) -> Option<Rc<String>> {
+        if let CurrentContent::File { content, .. } = self {
+            return Some(content.clone());
+        }
+
+        None
+    }
+
+    // pub fn is_file(&self) -> bool {
+    //     if let Self::File{..} = self {
+    //         true
+    //     } else {
+    //         false
+    //     }
+    // }
+
+    // pub fn is_dir(&self) -> bool {
+    //     if let Self::Dir{..} = self {
+    //         true
+    //     } else {
+    //         false
+    //     }
+    // }
+
+    // pub fn is_none(&self) -> bool {
+    //     if let Self::None = self {
+    //         true
+    //     } else {
+    //         false
+    //     }
+    // }
+}
+
 
 
 fn get_item_from_map<'a>(current_wsk: &'a Rc<HashMap<String, TreeItem>>, path_item: &String) -> Resource<&'a TreeItem> {

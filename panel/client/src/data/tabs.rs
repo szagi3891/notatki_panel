@@ -145,4 +145,17 @@ impl TabPath {
             }
         };
     }
+
+    pub fn redirect_to_dir(&self, path: &Vec<String>) {
+        self.dir.set_value(path.clone());
+        self.file.set_value(None);
+    }
+
+    pub fn redirect_to_file(&self, path: &Vec<String>) {
+        let mut path = path.clone();
+        let last = path.pop();
+
+        self.dir.set_value(path);
+        self.file.set_value(last);
+    }
 }

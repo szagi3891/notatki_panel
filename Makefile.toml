@@ -48,6 +48,12 @@ env = { "GIT_REPO" = "../notatki_dane" }
 run_task = "app-start"
 
 
+[tasks.app-my-start-watch]
+command = "cargo"
+args = [ "watch", "--watch", "./panel", "--delay", "0.5", "-x", "make app-my-start" ]
+
+
+
 
 [tasks.clippy-wasm32]
 dependencies = [ "wasm32-target" ]

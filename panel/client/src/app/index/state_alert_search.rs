@@ -58,7 +58,7 @@ impl ResultItem {
             dir: false
         }
     }
-    fn get_path(&self) -> String {
+    fn to_string(&self) -> String {
         self.path.as_slice().join("/")
     }
 }
@@ -187,15 +187,20 @@ fn render_results(state: &Computed<StateAlertSearch>) -> VDomElement {
 
     for item in results.iter() {
         let icon_el = icon::icon_render(item.dir);
-        let path = item.get_path();
+        let path = item.to_string();
 
         let on_click = {
             let alert_search_state = alert_search_state.clone();
             let path = item.path.clone();
+            let dir = item.dir;
 
             move || {
                 alert_search_state.alert_state.search_close();
-                alert_search_state.alert_state.app_state.data.redirect_to(&path)
+                if dir {
+                    alert_search_state.alert_state.app_state.data.tab.redirect_to_dir(&path);
+                } else {
+                    alert_search_state.alert_state.app_state.data.tab.redirect_to_file(&path);
+                }
             }
         };
 
