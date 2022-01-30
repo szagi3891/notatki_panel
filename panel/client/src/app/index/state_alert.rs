@@ -106,7 +106,7 @@ impl StateAlert {
         self.driver.spawn(async move {
             let _ = response.await;
             progress.set_value(false);
-            self_copy.app_state.data.redirect_after_delete();
+            self_copy.app_state.data.tab.redirect_after_delete();
             self_copy.app_state.data.git.root.refresh();
             self_copy.view.set_value(AlertView::None);
         });

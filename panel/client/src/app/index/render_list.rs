@@ -170,7 +170,7 @@ pub fn render_list(state: &Computed<AppIndexState>) -> VDomElement {
     let mut out: Vec<VDomElement> = Vec::new();
 
     let state = state.get_value();
-    let list = state.data_state.list.get_value();
+    let list = state.data_state.tab.list.get_value();
     let current_item = state.list_current_item.get_value();
 
     for item in (*list).iter() {

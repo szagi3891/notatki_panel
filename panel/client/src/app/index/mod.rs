@@ -137,7 +137,7 @@ impl AppIndexState {
         let driver = &app_state.driver.clone();
         let state_data = app_state.data.clone();
 
-        let list_current_item = create_current_item_view(driver, &state_data.tab.file, &state_data.list);
+        let list_current_item = create_current_item_view(driver, &state_data.tab.file, &state_data.tab.list);
         let current_content = create_current_content(
             driver,
             &state_data,
@@ -154,7 +154,7 @@ impl AppIndexState {
         let (alert, alert_view) = StateAlert::new(
             app_state.clone(),
             current_full_path,
-            state_data.list.clone(),
+            state_data.tab.list.clone(),
             state_data.driver.clone()
         );
 
@@ -205,7 +205,7 @@ impl AppIndexState {
     }
 
     pub fn click_list_item(&self, node: String) {
-        let list_hash_map_rc = self.data_state.list_hash_map.get_value();
+        let list_hash_map_rc = self.data_state.tab.list_hash_map.get_value();
 
         if let Resource::Ready(list) = list_hash_map_rc.as_ref() {
             if let Some(node_details) = list.get(&node) {
@@ -224,7 +224,7 @@ impl AppIndexState {
     }
 
     fn find(&self, item_finding: &String) -> Option<isize> {
-        let list = self.data_state.list.get_value();
+        let list = self.data_state.tab.list.get_value();
 
         for (index, item) in list.as_ref().iter().enumerate() {
             if item.name == *item_finding {
@@ -242,7 +242,7 @@ impl AppIndexState {
 
         let index = index as usize;
 
-        let list = self.data_state.list.get_value();
+        let list = self.data_state.tab.list.get_value();
 
         if let Some(first) = list.get(index) {
             self.data_state.tab.file.set_value(Some(first.name.clone()));
@@ -253,7 +253,7 @@ impl AppIndexState {
     }
 
     fn try_set_pointer_to_end(&self) {
-        let len = self.data_state.list.get_value().len() as isize;
+        let len = self.data_state.tab.list.get_value().len() as isize;
         self.try_set_pointer_to(len - 1);
     }
 
@@ -345,13 +345,13 @@ impl AppIndexState {
 
     pub fn create_file(&self) {
         let path = self.data_state.tab.dir.get_value();
-        let list = self.data_state.list.clone();
+        let list = self.data_state.tab.list.clone();
 
         self.app_state.redirect_to_new_content(path.as_ref(), list);
     }
 
     pub fn redirect_to_mkdir(&self) {
-        self.app_state.redirect_to_mkdir(self.data_state.list.clone());
+        self.app_state.redirect_to_mkdir(self.data_state.tab.list.clone());
     }
 
     pub fn current_rename(&self) {
