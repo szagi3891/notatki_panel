@@ -8,24 +8,21 @@ use vertigo::{
 use vertigo::{html};
 use crate::app::StateApp;
 
-use super::ListItem;
 use super::state_alert_search::StateAlertSearch;
 use super::state_alert_delete::StateAlertDelete;
 
 #[derive(PartialEq)]
 pub enum AlertView {
     None,
-    DeleteFile,
+    DeleteFile { full_path: Rc<Vec<String>> },
     SearchInPath,
-    MoveItem,                       //TODO - zaimplementować
+    MoveItem { full_path: Rc<Vec<String>> },                       //TODO - zaimplementować
 }
 
 #[derive(PartialEq, Clone)]
 pub struct StateAlert {
     driver: Driver,
     pub app_state: StateApp,
-    progress: Value<bool>,
-    list: Computed<Vec<ListItem>>,
     view: Value<AlertView>,
     current_full_path: Computed<Vec<String>>,
 }
@@ -34,17 +31,13 @@ impl StateAlert {
     pub fn new(
         app_state: StateApp,
         current_full_path: Computed<Vec<String>>,
-        list: Computed<Vec<ListItem>>,
         driver: Driver
     ) -> (StateAlert, VDomComponent) {
         let view = app_state.driver.new_value(AlertView::None);
-        let progress = app_state.driver.new_value(false);
 
         let state = StateAlert {
             driver,
             app_state: app_state.clone(),
-            progress,
-            list,
             view,
             current_full_path,
         };
@@ -58,32 +51,33 @@ impl StateAlert {
         *view != AlertView::None
     }
 
-    fn is_precess(&self) -> bool {
-        let value = self.progress.get_value();
-        *value
-    }
-
     pub fn delete(&self) {
-        if self.is_precess() {
+        if self.is_visible() {
             return;
         }
 
-        self.view.set_value(AlertView::DeleteFile);
+        let full_path = self.current_full_path.get_value();
+        self.view.set_value(AlertView::DeleteFile { full_path });
     }
 
     pub fn redirect_to_search(&self) {
-        if self.is_precess() {
+        if self.is_visible() {
             return;
         }
 
         self.view.set_value(AlertView::SearchInPath);
     }
 
-    pub fn search_close(&self) {
-        if self.is_precess() {
+    pub fn move_current(&self) {
+        if self.is_visible() {
             return;
         }
 
+        let full_path = self.current_full_path.get_value();
+        self.view.set_value(AlertView::MoveItem { full_path });
+    }
+
+    pub fn close_modal(&self) {
         self.view.set_value(AlertView::None);
     }
 }
@@ -98,19 +92,10 @@ fn render_alert(state: &Computed<StateAlert>) -> VDomElement {
                 <div />
             }
         },
-        AlertView::DeleteFile => {
-            let full_path = alert_state.current_full_path.get_value();
-            let progress = alert_state.progress.clone();
-            let back = Rc::new({
-                let view = alert_state.view.clone();
-                move || {
-                    view.set_value(AlertView::None);
-                }
-            });
-
+        AlertView::DeleteFile { full_path } => {
             html! {
                 <div>
-                    { StateAlertDelete::render(alert_state, full_path, progress, back) }
+                    { StateAlertDelete::render(alert_state, full_path) }
                 </div>
             }
         },
@@ -123,9 +108,7 @@ fn render_alert(state: &Computed<StateAlert>) -> VDomElement {
                 </div>
             }
         },
-        AlertView::MoveItem => {
-            let full_path = alert_state.current_full_path.get_value();
-
+        AlertView::MoveItem { full_path } => {
             html! {
                 <div>
                     "przenoszenie elementu -> " {full_path.join("/")}

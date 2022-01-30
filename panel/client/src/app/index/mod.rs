@@ -153,7 +153,6 @@ impl AppIndexState {
         let (alert, alert_view) = StateAlert::new(
             app_state.clone(),
             current_full_path,
-            state_data.tab.list.clone(),
             state_data.driver.clone()
         );
 
@@ -306,7 +305,7 @@ impl AppIndexState {
     pub fn keydown(&self, code: String) -> bool {
         if self.alert.is_visible() {
             if code == "Escape" {
-                self.alert.search_close();
+                self.alert.close_modal();
                 return true;
             }
 

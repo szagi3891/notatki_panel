@@ -15,8 +15,9 @@ pub struct StateAlertDelete {
 }
 
 impl StateAlertDelete {
-    pub fn render(alert_state: Rc<StateAlert>, full_path: Rc<Vec<String>>, progress: Value<bool>, back: Rc<dyn Fn()>) -> VDomElement {
-
+    pub fn render(alert_state: Rc<StateAlert>, full_path: &Rc<Vec<String>>) -> VDomElement {
+        let full_path = full_path.clone();
+        let progress: Value<bool> = alert_state.app_state.driver.new_value(false);
         let progress_computed = progress.to_computed();
 
         let message = format!("Czy usunąć -> {} ?", full_path.join("/"));
@@ -25,7 +26,7 @@ impl StateAlertDelete {
 
         let delete_yes = {
             let progress = progress.clone();
-            let back = back.clone();
+            let alert_state = alert_state.clone();
 
             move || {
                 if *progress.get_value() {
@@ -57,7 +58,7 @@ impl StateAlertDelete {
 
 
                 alert_state.app_state.driver.spawn({
-                    let back = back.clone();
+                    let alert_state = alert_state.clone();
                     let progress = progress.clone();
                     let self_copy = alert_state.clone();
     
@@ -67,7 +68,7 @@ impl StateAlertDelete {
                         self_copy.app_state.data.tab.redirect_after_delete();
                         self_copy.app_state.data.git.root.refresh();
                         // self_copy.view.set_value(AlertView::None);
-                        back();
+                        alert_state.close_modal();
                     }
                 });
             }
@@ -75,13 +76,13 @@ impl StateAlertDelete {
 
         let delete_no = {
             let process = progress.clone();
-            let back = back.clone();
+            let alert_state = alert_state.clone();
             move || {
                 if *process.get_value() {
                     return;
                 }
 
-                back();
+                alert_state.close_modal();
             }
         };
 

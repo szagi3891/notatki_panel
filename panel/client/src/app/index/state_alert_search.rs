@@ -195,7 +195,7 @@ fn render_results(state: &Computed<StateAlertSearch>) -> VDomElement {
             let dir = item.dir;
 
             move || {
-                alert_search_state.alert_state.search_close();
+                alert_search_state.alert_state.close_modal();
                 if dir {
                     alert_search_state.alert_state.app_state.data.tab.redirect_to_dir(&path);
                 } else {
@@ -236,7 +236,7 @@ pub fn render(state: &Computed<StateAlertSearch>) -> VDomElement {
 
     let on_close = {
         move || {
-            alert_state.search_close();
+            alert_state.close_modal();
         }
     };
 
