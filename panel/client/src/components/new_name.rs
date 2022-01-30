@@ -6,7 +6,9 @@ use vertigo::{
 
 use vertigo::{Css, VDomElement};
 use vertigo::{css, html};
-use crate::app::index::ListItem;
+
+use crate::data::ListItem;
+// use crate::app::index::ListItem;
 
 fn is_exist_in_list(name: &String, list: Rc<Vec<ListItem>>) -> bool {
     for item in list.as_ref() {

@@ -171,7 +171,7 @@ pub fn render_list(state: &Computed<AppIndexState>) -> VDomElement {
 
     let state = state.get_value();
     let list = state.data_state.tab.list.get_value();
-    let current_item = state.list_current_item.get_value();
+    let current_item = state.app_state.data.tab.list_current_item.get_value();
 
     for item in (*list).iter() {
         let on_click = {

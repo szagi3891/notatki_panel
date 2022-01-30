@@ -6,12 +6,13 @@ use vertigo::{
 
 use vertigo::{html, css};
 
+use crate::app::index::menu::AppIndexMenuState;
+
 use super::AppIndexState;
 
 use super::render_list::render_list;
 use super::render_header::render_header;
 use super::render_content::render_content;
-use super::render_menu::render_menu;
 
 fn css_wrapper() -> Css {
     css!("
@@ -64,6 +65,8 @@ pub fn render_index(state: &Computed<AppIndexState>) -> VDomElement {
 
     let alert = state_value.alert_view.clone();
 
+    let menu_view = AppIndexMenuState::component(&state_value);
+    
     html! {
         <div css={css_wrapper()}>
             <style>
@@ -77,7 +80,7 @@ pub fn render_index(state: &Computed<AppIndexState>) -> VDomElement {
                 }
                 "
             </style>
-            <component {render_menu} data={state.clone()} />
+            { menu_view }
             <component {render_header} data={state.clone()} />
             <div css={css_content()}>
                 <div css={css_content_list()}>

@@ -44,7 +44,7 @@ pub fn render_content(state: &Computed<AppIndexState>) -> VDomElement {
 
     let state = state.get_value();
 
-    let current_content = state.current_content.get_value();
+    let current_content = state.app_state.data.tab.current_content.get_value();
 
     let content = current_content.to_string();
 

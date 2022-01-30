@@ -5,6 +5,7 @@ mod git;
 mod tabs;
 
 pub use git::CurrentContent;
+pub use tabs::ListItem;
 
 #[derive(Clone, PartialEq)]
 pub struct StateData {

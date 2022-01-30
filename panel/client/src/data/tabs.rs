@@ -1,12 +1,9 @@
 use std::{collections::HashMap, rc::Rc};
 
 use vertigo::{Driver, Resource, Value, Computed};
+use std::cmp::Ordering;
 
-use crate::app::index::ListItem;
-use std::{cmp::Ordering};
-
-use super::git::{StateDataGit, TreeItem};
-
+use super::{git::{StateDataGit, TreeItem}, CurrentContent};
 
 
 fn create_list_hash_map(driver: &Driver, git: &StateDataGit, current_path: &Value<Vec<String>>) -> Computed<Resource<Rc<HashMap<String, TreeItem>>>> {
@@ -90,29 +87,131 @@ fn create_list(driver: &Driver, list: &Computed<Resource<Rc<HashMap<String, Tree
     })
 }
 
+
+
+#[derive(PartialEq, Debug, Clone)]
+pub struct ListItem {
+    pub name: String,
+    pub dir: bool,
+    pub prirority: u8,
+}
+
+fn create_current_item_view(
+    driver: &Driver,
+    current_item: &Value<Option<String>>,
+    list: &Computed<Vec<ListItem>>
+) -> Computed<Option<String>> {
+    let current_item = current_item.clone();
+    let list = list.clone();
+
+    driver.from(move || -> Option<String> {
+        let current_item = current_item.get_value();
+
+        if let Some(current_item) = current_item.as_ref() {
+            return Some(current_item.clone());
+        }
+
+        let list = list.get_value();
+        if let Some(first) = list.first() {
+            return Some(first.name.clone());
+        }
+
+        None
+    })
+}
+
+fn create_current_full_path(
+    driver: &Driver,
+    current_path_dir: &Value<Vec<String>>,
+    list_current_item: &Computed<Option<String>>,
+) -> Computed<Vec<String>> {
+    let current_path_dir = current_path_dir.clone();
+    let list_current_item = list_current_item.clone();
+
+    driver.from(move || -> Vec<String> {
+        let mut current_path_dir = current_path_dir.get_value().as_ref().clone();
+
+        if let Some(list_current_item) = list_current_item.get_value().as_ref() {
+            current_path_dir.push(list_current_item.clone());
+        }
+
+        current_path_dir
+    })
+}
+
+fn create_current_content(
+    driver: &Driver,
+    state_data_git: &StateDataGit,
+    current_path_dir: &Value<Vec<String>>,
+    list_current_item: &Computed<Option<String>>
+) -> Computed<CurrentContent> {
+
+    let state_data_git = state_data_git.clone();
+    let current_path_dir = current_path_dir.to_computed();
+    let list_current_item = list_current_item.clone();
+
+    driver.from(move || -> CurrentContent {
+        let current_path_dir = current_path_dir.get_value();
+        let list_current_item = list_current_item.get_value();
+
+        state_data_git.get_content(current_path_dir.as_ref(), list_current_item.as_ref())
+    })
+}
+
+
+
 #[derive(Clone, PartialEq)]
 pub struct TabPath {
     pub dir: Value<Vec<String>>,               //TODO - zrobić mozliwość 
-    pub file: Value<Option<String>>,
+    pub file: Value<Option<String>>,           //TODO - to mozna docelowo ukryć przed bezpośrednimi modyfikacjami zewnętrznymi
 
     pub list_hash_map: Computed<Resource<Rc<HashMap<String, TreeItem>>>>,
     //aktualnie wyliczona lista
     pub list: Computed<Vec<ListItem>>,
+
+
+
+    //wybrany element z listy, dla widoku
+    pub list_current_item: Computed<Option<String>>,
+
+    pub current_full_path: Computed<Vec<String>>,
+
+    //aktualnie wyliczony wybrany content wskazywany przez current_path
+    pub current_content: Computed<CurrentContent>,
+
 }
 
 impl TabPath {
     pub fn new(driver: &Driver, git: &StateDataGit) -> TabPath {
         let current_path_dir: Value<Vec<String>> = driver.new_value(Vec::new());
-        let current_path_item: Value<Option<String>> = driver.new_value(None);
+        let file: Value<Option<String>> = driver.new_value(None);
 
         let list_hash_map = create_list_hash_map(driver, git, &current_path_dir);
         let list = create_list(driver, &list_hash_map);
 
+
+        let list_current_item = create_current_item_view(driver, &file, &list);
+
+        let current_full_path = create_current_full_path(
+            driver,
+            &current_path_dir,
+            &list_current_item,
+        );
+        let current_content = create_current_content(
+            driver,
+            git,
+            &current_path_dir,
+            &list_current_item,
+        );
+
         TabPath {
             dir: current_path_dir.clone(),
-            file: current_path_item,
+            file,
             list_hash_map,
-            list
+            list,
+            list_current_item,
+            current_full_path,
+            current_content,
         }
     }
 

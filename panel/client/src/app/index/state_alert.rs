@@ -14,9 +14,9 @@ use super::state_alert_delete::StateAlertDelete;
 #[derive(PartialEq)]
 pub enum AlertView {
     None,
-    DeleteFile { full_path: Rc<Vec<String>> },
+    DeleteFile { path: Rc<Vec<String>> },
     SearchInPath,
-    MoveItem { full_path: Rc<Vec<String>> },                       //TODO - zaimplementować
+    MoveItem { path: Rc<Vec<String>> },                       //TODO - zaimplementować
 }
 
 #[derive(PartialEq, Clone)]
@@ -51,13 +51,13 @@ impl StateAlert {
         *view != AlertView::None
     }
 
-    pub fn delete(&self) {
+    pub fn delete(&self, path: Rc<Vec<String>>) {
         if self.is_visible() {
             return;
         }
 
-        let full_path = self.current_full_path.get_value();
-        self.view.set_value(AlertView::DeleteFile { full_path });
+        // let full_path = self.current_full_path.get_value();
+        self.view.set_value(AlertView::DeleteFile { path });
     }
 
     pub fn redirect_to_search(&self) {
@@ -68,13 +68,12 @@ impl StateAlert {
         self.view.set_value(AlertView::SearchInPath);
     }
 
-    pub fn move_current(&self) {
+    pub fn move_current(&self,  path: Rc<Vec<String>>) {
         if self.is_visible() {
             return;
         }
 
-        let full_path = self.current_full_path.get_value();
-        self.view.set_value(AlertView::MoveItem { full_path });
+        self.view.set_value(AlertView::MoveItem { path });
     }
 
     pub fn close_modal(&self) {
@@ -92,10 +91,10 @@ fn render_alert(state: &Computed<StateAlert>) -> VDomElement {
                 <div />
             }
         },
-        AlertView::DeleteFile { full_path } => {
+        AlertView::DeleteFile { path } => {
             html! {
                 <div>
-                    { StateAlertDelete::render(alert_state, full_path) }
+                    { StateAlertDelete::render(alert_state, path) }
                 </div>
             }
         },
@@ -108,10 +107,10 @@ fn render_alert(state: &Computed<StateAlert>) -> VDomElement {
                 </div>
             }
         },
-        AlertView::MoveItem { full_path } => {
+        AlertView::MoveItem { path } => {
             html! {
                 <div>
-                    "przenoszenie elementu -> " {full_path.join("/")}
+                    "przenoszenie elementu -> " {path.join("/")}
                 </div>
             }
         }

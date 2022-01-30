@@ -3,7 +3,7 @@ use std::rc::Rc;
 use common::{HandlerCreateDirBody};
 use vertigo::{Driver, Computed, Value, VDomComponent};
 
-use crate::{app::{StateApp, index::ListItem}};
+use crate::{app::{StateApp}, data::ListItem};
 use crate::components::new_name;
 
 mod render;

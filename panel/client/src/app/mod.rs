@@ -7,10 +7,8 @@ use vertigo::{
 };
 use vertigo::html;
 use std::rc::Rc;
-use crate::data::CurrentContent;
+use crate::data::{CurrentContent, ListItem};
 use crate::data::StateData;
-
-use self::index::ListItem;
 
 pub mod index;
 mod edit_content;

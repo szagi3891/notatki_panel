@@ -2,7 +2,7 @@
 mod render_list;
 mod render_header;
 mod render_content;
-mod render_menu;
+mod menu;
 mod render;
 mod state_alert;
 mod state_alert_search;
@@ -12,120 +12,22 @@ use std::rc::Rc;
 use vertigo::{Driver, VDomComponent};
 use vertigo::{
     Resource,
-    Computed,
     Value
 };
 use crate::app::StateApp;
-use crate::data::{CurrentContent};
 use crate::data::StateData;
 
 use self::state_alert::StateAlert;
-
-#[derive(PartialEq, Debug, Clone)]
-pub struct ListItem {
-    pub name: String,
-    pub dir: bool,
-    pub prirority: u8,
-}
-
-fn create_current_item_view(
-    driver: &Driver,
-    current_item: &Value<Option<String>>,
-    list: &Computed<Vec<ListItem>>
-) -> Computed<Option<String>> {
-    let current_item = current_item.clone();
-    let list = list.clone();
-
-    driver.from(move || -> Option<String> {
-        let current_item = current_item.get_value();
-
-        if let Some(current_item) = current_item.as_ref() {
-            return Some(current_item.clone());
-        }
-
-        let list = list.get_value();
-        if let Some(first) = list.first() {
-            return Some(first.name.clone());
-        }
-
-        None
-    })
-}
-
-fn create_current_full_path(
-    driver: &Driver,
-    current_path_dir: &Value<Vec<String>>,
-    list_current_item: &Computed<Option<String>>,
-) -> Computed<Vec<String>> {
-    let current_path_dir = current_path_dir.clone();
-    let list_current_item = list_current_item.clone();
-
-    driver.from(move || -> Vec<String> {
-        let mut current_path_dir = current_path_dir.get_value().as_ref().clone();
-
-        if let Some(list_current_item) = list_current_item.get_value().as_ref() {
-            current_path_dir.push(list_current_item.clone());
-        }
-
-        current_path_dir
-    })
-}
-
-fn create_current_content(
-    driver: &Driver,
-    state_data: &StateData,
-    current_path_dir: &Value<Vec<String>>,
-    list_current_item: &Computed<Option<String>>
-) -> Computed<CurrentContent> {
-
-    let state_data = state_data.clone();
-    let current_path_dir = current_path_dir.to_computed();
-    let list_current_item = list_current_item.clone();
-
-    driver.from(move || -> CurrentContent {
-        let current_path_dir = current_path_dir.get_value();
-        let list_current_item = list_current_item.get_value();
-
-        state_data.git.get_content(current_path_dir.as_ref(), list_current_item.as_ref())
-    })
-}
-
-fn create_avaible_delete_current(
-    driver: &Driver,
-    current_content: Computed<CurrentContent>
-) -> Computed<bool> {
-
-    driver.from(move || -> bool {
-        let current = current_content.get_value();
-
-        match current.as_ref() {
-            CurrentContent::None => false,
-            CurrentContent::File { .. } => true,
-            CurrentContent::Dir { list, ..} => list.len() == 0
-        }
-    })
-}
 
 #[derive(PartialEq, Clone)]
 pub struct AppIndexState {
     driver: Driver,
     pub data_state: StateData,
 
-    //wybrany element z listy, dla widoku
-    pub list_current_item: Computed<Option<String>>,
-
-    // pub current_full_path: Computed<Vec<String>>,
-
-    //aktualnie wyliczony wybrany content wskazywany przez current_path
-    pub current_content: Computed<CurrentContent>,
-
     app_state: StateApp,
 
     pub alert: StateAlert,
     pub alert_view: VDomComponent,
-
-    //true - jeśli aktualnie podświetlony element jest mozliwy do usuniecia
-    pub avaible_delete_button: Computed<bool>,
 
     pub tabs_url: Value<Vec<String>>,
     pub tabs_active: Value<Option<String>>,
@@ -136,40 +38,21 @@ impl AppIndexState {
         let driver = &app_state.driver.clone();
         let state_data = app_state.data.clone();
 
-        let list_current_item = create_current_item_view(driver, &state_data.tab.file, &state_data.tab.list);
-        let current_content = create_current_content(
-            driver,
-            &state_data,
-            &state_data.tab.dir,
-            &list_current_item,
-        );
-
-        let current_full_path = create_current_full_path(
-            driver,
-            &state_data.tab.dir,
-            &list_current_item,
-        );
-
         let (alert, alert_view) = StateAlert::new(
             app_state.clone(),
-            current_full_path,
+            state_data.tab.current_full_path.clone(),
             state_data.driver.clone()
         );
 
-        let avaible_delete_current= create_avaible_delete_current(driver, current_content.clone());
-    
         let tabs_url = driver.new_value(Vec::new());
         let tabs_active = driver.new_value(None);
 
         let state = AppIndexState {
             driver: driver.clone(),
             data_state: state_data,
-            list_current_item,
-            current_content,
             app_state: app_state.clone(),
             alert,
             alert_view,
-            avaible_delete_button: avaible_delete_current,
             tabs_url,
             tabs_active,
         };
@@ -256,7 +139,7 @@ impl AppIndexState {
     }
 
     fn pointer_up(&self) {
-        let list_pointer_rc = self.list_current_item.get_value();
+        let list_pointer_rc = self.data_state.tab.list_current_item.get_value();
 
         if let Some(list_pointer) = list_pointer_rc.as_ref() {
             if let Some(index) = self.find(list_pointer) {
@@ -270,7 +153,7 @@ impl AppIndexState {
     }
 
     fn pointer_down(&self) {
-        let list_pointer_rc = self.list_current_item.get_value();
+        let list_pointer_rc = self.data_state.tab.list_current_item.get_value();
 
         if let Some(list_pointer) = list_pointer_rc.as_ref() {
             if let Some(index) = self.find(list_pointer) {
@@ -284,7 +167,7 @@ impl AppIndexState {
     }
 
     fn pointer_enter(&self) {
-        let list_pointer = self.list_current_item.get_value();
+        let list_pointer = self.data_state.tab.list_current_item.get_value();
 
         if let Some(list_pointer) = list_pointer.as_ref() {
             if self.find(list_pointer).is_some() {
@@ -337,7 +220,7 @@ impl AppIndexState {
 
     pub fn current_edit(&self) {
         let path = self.data_state.tab.dir.get_value();
-        let select_item = self.list_current_item.get_value();
+        let select_item = self.data_state.tab.list_current_item.get_value();
         self.app_state.redirect_to_content(&path, &select_item);
     }
 
@@ -354,7 +237,7 @@ impl AppIndexState {
 
     pub fn current_rename(&self) {
         let path = self.data_state.tab.dir.get_value();
-        let select_item = self.list_current_item.get_value();
+        let select_item = self.data_state.tab.list_current_item.get_value();
 
         if let Some(select_item) = select_item.as_ref() {
             self.app_state.redirect_to_rename_item(&path, select_item);

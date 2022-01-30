@@ -5,8 +5,9 @@ use std::rc::Rc;
 use common::{HandlerCreateFileBody};
 use vertigo::{Driver, Computed, Value, VDomComponent};
 
-use crate::{app::{StateApp, index::ListItem}};
+use crate::app::StateApp;
 use crate::components::new_name;
+use crate::data::ListItem;
 
 #[derive(PartialEq)]
 pub struct StateAppNewContent {
