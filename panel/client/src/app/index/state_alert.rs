@@ -1,10 +1,6 @@
 use std::rc::Rc;
 
-use vertigo::{Driver, VDomElement, VDomComponent};
-use vertigo::{
-    Computed,
-    Value
-};
+use vertigo::{Value, VDomElement, VDomComponent};
 use vertigo::{html};
 use crate::app::StateApp;
 
@@ -19,30 +15,22 @@ pub enum AlertView {
     MoveItem { path: Rc<Vec<String>> },                       //TODO - zaimplementować
 }
 
-#[derive(PartialEq, Clone)]
+#[derive(Clone)]
 pub struct StateAlert {
-    driver: Driver,
     pub app_state: StateApp,
     view: Value<AlertView>,
-    current_full_path: Computed<Vec<String>>,
 }
 
 impl StateAlert {
-    pub fn new(
-        app_state: StateApp,
-        current_full_path: Computed<Vec<String>>,
-        driver: Driver
-    ) -> (StateAlert, VDomComponent) {
+    pub fn new(app_state: StateApp) -> (StateAlert, VDomComponent) {
         let view = app_state.driver.new_value(AlertView::None);
 
         let state = StateAlert {
-            driver,
             app_state: app_state.clone(),
             view,
-            current_full_path,
         };
 
-        let view = app_state.driver.bind_render(state.clone(), render_alert);
+        let view = VDomComponent::new(state.clone(), render_alert);
         (state, view)
     }
 
@@ -56,7 +44,6 @@ impl StateAlert {
             return;
         }
 
-        // let full_path = self.current_full_path.get_value();
         self.view.set_value(AlertView::DeleteFile { path });
     }
 
@@ -81,8 +68,7 @@ impl StateAlert {
     }
 }
 
-fn render_alert(state: &Computed<StateAlert>) -> VDomElement {
-    let alert_state = state.get_value();
+fn render_alert(alert_state: &StateAlert) -> VDomElement {
     let alert = alert_state.view.get_value();
 
     match alert.as_ref() {

@@ -1,7 +1,6 @@
 use vertigo::{
     Css,
-    VDomElement,
-    Computed,
+    VDomElement, VDomComponent,
 };
 
 use vertigo::{html, css};
@@ -59,40 +58,41 @@ fn css_content_content() -> Css {
     //font-size: 20px;
 }
 
-pub fn render_index(state: &Computed<AppIndexState>) -> VDomElement {
+pub fn render_index(state_value: AppIndexState) -> VDomComponent {
+    let view_alert = state_value.alert_view.clone();
+    let view_menu = AppIndexMenuState::component(&state_value);
+    let view_header = VDomComponent::new(state_value.clone(), render_header);
+    let view_list = VDomComponent::new(state_value.clone(), render_list);
+    let view_content = VDomComponent::new(state_value.clone(), render_content);
 
-    let state_value = state.get_value();
-
-    let alert = state_value.alert_view.clone();
-
-    let menu_view = AppIndexMenuState::component(&state_value);
-    
-    html! {
-        <div css={css_wrapper()}>
-            <style>
-                "
-                html, body {
-                    width: 100%;
-                    height: 100%;
-                    margin: 0;
-                    padding: 0;
-                    border: 0;
-                }
-                "
-            </style>
-            { menu_view }
-            <component {render_header} data={state.clone()} />
-            <div css={css_content()}>
-                <div css={css_content_list()}>
-                    <component {render_list} data={state.clone()} />
+    VDomComponent::new(state_value, move |_state_value: &AppIndexState| {
+        html! {
+            <div css={css_wrapper()}>
+                <style>
+                    "
+                    html, body {
+                        width: 100%;
+                        height: 100%;
+                        margin: 0;
+                        padding: 0;
+                        border: 0;
+                    }
+                    "
+                </style>
+                { view_menu.clone() }
+                { view_header.clone() }
+                <div css={css_content()}>
+                    <div css={css_content_list()}>
+                        { view_list.clone() }
+                    </div>
+                    <div css={css_content_content()}>
+                        { view_content.clone() }
+                    </div>
                 </div>
-                <div css={css_content_content()}>
-                    <component {render_content} data={state.clone()} />
-                </div>
+                { view_alert.clone() }
             </div>
-            { alert }
-        </div>
-    }
+        }
+    })
 }
 
 
@@ -193,84 +193,85 @@ fn button(
     }
 }
 
-pub fn render(state: &Computed<AppIndexState>) -> VDomElement {
+pub fn render(app_index_state: AppIndexState) -> VDomComponent {
+    let view_index = VDomComponent::new_hoc(app_index_state.clone(), render_index);
 
-    let app_index_state = state.get_value();
+    VDomComponent::new(app_index_state, move |app_index_state: &AppIndexState| {
+        let active = app_index_state.tabs_active.get_value();
+        let tabs = app_index_state.tabs_url.get_value();
 
-    let active = app_index_state.tabs_active.get_value();
-    let tabs = app_index_state.tabs_url.get_value();
+        if tabs.len() > 0 {
+            let mut tabs_iframe = Vec::new();
+            let mut tabs_menu = Vec::new();
 
-    if tabs.len() > 0 {
-        let mut tabs_iframe = Vec::new();
-        let mut tabs_menu = Vec::new();
+        
+            let is_select_default = active.is_none();
 
-    
-        let is_select_default = active.is_none();
+            tabs_menu.push({
+                let app_index_state = app_index_state.clone();
+                let on_click = move || {
+                    app_index_state.tabs_default();
+                };
 
-        tabs_menu.push({
-            let app_index_state = app_index_state.clone();
-            let on_click = move || {
-                app_index_state.tabs_default();
-            };
-
-            button("default", on_click, None::<fn()>, is_select_default)
-        });
-
-        if is_select_default {
-            tabs_iframe.push(html! {
-                <div css={css_iframe(true)}>
-                    <component {render_index} data={state.clone()} />
-                </div>
-            });
-        }
-
-        for tab_item in tabs.iter() {
-            let tab_item = tab_item.clone();
-
-            let is_select = match active.as_ref() {
-                Some(active) => *active == *tab_item,
-                None => false,
-            };
-
-            tabs_iframe.push(html! {
-                <iframe src={tab_item.clone()} css={css_iframe(is_select)} />
+                button("default", on_click, None::<fn()>, is_select_default)
             });
 
-            let on_click = {
-                let app_index_state = app_index_state.clone();
-                let tab_item = tab_item.clone();
-    
-                move || {
-                    app_index_state.tabs_set(tab_item.clone());
-                }
-            };
+            if is_select_default {
+                tabs_iframe.push(html! {
+                    <div css={css_iframe(true)}>
+                        { view_index.clone() }
+                    </div>
+                });
+            }
 
-            let on_close = {
-                let app_index_state = app_index_state.clone();
+            for tab_item in tabs.iter() {
                 let tab_item = tab_item.clone();
-                move || {
-                    app_index_state.tabs_remove(tab_item.clone());
-                }
+
+                let is_select = match active.as_ref() {
+                    Some(active) => *active == *tab_item,
+                    None => false,
+                };
+
+                tabs_iframe.push(html! {
+                    <iframe src={tab_item.clone()} css={css_iframe(is_select)} />
+                });
+
+                let on_click = {
+                    let app_index_state = app_index_state.clone();
+                    let tab_item = tab_item.clone();
+        
+                    move || {
+                        app_index_state.tabs_set(tab_item.clone());
+                    }
+                };
+
+                let on_close = {
+                    let app_index_state = app_index_state.clone();
+                    let tab_item = tab_item.clone();
+                    move || {
+                        app_index_state.tabs_remove(tab_item.clone());
+                    }
+                };
+        
+                tabs_menu.push(button(tab_item, on_click, Some(on_close), is_select));
+            }
+
+            return html! {
+                <div css={css_iframe_bg()}>
+                    <div css={css_left()}>
+                        { ..tabs_iframe }
+                    </div>
+                    <div css={css_right()}>
+                        { ..tabs_menu }
+                    </div>
+                </div>
             };
-    
-            tabs_menu.push(button(tab_item, on_click, Some(on_close), is_select));
         }
 
-        return html! {
-            <div css={css_iframe_bg()}>
-                <div css={css_left()}>
-                    { ..tabs_iframe }
-                </div>
-                <div css={css_right()}>
-                    { ..tabs_menu }
-                </div>
+        html! {
+            <div>
+                { view_index.clone() }
             </div>
-        };
-    }
-
-    html! {
-        <div>
-            <component {render_index} data={state.clone()} />
-        </div>
-    }
+        }
+    })
 }

@@ -2,14 +2,12 @@ mod render;
 
 use render::render;
 
-use std::rc::Rc;
-
 use common::{HandlerRenameItemBody};
 use vertigo::{Driver, Computed, Value, VDomComponent};
 
 use crate::{app::StateApp};
 
-#[derive(PartialEq, Clone)]
+#[derive(Clone)]
 pub struct StateAppRenameItem {
     driver: Driver,
 
@@ -23,7 +21,7 @@ pub struct StateAppRenameItem {
 
     pub save_enable: Computed<bool>,
 
-    app_state: Rc<StateApp>,
+    app_state: StateApp,
 }
 
 impl StateAppRenameItem {
@@ -32,7 +30,7 @@ impl StateAppRenameItem {
     }
 
     pub fn component(
-        app_state: Rc<StateApp>,
+        app_state: &StateApp,
         path: Vec<String>,
         prev_name: String,
         prev_hash: String,
@@ -76,7 +74,7 @@ impl StateAppRenameItem {
             app_state: app_state.clone(),
         };
 
-        app_state.driver.bind_render(state, render)
+        VDomComponent::new_hoc(state, render)
     }
 
     pub fn get_full_path(&self) -> String {

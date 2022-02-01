@@ -9,8 +9,8 @@ mod state_alert_search;
 mod state_alert_delete;
 
 use std::rc::Rc;
-use vertigo::{Driver, VDomComponent};
 use vertigo::{
+    VDomComponent,
     Resource,
     Value
 };
@@ -19,9 +19,8 @@ use crate::data::StateData;
 
 use self::state_alert::StateAlert;
 
-#[derive(PartialEq, Clone)]
+#[derive(Clone)]
 pub struct AppIndexState {
-    driver: Driver,
     pub data_state: StateData,
 
     app_state: StateApp,
@@ -38,17 +37,12 @@ impl AppIndexState {
         let driver = &app_state.driver.clone();
         let state_data = app_state.data.clone();
 
-        let (alert, alert_view) = StateAlert::new(
-            app_state.clone(),
-            state_data.tab.current_full_path.clone(),
-            state_data.driver.clone()
-        );
+        let (alert, alert_view) = StateAlert::new(app_state.clone());
 
         let tabs_url = driver.new_value(Vec::new());
         let tabs_active = driver.new_value(None);
 
         let state = AppIndexState {
-            driver: driver.clone(),
             data_state: state_data,
             app_state: app_state.clone(),
             alert,
@@ -64,7 +58,7 @@ impl AppIndexState {
             }
         };
 
-        let view = driver.bind_render(state, render::render);
+        let view = VDomComponent::new_hoc(state, render::render);
         (view, keydown)
     }
 

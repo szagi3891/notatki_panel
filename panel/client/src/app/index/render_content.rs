@@ -1,4 +1,4 @@
-use vertigo::{Css, VDomElement, Computed};
+use vertigo::{Css, VDomElement};
 use vertigo::{css, html};
 
 use super::AppIndexState;
@@ -40,10 +40,7 @@ fn open_css() -> Css {
     ")
 }
 
-pub fn render_content(state: &Computed<AppIndexState>) -> VDomElement {
-
-    let state = state.get_value();
-
+pub fn render_content(state: &AppIndexState) -> VDomElement {
     let current_content = state.app_state.data.tab.current_content.get_value();
 
     let content = current_content.to_string();

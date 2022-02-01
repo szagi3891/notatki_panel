@@ -2,15 +2,12 @@ mod render;
 
 pub use render::render;
 
-
-use std::rc::Rc;
-
 use common::{HandlerSaveContentBody};
 use vertigo::{Driver, Computed, Value, VDomComponent};
 
 use crate::{app::StateApp};
 
-#[derive(PartialEq)]
+#[derive(Clone)]
 pub struct StateAppEditContent {
     driver: Driver,
 
@@ -21,7 +18,7 @@ pub struct StateAppEditContent {
     pub edit_content: Value<String>,
     pub save_enable: Computed<bool>,
 
-    app_state: Rc<StateApp>,
+    app_state: StateApp,
 }
 
 impl StateAppEditContent {
@@ -30,7 +27,7 @@ impl StateAppEditContent {
     }
 
     pub fn component(
-        app_state: Rc<StateApp>,
+        app_state: &StateApp,
         path: Vec<String>,
         hash: String,
         content: String,
@@ -61,7 +58,7 @@ impl StateAppEditContent {
             app_state: app_state.clone()
         };
 
-        app_state.driver.bind_render(state, render::render)
+        VDomComponent::new_hoc(state, render::render)
     }
 
     pub fn on_input(&self, new_text: String) {

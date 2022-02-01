@@ -150,7 +150,7 @@ fn new_results(driver: &Driver, data_state: &StateData, phrase: Computed<String>
     })
 }
 
-#[derive(PartialEq)]
+#[derive(Clone)]
 pub struct StateAlertSearch {
     alert_state: StateAlert,
     pub phrase: Value<String>,
@@ -173,14 +173,12 @@ impl StateAlertSearch {
             results,
         };
 
-        alert_state.app_state.driver.bind_render(state, render)
+        VDomComponent::new_hoc(state, render)
     }
 }
 
 
-fn render_results(state: &Computed<StateAlertSearch>) -> VDomElement {
-    let alert_search_state = state.get_value();
-
+fn render_results(alert_search_state: &StateAlertSearch) -> VDomElement {
     let results = alert_search_state.results.get_value();
 
     let mut list = Vec::<VDomElement>::new();
@@ -221,40 +219,44 @@ fn render_results(state: &Computed<StateAlertSearch>) -> VDomElement {
     }
 }
 
-pub fn render(state: &Computed<StateAlertSearch>) -> VDomElement {
-    let alert_search_state = state.get_value();
-    let phrase = alert_search_state.phrase.clone();
-    let current_value = phrase.get_value();
+pub fn render(alert_search_state: StateAlertSearch) -> VDomComponent {
 
-    let on_input = {
-        move |new_value: String| {
-            phrase.set_value(new_value);
-        }
-    };
+    let results = VDomComponent::new(alert_search_state.clone(), render_results);
 
-    let alert_state = alert_search_state.alert_state.clone();
+    VDomComponent::new(alert_search_state.clone(), move |alert_search_state: &StateAlertSearch| {
+        let phrase = alert_search_state.phrase.clone();
+        let current_value = phrase.get_value();
 
-    let on_close = {
-        move || {
-            alert_state.close_modal();
-        }
-    };
+        let on_input = {
+            move |new_value: String| {
+                phrase.set_value(new_value);
+            }
+        };
 
-    let content = html! {
-        <div css={css_content()}>
-            <input autofocus="" value={current_value.as_ref()} on_input={on_input} />
-            <br/>
-            
-            <div css={css_close()} on_click={on_close}>
-                "zamknij"
+        let alert_state = alert_search_state.alert_state.clone();
+
+        let on_close = {
+            move || {
+                alert_state.close_modal();
+            }
+        };
+
+        let content = html! {
+            <div css={css_content()}>
+                <input autofocus="" value={current_value.as_ref()} on_input={on_input} />
+                <br/>
+                
+                <div css={css_close()} on_click={on_close}>
+                    "zamknij"
+                </div>
+
+                <br/>
+                <br/>
+
+                { results.clone() }
             </div>
+        };
 
-            <br/>
-            <br/>
-
-            <component {render_results} data={state.clone()} />
-        </div>
-    };
-
-    AlertBox::render_popup(content)
+        AlertBox::render_popup(content)
+    })
 }

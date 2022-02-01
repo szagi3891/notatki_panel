@@ -1,8 +1,6 @@
-use std::rc::Rc;
 use vertigo::{
     VDomElement,
     Css,
-    Computed,
 };
 use vertigo::{html, css};
 use super::AppIndexState;
@@ -55,7 +53,7 @@ fn css_item(is_active: bool) -> Css {
     css
 }
 
-fn create_link(state: &Rc<AppIndexState>, title: String, node_id: Vec<String>, create_css: fn(bool) -> Css, is_active: bool) -> VDomElement {
+fn create_link(state: &AppIndexState, title: String, node_id: Vec<String>, create_css: fn(bool) -> Css, is_active: bool) -> VDomElement {
     if is_active {
         let css = create_css(true);
 
@@ -83,9 +81,7 @@ fn create_link(state: &Rc<AppIndexState>, title: String, node_id: Vec<String>, c
     }
 }
 
-pub fn render_header(state: &Computed<AppIndexState>) -> VDomElement {
-    let state = state.get_value();
-
+pub fn render_header(state: &AppIndexState) -> VDomElement {
     let current_path = state.current_path_dir();
     let all_items = current_path.len();
 

@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use common::{HandlerCreateDirBody};
 use vertigo::{Driver, Computed, Value, VDomComponent};
 
@@ -8,7 +6,7 @@ use crate::components::new_name;
 
 mod render;
 
-#[derive(PartialEq)]
+#[derive(Clone)]
 pub struct StateAppNewDir {
     driver: Driver,
 
@@ -20,7 +18,7 @@ pub struct StateAppNewDir {
 
     pub save_enable: Computed<bool>,
 
-    app_state: Rc<StateApp>,
+    app_state: StateApp,
 }
 
 impl StateAppNewDir {
@@ -29,7 +27,7 @@ impl StateAppNewDir {
     }
 
     pub fn component(
-        app_state: Rc<StateApp>,
+        app_state: &StateApp,
         parent: Vec<String>,
         list: Computed<Vec<ListItem>>,
     ) -> VDomComponent {
@@ -58,7 +56,7 @@ impl StateAppNewDir {
             app_state: app_state.clone(),
         };
 
-        app_state.driver.bind_render(state, render::render)
+        VDomComponent::new(state, render::render)
     }
 
     pub fn on_save(&self) {

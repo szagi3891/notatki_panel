@@ -19,7 +19,7 @@ fn is_exist_in_list(name: &String, list: Rc<Vec<ListItem>>) -> bool {
     false
 }
 
-#[derive(PartialEq)]
+#[derive(Clone)]
 pub struct NewName {
     pub action_save: Computed<bool>,
     pub name: Value<String>,
@@ -82,7 +82,7 @@ impl NewName {
             is_valid: is_valid.clone(),
         };
 
-        (is_valid, save_enable, driver.bind_render(state, render))
+        (is_valid, save_enable, VDomComponent::new(state, render))
     }
 
 
@@ -129,12 +129,12 @@ fn css_input_name() -> Css {
     ")
 }
 
-pub fn render(state_computed: &Computed<NewName>) -> VDomElement {
-    let state = state_computed.get_value();
-
+pub fn render(state: &NewName) -> VDomElement {
     let content = &state.name.get_value();
 
     let on_input = {
+        let state = state.clone();
+
         move |new_value: String| {
             state.on_input_name(new_value);
         }

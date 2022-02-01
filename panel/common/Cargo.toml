@@ -9,5 +9,5 @@ edition = "2018"
 [dependencies]
 serde = { version = "1.0.125", features = ["derive"] }
 serde_json = "1.0.64"
-# vertigo = { path = "../../../vertigo/crates/vertigo", features = [ "serde_request" ] }
-vertigo = { git="https://github.com/vertigo-web/vertigo", features = [ "serde_request" ] }
+vertigo = { path = "../../../vertigo/crates/vertigo", features = [ "serde_request" ] }
+# vertigo = { git="https://github.com/vertigo-web/vertigo", features = [ "serde_request" ] }

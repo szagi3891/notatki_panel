@@ -1,7 +1,5 @@
 mod render;
 
-use std::rc::Rc;
-
 use common::{HandlerCreateFileBody};
 use vertigo::{Driver, Computed, Value, VDomComponent};
 
@@ -9,7 +7,7 @@ use crate::app::StateApp;
 use crate::components::new_name;
 use crate::data::ListItem;
 
-#[derive(PartialEq)]
+#[derive(Clone)]
 pub struct StateAppNewContent {
     driver: Driver,
 
@@ -22,7 +20,7 @@ pub struct StateAppNewContent {
 
     pub save_enable: Computed<bool>,
 
-    app_state: Rc<StateApp>,
+    app_state: StateApp,
 }
 
 impl StateAppNewContent {
@@ -31,11 +29,11 @@ impl StateAppNewContent {
     }
 
     pub fn component(
-        app_state: Rc<StateApp>,
+        app_state: &StateApp,
         parent: Vec<String>,
         list: Computed<Vec<ListItem>>,
     ) -> VDomComponent {
-        log::info!("buduję stan dla new content");
+        log::info!("buduję stan dla new content");
         let action_save = app_state.driver.new_value(false);
         // let name = new_name::NewName::new(&app_state, list, action_save.to_computed());
 
@@ -84,7 +82,7 @@ impl StateAppNewContent {
             app_state: app_state.clone(),
         };
 
-        app_state.driver.bind_render(state, render::render)
+        VDomComponent::new_hoc(state, render::render)
     }
 
     pub fn on_input_content(&self, new_value: String) {

@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use vertigo::{
     VDomElement,
     Css,
@@ -37,16 +35,16 @@ fn create_avaible_delete_current(
     })
 }
 
-#[derive(PartialEq)]
+#[derive(Clone)]
 pub struct AppIndexMenuState {
-    app_index: Rc<AppIndexState>,
+    app_index: AppIndexState,
 
     //true - jeśli aktualnie podświetlony element jest mozliwy do usuniecia
     pub avaible_delete_button: Computed<bool>,
 }
 
 impl AppIndexMenuState {
-    pub fn component(app_index: &Rc<AppIndexState>) -> VDomComponent {
+    pub fn component(app_index: &AppIndexState) -> VDomComponent {
         let avaible_delete_current= create_avaible_delete_current(
             &app_index.app_state.driver,
             app_index.app_state.data.tab.current_content.clone()
@@ -57,13 +55,11 @@ impl AppIndexMenuState {
             avaible_delete_button: avaible_delete_current,
         };
 
-        app_index.app_state.driver.bind_render(state, render_menu)
+        VDomComponent::new(state, render_menu)
     }
 }
 
-fn render_menu(state: &Computed<AppIndexMenuState>) -> VDomElement {
-    let state = state.get_value();
-
+fn render_menu(state: &AppIndexMenuState) -> VDomElement {
     let on_click = {
         let state = state.app_index.clone();
         

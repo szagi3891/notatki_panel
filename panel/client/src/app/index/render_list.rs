@@ -2,7 +2,6 @@ use vertigo::dev::NodeRefs;
 use vertigo::{
     Css,
     VDomElement,
-    Computed,
 };
 use vertigo::{css, html};
 use crate::components::icon;
@@ -165,11 +164,10 @@ fn remove_prefix(name: &String) -> String {
     out
 }
 
-pub fn render_list(state: &Computed<AppIndexState>) -> VDomElement {
+pub fn render_list(state: &AppIndexState) -> VDomElement {
     
     let mut out: Vec<VDomElement> = Vec::new();
 
-    let state = state.get_value();
     let list = state.data_state.tab.list.get_value();
     let current_item = state.app_state.data.tab.list_current_item.get_value();
 

@@ -1,4 +1,4 @@
-use vertigo::{Css, VDomElement, Computed};
+use vertigo::{Css, VDomElement};
 use vertigo::{css, html};
 
 use super::{StateAppNewDir};
@@ -22,10 +22,7 @@ fn css_header() -> Css {
     ")
 }
 
-pub fn render(state: &Computed<StateAppNewDir>) -> VDomElement {
-
-    let state_value = state.get_value();
-
+pub fn render(state_value: &StateAppNewDir) -> VDomElement {
     let on_click = {
         let state = state_value.clone();
         move || {
@@ -33,7 +30,7 @@ pub fn render(state: &Computed<StateAppNewDir>) -> VDomElement {
         }
     };
 
-    let parent_path = state_value.as_ref().parent.as_slice().join("/");
+    let parent_path = state_value.parent.as_slice().join("/");
 
     let mut buttons = vec!(button("Wróć", on_click));
 

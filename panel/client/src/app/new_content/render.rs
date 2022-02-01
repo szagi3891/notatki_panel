@@ -1,4 +1,4 @@
-use vertigo::{Css, VDomElement, Computed};
+use vertigo::{Css, VDomElement, VDomComponent};
 use vertigo::{css, html};
 
 use super::{StateAppNewContent};
@@ -35,13 +35,14 @@ fn css_input_content() -> Css {
     ")
 }
 
-fn render_input_content(state: &Computed<StateAppNewContent>) -> VDomElement {
-    let state = state.get_value();
-
+fn render_input_content(state: &StateAppNewContent) -> VDomElement {
     let content = &state.content.get_value();
 
-    let on_input = move |new_value: String| {
-        state.on_input_content(new_value);
+    let on_input = {
+        let state = state.clone();
+        move |new_value: String| {
+            state.on_input_content(new_value);
+        }
     };
 
     html! {
@@ -49,54 +50,55 @@ fn render_input_content(state: &Computed<StateAppNewContent>) -> VDomElement {
     }
 }
 
-pub fn render(state: &Computed<StateAppNewContent>) -> VDomElement {
+pub fn render(state_value: StateAppNewContent) -> VDomComponent {
+    let view_input = VDomComponent::new(state_value.clone(), render_input_content);
 
-    let state_value = state.get_value();
-
-    let on_click = {
-        let state = state_value.clone();
-        move || {
-            state.redirect_to_index();
-        }
-    };
-
-    let parent_path = state_value.as_ref().parent.as_slice().join("/");
-
-    let mut buttons = vec!(button("Wróć", on_click));
-
-    let save_enable = state_value.save_enable.get_value();
-
-    if *save_enable {
-        buttons.push(button("Zapisz", {
+    VDomComponent::new(state_value, move |state_value: &StateAppNewContent| -> VDomElement {
+        let on_click = {
             let state = state_value.clone();
             move || {
-                state.on_save();
+                state.redirect_to_index();
             }
-        }));
-    }
+        };
 
-    html! {
-        <div css={css_wrapper()}>
-            <style>
-                "
-                html, body {
-                    width: 100%;
-                    height: 100%;
-                    margin: 0;
-                    padding: 0;
-                    border: 0;
+        let parent_path = state_value.parent.as_slice().join("/");
+
+        let mut buttons = vec!(button("Wróć", on_click));
+
+        let save_enable = state_value.save_enable.get_value();
+
+        if *save_enable {
+            buttons.push(button("Zapisz", {
+                let state = state_value.clone();
+                move || {
+                    state.on_save();
                 }
-                "
-            </style>
-            <div css={css_header()}>
-                "tworzenie pliku => "
-                {parent_path}
+            }));
+        }
+
+        html! {
+            <div css={css_wrapper()}>
+                <style>
+                    "
+                    html, body {
+                        width: 100%;
+                        height: 100%;
+                        margin: 0;
+                        padding: 0;
+                        border: 0;
+                    }
+                    "
+                </style>
+                <div css={css_header()}>
+                    "tworzenie pliku => "
+                    {parent_path}
+                </div>
+                <div css={css_header()}>
+                    { ..buttons }
+                </div>
+                { state_value.new_name_view.clone() }
+                { view_input.clone() }
             </div>
-            <div css={css_header()}>
-                { ..buttons }
-            </div>
-            { state_value.new_name_view.clone() }
-            <component {render_input_content} data={state} />
-        </div>
-    }
+        }
+    })
 }

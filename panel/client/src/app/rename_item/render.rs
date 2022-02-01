@@ -1,4 +1,4 @@
-use vertigo::{Css, VDomElement, Computed};
+use vertigo::{Css, VDomElement, VDomComponent};
 use vertigo::{css, html};
 
 use super::StateAppRenameItem;
@@ -48,13 +48,15 @@ fn css_textarea() -> Css {
     ")
 }
 
-fn render_input(state: &Computed<StateAppRenameItem>) -> VDomElement {
-    let state = state.get_value();
-
+fn render_input(state: &StateAppRenameItem) -> VDomElement {
     let content = &state.new_name.get_value();
 
-    let on_input = move |new_value: String| {
-        state.on_input(new_value);
+    let on_input = {
+        let state = state.clone();
+
+        move |new_value: String| {
+            state.on_input(new_value);
+        }
     };
 
     html! {
@@ -63,9 +65,7 @@ fn render_input(state: &Computed<StateAppRenameItem>) -> VDomElement {
 }
 
 
-fn render_textarea(state: &Computed<StateAppRenameItem>) -> VDomElement {
-    let state = state.get_value();
-
+fn render_textarea(state: &StateAppRenameItem) -> VDomElement {
     let prev_content = state.prev_content.clone();
 
     match prev_content {
@@ -83,58 +83,61 @@ fn render_textarea(state: &Computed<StateAppRenameItem>) -> VDomElement {
 }
 
 
-pub fn render(state: &Computed<StateAppRenameItem>) -> VDomElement {
+pub fn render(state: StateAppRenameItem) -> VDomComponent {
 
-    let state_value = state.get_value();
+    let view_input = VDomComponent::new(state.clone(), render_input);
+    let view_textarea = VDomComponent::new(state.clone(), render_textarea);
 
-    let on_click = {
-        let state = state_value.clone();
-        move || {
-            state.redirect_to_index();
-        }
-    };
-
-    let path = state_value.get_full_path();
-
-    let mut buttons = vec![
-        button("Wróć", on_click)
-    ];
-
-    let save_enable = state_value.save_enable.get_value();
-
-    if *save_enable {
-        let on_save = {
-            let state = state_value;
+    VDomComponent::new(state, move |state: &StateAppRenameItem| {
+        let on_click = {
+            let state = state.clone();
             move || {
-                state.on_save();
+                state.redirect_to_index();
             }
         };
 
-        buttons.push(button("Zmień nazwę", on_save));
-    }
+        let path = state.get_full_path();
 
-    html! {
-        <div css={css_wrapper()}>
-            <style>
-                "
-                html, body {
-                    width: 100%;
-                    height: 100%;
-                    margin: 0;
-                    padding: 0;
-                    border: 0;
+        let mut buttons = vec![
+            button("Wróć", on_click)
+        ];
+
+        let save_enable = state.save_enable.get_value();
+
+        if *save_enable {
+            let on_save = {
+                let state = state.clone();
+                move || {
+                    state.on_save();
                 }
-                "
-            </style>
-            <div css={css_header()}>
-                "zmiana nazwy => "
-                {path}
+            };
+
+            buttons.push(button("Zmień nazwę", on_save));
+        }
+
+        html! {
+            <div css={css_wrapper()}>
+                <style>
+                    "
+                    html, body {
+                        width: 100%;
+                        height: 100%;
+                        margin: 0;
+                        padding: 0;
+                        border: 0;
+                    }
+                    "
+                </style>
+                <div css={css_header()}>
+                    "zmiana nazwy => "
+                    {path}
+                </div>
+                <div css={css_header()}>
+                    { ..buttons }
+                </div>
+                { view_input.clone() }
+                { view_textarea.clone() }
             </div>
-            <div css={css_header()}>
-                { ..buttons }
-            </div>
-            <component {render_input} data={state} />
-            <component {render_textarea} data={state} />
-        </div>
-    }
+        }
+    })
 }

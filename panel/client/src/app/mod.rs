@@ -41,7 +41,7 @@ enum View {
 }
 
 
-#[derive(PartialEq, Clone)]
+#[derive(Clone)]
 pub struct StateApp {
     pub driver: Driver,
     pub data: StateData,
@@ -62,7 +62,7 @@ impl StateApp {
             view,
         };
 
-        driver.bind_render(state, render)
+        VDomComponent::new(state, render)
     }
 
     fn create_full_path(&self, path: &Vec<String>, select_item: &Option<String>) -> Vec<String> {
@@ -150,9 +150,7 @@ impl StateApp {
     }
 }
 
-fn render(state_computed: &Computed<StateApp>) -> VDomElement {
-
-    let app_state = state_computed.get_value();
+fn render(app_state: &StateApp) -> VDomElement {
     let view = app_state.view.get_value();
 
     match view.as_ref() {
