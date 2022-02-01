@@ -14,7 +14,6 @@ pub struct StateAppNewDir {
 
     pub parent: Vec<String>,
     pub new_name: Value<String>,
-    pub new_name_view: VDomComponent,
 
     pub save_enable: Computed<bool>,
 
@@ -35,7 +34,7 @@ impl StateAppNewDir {
         let action_save = app_state.driver.new_value(false);
         let new_name = app_state.driver.new_value(String::from(""));
 
-        let (_is_valid, save_enable, new_name_view) /*new_name*/ = new_name::NewName::new(
+        let new_name = new_name::NewName::new(
             &app_state.driver,
             list,
             new_name.clone(),
@@ -48,15 +47,15 @@ impl StateAppNewDir {
             action_save,
 
             parent,
-            new_name,
-            new_name_view,
-
-            save_enable,
+            new_name: new_name.name.clone(),
+            save_enable: new_name.action_save.clone(),
 
             app_state: app_state.clone(),
         };
 
-        VDomComponent::new(state, render::render)
+        let view_new_name = new_name.render();
+
+        render::build_render(view_new_name, state)
     }
 
     pub fn on_save(&self) {

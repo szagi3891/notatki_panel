@@ -1,5 +1,4 @@
-use vertigo::{Css, VDomElement};
-use vertigo::{css, html};
+use vertigo::{Css, VDomComponent, css, html};
 
 use super::{StateAppNewDir};
 use crate::components::{button};
@@ -22,50 +21,52 @@ fn css_header() -> Css {
     ")
 }
 
-pub fn render(state_value: &StateAppNewDir) -> VDomElement {
-    let on_click = {
-        let state = state_value.clone();
-        move || {
-            state.redirect_to_index();
-        }
-    };
-
-    let parent_path = state_value.parent.as_slice().join("/");
-
-    let mut buttons = vec!(button("Wróć", on_click));
-
-    let save_enable = state_value.save_enable.get_value();
-
-    if *save_enable {
-        buttons.push(button("Zapisz", {
-            let state = state_value.clone();
+pub fn build_render(view_new_name: VDomComponent, state: StateAppNewDir) -> VDomComponent {
+    VDomComponent::new(state, move |state| {
+        let on_click = {
+            let state = state.clone();
             move || {
-                state.on_save();
+                state.redirect_to_index();
             }
-        }));
-    }
+        };
 
-    html! {
-        <div css={css_wrapper()}>
-            <style>
-                "
-                html, body {
-                    width: 100%;
-                    height: 100%;
-                    margin: 0;
-                    padding: 0;
-                    border: 0;
+        let parent_path = state.parent.as_slice().join("/");
+
+        let mut buttons = vec!(button("Wróć", on_click));
+
+        let save_enable = state.save_enable.get_value();
+
+        if *save_enable {
+            buttons.push(button("Zapisz", {
+                let state = state.clone();
+                move || {
+                    state.on_save();
                 }
-                "
-            </style>
-            <div css={css_header()}>
-                "tworzenie katalogu => "
-                {parent_path}
+            }));
+        }
+
+        html! {
+            <div css={css_wrapper()}>
+                <style>
+                    "
+                    html, body {
+                        width: 100%;
+                        height: 100%;
+                        margin: 0;
+                        padding: 0;
+                        border: 0;
+                    }
+                    "
+                </style>
+                <div css={css_header()}>
+                    "tworzenie katalogu => "
+                    {parent_path}
+                </div>
+                <div css={css_header()}>
+                    { ..buttons }
+                </div>
+                { view_new_name.clone() }
             </div>
-            <div css={css_header()}>
-                { ..buttons }
-            </div>
-            { state_value.new_name_view.clone() }
-        </div>
-    }
+        }
+    })
 }

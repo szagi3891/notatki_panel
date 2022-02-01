@@ -15,7 +15,6 @@ pub struct StateAppNewContent {
 
     pub parent: Vec<String>,
     pub name: Value<String>,
-    pub new_name_view: VDomComponent,
     pub content: Value<String>,
 
     pub save_enable: Computed<bool>,
@@ -38,7 +37,7 @@ impl StateAppNewContent {
         // let name = new_name::NewName::new(&app_state, list, action_save.to_computed());
 
         let name = app_state.driver.new_value(String::from(""));
-        let (is_valid, _new_name_save_enable, new_name_view) = new_name::NewName::new(
+        let new_name = new_name::NewName::new(
             &app_state.driver,
             list,
             name.clone(),
@@ -50,6 +49,7 @@ impl StateAppNewContent {
 
         let save_enable = {
             let content = content.to_computed();
+            let is_valid = new_name.is_valid.clone();
 
             app_state.driver.from(move || -> bool {
                 let new_name_is_valid = is_valid.get_value();
@@ -74,7 +74,6 @@ impl StateAppNewContent {
             
             parent,
             name,
-            new_name_view,
             content,
 
             save_enable,
@@ -82,7 +81,7 @@ impl StateAppNewContent {
             app_state: app_state.clone(),
         };
 
-        render::render(state)
+        render::build_render(new_name.render(), state)
     }
 
     pub fn on_input_content(&self, new_value: String) {

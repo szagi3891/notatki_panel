@@ -50,26 +50,26 @@ fn render_input_content(state: &StateAppNewContent) -> VDomElement {
     }
 }
 
-pub fn render(state_value: StateAppNewContent) -> VDomComponent {
-    let view_input = VDomComponent::new(state_value.clone(), render_input_content);
+pub fn build_render(view_new_name: VDomComponent, state: StateAppNewContent) -> VDomComponent {
+    let view_input = VDomComponent::new(state.clone(), render_input_content);
 
-    VDomComponent::new(state_value, move |state_value: &StateAppNewContent| -> VDomElement {
+    VDomComponent::new(state, move |state: &StateAppNewContent| -> VDomElement {
         let on_click = {
-            let state = state_value.clone();
+            let state = state.clone();
             move || {
                 state.redirect_to_index();
             }
         };
 
-        let parent_path = state_value.parent.as_slice().join("/");
+        let parent_path = state.parent.as_slice().join("/");
 
         let mut buttons = vec!(button("Wróć", on_click));
 
-        let save_enable = state_value.save_enable.get_value();
+        let save_enable = state.save_enable.get_value();
 
         if *save_enable {
             buttons.push(button("Zapisz", {
-                let state = state_value.clone();
+                let state = state.clone();
                 move || {
                     state.on_save();
                 }
@@ -96,7 +96,7 @@ pub fn render(state_value: StateAppNewContent) -> VDomComponent {
                 <div css={css_header()}>
                     { ..buttons }
                 </div>
-                { state_value.new_name_view.clone() }
+                { view_new_name.clone() }
                 { view_input.clone() }
             </div>
         }

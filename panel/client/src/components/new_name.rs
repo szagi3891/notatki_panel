@@ -8,7 +8,6 @@ use vertigo::{Css, VDomElement};
 use vertigo::{css, html};
 
 use crate::data::ListItem;
-// use crate::app::index::ListItem;
 
 fn is_exist_in_list(name: &String, list: Rc<Vec<ListItem>>) -> bool {
     for item in list.as_ref() {
@@ -32,7 +31,7 @@ impl NewName {
         list: Computed<Vec<ListItem>>,
         name: Value<String>,
         action_save: Computed<bool>,
-    ) -> /* NewName { */ (Computed<bool>, Computed<bool>, VDomComponent) {
+    ) -> NewName {
         let name_exists = {
             let name = name.clone();
 
@@ -76,19 +75,11 @@ impl NewName {
             })
         };
 
-        // NewName {
-        //     action_save,
-        //     name,
-        //     is_valid: is_valid.clone(),
-        // }
-
-        let state = NewName {
+        NewName {
             action_save,
             name,
             is_valid: is_valid.clone(),
-        };
-
-        (is_valid, save_enable, VDomComponent::new(state, render))
+        }
     }
 
     pub fn render(self) -> VDomComponent {
