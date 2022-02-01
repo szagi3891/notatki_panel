@@ -173,7 +173,7 @@ impl StateAlertSearch {
             results,
         };
 
-        VDomComponent::new_hoc(state, render)
+        render(state)
     }
 }
 

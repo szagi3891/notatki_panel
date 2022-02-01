@@ -194,7 +194,7 @@ fn button(
 }
 
 pub fn render(app_index_state: AppIndexState) -> VDomComponent {
-    let view_index = VDomComponent::new_hoc(app_index_state.clone(), render_index);
+    let view_index = render_index(app_index_state.clone());
 
     VDomComponent::new(app_index_state, move |app_index_state: &AppIndexState| {
         let active = app_index_state.tabs_active.get_value();

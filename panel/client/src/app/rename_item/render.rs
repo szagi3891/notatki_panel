@@ -83,7 +83,7 @@ fn render_textarea(state: &StateAppRenameItem) -> VDomElement {
 }
 
 
-pub fn render(state: StateAppRenameItem) -> VDomComponent {
+pub fn build_render(state: StateAppRenameItem) -> VDomComponent {
 
     let view_input = VDomComponent::new(state.clone(), render_input);
     let view_textarea = VDomComponent::new(state.clone(), render_textarea);

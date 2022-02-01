@@ -1,6 +1,6 @@
 mod render;
 
-use render::render;
+use render::build_render;
 
 use common::{HandlerRenameItemBody};
 use vertigo::{Driver, Computed, Value, VDomComponent};
@@ -74,7 +74,7 @@ impl StateAppRenameItem {
             app_state: app_state.clone(),
         };
 
-        VDomComponent::new_hoc(state, render)
+        build_render(state)
     }
 
     pub fn get_full_path(&self) -> String {

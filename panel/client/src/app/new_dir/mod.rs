@@ -35,7 +35,7 @@ impl StateAppNewDir {
         let action_save = app_state.driver.new_value(false);
         let new_name = app_state.driver.new_value(String::from(""));
 
-        let (_is_valid, save_enable, new_name_view) = new_name::NewName::component(
+        let (_is_valid, save_enable, new_name_view) /*new_name*/ = new_name::NewName::new(
             &app_state.driver,
             list,
             new_name.clone(),

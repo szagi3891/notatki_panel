@@ -58,7 +58,7 @@ impl AppIndexState {
             }
         };
 
-        let view = VDomComponent::new_hoc(state, render::render);
+        let view = render::render(state);
         (view, keydown)
     }
 

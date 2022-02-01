@@ -58,7 +58,7 @@ impl StateAppEditContent {
             app_state: app_state.clone()
         };
 
-        VDomComponent::new_hoc(state, render::render)
+        render::render(state)
     }
 
     pub fn on_input(&self, new_text: String) {

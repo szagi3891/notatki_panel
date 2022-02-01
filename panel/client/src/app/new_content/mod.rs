@@ -38,7 +38,7 @@ impl StateAppNewContent {
         // let name = new_name::NewName::new(&app_state, list, action_save.to_computed());
 
         let name = app_state.driver.new_value(String::from(""));
-        let (is_valid, _new_name_save_enable, new_name_view) = new_name::NewName::component(
+        let (is_valid, _new_name_save_enable, new_name_view) = new_name::NewName::new(
             &app_state.driver,
             list,
             name.clone(),
@@ -82,7 +82,7 @@ impl StateAppNewContent {
             app_state: app_state.clone(),
         };
 
-        VDomComponent::new_hoc(state, render::render)
+        render::render(state)
     }
 
     pub fn on_input_content(&self, new_value: String) {

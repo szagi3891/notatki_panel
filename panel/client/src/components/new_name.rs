@@ -27,12 +27,12 @@ pub struct NewName {
 }
 
 impl NewName {
-    pub fn component(
+    pub fn new(
         driver: &Driver,
         list: Computed<Vec<ListItem>>,
         name: Value<String>,
         action_save: Computed<bool>,
-    ) -> (Computed<bool>, Computed<bool>, VDomComponent) {
+    ) -> /* NewName { */ (Computed<bool>, Computed<bool>, VDomComponent) {
         let name_exists = {
             let name = name.clone();
 
@@ -76,6 +76,12 @@ impl NewName {
             })
         };
 
+        // NewName {
+        //     action_save,
+        //     name,
+        //     is_valid: is_valid.clone(),
+        // }
+
         let state = NewName {
             action_save,
             name,
@@ -85,6 +91,9 @@ impl NewName {
         (is_valid, save_enable, VDomComponent::new(state, render))
     }
 
+    pub fn render(self) -> VDomComponent {
+        VDomComponent::new(self, render)
+    }
 
     pub fn on_input_name(&self, new_value: String) {
         let action_save = self.action_save.get_value();
