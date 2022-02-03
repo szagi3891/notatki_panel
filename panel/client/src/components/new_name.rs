@@ -39,7 +39,7 @@ impl NewName {
                 let list = list.get_value();
 
                 let name = name.get_value();
-                is_exist_in_list(&*name, list)
+                is_exist_in_list(name.as_ref(), list)
             })
         };
 
@@ -54,20 +54,6 @@ impl NewName {
                 }
 
                 if name.get_value().is_empty() {
-                    return false;
-                }
-
-                true
-            })
-        };
-
-        let save_enable = {
-            let is_valid = is_valid.clone();
-
-            driver.from(move || -> bool {
-                let new_name_is_valid = is_valid.get_value();
-
-                if !*new_name_is_valid  {
                     return false;
                 }
 

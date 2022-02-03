@@ -48,7 +48,7 @@ impl StateAppNewDir {
 
             parent,
             new_name: new_name.name.clone(),
-            save_enable: new_name.action_save.clone(),
+            save_enable: new_name.is_valid.clone(),
 
             app_state: app_state.clone(),
         };
