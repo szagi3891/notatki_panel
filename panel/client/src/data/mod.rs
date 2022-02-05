@@ -7,7 +7,7 @@ mod tabs;
 pub use git::CurrentContent;
 pub use tabs::ListItem;
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone)]
 pub struct StateData {
     pub driver: Driver,
     pub git: StateDataGit,

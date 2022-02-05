@@ -105,7 +105,7 @@ fn move_pointer(state_data: &StateDataGit, list: Rc<HashMap<String, TreeItem>>, 
 }
 
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone)]
 pub struct StateDataGit {
     pub driver: Driver,
     pub dir: StateDataGitNodeDir,
@@ -117,7 +117,7 @@ impl StateDataGit {
     pub fn new(driver: &Driver) -> StateDataGit {
         let dir = StateDataGitNodeDir::new(driver);
         let content = StateDataGitNodeContent::new(driver);
-        let root = StateDataGitRoot::new(driver, dir.clone());
+        let root = StateDataGitRoot::new(driver);
 
         StateDataGit {
             driver: driver.clone(),

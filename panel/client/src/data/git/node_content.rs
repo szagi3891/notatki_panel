@@ -51,7 +51,7 @@ impl NodeContent {
     }
 }
 
-#[derive(PartialEq, Clone)]
+#[derive(Clone)]
 pub struct StateDataGitNodeContent {
     data: AutoMap<String, NodeContent>,
 }

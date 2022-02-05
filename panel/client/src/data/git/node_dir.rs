@@ -65,7 +65,7 @@ impl NodeDir {
     }
 }
 
-#[derive(PartialEq, Clone)]
+#[derive(Clone)]
 pub struct StateDataGitNodeDir {
     data: AutoMap<String, NodeDir>,
 }
