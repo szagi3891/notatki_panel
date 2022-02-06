@@ -6,16 +6,17 @@ use vertigo::{
     Value
 };
 use crate::components::AlertBox;
-use super::state_alert::StateAlert;
+
+use super::AppIndexAlert;
 
 
-pub struct StateAlertDelete {
+pub struct AppIndexAlertDelete {
     // progress: Value<bool>,
     // progress_computed: Computed<bool>,
 }
 
-impl StateAlertDelete {
-    pub fn render(alert_state: &StateAlert, full_path: &Rc<Vec<String>>) -> VDomElement {
+impl AppIndexAlertDelete {
+    pub fn render(alert_state: &AppIndexAlert, full_path: &Rc<Vec<String>>) -> VDomElement {
         let full_path = full_path.clone();
         let progress: Value<bool> = alert_state.app_state.driver.new_value(false);
         let progress_computed = progress.to_computed();

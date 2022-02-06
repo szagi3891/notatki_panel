@@ -2,7 +2,7 @@ use common::{HandlerCreateFileBody};
 use vertigo::{Driver, Computed, Value, VDomComponent};
 
 use crate::app::App;
-use crate::app::newcontent::newcontent_render::newcontent_render;
+use crate::app::newcontent::app_newcontent_render::app_newcontent_render;
 use crate::components::new_name;
 use crate::data::ListItem;
 
@@ -80,7 +80,7 @@ impl AppNewcontent {
             app_state: app_state.clone(),
         };
 
-        newcontent_render(new_name.render(), state)
+        app_newcontent_render(new_name.render(), state)
     }
 
     pub fn on_input_content(&self, new_value: String) {

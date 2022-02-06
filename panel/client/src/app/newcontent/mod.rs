@@ -1,4 +1,4 @@
-mod newcontent_render;
-mod newcontent_state;
+mod app_newcontent_render;
+mod app_newcontent_state;
 
-pub use newcontent_state::AppNewcontent;
+pub use app_newcontent_state::AppNewcontent;

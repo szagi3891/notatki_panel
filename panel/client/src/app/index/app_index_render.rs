@@ -5,13 +5,13 @@ use vertigo::{
 
 use vertigo::{html, css};
 
-use crate::app::index::menu::AppIndexMenuState;
+use crate::app::index::app_index_render_menu::AppIndexMenuState;
 
 use super::AppIndex;
 
-use super::render_list::render_list;
-use super::render_header::render_header;
-use super::render_content::render_content;
+use super::app_index_render_list::render_list;
+use super::app_index_render_header::render_header;
+use super::app_index_render_content::render_content;
 
 fn css_wrapper() -> Css {
     css!("
@@ -192,7 +192,7 @@ fn button(
     }
 }
 
-pub fn render(view_alert: VDomComponent, app_index_state: AppIndex) -> VDomComponent {
+pub fn app_index_render(view_alert: VDomComponent, app_index_state: AppIndex) -> VDomComponent {
     let view_index = render_index(view_alert, app_index_state.clone());
 
     VDomComponent::new(app_index_state, move |app_index_state: &AppIndex| {

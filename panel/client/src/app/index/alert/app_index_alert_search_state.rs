@@ -3,7 +3,7 @@ use vertigo::{css, html};
 use crate::{components::AlertBox, data::{StateData}};
 use crate::components::icon;
 
-use super::state_alert::StateAlert;
+use super::AppIndexAlert;
 
 fn css_content() -> Css {
     css!("
@@ -151,14 +151,14 @@ fn new_results(driver: &Driver, data_state: &StateData, phrase: Computed<String>
 }
 
 #[derive(Clone)]
-pub struct StateAlertSearch {
-    alert_state: StateAlert,
+pub struct AppIndexAlertSearch {
+    alert_state: AppIndexAlert,
     pub phrase: Value<String>,
     results: Computed<Vec<ResultItem>>,
 }
 
-impl StateAlertSearch {
-    pub fn component(alert_state: &StateAlert) -> VDomComponent {
+impl AppIndexAlertSearch {
+    pub fn component(alert_state: &AppIndexAlert) -> VDomComponent {
         let phrase = alert_state.app_state.driver.new_value("".to_string());
 
         let results = new_results(
@@ -167,7 +167,7 @@ impl StateAlertSearch {
             phrase.to_computed(),
         );
 
-        let state = StateAlertSearch {
+        let state = AppIndexAlertSearch {
             alert_state: alert_state.clone(),
             phrase,
             results,
@@ -178,7 +178,7 @@ impl StateAlertSearch {
 }
 
 
-fn render_results(alert_search_state: &StateAlertSearch) -> VDomElement {
+fn render_results(alert_search_state: &AppIndexAlertSearch) -> VDomElement {
     let results = alert_search_state.results.get_value();
 
     let mut list = Vec::<VDomElement>::new();
@@ -219,11 +219,11 @@ fn render_results(alert_search_state: &StateAlertSearch) -> VDomElement {
     }
 }
 
-pub fn render(alert_search_state: StateAlertSearch) -> VDomComponent {
+pub fn render(alert_search_state: AppIndexAlertSearch) -> VDomComponent {
 
     let results = VDomComponent::new(alert_search_state.clone(), render_results);
 
-    VDomComponent::new(alert_search_state.clone(), move |alert_search_state: &StateAlertSearch| {
+    VDomComponent::new(alert_search_state.clone(), move |alert_search_state: &AppIndexAlertSearch| {
         let phrase = alert_search_state.phrase.clone();
         let current_value = phrase.get_value();
 

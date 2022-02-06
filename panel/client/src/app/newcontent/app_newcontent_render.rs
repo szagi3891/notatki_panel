@@ -1,7 +1,9 @@
-use vertigo::{Css, VDomComponent, css, html};
+use vertigo::{Css, VDomElement, VDomComponent};
+use vertigo::{css, html};
 
-use super::{AppNewdir};
 use crate::components::{button};
+
+use super::AppNewcontent;
 
 fn css_wrapper() -> Css {
     css!("
@@ -21,8 +23,38 @@ fn css_header() -> Css {
     ")
 }
 
-pub fn build_render(view_new_name: VDomComponent, state: AppNewdir) -> VDomComponent {
-    VDomComponent::new(state, move |state| {
+fn css_input_content() -> Css {
+    css!("
+        flex-grow: 1;
+        border: 0;
+        padding: 5px;
+        margin: 5px;
+        border: 1px solid blue;
+        :focus {
+            border: 0;
+        }
+    ")
+}
+
+fn render_input_content(state: &AppNewcontent) -> VDomElement {
+    let content = &state.content.get_value();
+
+    let on_input = {
+        let state = state.clone();
+        move |new_value: String| {
+            state.on_input_content(new_value);
+        }
+    };
+
+    html! {
+        <textarea css={css_input_content()} on_input={on_input} value={content.as_ref()} />
+    }
+}
+
+pub fn app_newcontent_render(view_new_name: VDomComponent, state: AppNewcontent) -> VDomComponent {
+    let view_input = VDomComponent::new(state.clone(), render_input_content);
+
+    VDomComponent::new(state, move |state: &AppNewcontent| -> VDomElement {
         let on_click = {
             let state = state.clone();
             move || {
@@ -59,13 +91,14 @@ pub fn build_render(view_new_name: VDomComponent, state: AppNewdir) -> VDomCompo
                     "
                 </style>
                 <div css={css_header()}>
-                    "tworzenie katalogu => "
+                    "tworzenie pliku => "
                     {parent_path}
                 </div>
                 <div css={css_header()}>
                     { ..buttons }
                 </div>
                 { view_new_name.clone() }
+                { view_input.clone() }
             </div>
         }
     })
