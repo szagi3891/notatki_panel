@@ -196,8 +196,10 @@ pub fn app_index_render(view_alert: VDomComponent, app_index_state: AppIndex) ->
     let view_index = render_index(view_alert, app_index_state.clone());
 
     VDomComponent::new(app_index_state, move |app_index_state: &AppIndex| {
-        let active = app_index_state.data_state.tab.open_links.tabs_active.get_value();
-        let tabs = app_index_state.data_state.tab.open_links.tabs_url.get_value();
+        let open_links = app_index_state.data.tab.open_links.clone();
+
+        let active = open_links.tabs_active.get_value();
+        let tabs = open_links.tabs_url.get_value();
 
         if tabs.len() > 0 {
             let mut tabs_iframe = Vec::new();
@@ -207,9 +209,9 @@ pub fn app_index_render(view_alert: VDomComponent, app_index_state: AppIndex) ->
             let is_select_default = active.is_none();
 
             tabs_menu.push({
-                let app_index_state = app_index_state.clone();
+                let open_links = open_links.clone();
                 let on_click = move || {
-                    app_index_state.data_state.tab.open_links.tabs_default();
+                    open_links.tabs_default();
                 };
 
                 button("default", on_click, None::<fn()>, is_select_default)
@@ -236,19 +238,19 @@ pub fn app_index_render(view_alert: VDomComponent, app_index_state: AppIndex) ->
                 });
 
                 let on_click = {
-                    let app_index_state = app_index_state.clone();
+                    let open_links = open_links.clone();
                     let tab_item = tab_item.clone();
         
                     move || {
-                        app_index_state.data_state.tab.open_links.tabs_set(tab_item.clone());
+                        open_links.tabs_set(tab_item.clone());
                     }
                 };
 
                 let on_close = {
-                    let app_index_state = app_index_state.clone();
+                    let open_links = open_links.clone();
                     let tab_item = tab_item.clone();
                     move || {
-                        app_index_state.data_state.tab.open_links.tabs_remove(tab_item.clone());
+                        open_links.tabs_remove(tab_item.clone());
                     }
                 };
         
