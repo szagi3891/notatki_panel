@@ -2,13 +2,92 @@ use std::rc::Rc;
 use vertigo::{
     VDomComponent,
     Resource,
-    Value
+    Value,
+    Driver,
 };
 use crate::app::App;
 use crate::data::StateData;
 
 use super::alert::AppIndexAlert;
 use super::app_index_render::app_index_render;
+
+
+#[derive(Clone)]
+pub struct OpenLinks {
+    pub tabs_url: Value<Vec<String>>,
+    pub tabs_active: Value<Option<String>>,
+}
+
+impl OpenLinks {
+    pub fn new(driver: &Driver) -> OpenLinks {
+        let tabs_url = driver.new_value(Vec::new());
+        let tabs_active = driver.new_value(None);
+
+        OpenLinks {
+            tabs_url,
+            tabs_active
+        }
+    }
+
+    pub fn tabs_has(&self, url: &String) -> bool {
+        let tabs_url = self.tabs_url.get_value();
+        tabs_url.contains(url)
+    }
+
+    pub fn tabs_add(&self, url: String) {
+        log::info!("add ... {}", &url);
+        let tabs_url = self.tabs_url.get_value();
+
+        if tabs_url.contains(&url) {
+            log::error!("is contain {}", url);
+            return;
+        }
+
+        let mut tabs_url = tabs_url.as_ref().clone();
+        tabs_url.push(url);
+        self.tabs_url.set_value(tabs_url);
+    }
+
+    pub fn tabs_remove(&self, url: String) {
+        let tabs_url = self.tabs_url.get_value();
+
+        if !tabs_url.contains(&url) {
+            log::error!("not contain {}", url);
+            return;
+        }
+        
+        let tabs_url = tabs_url.as_ref().clone();
+        let mut new_tabs = Vec::<String>::with_capacity(tabs_url.len());
+
+        for tab_url in tabs_url.into_iter() {
+            if tab_url != url {
+                new_tabs.push(tab_url);
+            }
+        }
+
+        self.tabs_url.set_value(new_tabs);
+
+        let tabs_active = self.tabs_active.get_value();
+        if *tabs_active == Some(url) {
+            self.tabs_default();
+        }
+    }
+
+    pub fn tabs_set(&self, url: String) {
+        let tabs_url = self.tabs_url.get_value();
+
+        if !tabs_url.contains(&url) {
+            log::error!("not contain {}", url);
+            return;
+        }
+
+        self.tabs_active.set_value(Some(url));
+    }
+
+    pub fn tabs_default(&self) {
+        self.tabs_active.set_value(None);
+    }
+}
 
 #[derive(Clone)]
 pub struct AppIndex {
@@ -18,8 +97,7 @@ pub struct AppIndex {
 
     pub alert: AppIndexAlert,
 
-    pub tabs_url: Value<Vec<String>>,
-    pub tabs_active: Value<Option<String>>,
+    pub open_links: OpenLinks,
 }
 
 impl AppIndex {
@@ -29,15 +107,13 @@ impl AppIndex {
 
         let (alert, alert_view) = AppIndexAlert::new(app_state.clone());
 
-        let tabs_url = driver.new_value(Vec::new());
-        let tabs_active = driver.new_value(None);
+        let open_links = OpenLinks::new(driver);
 
         let state = AppIndex {
             data_state: state_data,
             app_state: app_state.clone(),
             alert,
-            tabs_url,
-            tabs_active,
+            open_links,
         };
 
         let keydown = {
@@ -122,7 +198,7 @@ impl AppIndex {
     }
 
     fn pointer_up(&self) {
-        let list_pointer_rc = self.data_state.tab.list_current_item.get_value();
+        let list_pointer_rc = self.data_state.tab.current_item.get_value();
 
         if let Some(list_pointer) = list_pointer_rc.as_ref() {
             if let Some(index) = self.find(list_pointer) {
@@ -136,7 +212,7 @@ impl AppIndex {
     }
 
     fn pointer_down(&self) {
-        let list_pointer_rc = self.data_state.tab.list_current_item.get_value();
+        let list_pointer_rc = self.data_state.tab.current_item.get_value();
 
         if let Some(list_pointer) = list_pointer_rc.as_ref() {
             if let Some(index) = self.find(list_pointer) {
@@ -150,7 +226,7 @@ impl AppIndex {
     }
 
     fn pointer_enter(&self) {
-        let list_pointer = self.data_state.tab.list_current_item.get_value();
+        let list_pointer = self.data_state.tab.current_item.get_value();
 
         if let Some(list_pointer) = list_pointer.as_ref() {
             if self.find(list_pointer).is_some() {
@@ -203,7 +279,7 @@ impl AppIndex {
 
     pub fn current_edit(&self) {
         let path = self.data_state.tab.dir.get_value();
-        let select_item = self.data_state.tab.list_current_item.get_value();
+        let select_item = self.data_state.tab.current_item.get_value();
         self.app_state.redirect_to_content(&path, &select_item);
     }
 
@@ -220,7 +296,7 @@ impl AppIndex {
 
     pub fn current_rename(&self) {
         let path = self.data_state.tab.dir.get_value();
-        let select_item = self.data_state.tab.list_current_item.get_value();
+        let select_item = self.data_state.tab.current_item.get_value();
 
         if let Some(select_item) = select_item.as_ref() {
             self.app_state.redirect_to_rename_item(&path, select_item);
@@ -231,65 +307,6 @@ impl AppIndex {
 
     pub fn current_path_dir(&self) -> Rc<Vec<String>> {
         self.data_state.tab.dir.get_value()
-    }
-
-    pub fn tabs_has(&self, url: &String) -> bool {
-        let tabs_url = self.tabs_url.get_value();
-        tabs_url.contains(url)
-    }
-
-    pub fn tabs_add(&self, url: String) {
-        log::info!("add ... {}", &url);
-        let tabs_url = self.tabs_url.get_value();
-
-        if tabs_url.contains(&url) {
-            log::error!("is contain {}", url);
-            return;
-        }
-
-        let mut tabs_url = tabs_url.as_ref().clone();
-        tabs_url.push(url);
-        self.tabs_url.set_value(tabs_url);
-    }
-
-    pub fn tabs_remove(&self, url: String) {
-        let tabs_url = self.tabs_url.get_value();
-
-        if !tabs_url.contains(&url) {
-            log::error!("not contain {}", url);
-            return;
-        }
-        
-        let tabs_url = tabs_url.as_ref().clone();
-        let mut new_tabs = Vec::<String>::with_capacity(tabs_url.len());
-
-        for tab_url in tabs_url.into_iter() {
-            if tab_url != url {
-                new_tabs.push(tab_url);
-            }
-        }
-
-        self.tabs_url.set_value(new_tabs);
-
-        let tabs_active = self.tabs_active.get_value();
-        if *tabs_active == Some(url) {
-            self.tabs_default();
-        }
-    }
-
-    pub fn tabs_set(&self, url: String) {
-        let tabs_url = self.tabs_url.get_value();
-
-        if !tabs_url.contains(&url) {
-            log::error!("not contain {}", url);
-            return;
-        }
-
-        self.tabs_active.set_value(Some(url));
-    }
-
-    pub fn tabs_default(&self) {
-        self.tabs_active.set_value(None);
     }
 }
 

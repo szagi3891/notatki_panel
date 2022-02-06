@@ -105,7 +105,7 @@ fn render_menu(state: &AppIndexMenuState) -> VDomElement {
         let alert = state.app_index.alert.clone();
         let on_delete = {
             move || {
-                let path = alert.app_state.data.tab.current_full_path.get_value();
+                let path = alert.app_state.data.tab.full_path.get_value();
                 alert.delete(path);
             }
         };

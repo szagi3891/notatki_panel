@@ -56,7 +56,7 @@ pub fn render_content(state: &AppIndex) -> VDomElement {
                     let url = url.to_string();
                     let thumb = get_thumbnail(url.as_str());
 
-                    let has_open = state.tabs_has(&url);
+                    let has_open = state.open_links.tabs_has(&url);
 
                     let open_link = if has_open {
                         let on_click = {
@@ -64,7 +64,7 @@ pub fn render_content(state: &AppIndex) -> VDomElement {
                             let url = url.clone();
                             
                             move || {
-                                state.tabs_remove(url.clone());
+                                state.open_links.tabs_remove(url.clone());
                             }
                         };
 
@@ -77,7 +77,7 @@ pub fn render_content(state: &AppIndex) -> VDomElement {
                             let url = url.clone();
                             
                             move || {
-                                state.tabs_add(url.clone());
+                                state.open_links.tabs_add(url.clone());
                             }
                         };
 

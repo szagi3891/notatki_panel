@@ -172,46 +172,56 @@ pub struct TabPath {
 
 
     //wybrany element z listy, dla widoku
-    pub list_current_item: Computed<Option<String>>,
+    pub current_item: Computed<Option<String>>,
 
-    pub current_full_path: Computed<Vec<String>>,
+    pub full_path: Computed<Vec<String>>,
 
     //aktualnie wyliczony wybrany content wskazywany przez current_path
     pub current_content: Computed<CurrentContent>,
 
+
+    // //Otworzone zakładki z podględem do zewnętrznych linków
+    // pub tabs_url: Value<Vec<String>>,
+    // pub tabs_active: Value<Option<String>>,
 }
 
 impl TabPath {
     pub fn new(driver: &Driver, git: &StateDataGit) -> TabPath {
-        let current_path_dir: Value<Vec<String>> = driver.new_value(Vec::new());
+        let dir: Value<Vec<String>> = driver.new_value(Vec::new());
         let file: Value<Option<String>> = driver.new_value(None);
 
-        let list_hash_map = create_list_hash_map(driver, git, &current_path_dir);
+        let list_hash_map = create_list_hash_map(driver, git, &dir);
         let list = create_list(driver, &list_hash_map);
 
 
-        let list_current_item = create_current_item_view(driver, &file, &list);
+        let current_item = create_current_item_view(driver, &file, &list);
 
-        let current_full_path = create_current_full_path(
+        let full_path = create_current_full_path(
             driver,
-            &current_path_dir,
-            &list_current_item,
+            &dir,
+            &current_item,
         );
         let current_content = create_current_content(
             driver,
             git,
-            &current_path_dir,
-            &list_current_item,
+            &dir,
+            &current_item,
         );
 
+        // let tabs_url = driver.new_value(Vec::new());
+        // let tabs_active = driver.new_value(None);
+
         TabPath {
-            dir: current_path_dir.clone(),
+            dir: dir.clone(),
             file,
             list_hash_map,
             list,
-            list_current_item,
-            current_full_path,
+            current_item,
+            full_path,
             current_content,
+
+            // tabs_url,
+            // tabs_active,
         }
     }
 
