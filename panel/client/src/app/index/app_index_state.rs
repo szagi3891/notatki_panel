@@ -18,7 +18,6 @@ pub struct AppIndex {
 
 impl AppIndex {
     pub fn component(app_state: &App) -> (VDomComponent, impl Fn(vertigo::KeyDownEvent) -> bool) {
-        let driver = &app_state.driver.clone();
         let state_data = app_state.data.clone();
 
         let (alert, alert_view) = AppIndexAlert::new(app_state.clone());

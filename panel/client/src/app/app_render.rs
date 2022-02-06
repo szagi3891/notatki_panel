@@ -14,10 +14,12 @@ use super::index::AppIndex;
 
 pub fn app_render(app_state: &App) -> VDomElement {
     let view = app_state.view.get_value();
+    let open_links = app_state.data.tab.open_links.clone();
 
     match view.as_ref() {
         View::Index => {
             let (view, on_keydown) = AppIndex::component(&app_state);
+            let view = open_links.render(view);
 
             html! {
                 <div id="root" on_key_down={on_keydown}>
@@ -32,6 +34,7 @@ pub fn app_render(app_state: &App) -> VDomElement {
                 file_hash.clone(),
                 content.as_ref().clone(),
             );
+            let view = open_links.render(view);
 
             html! {
                 <div id="root">
@@ -45,6 +48,7 @@ pub fn app_render(app_state: &App) -> VDomElement {
                 parent.clone(),
                 list.clone(),
             );
+            let view = open_links.render(view);
 
             html! {
                 <div id="root">
@@ -60,6 +64,7 @@ pub fn app_render(app_state: &App) -> VDomElement {
                 prev_hash.clone(),
                 prev_content.clone(),
             );
+            let view = open_links.render(view);
 
             html! {
                 <div id="root">
@@ -69,6 +74,7 @@ pub fn app_render(app_state: &App) -> VDomElement {
         },
         View::Mkdir { parent, list } => {
             let view = AppNewdir::component(app_state, (*parent).to_vec(), list.clone());
+            let view = open_links.render(view);
 
             html! {
                 <div id="root">
