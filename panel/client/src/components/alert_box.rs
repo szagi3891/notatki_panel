@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use vertigo::VDomElement;
 
 use vertigo::{
@@ -5,7 +7,6 @@ use vertigo::{
     Computed,
 };
 use vertigo::{html, css};
-
 
 use crate::components::button;
 
@@ -69,10 +70,7 @@ fn css_progress() -> Css {
     ")
 }
 
-
-fn render_progress(progress_computed: &Computed<bool>) -> VDomElement {
-    let progress = progress_computed.get_value();
-
+fn render_progress(progress: Rc<bool>) -> VDomElement {
     if *progress {
         return html! {
             <div css={css_progress()}>
@@ -117,6 +115,7 @@ impl AlertBox {
 
     pub fn render(self) -> VDomElement {
         let AlertBox { message, progress, buttons } = self;
+        let progress_value = progress.get_value();
 
         let content = html! {
             <div>
@@ -124,7 +123,7 @@ impl AlertBox {
                     { message }
                 </div>
 
-                <component {render_progress} data={progress} />
+                { render_progress(progress_value) }
 
                 <div css={css_buttons_wrapper()}>
                     { ..buttons }

@@ -81,9 +81,11 @@ fn app_index_alert_render(alert_state: &AppIndexAlert) -> VDomElement {
             }
         },
         AlertView::DeleteFile { path } => {
+            let view = AppIndexAlertDelete::new(alert_state, path).render();
+
             html! {
                 <div>
-                    { AppIndexAlertDelete::render(alert_state, path) }
+                    { view }
                 </div>
             }
         },

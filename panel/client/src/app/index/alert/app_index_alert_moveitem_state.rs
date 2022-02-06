@@ -47,7 +47,6 @@ fn render(state: &AppIndexAlertMoveitem) -> VDomElement {
             
             "przenoszenie elementu -> " {state.path.join("/")}
 
-
         </div>
     };
 
