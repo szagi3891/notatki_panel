@@ -58,8 +58,7 @@ fn css_content_content() -> Css {
     //font-size: 20px;
 }
 
-pub fn render_index(state_value: AppIndexState) -> VDomComponent {
-    let view_alert = state_value.alert_view.clone();
+pub fn render_index(view_alert: VDomComponent, state_value: AppIndexState) -> VDomComponent {
     let view_menu = AppIndexMenuState::component(&state_value);
     let view_header = VDomComponent::new(state_value.clone(), render_header);
     let view_list = VDomComponent::new(state_value.clone(), render_list);
@@ -193,8 +192,8 @@ fn button(
     }
 }
 
-pub fn render(app_index_state: AppIndexState) -> VDomComponent {
-    let view_index = render_index(app_index_state.clone());
+pub fn render(view_alert: VDomComponent, app_index_state: AppIndexState) -> VDomComponent {
+    let view_index = render_index(view_alert, app_index_state.clone());
 
     VDomComponent::new(app_index_state, move |app_index_state: &AppIndexState| {
         let active = app_index_state.tabs_active.get_value();

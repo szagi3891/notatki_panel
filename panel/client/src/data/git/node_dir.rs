@@ -41,7 +41,7 @@ impl NodeDir {
             })
             .post();
 
-            driver.spawn(async move {
+        driver.spawn(async move {
             let response = response.await.into(|status, body| {
                 if status == 200 {
                     return Some(body.into::<HandlerFetchDirResponse>());

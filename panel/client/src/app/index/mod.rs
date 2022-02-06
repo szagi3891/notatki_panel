@@ -26,7 +26,6 @@ pub struct AppIndexState {
     app_state: StateApp,
 
     pub alert: StateAlert,
-    pub alert_view: VDomComponent,
 
     pub tabs_url: Value<Vec<String>>,
     pub tabs_active: Value<Option<String>>,
@@ -46,7 +45,6 @@ impl AppIndexState {
             data_state: state_data,
             app_state: app_state.clone(),
             alert,
-            alert_view,
             tabs_url,
             tabs_active,
         };
@@ -58,7 +56,7 @@ impl AppIndexState {
             }
         };
 
-        let view = render::render(state);
+        let view = render::render(alert_view, state);
         (view, keydown)
     }
 
