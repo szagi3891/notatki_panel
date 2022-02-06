@@ -14,7 +14,6 @@ pub struct AppIndexAlertDelete {
     full_path: Rc<Vec<String>>,
     progress: Value<bool>,
     alert_state: AppIndexAlert,
-    // progress_computed: Computed<bool>,
 }
 
 impl AppIndexAlertDelete {

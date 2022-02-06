@@ -1,20 +1,16 @@
 use std::rc::Rc;
 
-use vertigo::{VDomComponent, html, VDomElement, css, Css};
+use vertigo::{VDomComponent, css, Css, Value};
 
 use crate::components::AlertBox;
 
 use super::AppIndexAlert;
 
-fn css_close() -> Css {
-    css!("
-        cursor: pointer;
-    ")
-}
-
+#[derive(Clone)]
 pub struct AppIndexAlertMoveitem {
     alert_state: AppIndexAlert,
     path: Rc<Vec<String>>,
+    progress: Value<bool>,
 }
 
 
@@ -23,33 +19,46 @@ impl AppIndexAlertMoveitem {
         let state = AppIndexAlertMoveitem {
             alert_state: alert_state.clone(),
             path: path.clone(),
+            progress: alert_state.app_state.driver.new_value(false),
         };
 
-        VDomComponent::new(state, render)
+        render(state)
+    }
+
+    pub fn delete_no(&self) {
+        if *self.progress.get_value() {
+            return;
+        }
+
+        self.alert_state.close_modal();
     }
 }
 
-fn render(state: &AppIndexAlertMoveitem) -> VDomElement {
-    let on_close = {
-        let alert_state = state.alert_state.clone();
+fn render(state: AppIndexAlertMoveitem) -> VDomComponent {
+    VDomComponent::new(state, move |state: &AppIndexAlertMoveitem| {
+        let progress = state.progress.to_computed();
 
-        move || {
-            //state.close_modal();
-            alert_state.close_modal();
-        }
-    };
+        let message = format!("Przenoszenie -> {} ?", state.path.join("/"));
+        let mut alert = AlertBox::new(message, progress);
 
-    let content = html! {
-        <div>
-            <div css={css_close()} on_click={on_close}>
-                "zamknij"
-            </div>
-            
-            "przenoszenie elementu -> " {state.path.join("/")}
+        alert.button("Tak", {
+            // let state = state.clone();
+            move || {
+                // state.delete_yes();
+            }
+        });
 
-        </div>
-    };
+        alert.button("Nie", {
+            let state = state.clone();
+            move || {
+                state.delete_no();
+            }
+        });
 
-    AlertBox::render_popup(content)
+        // alert.set_content()
+        //VDomComponent - ustawić content dla tego popupa z listą do nawigowania po docelowym katalogu
+
+        alert.render()
+    })
 }
 

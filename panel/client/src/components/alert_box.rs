@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use vertigo::VDomElement;
+use vertigo::{VDomElement, VDomComponent};
 
 use vertigo::{
     Css,
@@ -88,6 +88,7 @@ pub struct AlertBox {
     message: String,
     progress: Computed<bool>,
     buttons: Vec<VDomElement>,
+    content: Option<VDomComponent>,
 }
 
 impl AlertBox {
@@ -96,11 +97,16 @@ impl AlertBox {
             message,
             progress,
             buttons: Vec::new(),
+            content: None,
         }
     }
 
     pub fn button<F: Fn() + 'static>(&mut self, label: &'static str, on_click: F) {
         self.buttons.push(button(label, on_click))
+    }
+
+    pub fn set_content(&mut self, content: VDomComponent) {
+        self.content = Some(content);
     }
 
     pub fn render_popup(content: VDomElement) -> VDomElement {
@@ -114,8 +120,21 @@ impl AlertBox {
     }
 
     pub fn render(self) -> VDomElement {
-        let AlertBox { message, progress, buttons } = self;
+        let AlertBox { message, progress, buttons, content } = self;
         let progress_value = progress.get_value();
+
+        let content = match content {
+            Some(content) => {
+                html! {
+                    <div>
+                        { content }
+                    </div>
+                }
+            },
+            None => html! {
+                <div />
+            }
+        };
 
         let content = html! {
             <div>
@@ -128,6 +147,8 @@ impl AlertBox {
                 <div css={css_buttons_wrapper()}>
                     { ..buttons }
                 </div>
+
+                { content }
             </div>
         };
 
