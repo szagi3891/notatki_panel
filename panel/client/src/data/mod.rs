@@ -7,6 +7,7 @@ mod open_links;
 
 pub use git::CurrentContent;
 pub use tabs::ListItem;
+pub use open_links::OpenLinks;
 
 #[derive(Clone)]
 pub struct StateData {

@@ -6,6 +6,7 @@ use vertigo::{
 use vertigo::{html, css};
 
 use crate::app::index::app_index_render_menu::AppIndexMenuState;
+use crate::data::OpenLinks;
 
 use super::AppIndex;
 
@@ -192,12 +193,9 @@ fn button(
     }
 }
 
-pub fn app_index_render(view_alert: VDomComponent, app_index_state: AppIndex) -> VDomComponent {
-    let view_index = render_index(view_alert, app_index_state.clone());
+pub fn open_links_render(open_links: OpenLinks, default_view: VDomComponent) -> VDomComponent {
 
-    VDomComponent::new(app_index_state, move |app_index_state: &AppIndex| {
-        let open_links = app_index_state.data.tab.open_links.clone();
-
+    VDomComponent::new(open_links, move |open_links: &OpenLinks| {
         let active = open_links.tabs_active.get_value();
         let tabs = open_links.tabs_url.get_value();
 
@@ -220,7 +218,7 @@ pub fn app_index_render(view_alert: VDomComponent, app_index_state: AppIndex) ->
             if is_select_default {
                 tabs_iframe.push(html! {
                     <div css={css_iframe(true)}>
-                        { view_index.clone() }
+                        { default_view.clone() }
                     </div>
                 });
             }
@@ -271,8 +269,15 @@ pub fn app_index_render(view_alert: VDomComponent, app_index_state: AppIndex) ->
 
         html! {
             <div>
-                { view_index.clone() }
+                { default_view.clone() }
             </div>
         }
     })
+}
+
+pub fn app_index_render(view_alert: VDomComponent, app_index_state: AppIndex) -> VDomComponent {
+    let view_index = render_index(view_alert, app_index_state.clone());
+    let open_links = app_index_state.data.tab.open_links.clone();
+
+    open_links_render(open_links, view_index)
 }
