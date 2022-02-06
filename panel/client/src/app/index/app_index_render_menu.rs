@@ -120,6 +120,15 @@ fn render_menu(state: &AppIndexMenuState) -> VDomElement {
         }
     }));
 
+    let current_path = state.app_index.data.tab.full_path.get_value();
+
+    out.push(button("Przenieś", {
+        let alert = state.app_index.alert.clone();
+        move || {
+            alert.move_current(current_path.clone());
+        }
+    }));
+
     html! {
         <div css={css_footer()}>
             { ..out }

@@ -21,6 +21,9 @@ fn css_wrapper() -> Css {
         background-color: #e0e0e0;
         padding: 0;
         box-sizing: border-box;
+
+        width: 100vw;
+        height: 100vh;
     ")
 }
 

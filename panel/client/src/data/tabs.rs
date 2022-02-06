@@ -179,11 +179,7 @@ pub struct TabPath {
     //aktualnie wyliczony wybrany content wskazywany przez current_path
     pub current_content: Computed<CurrentContent>,
 
-
-    // //Otworzone zakładki z podględem do zewnętrznych linków
-    // pub tabs_url: Value<Vec<String>>,
-    // pub tabs_active: Value<Option<String>>,
-
+    //Otworzone zakładki z podględem do zewnętrznych linków
     pub open_links: OpenLinks,
 }
 
@@ -222,9 +218,6 @@ impl TabPath {
             current_item,
             full_path,
             current_content,
-
-            // tabs_url,
-            // tabs_active,
             open_links,
         }
     }

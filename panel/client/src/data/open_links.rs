@@ -95,6 +95,7 @@ fn css_iframe_bg() -> Css {
         bottom: 0;
 
         display: flex;
+        height: 100vh;
     ")
 }
 
@@ -103,6 +104,8 @@ fn css_left() -> Css {
         position: relative;
         overflow: hidden;
         flex-grow:1;
+        width: 100vw;
+        height: 100vh;
     ")
 }
 
@@ -274,9 +277,11 @@ fn open_links_render(open_links: OpenLinks, default_view: VDomComponent) -> VDom
         }
 
         html! {
-            <div>
+            <div css={css_iframe_bg()}>
                 { style_css }
-                { default_view.clone() }
+                <div css={css_left()}>
+                    { default_view.clone() }
+                </div>
             </div>
         }
     })

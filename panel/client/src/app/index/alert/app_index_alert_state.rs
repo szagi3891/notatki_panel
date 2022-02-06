@@ -6,6 +6,8 @@ use crate::app::App;
 use crate::app::index::alert::app_index_alert_delete_state::AppIndexAlertDelete;
 use crate::app::index::alert::app_index_alert_search_state::AppIndexAlertSearch;
 
+use super::app_index_alert_moveitem_state::AppIndexAlertMoveitem;
+
 
 #[derive(PartialEq)]
 pub enum AlertView {
@@ -95,9 +97,11 @@ fn app_index_alert_render(alert_state: &AppIndexAlert) -> VDomElement {
             }
         },
         AlertView::MoveItem { path } => {
+            let view = AppIndexAlertMoveitem::component(&alert_state, path);
+
             html! {
                 <div>
-                    "przenoszenie elementu -> " {path.join("/")}
+                    { view }
                 </div>
             }
         }
