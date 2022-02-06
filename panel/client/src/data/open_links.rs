@@ -104,18 +104,12 @@ fn css_left() -> Css {
         position: relative;
         overflow: hidden;
         flex-grow:1;
-        width: 100vw;
         height: 100vh;
     ")
 }
 
 fn css_iframe(active: bool) -> Css {
     let style = css!("
-        position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
         overflow-y: scroll;
 
         width: 100%;
@@ -128,7 +122,7 @@ fn css_iframe(active: bool) -> Css {
     if active {
         style
     } else {
-        style.push_str("visibility: hidden;")
+        style.push_str("visibility: hidden; width: 0;")
     }
 }
 
