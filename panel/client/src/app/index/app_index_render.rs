@@ -20,8 +20,6 @@ fn css_wrapper() -> Css {
         border: 1px solid black;
         background-color: #e0e0e0;
         padding: 0;
-        width: 100vw;
-        height: 100vh;
         box-sizing: border-box;
     ")
 }
@@ -48,6 +46,7 @@ fn css_content_list() -> Css {
 
 fn css_content_content() -> Css {
     css!("
+        width: 100%;
         flex-grow: 1;
         padding: 5px;
         overflow-y: scroll;
@@ -67,17 +66,6 @@ pub fn app_index_render(view_alert: VDomComponent, state_value: AppIndex) -> VDo
     VDomComponent::new(state_value, move |_state_value: &AppIndex| {
         html! {
             <div css={css_wrapper()}>
-                <style>
-                    "
-                    html, body {
-                        width: 100%;
-                        height: 100%;
-                        margin: 0;
-                        padding: 0;
-                        border: 0;
-                    }
-                    "
-                </style>
                 { view_menu.clone() }
                 { view_header.clone() }
                 <div css={css_content()}>

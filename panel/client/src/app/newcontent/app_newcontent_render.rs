@@ -79,17 +79,6 @@ pub fn app_newcontent_render(view_new_name: VDomComponent, state: AppNewcontent)
 
         html! {
             <div css={css_wrapper()}>
-                <style>
-                    "
-                    html, body {
-                        width: 100%;
-                        height: 100%;
-                        margin: 0;
-                        padding: 0;
-                        border: 0;
-                    }
-                    "
-                </style>
                 <div css={css_header()}>
                     "tworzenie pliku => "
                     {parent_path}

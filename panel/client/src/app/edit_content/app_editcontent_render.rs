@@ -83,17 +83,6 @@ pub fn app_editcontent_render(state: AppEditcontent) -> VDomComponent {
 
         html! {
             <div css={css_wrapper()}>
-                <style>
-                    "
-                    html, body {
-                        width: 100%;
-                        height: 100%;
-                        margin: 0;
-                        padding: 0;
-                        border: 0;
-                    }
-                    "
-                </style>
                 <div css={css_header()}>
                     "edycja pliku => "
                     {path}

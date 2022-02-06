@@ -47,17 +47,6 @@ pub fn app_newdir_render(view_new_name: VDomComponent, state: AppNewdir) -> VDom
 
         html! {
             <div css={css_wrapper()}>
-                <style>
-                    "
-                    html, body {
-                        width: 100%;
-                        height: 100%;
-                        margin: 0;
-                        padding: 0;
-                        border: 0;
-                    }
-                    "
-                </style>
                 <div css={css_header()}>
                     "tworzenie katalogu => "
                     {parent_path}

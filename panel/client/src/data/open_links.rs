@@ -190,6 +190,20 @@ fn open_links_render(open_links: OpenLinks, default_view: VDomComponent) -> VDom
         let active = open_links.tabs_active.get_value();
         let tabs = open_links.tabs_url.get_value();
 
+        let style_css = html! {
+            <style>
+                "
+                html, body {
+                    width: 100%;
+                    height: 100%;
+                    margin: 0;
+                    padding: 0;
+                    border: 0;
+                }
+                "
+            </style>
+        };
+
         if tabs.len() > 0 {
             let mut tabs_iframe = Vec::new();
             let mut tabs_menu = Vec::new();
@@ -248,6 +262,7 @@ fn open_links_render(open_links: OpenLinks, default_view: VDomComponent) -> VDom
 
             return html! {
                 <div css={css_iframe_bg()}>
+                    { style_css }
                     <div css={css_left()}>
                         { ..tabs_iframe }
                     </div>
@@ -260,6 +275,7 @@ fn open_links_render(open_links: OpenLinks, default_view: VDomComponent) -> VDom
 
         html! {
             <div>
+                { style_css }
                 { default_view.clone() }
             </div>
         }

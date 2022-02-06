@@ -12,6 +12,7 @@ use crate::{
 
 fn css_content() -> Css {
     css!("
+        width: 100%;
         font-family: monospace;
         white-space: pre-wrap;
     ")
