@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use vertigo::{Value, VDomElement, VDomComponent};
 use vertigo::{html};
-use crate::app::StateApp;
+use crate::app::App;
 
 use super::state_alert_search::StateAlertSearch;
 use super::state_alert_delete::StateAlertDelete;
@@ -17,12 +17,12 @@ pub enum AlertView {
 
 #[derive(Clone)]
 pub struct StateAlert {
-    pub app_state: StateApp,
+    pub app_state: App,
     view: Value<AlertView>,
 }
 
 impl StateAlert {
-    pub fn new(app_state: StateApp) -> (StateAlert, VDomComponent) {
+    pub fn new(app_state: App) -> (StateAlert, VDomComponent) {
         let view = app_state.driver.new_value(AlertView::None);
 
         let state = StateAlert {

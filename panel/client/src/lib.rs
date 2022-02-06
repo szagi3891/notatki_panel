@@ -14,5 +14,5 @@ mod app;
 
 #[no_mangle]
 pub fn start_application() {
-    start_browser_app(app::StateApp::component);
+    start_browser_app(app::App::component);
 }

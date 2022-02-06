@@ -5,10 +5,10 @@ use render::build_render;
 use common::{HandlerRenameItemBody};
 use vertigo::{Driver, Computed, Value, VDomComponent};
 
-use crate::{app::StateApp};
+use crate::{app::App};
 
 #[derive(Clone)]
-pub struct StateAppRenameItem {
+pub struct AppRenameItem {
     driver: Driver,
 
     pub path: Vec<String>,          //edutowany element
@@ -21,16 +21,16 @@ pub struct StateAppRenameItem {
 
     pub save_enable: Computed<bool>,
 
-    app_state: StateApp,
+    app_state: App,
 }
 
-impl StateAppRenameItem {
+impl AppRenameItem {
     pub fn redirect_to_index(&self) {
         self.app_state.redirect_to_index();
     }
 
     pub fn component(
-        app_state: &StateApp,
+        app_state: &App,
         path: Vec<String>,
         prev_name: String,
         prev_hash: String,
@@ -59,7 +59,7 @@ impl StateAppRenameItem {
 
         let action_save = app_state.driver.new_value(false);
 
-        let state = StateAppRenameItem {
+        let state = AppRenameItem {
             driver: app_state.driver.clone(),
 
             path,

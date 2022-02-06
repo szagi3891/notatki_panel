@@ -6,7 +6,7 @@ use vertigo::{
 use vertigo::{css, html};
 use crate::components::icon;
 
-use super::AppIndexState;
+use super::AppIndex;
 
 fn css_wrapper() -> Css {
     css!("
@@ -164,7 +164,7 @@ fn remove_prefix(name: &String) -> String {
     out
 }
 
-pub fn render_list(state: &AppIndexState) -> VDomElement {
+pub fn render_list(state: &AppIndex) -> VDomElement {
     
     let mut out: Vec<VDomElement> = Vec::new();
 

@@ -5,7 +5,7 @@ use vertigo::{
 };
 
 use vertigo::{html, css};
-use super::AppIndexState;
+use super::AppIndex;
 use crate::components::button;
 use crate::data::CurrentContent;
 
@@ -37,14 +37,14 @@ fn create_avaible_delete_current(
 
 #[derive(Clone)]
 pub struct AppIndexMenuState {
-    app_index: AppIndexState,
+    app_index: AppIndex,
 
     //true - jeśli aktualnie podświetlony element jest mozliwy do usuniecia
     pub avaible_delete_button: Computed<bool>,
 }
 
 impl AppIndexMenuState {
-    pub fn component(app_index: &AppIndexState) -> VDomComponent {
+    pub fn component(app_index: &AppIndex) -> VDomComponent {
         let avaible_delete_current= create_avaible_delete_current(
             &app_index.app_state.driver,
             app_index.app_state.data.tab.current_content.clone()

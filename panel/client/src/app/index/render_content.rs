@@ -1,7 +1,7 @@
 use vertigo::{Css, VDomElement};
 use vertigo::{css, html};
 
-use super::AppIndexState;
+use super::AppIndex;
 use crate::{
     content::{
         parse_text,
@@ -40,7 +40,7 @@ fn open_css() -> Css {
     ")
 }
 
-pub fn render_content(state: &AppIndexState) -> VDomElement {
+pub fn render_content(state: &AppIndex) -> VDomElement {
     let current_content = state.app_state.data.tab.current_content.get_value();
 
     let content = current_content.to_string();

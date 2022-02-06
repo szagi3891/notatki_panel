@@ -3,7 +3,7 @@ use vertigo::{
     Css,
 };
 use vertigo::{html, css};
-use super::AppIndexState;
+use super::AppIndex;
 
 fn css_header() -> Css {
     css!("
@@ -53,7 +53,7 @@ fn css_item(is_active: bool) -> Css {
     css
 }
 
-fn create_link(state: &AppIndexState, title: String, node_id: Vec<String>, create_css: fn(bool) -> Css, is_active: bool) -> VDomElement {
+fn create_link(state: &AppIndex, title: String, node_id: Vec<String>, create_css: fn(bool) -> Css, is_active: bool) -> VDomElement {
     if is_active {
         let css = create_css(true);
 
@@ -81,7 +81,7 @@ fn create_link(state: &AppIndexState, title: String, node_id: Vec<String>, creat
     }
 }
 
-pub fn render_header(state: &AppIndexState) -> VDomElement {
+pub fn render_header(state: &AppIndex) -> VDomElement {
     let current_path = state.current_path_dir();
     let all_items = current_path.len();
 

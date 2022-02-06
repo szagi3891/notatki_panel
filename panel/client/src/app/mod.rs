@@ -42,7 +42,7 @@ enum View {
 
 
 #[derive(Clone)]
-pub struct StateApp {
+pub struct App {
     pub driver: Driver,
     pub data: StateData,
     view: Value<View>,
@@ -50,19 +50,19 @@ pub struct StateApp {
     //TODO - kontekst renderowania, idgrafu
 }
 
-impl StateApp {
+impl App {
     pub fn component(driver: &Driver) -> VDomComponent {
         let state_data = StateData::new(driver);
 
         let view = driver.new_value(View::Index);
 
-        let state = StateApp {
+        let state = App {
             driver: driver.clone(),
             data: state_data,
             view,
         };
 
-        VDomComponent::new(state, render)
+        VDomComponent::new(state, app_render)
     }
 
     fn create_full_path(&self, path: &Vec<String>, select_item: &Option<String>) -> Vec<String> {
@@ -150,12 +150,12 @@ impl StateApp {
     }
 }
 
-fn render(app_state: &StateApp) -> VDomElement {
+fn app_render(app_state: &App) -> VDomElement {
     let view = app_state.view.get_value();
 
     match view.as_ref() {
         View::Index => {
-            let (view, on_keydown) = index::AppIndexState::component(&app_state);
+            let (view, on_keydown) = index::AppIndex::component(&app_state);
 
             html! {
                 <div id="root" on_key_down={on_keydown}>
@@ -164,7 +164,7 @@ fn render(app_state: &StateApp) -> VDomElement {
             }
         },
         View::EditContent { full_path, file_hash, content } => {
-            let view = edit_content::StateAppEditContent::component(
+            let view = edit_content::AppEditContent::component(
                 app_state,
                 full_path.clone(),
                 file_hash.clone(),
@@ -178,7 +178,7 @@ fn render(app_state: &StateApp) -> VDomElement {
             }
         },
         View::NewContent { parent, list } => {
-            let view = new_content::StateAppNewContent::component(
+            let view = new_content::AppNewContent::component(
                 app_state,
                 parent.clone(),
                 list.clone(),
@@ -191,7 +191,7 @@ fn render(app_state: &StateApp) -> VDomElement {
             }
         },
         View::RenameItem { base_path, prev_name, prev_hash, prev_content } => {
-            let view = rename_item::StateAppRenameItem::component(
+            let view = rename_item::AppRenameItem::component(
                 app_state,
                 base_path.clone(),
                 prev_name.clone(),
@@ -206,7 +206,7 @@ fn render(app_state: &StateApp) -> VDomElement {
             }
         },
         View::Mkdir { parent, list } => {
-            let view = new_dir::StateAppNewDir::component(app_state, (*parent).to_vec(), list.clone());
+            let view = new_dir::AppNewDir::component(app_state, (*parent).to_vec(), list.clone());
 
             html! {
                 <div id="root">

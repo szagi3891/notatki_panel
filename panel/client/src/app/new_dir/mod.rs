@@ -1,13 +1,13 @@
 use common::{HandlerCreateDirBody};
 use vertigo::{Driver, Computed, Value, VDomComponent};
 
-use crate::{app::{StateApp}, data::ListItem};
+use crate::{app::{App}, data::ListItem};
 use crate::components::new_name;
 
 mod render;
 
 #[derive(Clone)]
-pub struct StateAppNewDir {
+pub struct AppNewDir {
     driver: Driver,
 
     pub action_save: Value<bool>,
@@ -17,16 +17,16 @@ pub struct StateAppNewDir {
 
     pub save_enable: Computed<bool>,
 
-    app_state: StateApp,
+    app_state: App,
 }
 
-impl StateAppNewDir {
+impl AppNewDir {
     pub fn redirect_to_index(&self) {
         self.app_state.redirect_to_index();
     }
 
     pub fn component(
-        app_state: &StateApp,
+        app_state: &App,
         parent: Vec<String>,
         list: Computed<Vec<ListItem>>,
     ) -> VDomComponent {
@@ -41,7 +41,7 @@ impl StateAppNewDir {
             action_save.to_computed(),
         );
 
-        let state = StateAppNewDir {
+        let state = AppNewDir {
             driver: app_state.driver.clone(),
 
             action_save,

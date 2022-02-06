@@ -14,16 +14,16 @@ use vertigo::{
     Resource,
     Value
 };
-use crate::app::StateApp;
+use crate::app::App;
 use crate::data::StateData;
 
 use self::state_alert::StateAlert;
 
 #[derive(Clone)]
-pub struct AppIndexState {
+pub struct AppIndex {
     pub data_state: StateData,
 
-    app_state: StateApp,
+    app_state: App,
 
     pub alert: StateAlert,
 
@@ -31,8 +31,8 @@ pub struct AppIndexState {
     pub tabs_active: Value<Option<String>>,
 }
 
-impl AppIndexState {
-    pub fn component(app_state: &StateApp) -> (VDomComponent, impl Fn(vertigo::KeyDownEvent) -> bool) {
+impl AppIndex {
+    pub fn component(app_state: &App) -> (VDomComponent, impl Fn(vertigo::KeyDownEvent) -> bool) {
         let driver = &app_state.driver.clone();
         let state_data = app_state.data.clone();
 
@@ -41,7 +41,7 @@ impl AppIndexState {
         let tabs_url = driver.new_value(Vec::new());
         let tabs_active = driver.new_value(None);
 
-        let state = AppIndexState {
+        let state = AppIndex {
             data_state: state_data,
             app_state: app_state.clone(),
             alert,

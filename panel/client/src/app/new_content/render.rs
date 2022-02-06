@@ -1,7 +1,7 @@
 use vertigo::{Css, VDomElement, VDomComponent};
 use vertigo::{css, html};
 
-use super::{StateAppNewContent};
+use super::{AppNewContent};
 use crate::components::{button};
 
 fn css_wrapper() -> Css {
@@ -35,7 +35,7 @@ fn css_input_content() -> Css {
     ")
 }
 
-fn render_input_content(state: &StateAppNewContent) -> VDomElement {
+fn render_input_content(state: &AppNewContent) -> VDomElement {
     let content = &state.content.get_value();
 
     let on_input = {
@@ -50,10 +50,10 @@ fn render_input_content(state: &StateAppNewContent) -> VDomElement {
     }
 }
 
-pub fn build_render(view_new_name: VDomComponent, state: StateAppNewContent) -> VDomComponent {
+pub fn build_render(view_new_name: VDomComponent, state: AppNewContent) -> VDomComponent {
     let view_input = VDomComponent::new(state.clone(), render_input_content);
 
-    VDomComponent::new(state, move |state: &StateAppNewContent| -> VDomElement {
+    VDomComponent::new(state, move |state: &AppNewContent| -> VDomElement {
         let on_click = {
             let state = state.clone();
             move || {

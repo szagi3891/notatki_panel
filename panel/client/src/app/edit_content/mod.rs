@@ -5,10 +5,10 @@ pub use render::render;
 use common::{HandlerSaveContentBody};
 use vertigo::{Driver, Computed, Value, VDomComponent};
 
-use crate::{app::StateApp};
+use crate::{app::App};
 
 #[derive(Clone)]
-pub struct StateAppEditContent {
+pub struct AppEditContent {
     driver: Driver,
 
     pub path: Vec<String>,          //edutowany element
@@ -18,16 +18,16 @@ pub struct StateAppEditContent {
     pub edit_content: Value<String>,
     pub save_enable: Computed<bool>,
 
-    app_state: StateApp,
+    app_state: App,
 }
 
-impl StateAppEditContent {
+impl AppEditContent {
     pub fn redirect_to_index(&self) {
         self.app_state.redirect_to_index();
     }
 
     pub fn component(
-        app_state: &StateApp,
+        app_state: &App,
         path: Vec<String>,
         hash: String,
         content: String,
@@ -46,7 +46,7 @@ impl StateAppEditContent {
 
         let action_save = app_state.driver.new_value(false);
 
-        let state = StateAppEditContent {
+        let state = AppEditContent {
             driver: app_state.driver.clone(),
 
             path,

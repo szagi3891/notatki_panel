@@ -3,12 +3,12 @@ mod render;
 use common::{HandlerCreateFileBody};
 use vertigo::{Driver, Computed, Value, VDomComponent};
 
-use crate::app::StateApp;
+use crate::app::App;
 use crate::components::new_name;
 use crate::data::ListItem;
 
 #[derive(Clone)]
-pub struct StateAppNewContent {
+pub struct AppNewContent {
     driver: Driver,
 
     pub action_save: Value<bool>,
@@ -19,16 +19,16 @@ pub struct StateAppNewContent {
 
     pub save_enable: Computed<bool>,
 
-    app_state: StateApp,
+    app_state: App,
 }
 
-impl StateAppNewContent {
+impl AppNewContent {
     pub fn redirect_to_index(&self) {
         self.app_state.redirect_to_index();
     }
 
     pub fn component(
-        app_state: &StateApp,
+        app_state: &App,
         parent: Vec<String>,
         list: Computed<Vec<ListItem>>,
     ) -> VDomComponent {
@@ -67,7 +67,7 @@ impl StateAppNewContent {
             })
         };
 
-        let state = StateAppNewContent {
+        let state = AppNewContent {
             driver: app_state.driver.clone(),
 
             action_save,
