@@ -1,8 +1,8 @@
 use vertigo::{Css, VDomElement, VDomComponent};
 use vertigo::{css, html};
 
-use super::{AppNewContent};
-use crate::components::{button};
+use super::AppEditcontent;
+use crate::components::button;
 
 fn css_wrapper() -> Css {
     css!("
@@ -22,7 +22,7 @@ fn css_header() -> Css {
     ")
 }
 
-fn css_input_content() -> Css {
+fn css_body() -> Css {
     css!("
         flex-grow: 1;
         border: 0;
@@ -35,25 +35,26 @@ fn css_input_content() -> Css {
     ")
 }
 
-fn render_input_content(state: &AppNewContent) -> VDomElement {
-    let content = &state.content.get_value();
+fn render_textarea(state: &AppEditcontent) -> VDomElement {
+    let content = &state.edit_content.get_value();
 
     let on_input = {
         let state = state.clone();
+        
         move |new_value: String| {
-            state.on_input_content(new_value);
+            state.on_input(new_value);
         }
     };
 
     html! {
-        <textarea css={css_input_content()} on_input={on_input} value={content.as_ref()} />
+        <textarea css={css_body()} on_input={on_input} value={content.as_ref()} />
     }
 }
 
-pub fn build_render(view_new_name: VDomComponent, state: AppNewContent) -> VDomComponent {
-    let view_input = VDomComponent::new(state.clone(), render_input_content);
+pub fn app_editcontent_render(state: AppEditcontent) -> VDomComponent {
+    let view_textares = VDomComponent::new(state.clone(), render_textarea);
 
-    VDomComponent::new(state, move |state: &AppNewContent| -> VDomElement {
+    VDomComponent::new(state, move |state: &AppEditcontent| {
         let on_click = {
             let state = state.clone();
             move || {
@@ -61,19 +62,23 @@ pub fn build_render(view_new_name: VDomComponent, state: AppNewContent) -> VDomC
             }
         };
 
-        let parent_path = state.parent.as_slice().join("/");
+        let path = state.path.as_slice().join("/");
 
-        let mut buttons = vec!(button("Wróć", on_click));
+        let mut buttons = Vec::new();
+
+        buttons.push(button("Wróć", on_click));
 
         let save_enable = state.save_enable.get_value();
 
         if *save_enable {
-            buttons.push(button("Zapisz", {
+            let on_save = {
                 let state = state.clone();
                 move || {
                     state.on_save();
                 }
-            }));
+            };
+
+            buttons.push(button("Zapisz", on_save));
         }
 
         html! {
@@ -90,14 +95,13 @@ pub fn build_render(view_new_name: VDomComponent, state: AppNewContent) -> VDomC
                     "
                 </style>
                 <div css={css_header()}>
-                    "tworzenie pliku => "
-                    {parent_path}
+                    "edycja pliku => "
+                    {path}
                 </div>
                 <div css={css_header()}>
                     { ..buttons }
                 </div>
-                { view_new_name.clone() }
-                { view_input.clone() }
+                { view_textares.clone() }
             </div>
         }
     })

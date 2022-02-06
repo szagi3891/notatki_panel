@@ -7,7 +7,7 @@ use crate::components::new_name;
 mod render;
 
 #[derive(Clone)]
-pub struct AppNewDir {
+pub struct AppNewdir {
     driver: Driver,
 
     pub action_save: Value<bool>,
@@ -20,7 +20,7 @@ pub struct AppNewDir {
     app_state: App,
 }
 
-impl AppNewDir {
+impl AppNewdir {
     pub fn redirect_to_index(&self) {
         self.app_state.redirect_to_index();
     }
@@ -41,7 +41,7 @@ impl AppNewDir {
             action_save.to_computed(),
         );
 
-        let state = AppNewDir {
+        let state = AppNewdir {
             driver: app_state.driver.clone(),
 
             action_save,

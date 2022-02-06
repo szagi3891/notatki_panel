@@ -1,6 +1,6 @@
 use vertigo::{Css, VDomComponent, css, html};
 
-use super::{AppNewDir};
+use super::{AppNewdir};
 use crate::components::{button};
 
 fn css_wrapper() -> Css {
@@ -21,7 +21,7 @@ fn css_header() -> Css {
     ")
 }
 
-pub fn build_render(view_new_name: VDomComponent, state: AppNewDir) -> VDomComponent {
+pub fn build_render(view_new_name: VDomComponent, state: AppNewdir) -> VDomComponent {
     VDomComponent::new(state, move |state| {
         let on_click = {
             let state = state.clone();

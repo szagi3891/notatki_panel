@@ -12,7 +12,7 @@ use crate::data::StateData;
 
 pub mod index;
 mod edit_content;
-mod new_content;
+mod newcontent;
 mod new_dir;
 mod rename_item;
 
@@ -164,7 +164,7 @@ fn app_render(app_state: &App) -> VDomElement {
             }
         },
         View::EditContent { full_path, file_hash, content } => {
-            let view = edit_content::AppEditContent::component(
+            let view = edit_content::AppEditcontent::component(
                 app_state,
                 full_path.clone(),
                 file_hash.clone(),
@@ -178,7 +178,7 @@ fn app_render(app_state: &App) -> VDomElement {
             }
         },
         View::NewContent { parent, list } => {
-            let view = new_content::AppNewContent::component(
+            let view = newcontent::AppNewcontent::component(
                 app_state,
                 parent.clone(),
                 list.clone(),
@@ -191,7 +191,7 @@ fn app_render(app_state: &App) -> VDomElement {
             }
         },
         View::RenameItem { base_path, prev_name, prev_hash, prev_content } => {
-            let view = rename_item::AppRenameItem::component(
+            let view = rename_item::AppRenameitem::component(
                 app_state,
                 base_path.clone(),
                 prev_name.clone(),
@@ -206,7 +206,7 @@ fn app_render(app_state: &App) -> VDomElement {
             }
         },
         View::Mkdir { parent, list } => {
-            let view = new_dir::AppNewDir::component(app_state, (*parent).to_vec(), list.clone());
+            let view = new_dir::AppNewdir::component(app_state, (*parent).to_vec(), list.clone());
 
             html! {
                 <div id="root">

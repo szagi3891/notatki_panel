@@ -8,7 +8,7 @@ use vertigo::{Driver, Computed, Value, VDomComponent};
 use crate::{app::App};
 
 #[derive(Clone)]
-pub struct AppRenameItem {
+pub struct AppRenameitem {
     driver: Driver,
 
     pub path: Vec<String>,          //edutowany element
@@ -24,7 +24,7 @@ pub struct AppRenameItem {
     app_state: App,
 }
 
-impl AppRenameItem {
+impl AppRenameitem {
     pub fn redirect_to_index(&self) {
         self.app_state.redirect_to_index();
     }
@@ -59,7 +59,7 @@ impl AppRenameItem {
 
         let action_save = app_state.driver.new_value(false);
 
-        let state = AppRenameItem {
+        let state = AppRenameitem {
             driver: app_state.driver.clone(),
 
             path,

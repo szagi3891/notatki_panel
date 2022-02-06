@@ -1,14 +1,13 @@
-mod render;
-
 use common::{HandlerCreateFileBody};
 use vertigo::{Driver, Computed, Value, VDomComponent};
 
 use crate::app::App;
+use crate::app::newcontent::newcontent_render::newcontent_render;
 use crate::components::new_name;
 use crate::data::ListItem;
 
 #[derive(Clone)]
-pub struct AppNewContent {
+pub struct AppNewcontent {
     driver: Driver,
 
     pub action_save: Value<bool>,
@@ -22,7 +21,7 @@ pub struct AppNewContent {
     app_state: App,
 }
 
-impl AppNewContent {
+impl AppNewcontent {
     pub fn redirect_to_index(&self) {
         self.app_state.redirect_to_index();
     }
@@ -67,7 +66,7 @@ impl AppNewContent {
             })
         };
 
-        let state = AppNewContent {
+        let state = AppNewcontent {
             driver: app_state.driver.clone(),
 
             action_save,
@@ -81,7 +80,7 @@ impl AppNewContent {
             app_state: app_state.clone(),
         };
 
-        render::build_render(new_name.render(), state)
+        newcontent_render(new_name.render(), state)
     }
 
     pub fn on_input_content(&self, new_value: String) {
