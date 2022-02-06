@@ -3,6 +3,7 @@ use self::{git::StateDataGit, tabs::TabPath};
 
 mod git;
 mod tabs;
+mod open_links;
 
 pub use git::CurrentContent;
 pub use tabs::ListItem;

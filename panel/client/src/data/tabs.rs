@@ -3,7 +3,7 @@ use std::{collections::HashMap, rc::Rc};
 use vertigo::{Driver, Resource, Value, Computed};
 use std::cmp::Ordering;
 
-use super::{git::{StateDataGit, TreeItem}, CurrentContent};
+use super::{git::{StateDataGit, TreeItem}, CurrentContent, open_links::OpenLinks};
 
 
 fn create_list_hash_map(driver: &Driver, git: &StateDataGit, current_path: &Value<Vec<String>>) -> Computed<Resource<Rc<HashMap<String, TreeItem>>>> {
@@ -160,7 +160,7 @@ fn create_current_content(
 
 
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone)]
 pub struct TabPath {
     pub dir: Value<Vec<String>>,               //TODO - zrobić mozliwość 
     pub file: Value<Option<String>>,           //TODO - to mozna docelowo ukryć przed bezpośrednimi modyfikacjami zewnętrznymi
@@ -183,6 +183,8 @@ pub struct TabPath {
     // //Otworzone zakładki z podględem do zewnętrznych linków
     // pub tabs_url: Value<Vec<String>>,
     // pub tabs_active: Value<Option<String>>,
+
+    pub open_links: OpenLinks,
 }
 
 impl TabPath {
@@ -210,6 +212,7 @@ impl TabPath {
 
         // let tabs_url = driver.new_value(Vec::new());
         // let tabs_active = driver.new_value(None);
+        let open_links = OpenLinks::new(driver);
 
         TabPath {
             dir: dir.clone(),
@@ -222,6 +225,7 @@ impl TabPath {
 
             // tabs_url,
             // tabs_active,
+            open_links,
         }
     }
 
