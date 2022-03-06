@@ -56,7 +56,11 @@ impl App {
             view,
         };
 
-        VDomComponent::new(state, app_render)
+        let open_links = state.data.tab.open_links.clone();
+        
+        let app = VDomComponent::new(state, app_render);
+
+        open_links.render(app)
     }
 
     fn create_full_path(&self, path: &Vec<String>, select_item: &Option<String>) -> Vec<String> {

@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use vertigo::{VDomComponent, css, Css, Value};
+use vertigo::{VDomComponent, Value};
 
 use crate::components::AlertBox;
 
