@@ -65,9 +65,16 @@ pub fn app_index_render(view_alert: VDomComponent, state_value: AppIndex) -> VDo
     let view_list = VDomComponent::new(state_value.clone(), render_list);
     let view_content = VDomComponent::new(state_value.clone(), render_content);
 
-    VDomComponent::new(state_value, move |_state_value: &AppIndex| {
+    VDomComponent::new(state_value, move |state_value: &AppIndex| {
+        let hook_keydown = {
+            let state = state_value.clone();
+            move |event: vertigo::KeyDownEvent| {
+                state.keydown(event.code)
+            }
+        };
+
         html! {
-            <div css={css_wrapper()}>
+            <div css={css_wrapper()} hook_key_down={hook_keydown}>
                 { view_menu.clone() }
                 { view_header.clone() }
                 <div css={css_content()}>

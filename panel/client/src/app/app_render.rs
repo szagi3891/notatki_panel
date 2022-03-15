@@ -17,10 +17,10 @@ pub fn app_render(app_state: &App) -> VDomElement {
 
     match view.as_ref() {
         View::Index => {
-            let (view, on_keydown) = AppIndex::component(&app_state);
+            let view = AppIndex::component(&app_state);
 
             html! {
-                <div id="root" on_key_down={on_keydown}>
+                <div id="root">
                     { view }
                 </div>
             }

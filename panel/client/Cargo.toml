@@ -12,8 +12,8 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 log = "0.4.14"
 
-vertigo = { git="https://github.com/vertigo-web/vertigo", branch="test_refresh" }
-vertigo-browserdriver = { git = "https://github.com/vertigo-web/vertigo", branch="test_refresh" }
+vertigo = { git="https://github.com/vertigo-web/vertigo", branch="resource" }
+vertigo-browserdriver = { git = "https://github.com/vertigo-web/vertigo", branch="resource" }
 
 # vertigo = { path = "../../../vertigo/crates/vertigo" }
 # vertigo-browserdriver = { path = "../../../vertigo/crates/vertigo-browserdriver" }
