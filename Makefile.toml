@@ -26,9 +26,12 @@ script = [
 #cargo make --env GIT_REPO=/Users/grzegorzszeliga/Desktop/notatki_main/notatki app-serve
 
 [tasks.app-serve]
-command = "cargo"
-env = { "RUST_LOG" = "info", "HTTP_HOST" = "0.0.0.0", "HTTP_PORT" = "4000"}
-args = [ "run", "--bin", "server" ]
+    command = "cargo"
+    args = [ "run", "--bin", "server" ]
+[tasks.app-serve.env]
+    "RUST_LOG" = "info"
+    "HTTP_HOST" = "0.0.0.0"
+    "HTTP_PORT" = "4000"
 
 
 
@@ -44,8 +47,9 @@ run_task = "app-serve"
 
 
 [tasks.app-my-start]
-env = { "GIT_REPO" = "../notatki_dane" }
-run_task = "app-start"
+    run_task = "app-start"
+[tasks.app-my-start.env]
+    "GIT_REPO" = "../notatki_dane"
 
 
 [tasks.app-my-start-watch]
