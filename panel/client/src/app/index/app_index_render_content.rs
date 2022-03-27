@@ -42,7 +42,7 @@ fn open_css() -> Css {
 }
 
 pub fn render_content(state: &AppIndex) -> VDomElement {
-    let current_content = state.app_state.data.tab.current_content.get_value();
+    let current_content = state.app.data.tab.current_content.get_value();
 
     let content = current_content.to_string();
 

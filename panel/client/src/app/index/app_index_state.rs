@@ -4,27 +4,27 @@ use vertigo::{
     Resource,
 };
 use crate::app::App;
-use crate::data::StateData;
+use crate::data::Data;
 
 use super::alert::AppIndexAlert;
 use super::app_index_render::app_index_render;
 
 #[derive(Clone)]
 pub struct AppIndex {
-    pub data: StateData,
-    pub app_state: App,
+    pub data: Data,
+    pub app: App,
     pub alert: AppIndexAlert,
 }
 
 impl AppIndex {
-    pub fn component(app_state: &App) -> VDomComponent {
-        let state_data = app_state.data.clone();
+    pub fn component(app: &App) -> VDomComponent {
+        let state_data = app.data.clone();
 
-        let (alert, alert_view) = AppIndexAlert::new(app_state.clone());
+        let (alert, alert_view) = AppIndexAlert::new(app.clone());
 
         let state = AppIndex {
             data: state_data,
-            app_state: app_state.clone(),
+            app: app.clone(),
             alert,
         };
 
@@ -42,7 +42,7 @@ impl AppIndex {
     
         let (new_current_path, new_current_item_value) = calculate_next_path(current_path.as_ref(), path);
 
-        self.app_state.driver.transaction(||{
+        self.app.driver.transaction(||{
             self.data.tab.dir.set_value(new_current_path);
             self.data.tab.file.set_value(new_current_item_value);
         });
@@ -184,18 +184,18 @@ impl AppIndex {
     pub fn current_edit(&self) {
         let path = self.data.tab.dir.get_value();
         let select_item = self.data.tab.current_item.get_value();
-        self.app_state.redirect_to_content(&path, &select_item);
+        self.app.redirect_to_content(&path, &select_item);
     }
 
     pub fn create_file(&self) {
         let path = self.data.tab.dir.get_value();
         let list = self.data.tab.list.clone();
 
-        self.app_state.redirect_to_new_content(path.as_ref(), list);
+        self.app.redirect_to_new_content(path.as_ref(), list);
     }
 
     pub fn redirect_to_mkdir(&self) {
-        self.app_state.redirect_to_mkdir(self.data.tab.list.clone());
+        self.app.redirect_to_mkdir(self.data.tab.list.clone());
     }
 
     pub fn current_rename(&self) {
@@ -203,7 +203,7 @@ impl AppIndex {
         let select_item = self.data.tab.current_item.get_value();
 
         if let Some(select_item) = select_item.as_ref() {
-            self.app_state.redirect_to_rename_item(&path, select_item);
+            self.app.redirect_to_rename_item(&path, select_item);
         } else {
             log::error!("current_rename fail");
         }

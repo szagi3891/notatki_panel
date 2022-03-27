@@ -6,7 +6,7 @@ use vertigo::{
 };
 use std::rc::Rc;
 use crate::data::{CurrentContent, ListItem};
-use crate::data::StateData;
+use crate::data::Data;
 
 use super::app_render::app_render;
 
@@ -38,7 +38,7 @@ pub enum View {
 #[derive(Clone)]
 pub struct App {
     pub driver: Driver,
-    pub data: StateData,
+    pub data: Data,
     pub view: Value<View>,
 
     //TODO - kontekst renderowania, idgrafu
@@ -46,7 +46,7 @@ pub struct App {
 
 impl App {
     pub fn component(driver: &Driver) -> VDomComponent {
-        let state_data = StateData::new(driver);
+        let state_data = Data::new(driver);
 
         let view = driver.new_value(View::Index);
 

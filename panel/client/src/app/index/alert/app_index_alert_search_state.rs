@@ -1,6 +1,6 @@
 use vertigo::{Css, Driver, Resource, VDomElement, Computed, Value, VDomComponent};
 use vertigo::{css, html};
-use crate::{components::AlertBox, data::{StateData}};
+use crate::{components::AlertBox, data::{Data}};
 use crate::components::icon;
 
 use super::AppIndexAlert;
@@ -64,7 +64,7 @@ impl ResultItem {
 }
 
 fn push_list<F: Fn(&String) -> bool>(
-    data_state: &StateData,
+    data_state: &Data,
     result: &mut Vec<ResultItem>,
     base: &Vec<String>,
     test_name: &F
@@ -120,7 +120,7 @@ fn push_list<F: Fn(&String) -> bool>(
     Resource::Ready(())
 }
 
-fn new_results(driver: &Driver, data_state: &StateData, phrase: Computed<String>) -> Computed<Vec<ResultItem>> {
+fn new_results(driver: &Driver, data_state: &Data, phrase: Computed<String>) -> Computed<Vec<ResultItem>> {
     let data_state = data_state.clone();
 
     driver.from(move || {
@@ -152,23 +152,26 @@ fn new_results(driver: &Driver, data_state: &StateData, phrase: Computed<String>
 
 #[derive(Clone)]
 pub struct AppIndexAlertSearch {
-    alert_state: AppIndexAlert,
+    alert: AppIndexAlert,
+
     pub phrase: Value<String>,
+    // pub 
+
     results: Computed<Vec<ResultItem>>,
 }
 
 impl AppIndexAlertSearch {
-    pub fn component(alert_state: &AppIndexAlert) -> VDomComponent {
-        let phrase = alert_state.app_state.driver.new_value("".to_string());
+    pub fn component(alert: &AppIndexAlert) -> VDomComponent {
+        let phrase = alert.app.driver.new_value("".to_string());
 
         let results = new_results(
-            &alert_state.app_state.driver,
-            &alert_state.app_state.data,
+            &alert.app.driver,
+            &alert.app.data,
             phrase.to_computed(),
         );
 
         let state = AppIndexAlertSearch {
-            alert_state: alert_state.clone(),
+            alert: alert.clone(),
             phrase,
             results,
         };
@@ -178,8 +181,8 @@ impl AppIndexAlertSearch {
 }
 
 
-fn render_results(alert_search_state: &AppIndexAlertSearch) -> VDomElement {
-    let results = alert_search_state.results.get_value();
+fn render_results(search: &AppIndexAlertSearch) -> VDomElement {
+    let results = search.results.get_value();
 
     let mut list = Vec::<VDomElement>::new();
 
@@ -188,16 +191,16 @@ fn render_results(alert_search_state: &AppIndexAlertSearch) -> VDomElement {
         let path = item.to_string();
 
         let on_click = {
-            let alert_search_state = alert_search_state.clone();
+            let search = search.clone();
             let path = item.path.clone();
             let dir = item.dir;
 
             move || {
-                alert_search_state.alert_state.close_modal();
+                search.alert.close_modal();
                 if dir {
-                    alert_search_state.alert_state.app_state.data.tab.redirect_to_dir(&path);
+                    search.alert.app.data.tab.redirect_to_dir(&path);
                 } else {
-                    alert_search_state.alert_state.app_state.data.tab.redirect_to_file(&path);
+                    search.alert.app.data.tab.redirect_to_file(&path);
                 }
             }
         };
@@ -219,12 +222,12 @@ fn render_results(alert_search_state: &AppIndexAlertSearch) -> VDomElement {
     }
 }
 
-pub fn render(alert_search_state: AppIndexAlertSearch) -> VDomComponent {
+pub fn render(search: AppIndexAlertSearch) -> VDomComponent {
 
-    let results = VDomComponent::new(alert_search_state.clone(), render_results);
+    let results = VDomComponent::new(search.clone(), render_results);
 
-    VDomComponent::new(alert_search_state.clone(), move |alert_search_state: &AppIndexAlertSearch| {
-        let phrase = alert_search_state.phrase.clone();
+    VDomComponent::new(search.clone(), move |search: &AppIndexAlertSearch| {
+        let phrase = search.phrase.clone();
         let current_value = phrase.get_value();
 
         let on_input = {
@@ -233,7 +236,7 @@ pub fn render(alert_search_state: AppIndexAlertSearch) -> VDomComponent {
             }
         };
 
-        let alert_state = alert_search_state.alert_state.clone();
+        let alert_state = search.alert.clone();
 
         let on_close = {
             move || {

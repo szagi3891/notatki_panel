@@ -169,7 +169,7 @@ pub fn render_list(state: &AppIndex) -> VDomElement {
     let mut out: Vec<VDomElement> = Vec::new();
 
     let list = state.data.tab.list.get_value();
-    let current_item = state.app_state.data.tab.current_item.get_value();
+    let current_item = state.app.data.tab.current_item.get_value();
 
     for item in (*list).iter() {
         let on_click = {

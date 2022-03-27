@@ -66,19 +66,19 @@ impl NodeDir {
 }
 
 #[derive(Clone)]
-pub struct StateDataGitNodeDir {
+pub struct Dir {
     data: AutoMap<String, NodeDir>,
 }
 
-impl StateDataGitNodeDir {
-    pub fn new(driver: &Driver) -> StateDataGitNodeDir {
+impl Dir {
+    pub fn new(driver: &Driver) -> Dir {
         let data = {
             let request = driver.clone();
 
             AutoMap::new(move |id: &String| NodeDir::new(&request, id))
         };
 
-        StateDataGitNodeDir {
+        Dir {
             data
         }
     }

@@ -1,5 +1,5 @@
 use vertigo::Driver;
-use self::{git::StateDataGit, tabs::TabPath};
+use self::{git::Git, tabs::TabPath};
 
 mod git;
 mod tabs;
@@ -10,18 +10,18 @@ pub use tabs::ListItem;
 pub use open_links::OpenLinks;
 
 #[derive(Clone)]
-pub struct StateData {
+pub struct Data {
     pub driver: Driver,
-    pub git: StateDataGit,
+    pub git: Git,
     pub tab: TabPath,
 }
 
-impl StateData {
-    pub fn new(driver: &Driver) -> StateData {
-        let git = StateDataGit::new(driver);
+impl Data {
+    pub fn new(driver: &Driver) -> Data {
+        let git = Git::new(driver);
         let tab = TabPath::new(driver, &git);
 
-        StateData {
+        Data {
             driver: driver.clone(),
             git,
             tab,

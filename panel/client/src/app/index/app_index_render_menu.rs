@@ -46,8 +46,8 @@ pub struct AppIndexMenuState {
 impl AppIndexMenuState {
     pub fn component(app_index: &AppIndex) -> VDomComponent {
         let avaible_delete_current= create_avaible_delete_current(
-            &app_index.app_state.driver,
-            app_index.app_state.data.tab.current_content.clone()
+            &app_index.app.driver,
+            app_index.app.data.tab.current_content.clone()
         );
     
         let state = AppIndexMenuState {
@@ -105,7 +105,7 @@ fn render_menu(state: &AppIndexMenuState) -> VDomElement {
         let alert = state.app_index.alert.clone();
         let on_delete = {
             move || {
-                let path = alert.app_state.data.tab.full_path.get_value();
+                let path = alert.app.data.tab.full_path.get_value();
                 alert.delete(path);
             }
         };

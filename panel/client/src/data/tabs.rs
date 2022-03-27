@@ -3,10 +3,10 @@ use std::{collections::HashMap, rc::Rc};
 use vertigo::{Driver, Resource, Value, Computed};
 use std::cmp::Ordering;
 
-use super::{git::{StateDataGit, TreeItem}, CurrentContent, open_links::OpenLinks};
+use super::{git::{Git, TreeItem}, CurrentContent, open_links::OpenLinks};
 
 
-fn create_list_hash_map(driver: &Driver, git: &StateDataGit, current_path: &Value<Vec<String>>) -> Computed<Resource<Rc<HashMap<String, TreeItem>>>> {
+fn create_list_hash_map(driver: &Driver, git: &Git, current_path: &Value<Vec<String>>) -> Computed<Resource<Rc<HashMap<String, TreeItem>>>> {
     let git = git.clone();
     let current_path = current_path.to_computed();
 
@@ -141,7 +141,7 @@ fn create_current_full_path(
 
 fn create_current_content(
     driver: &Driver,
-    state_data_git: &StateDataGit,
+    state_data_git: &Git,
     current_path_dir: &Value<Vec<String>>,
     list_current_item: &Computed<Option<String>>
 ) -> Computed<CurrentContent> {
@@ -184,7 +184,7 @@ pub struct TabPath {
 }
 
 impl TabPath {
-    pub fn new(driver: &Driver, git: &StateDataGit) -> TabPath {
+    pub fn new(driver: &Driver, git: &Git) -> TabPath {
         let dir: Value<Vec<String>> = driver.new_value(Vec::new());
         let file: Value<Option<String>> = driver.new_value(None);
 

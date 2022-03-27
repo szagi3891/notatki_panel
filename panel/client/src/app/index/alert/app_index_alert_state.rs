@@ -19,7 +19,7 @@ pub enum AlertView {
 
 #[derive(Clone)]
 pub struct AppIndexAlert {
-    pub app_state: App,
+    pub app: App,
     view: Value<AlertView>,
 }
 
@@ -28,7 +28,7 @@ impl AppIndexAlert {
         let view = app_state.driver.new_value(AlertView::None);
 
         let state = AppIndexAlert {
-            app_state: app_state.clone(),
+            app: app_state.clone(),
             view,
         };
 
@@ -71,17 +71,17 @@ impl AppIndexAlert {
 }
 
 
-fn app_index_alert_render(alert_state: &AppIndexAlert) -> VDomElement {
-    let alert = alert_state.view.get_value();
+fn app_index_alert_render(alert: &AppIndexAlert) -> VDomElement {
+    // let alert = alert_state.view.get_value();
 
-    match alert.as_ref() {
+    match alert.view.get_value().as_ref() {
         AlertView::None => {
             html! {
                 <div />
             }
         },
         AlertView::DeleteFile { path } => {
-            let view = AppIndexAlertDelete::new(alert_state, path).render();
+            let view = AppIndexAlertDelete::new(alert, path).render();
 
             html! {
                 <div>
@@ -90,7 +90,7 @@ fn app_index_alert_render(alert_state: &AppIndexAlert) -> VDomElement {
             }
         },
         AlertView::SearchInPath => {
-            let view = AppIndexAlertSearch::component(&alert_state);
+            let view = AppIndexAlertSearch::component(&alert);
 
             html! {
                 <div>
@@ -99,7 +99,7 @@ fn app_index_alert_render(alert_state: &AppIndexAlert) -> VDomElement {
             }
         },
         AlertView::MoveItem { path } => {
-            let view = AppIndexAlertMoveitem::component(&alert_state, path);
+            let view = AppIndexAlertMoveitem::component(&alert, path);
 
             html! {
                 <div>

@@ -13,17 +13,17 @@ use super::AppIndexAlert;
 pub struct AppIndexAlertDelete {
     full_path: Rc<Vec<String>>,
     progress: Value<bool>,
-    alert_state: AppIndexAlert,
+    alert: AppIndexAlert,
 }
 
 impl AppIndexAlertDelete {
-    pub fn new(alert_state: &AppIndexAlert, full_path: &Rc<Vec<String>>) -> AppIndexAlertDelete {
-        let progress: Value<bool> = alert_state.app_state.driver.new_value(false);
+    pub fn new(alert: &AppIndexAlert, full_path: &Rc<Vec<String>>) -> AppIndexAlertDelete {
+        let progress: Value<bool> = alert.app.driver.new_value(false);
 
         AppIndexAlertDelete {
             full_path: full_path.clone(),
             progress,
-            alert_state: alert_state.clone(),
+            alert: alert.clone(),
         }
     }
 
@@ -33,10 +33,10 @@ impl AppIndexAlertDelete {
         }
 
         let progress = self.progress.clone();
-        let alert_state = self.alert_state.clone();
+        let alert_state = self.alert.clone();
 
         let current_path = self.full_path.as_ref().clone();
-        let current_hash = alert_state.app_state.data.git.content_hash(&current_path);
+        let current_hash = alert_state.app.data.git.content_hash(&current_path);
     
         let current_hash = match current_hash {
             Some(current_hash) => current_hash,
@@ -49,7 +49,7 @@ impl AppIndexAlertDelete {
         log::info!("usuwamy ...");
         progress.set_value(true);
 
-        let response = alert_state.app_state.driver
+        let response = alert_state.app.driver
             .request("/delete_item")
             .body_json(HandlerDeleteItemBody {
                 path: current_path,
@@ -59,7 +59,7 @@ impl AppIndexAlertDelete {
             .post();    //::<RootResponse>();
 
 
-        alert_state.app_state.driver.spawn({
+        alert_state.app.driver.spawn({
             let alert_state = alert_state.clone();
             let progress = progress.clone();
             let self_copy = alert_state.clone();
@@ -67,8 +67,8 @@ impl AppIndexAlertDelete {
             async move {
                 let _ = response.await;
                 progress.set_value(false);
-                self_copy.app_state.data.tab.redirect_after_delete();
-                self_copy.app_state.data.git.root.refresh();
+                self_copy.app.data.tab.redirect_after_delete();
+                self_copy.app.data.git.root.refresh();
                 // self_copy.view.set_value(AlertView::None);
                 alert_state.close_modal();
             }
@@ -80,7 +80,7 @@ impl AppIndexAlertDelete {
             return;
         }
 
-        self.alert_state.close_modal();
+        self.alert.close_modal();
     }
 
     pub fn render(self) -> VDomComponent {

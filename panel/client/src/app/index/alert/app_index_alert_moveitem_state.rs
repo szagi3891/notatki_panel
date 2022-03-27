@@ -8,18 +8,18 @@ use super::AppIndexAlert;
 
 #[derive(Clone)]
 pub struct AppIndexAlertMoveitem {
-    alert_state: AppIndexAlert,
+    alert: AppIndexAlert,
     path: Rc<Vec<String>>,
     progress: Value<bool>,
 }
 
 
 impl AppIndexAlertMoveitem {
-    pub fn component(alert_state: &AppIndexAlert, path: &Rc<Vec<String>>) -> VDomComponent {
+    pub fn component(alert: &AppIndexAlert, path: &Rc<Vec<String>>) -> VDomComponent {
         let state = AppIndexAlertMoveitem {
-            alert_state: alert_state.clone(),
+            alert: alert.clone(),
             path: path.clone(),
-            progress: alert_state.app_state.driver.new_value(false),
+            progress: alert.app.driver.new_value(false),
         };
 
         render(state)
@@ -30,7 +30,7 @@ impl AppIndexAlertMoveitem {
             return;
         }
 
-        self.alert_state.close_modal();
+        self.alert.close_modal();
     }
 }
 

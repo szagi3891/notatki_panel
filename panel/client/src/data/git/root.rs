@@ -40,18 +40,18 @@ impl RootNode {
 }
 
 #[derive(Clone)]
-pub struct StateDataGitRoot {
+pub struct Root {
     driver: Driver,
     pub current: Value<RootNode>,
     //list: Value<VecDeque<RootNode>>,      //todo zaimplementowach historie, zeby zniwelowac ilosc migań
 }
 
-impl StateDataGitRoot {
-    pub fn new(driver: &Driver) -> StateDataGitRoot {
+impl Root {
+    pub fn new(driver: &Driver) -> Root {
         let current = RootNode::new(driver);
         let current = driver.new_value(current);
        
-        StateDataGitRoot {
+        Root {
             driver: driver.clone(),
             current,
         }

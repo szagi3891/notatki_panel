@@ -52,19 +52,19 @@ impl NodeContent {
 }
 
 #[derive(Clone)]
-pub struct StateDataGitNodeContent {
+pub struct Content {
     data: AutoMap<String, NodeContent>,
 }
 
-impl StateDataGitNodeContent {
-    pub fn new(driver: &Driver) -> StateDataGitNodeContent {
+impl Content {
+    pub fn new(driver: &Driver) -> Content {
         let data = {
             let request = driver.clone();
 
             AutoMap::new(move |id: &String| NodeContent::new(&request, id))
         };
 
-        StateDataGitNodeContent {
+        Content {
             data
         }
     }
