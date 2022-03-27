@@ -60,7 +60,7 @@ fn render_input(state: &AppRenameitem) -> VDomElement {
     };
 
     html! {
-        <input css={css_input()} on_input={on_input} value={content.as_ref()} />
+        <input css={css_input()} on_input={on_input} value={content.as_ref()} autofocus="" />
     }
 }
 

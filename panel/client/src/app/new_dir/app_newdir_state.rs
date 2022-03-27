@@ -53,7 +53,7 @@ impl AppNewdir {
             app_state: app_state.clone(),
         };
 
-        let view_new_name = new_name.render();
+        let view_new_name = new_name.render(true);
 
         app_newdir_render(view_new_name, state)
     }

@@ -68,8 +68,10 @@ impl NewName {
         }
     }
 
-    pub fn render(self) -> VDomComponent {
-        VDomComponent::new(self, render)
+    pub fn render(self, autofocus: bool) -> VDomComponent {
+        VDomComponent::new(self, move |state: &NewName| {
+            render(state, autofocus)
+        })
     }
 
     pub fn on_input_name(&self, new_value: String) {
@@ -115,7 +117,7 @@ fn css_input_name() -> Css {
     ")
 }
 
-pub fn render(state: &NewName) -> VDomElement {
+pub fn render(state: &NewName, autofocus: bool) -> VDomElement {
     let content = &state.name.get_value();
 
     let on_input = {
@@ -126,14 +128,29 @@ pub fn render(state: &NewName) -> VDomElement {
         }
     };
 
+    let input = if autofocus {
+        html! {
+            <input
+                css={css_input_name()}
+                on_input={on_input}
+                value={content.as_ref()}
+                autofocus=""
+            />
+        }
+    } else {
+        html! {
+            <input
+                css={css_input_name()}
+                on_input={on_input}
+                value={content.as_ref()}
+            />
+        }
+    };
+
     html! {
         <div css={css_wrapper()}>
             <div css={css_input_wrapper()}>
-                <input
-                    css={css_input_name()}
-                    on_input={on_input}
-                    value={content.as_ref()}
-                />
+                { input }
             </div>
         </div>
     }

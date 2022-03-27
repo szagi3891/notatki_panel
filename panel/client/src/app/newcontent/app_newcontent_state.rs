@@ -80,7 +80,7 @@ impl AppNewcontent {
             app_state: app_state.clone(),
         };
 
-        app_newcontent_render(new_name.render(), state)
+        app_newcontent_render(new_name.render(true), state)
     }
 
     pub fn on_input_content(&self, new_value: String) {

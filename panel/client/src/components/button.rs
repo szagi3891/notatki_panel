@@ -15,6 +15,7 @@ fn css_item() -> Css {
         height: 25px;
         line-height: 23px;
         font-size: 14px;
+        overflow: hidden;
 
         :hover {
             cursor: pointer;
