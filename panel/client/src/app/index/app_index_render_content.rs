@@ -87,28 +87,26 @@ pub fn render_content(state: &AppIndex) -> VDomElement {
                         }
                     };
 
-                    if let Some(thumb) = thumb {
-                        out.push(html!{
-                            <span>
-                                <a href={url.clone()} target="_blank" css={link_css()}>
-                                    <span>{url}</span>
-                                    <img css={youtube_css()} src={thumb} />
-                                </a>
-                                " "
-                                { open_link }
-                            </span>
-                        });
+                    let img = if let Some(thumb) = thumb {
+                        html! {
+                            <img css={youtube_css()} src={thumb} />
+                        }
                     } else {
-                        out.push(html!{
-                            <span>
-                                <a href={url.clone()} target="_blank" css={link_css()}>
-                                    {url}
-                                </a>
-                                " "
-                                { open_link }
-                            </span>
-                        });
-                    }
+                        html! {
+                            <span></span>
+                        }
+                    };
+
+                    out.push(html!{
+                        <span>
+                            <a href={url.clone()} target="_blank" css={link_css()}>
+                                <span>{url}</span>
+                                { img }
+                            </a>
+                            " "
+                            { open_link }
+                        </span>
+                    });
                 },
                 ParseTextItem::Text { text } => {
                     let text = text.to_string();
