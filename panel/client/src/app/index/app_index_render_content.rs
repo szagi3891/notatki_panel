@@ -4,7 +4,8 @@ use vertigo::{Css, VDomElement};
 use vertigo::{css, html};
 
 use super::AppIndex;
-use crate::data::{CurrentContent, DirList};
+use crate::components::list_items;
+use crate::data::{CurrentContent, Data};
 use crate::{
     content::{
         parse_text,
@@ -13,11 +14,17 @@ use crate::{
     }
 };
 
-fn css_content() -> Css {
+fn css_content_file() -> Css {
     css!("
         width: 100%;
         font-family: monospace;
         white-space: pre-wrap;
+    ")
+}
+
+fn css_content_dir() -> Css {
+    css!("
+        width: 100%;
     ")
 }
 
@@ -105,19 +112,21 @@ fn render_content_text(state: &AppIndex, content: &Rc<String>) -> Vec<VDomElemen
     out
 }
 
-fn render_dir(list: &DirList) -> VDomElement {
-    let mut result = Vec::new();
+fn render_dir(data: &Data, dir: &Vec<String>) -> VDomElement {
+    // let mut result = Vec::new();
 
-    for item in list.get_list() {
-        result.push(html! {
-            <div>
-                { item.name }
-            </div>
-        })
-    }
+    // for item in list.get_list() {
+    //     result.push(html! {
+    //         <div>
+    //             { item.name }
+    //         </div>
+    //     })
+    // }
+
+    let result = list_items(data, dir, &None);
 
     html! {
-        <div css={css_content()}>
+        <div css={css_content_dir()}>
             { ..result }
         </div>
     }
@@ -131,13 +140,13 @@ pub fn render_content(state: &AppIndex) -> VDomElement {
             let out: Vec<VDomElement> = render_content_text(state, content);
 
             html! {
-                <div css={css_content()}>
+                <div css={css_content_file()}>
                     { ..out }
                 </div>
             }
-        }
-        CurrentContent::Dir { dir: _, dir_hash: _, list } => {
-            render_dir(list)
+        },
+        CurrentContent::Dir { dir_full, .. } => {
+            render_dir(&state.data, dir_full)
         },
         CurrentContent::None => {
             html!{

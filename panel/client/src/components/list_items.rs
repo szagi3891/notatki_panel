@@ -104,12 +104,18 @@ pub fn list_items(data: &Data, dir: &Vec<String>, current_item: &Option<String>)
 
     for item in (*list).iter() {
         let on_click = {
-            let dir = dir.clone();
+            let is_dir = item.dir;
+            let mut path = dir.clone();
+            path.push(item.name.clone());
+
             let tab = data.tab.clone();
-            let item = item.clone();
 
             move || {
-                tab.redirect_to(dir.clone(), Some(item.name.clone()));
+                if is_dir {
+                    tab.redirect_to_dir(&path);
+                } else {
+                    tab.redirect_to_file(&path);
+                }
             }
         };
 

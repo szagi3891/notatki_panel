@@ -93,6 +93,7 @@ pub enum CurrentContent {
         content: Rc<String>,    //content file
     },
     Dir {
+        dir_full: Vec<String>,  //Pełna ścieka prowadząca do tego katalogu
         dir: String,            //hash
         dir_hash: String,
         list: DirList,
@@ -109,8 +110,9 @@ impl CurrentContent {
         }
     }
 
-    fn dir(dir: String, dir_hash: String, list: DirList) -> CurrentContent {
+    fn dir(dir_full: Vec<String>, dir: String, dir_hash: String, list: DirList) -> CurrentContent {
         CurrentContent::Dir {
+            dir_full,
             dir,
             dir_hash,
             list,
@@ -220,8 +222,11 @@ impl Git {
 
         if let Some(current_value) = current_value {
             if current_value.dir {
+                let mut dir_full = Vec::from(base_dir);
+                dir_full.push(current_item.clone());
+
                 let list = self.dir.get_list(&current_value.id)?;
-                return Resource::Ready(CurrentContent::dir(current_item.clone(), current_value.id.clone(), list));
+                return Resource::Ready(CurrentContent::dir(dir_full, current_item.clone(), current_value.id.clone(), list));
             } else {
                 let content = self.content.get(&current_value.id)?;
                 return Resource::Ready(CurrentContent::file(current_item.clone(), current_value.id.clone(), content));
