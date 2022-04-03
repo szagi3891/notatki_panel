@@ -1,5 +1,5 @@
 use vertigo::{Driver, Resource, Value, Computed};
-use super::{git::{Git}, CurrentContent, open_links::OpenLinks, DirList};
+use super::{git::{Git}, CurrentContent, open_links::OpenLinks, DirList, calculate_next_path::calculate_next_path};
 
 
 fn create_list_hash_map(driver: &Driver, git: &Git, current_path: &Value<Vec<String>>) -> Computed<Resource<DirList>> {
@@ -110,6 +110,8 @@ fn create_current_content(
 
 #[derive(Clone)]
 pub struct TabPath {
+    driver: Driver,
+
     pub dir: Value<Vec<String>>,               //TODO - zrobić mozliwość 
     pub file: Value<Option<String>>,           //TODO - to mozna docelowo ukryć przed bezpośrednimi modyfikacjami zewnętrznymi
 
@@ -159,6 +161,7 @@ impl TabPath {
         let open_links = OpenLinks::new(driver);
 
         TabPath {
+            driver: driver.clone(),
             dir: dir.clone(),
             file,
             list_hash_map,
@@ -212,4 +215,21 @@ impl TabPath {
         self.dir.set_value(path);
         self.file.set_value(last);
     }
+
+    pub fn set_path(&self, path: Vec<String>) {
+        let current_path = self.dir.get_value();
+
+        if current_path.as_ref().as_slice() == path.as_slice() {
+            log::info!("path are equal");
+            return;
+        }
+    
+        let (new_current_path, new_current_item_value) = calculate_next_path(current_path.as_ref(), path);
+
+        self.driver.transaction(||{
+            self.dir.set_value(new_current_path);
+            self.file.set_value(new_current_item_value);
+        });
+    }
+
 }

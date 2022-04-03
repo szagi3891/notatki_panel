@@ -68,7 +68,7 @@ fn create_link(state: &AppIndex, title: String, node_id: Vec<String>, create_css
         let state = state.clone();
         let node_id = node_id;
         move || {
-            state.set_path(node_id.clone());
+            state.data.tab.set_path(node_id.clone());
         }
     };
 

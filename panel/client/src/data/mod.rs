@@ -4,6 +4,7 @@ use self::{git::Git, tabs::TabPath};
 mod git;
 mod tabs;
 mod open_links;
+mod calculate_next_path;
 
 pub use git::{CurrentContent, DirList};
 pub use tabs::ListItem;

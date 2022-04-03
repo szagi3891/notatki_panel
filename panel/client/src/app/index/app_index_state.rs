@@ -31,23 +31,6 @@ impl AppIndex {
         app_index_render(alert_view, state)
     }
 
-
-    pub fn set_path(&self, path: Vec<String>) {
-        let current_path = self.data.tab.dir.get_value();
-
-        if current_path.as_ref().as_slice() == path.as_slice() {
-            log::info!("path are equal");
-            return;
-        }
-    
-        let (new_current_path, new_current_item_value) = calculate_next_path(current_path.as_ref(), path);
-
-        self.app.driver.transaction(||{
-            self.data.tab.dir.set_value(new_current_path);
-            self.data.tab.file.set_value(new_current_item_value);
-        });
-    }
-
     pub fn click_list_item(&self, node: String) {
         let list_hash_map_rc = self.data.tab.list_hash_map.get_value();
 
@@ -56,7 +39,7 @@ impl AppIndex {
                 if node_details.dir {
                     let mut current = self.data.tab.dir.get_value().as_ref().clone();
                     current.push(node.clone());
-                    self.set_path(current);
+                    self.data.tab.set_path(current);
                 } else {
                     self.data.tab.file.set_value(Some(node.clone()));
                 }
@@ -145,7 +128,7 @@ impl AppIndex {
 
         current_path.pop();
 
-        self.set_path(current_path);
+        self.data.tab.set_path(current_path);
     }
 
     pub fn keydown(&self, code: String) -> bool {
@@ -212,88 +195,4 @@ impl AppIndex {
     pub fn current_path_dir(&self) -> Rc<Vec<String>> {
         self.data.tab.dir.get_value()
     }
-}
-
-
-fn calculate_next_path(prev_path: &[String], new_path: Vec<String>) -> (Vec<String>, Option<String>) {
-    if new_path.len() > prev_path.len() {
-        return (new_path, None);
-    }
-
-    if prev_path[0..new_path.len()] == new_path[0..] {
-        let last = prev_path.get(new_path.len());
-        let last = last.cloned();
-        return (new_path, last);
-    }
-
-    (new_path, None)
-}
-
-#[cfg(test)]
-fn create_vector<const N: usize>(list: [&str; N]) -> Vec<String> {
-    let mut out = Vec::new();
-
-    for item in list.iter() {
-        out.push(String::from(*item));
-    }
-
-    out
-}
-
-#[test]
-fn test_set_path() {
-    assert_eq!(
-        calculate_next_path(&create_vector(["cc1"]), create_vector([])),
-        (create_vector([]), Some(String::from("cc1")))
-    );
-
-    assert_eq!(
-        calculate_next_path(&create_vector(["aa1", "aa2", "aa3"]), create_vector([])),
-        (create_vector([]), Some("aa1".into()))
-    );
-
-    assert_eq!(
-        calculate_next_path(&create_vector(["aa1", "aa2", "aa3"]), create_vector(["aa1"])),
-        (create_vector(["aa1"]), Some("aa2".into()))
-    );
-
-    assert_eq!(
-        calculate_next_path(&create_vector(["aa1", "aa2", "aa3"]), create_vector(["aa1", "aa2"])),
-        (create_vector(["aa1", "aa2"]), Some("aa3".into()))
-    );
-
-    assert_eq!(
-        calculate_next_path(&create_vector(["aa1", "aa2", "aa3"]), create_vector(["aa1", "aa2", "aa3"])),
-        (create_vector(["aa1", "aa2", "aa3"]), None)
-    );
-
-    assert_eq!(
-        calculate_next_path(&create_vector(["aa1", "aa2", "aa3"]), create_vector(["aa1", "aa2", "aa3", "aa4"])),
-        (create_vector(["aa1", "aa2", "aa3", "aa4"]), None)
-    );
-
-    assert_eq!(
-        calculate_next_path(&create_vector(["aa1", "aa2", "aa3"]), create_vector([])),
-        (create_vector([]), Some("aa1".into()))
-    );
-
-    assert_eq!(
-        calculate_next_path(&create_vector(["aa1", "aa2", "aa3"]), create_vector(["bb1"])),
-        (create_vector(["bb1"]), None)
-    );
-
-    assert_eq!(
-        calculate_next_path(&create_vector(["aa1", "aa2", "aa3"]), create_vector(["bb1", "bb2"])),
-        (create_vector(["bb1", "bb2"]), None)
-    );
-
-    assert_eq!(
-        calculate_next_path(&create_vector(["aa1", "aa2", "aa3"]), create_vector(["bb1", "bb2", "bb3"])),
-        (create_vector(["bb1", "bb2", "bb3"]), None)
-    );
-
-    assert_eq!(
-        calculate_next_path(&create_vector(["aa1", "aa2", "aa3"]), create_vector(["bb1", "bb2", "bb3", "bb4"])),
-        (create_vector(["bb1", "bb2", "bb3", "bb4"]), None)
-    );
 }
