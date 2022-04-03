@@ -113,7 +113,7 @@ pub struct TabPath {
     driver: Driver,
 
     pub dir: Value<Vec<String>>,               //TODO - zrobić mozliwość 
-    pub file: Value<Option<String>>,           //TODO - to mozna docelowo ukryć przed bezpośrednimi modyfikacjami zewnętrznymi
+    file: Value<Option<String>>,           //TODO - to mozna docelowo ukryć przed bezpośrednimi modyfikacjami zewnętrznymi
 
     pub list_hash_map: Computed<Resource<DirList>>,
     //aktualnie wyliczona lista
@@ -216,6 +216,13 @@ impl TabPath {
         self.file.set_value(last);
     }
 
+    pub fn redirect_to(&self, dir: Vec<String>, item: Option<String>) {
+        self.driver.transaction(move || {
+            self.dir.set_value(dir);
+            self.file.set_value(item);
+        });
+    }
+
     pub fn set_path(&self, path: Vec<String>) {
         let current_path = self.dir.get_value();
 
@@ -232,7 +239,7 @@ impl TabPath {
         });
     }
 
-    pub fn click_list_item(&self, node: String) {
+    fn click_list_item(&self, node: String) {
         let list_hash_map_rc = self.list_hash_map.get_value();
 
         if let Resource::Ready(list) = list_hash_map_rc.as_ref() {
@@ -312,6 +319,10 @@ impl TabPath {
         } else {
             self.try_set_pointer_to(0);
         }
+    }
+
+    pub fn pointer_escape(&self) {
+        self.file.set_value(None);
     }
 
     pub fn pointer_enter(&self) {

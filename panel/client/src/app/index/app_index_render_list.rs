@@ -1,11 +1,11 @@
 use vertigo::dev::NodeRefs;
 use vertigo::{
     Css,
-    VDomElement,
+    VDomElement, Resource,
 };
 use vertigo::{css, html};
 use crate::components::icon;
-use crate::data::{ListItem, Data};
+use crate::data::{ListItem, Data, CurrentContent};
 
 use super::AppIndex;
 
@@ -165,16 +165,26 @@ fn remove_prefix(name: &String) -> String {
     out
 }
 
-fn render_list_items(data: &Data, list: &Vec<ListItem>, current_item: &Option<String>) -> Vec<VDomElement> {
+fn render_list_items(data: &Data, dir: &Vec<String>, current_item: &Option<String>) -> Vec<VDomElement> {
+    let current = data.git.dir_list(dir);
+
+    let list = match current {
+        Resource::Ready(list) => list.get_list(),
+        _ => {
+            return Vec::new();
+        }
+    };
+
     let mut out: Vec<VDomElement> = Vec::new();
 
     for item in (*list).iter() {
         let on_click = {
+            let dir = dir.clone();
             let tab = data.tab.clone();
             let item = item.clone();
 
             move || {
-                tab.click_list_item(item.name.clone());
+                tab.redirect_to(dir.clone(), Some(item.name.clone()));
             }
         };
 
@@ -209,10 +219,10 @@ fn render_list_items(data: &Data, list: &Vec<ListItem>, current_item: &Option<St
 }
 
 pub fn render_list(state: &AppIndex) -> VDomElement {    
-    let list = state.data.tab.list.get_value();
+    let dir = state.data.tab.dir.get_value();
     let current_item = state.app.data.tab.current_item.get_value();
 
-    let out = render_list_items(&state.data, list.as_ref(), current_item.as_ref());
+    let out = render_list_items(&state.data, dir.as_ref(), current_item.as_ref());
 
     html! {
         <div css={css_wrapper()} dom_ref="wrapper" dom_apply={dom_apply}>

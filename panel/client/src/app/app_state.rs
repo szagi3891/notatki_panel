@@ -124,8 +124,8 @@ impl App {
 
     pub fn redirect_to_index_with_path(&self, new_path: Vec<String>, new_item: Option<String>) {
         self.redirect_to_index();
-        self.data.tab.dir.set_value(new_path);
-        self.data.tab.file.set_value(new_item);
+
+        self.data.tab.redirect_to(new_path, new_item);
         self.data.git.root.refresh();
     }
 
