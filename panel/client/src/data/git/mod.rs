@@ -43,14 +43,6 @@ impl CurrentContent {
         }
     }
 
-    pub fn to_string(&self) -> Option<Rc<String>> {
-        if let CurrentContent::File { content, .. } = self {
-            return Some(content.clone());
-        }
-
-        None
-    }
-
     // pub fn is_file(&self) -> bool {
     //     if let Self::File{..} = self {
     //         true

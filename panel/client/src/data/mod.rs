@@ -5,7 +5,7 @@ mod git;
 mod tabs;
 mod open_links;
 
-pub use git::CurrentContent;
+pub use git::{CurrentContent, TreeItem};
 pub use tabs::ListItem;
 pub use open_links::OpenLinks;
 

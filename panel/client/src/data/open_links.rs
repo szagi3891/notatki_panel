@@ -39,6 +39,16 @@ impl OpenLinks {
         self.tabs_url.set_value(tabs_url);
     }
 
+    pub fn tabs_toogle(&self, url: String) {
+        let has_open = self.tabs_has(&url);
+
+        if has_open {
+            self.tabs_remove(url);
+        } else {
+            self.tabs_add(url);
+        }
+    }
+
     pub fn tabs_remove(&self, url: String) {
         let tabs_url = self.tabs_url.get_value();
 
