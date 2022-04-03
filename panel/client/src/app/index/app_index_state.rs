@@ -1,7 +1,6 @@
 use std::rc::Rc;
 use vertigo::{
     VDomComponent,
-    Resource,
 };
 use crate::app::App;
 use crate::data::Data;
@@ -31,106 +30,6 @@ impl AppIndex {
         app_index_render(alert_view, state)
     }
 
-    pub fn click_list_item(&self, node: String) {
-        let list_hash_map_rc = self.data.tab.list_hash_map.get_value();
-
-        if let Resource::Ready(list) = list_hash_map_rc.as_ref() {
-            if let Some(node_details) = list.get(&node) {
-                if node_details.dir {
-                    let mut current = self.data.tab.dir.get_value().as_ref().clone();
-                    current.push(node.clone());
-                    self.data.tab.set_path(current);
-                } else {
-                    self.data.tab.file.set_value(Some(node.clone()));
-                }
-                return;
-            }
-        }
-
-        log::error!("push_path - ignore: {}", node);
-    }
-
-    fn find(&self, item_finding: &String) -> Option<isize> {
-        let list = self.data.tab.list.get_value();
-
-        for (index, item) in list.as_ref().iter().enumerate() {
-            if item.name == *item_finding {
-                return Some(index as isize);
-            }
-        }
-
-        None
-    }
-
-    fn try_set_pointer_to(&self, index: isize) -> bool {
-        if index < 0 {
-            return false;
-        }
-
-        let index = index as usize;
-
-        let list = self.data.tab.list.get_value();
-
-        if let Some(first) = list.get(index) {
-            self.data.tab.file.set_value(Some(first.name.clone()));
-            return true;
-        }
-
-        false
-    }
-
-    fn try_set_pointer_to_end(&self) {
-        let len = self.data.tab.list.get_value().len() as isize;
-        self.try_set_pointer_to(len - 1);
-    }
-
-    fn pointer_up(&self) {
-        let list_pointer_rc = self.data.tab.current_item.get_value();
-
-        if let Some(list_pointer) = list_pointer_rc.as_ref() {
-            if let Some(index) = self.find(list_pointer) {
-                if !self.try_set_pointer_to(index - 1) {
-                    self.try_set_pointer_to_end();
-                }
-            }
-        } else {
-            self.try_set_pointer_to(0);
-        }
-    }
-
-    fn pointer_down(&self) {
-        let list_pointer_rc = self.data.tab.current_item.get_value();
-
-        if let Some(list_pointer) = list_pointer_rc.as_ref() {
-            if let Some(index) = self.find(list_pointer) {
-                if !self.try_set_pointer_to(index + 1) {
-                    self.try_set_pointer_to(0);
-                }
-            }
-        } else {
-            self.try_set_pointer_to(0);
-        }
-    }
-
-    fn pointer_enter(&self) {
-        let list_pointer = self.data.tab.current_item.get_value();
-
-        if let Some(list_pointer) = list_pointer.as_ref() {
-            if self.find(list_pointer).is_some() {
-                self.click_list_item(list_pointer.clone());
-            }
-        }
-    }
-
-    fn backspace(&self) {
-        let current_path = self.data.tab.dir.get_value();
-        let mut current_path = current_path.as_ref().clone();
-
-        current_path.pop();
-
-        self.data.tab.set_path(current_path);
-    }
-
     pub fn keydown(&self, code: String) -> bool {
         if self.alert.is_visible() {
             if code == "Escape" {
@@ -144,19 +43,19 @@ impl AppIndex {
         }
 
         if code == "ArrowUp" {
-            self.pointer_up();
+            self.data.tab.pointer_up();
             return true;
         } else if code == "ArrowDown" {
-            self.pointer_down();
+            self.data.tab.pointer_down();
             return true;
         } else if code == "Escape" {
             self.data.tab.file.set_value(None);
             return true;
         } else if code == "ArrowRight" || code == "Enter" {
-            self.pointer_enter();
+            self.data.tab.pointer_enter();
             return true;
         } else if code == "ArrowLeft" || code == "Backspace" || code == "Escape" {
-            self.backspace();
+            self.data.tab.backspace();
             return true;
         }
 

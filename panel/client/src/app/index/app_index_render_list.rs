@@ -5,7 +5,7 @@ use vertigo::{
 };
 use vertigo::{css, html};
 use crate::components::icon;
-use crate::data::ListItem;
+use crate::data::{ListItem, Data};
 
 use super::AppIndex;
 
@@ -165,20 +165,16 @@ fn remove_prefix(name: &String) -> String {
     out
 }
 
-//TODO - trzeba zamienic
-//state: &AppIndex
-//TabPath
-
-fn render_list_items(state: &AppIndex, list: &Vec<ListItem>, current_item: &Option<String>) -> Vec<VDomElement> {
+fn render_list_items(data: &Data, list: &Vec<ListItem>, current_item: &Option<String>) -> Vec<VDomElement> {
     let mut out: Vec<VDomElement> = Vec::new();
 
     for item in (*list).iter() {
         let on_click = {
-            let state = state.clone();
+            let tab = data.tab.clone();
             let item = item.clone();
 
             move || {
-                state.click_list_item(item.name.clone());
+                tab.click_list_item(item.name.clone());
             }
         };
 
@@ -216,7 +212,7 @@ pub fn render_list(state: &AppIndex) -> VDomElement {
     let list = state.data.tab.list.get_value();
     let current_item = state.app.data.tab.current_item.get_value();
 
-    let out = render_list_items(state, list.as_ref(), current_item.as_ref());
+    let out = render_list_items(&state.data, list.as_ref(), current_item.as_ref());
 
     html! {
         <div css={css_wrapper()} dom_ref="wrapper" dom_apply={dom_apply}>

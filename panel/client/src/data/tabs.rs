@@ -232,4 +232,105 @@ impl TabPath {
         });
     }
 
+    pub fn click_list_item(&self, node: String) {
+        let list_hash_map_rc = self.list_hash_map.get_value();
+
+        if let Resource::Ready(list) = list_hash_map_rc.as_ref() {
+            if let Some(node_details) = list.get(&node) {
+                if node_details.dir {
+                    let mut current = self.dir.get_value().as_ref().clone();
+                    current.push(node.clone());
+                    self.set_path(current);
+                } else {
+                    self.file.set_value(Some(node.clone()));
+                }
+                return;
+            }
+        }
+
+        log::error!("push_path - ignore: {}", node);
+    }
+
+    fn find(&self, item_finding: &String) -> Option<isize> {
+        let list = self.list.get_value();
+
+        for (index, item) in list.as_ref().iter().enumerate() {
+            if item.name == *item_finding {
+                return Some(index as isize);
+            }
+        }
+
+        None
+    }
+
+
+    fn try_set_pointer_to(&self, index: isize) -> bool {
+        if index < 0 {
+            return false;
+        }
+
+        let index = index as usize;
+
+        let list = self.list.get_value();
+
+        if let Some(first) = list.get(index) {
+            self.file.set_value(Some(first.name.clone()));
+            return true;
+        }
+
+        false
+    }
+
+    fn try_set_pointer_to_end(&self) {
+        let len = self.list.get_value().len() as isize;
+        self.try_set_pointer_to(len - 1);
+    }
+
+    pub fn pointer_up(&self) {
+        let list_pointer_rc = self.current_item.get_value();
+
+        if let Some(list_pointer) = list_pointer_rc.as_ref() {
+            if let Some(index) = self.find(list_pointer) {
+                if !self.try_set_pointer_to(index - 1) {
+                    self.try_set_pointer_to_end();
+                }
+            }
+        } else {
+            self.try_set_pointer_to(0);
+        }
+    }
+
+    pub fn pointer_down(&self) {
+        let list_pointer_rc = self.current_item.get_value();
+
+        if let Some(list_pointer) = list_pointer_rc.as_ref() {
+            if let Some(index) = self.find(list_pointer) {
+                if !self.try_set_pointer_to(index + 1) {
+                    self.try_set_pointer_to(0);
+                }
+            }
+        } else {
+            self.try_set_pointer_to(0);
+        }
+    }
+
+    pub fn pointer_enter(&self) {
+        let list_pointer = self.current_item.get_value();
+
+        if let Some(list_pointer) = list_pointer.as_ref() {
+            if self.find(list_pointer).is_some() {
+                self.click_list_item(list_pointer.clone());
+            }
+        }
+    }
+
+    pub fn backspace(&self) {
+        let current_path = self.dir.get_value();
+        let mut current_path = current_path.as_ref().clone();
+
+        current_path.pop();
+
+        self.set_path(current_path);
+    }
+
 }
