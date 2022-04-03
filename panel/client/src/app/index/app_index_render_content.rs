@@ -118,7 +118,6 @@ fn render_dir(list: &DirList) -> VDomElement {
 
     html! {
         <div css={css_content()}>
-            "dir ..."
             { ..result }
         </div>
     }
