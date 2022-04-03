@@ -7,13 +7,15 @@ use vertigo::{
     AutoMap,
 };
 
+use super::DirList;
+
 #[derive(PartialEq, Clone, Debug)]
 pub struct TreeItem {
     pub dir: bool,
     pub id: String,
 }
 
-fn convert(list: HandlerFetchDirResponse) -> Rc<HashMap<String, TreeItem>> {
+fn convert(list: HandlerFetchDirResponse) -> DirList {
     let mut out: HashMap<String, TreeItem> = HashMap::new();
 
     for item in list.list.into_iter() {
@@ -21,12 +23,12 @@ fn convert(list: HandlerFetchDirResponse) -> Rc<HashMap<String, TreeItem>> {
         out.insert(name, TreeItem { dir, id });
     }
 
-    Rc::new(out)
+    DirList::new(Rc::new(out))
 }
 
 #[derive(PartialEq, Clone)]
 pub struct NodeDir {
-    value: Computed<Resource<Rc<HashMap<String, TreeItem>>>>,
+    value: Computed<Resource<DirList>>,
 }
 
 impl NodeDir {
@@ -56,11 +58,11 @@ impl NodeDir {
         }
     }
 
-    pub fn get(&self) -> Rc<Resource<Rc<HashMap<String, TreeItem>>>> {
+    pub fn get(&self) -> Rc<Resource<DirList>> {
         self.value.get_value()
     }
 
-    pub fn get_list(&self) -> Resource<Rc<HashMap<String, TreeItem>>> {
+    pub fn get_list(&self) -> Resource<DirList> {
         self.get().ref_clone()
     }
 }
@@ -83,7 +85,7 @@ impl Dir {
         }
     }
 
-    pub fn get_list(&self, id: &String) -> Resource<Rc<HashMap<String, TreeItem>>> {
+    pub fn get_list(&self, id: &String) -> Resource<DirList> {
         self.data.get_value(id).get_list()
     }
 }

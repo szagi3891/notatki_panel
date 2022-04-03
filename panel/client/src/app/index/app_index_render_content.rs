@@ -1,11 +1,10 @@
-use std::collections::HashMap;
 use std::rc::Rc;
 
 use vertigo::{Css, VDomElement};
 use vertigo::{css, html};
 
 use super::AppIndex;
-use crate::data::{CurrentContent, TreeItem};
+use crate::data::{CurrentContent, DirList};
 use crate::{
     content::{
         parse_text,
@@ -106,13 +105,13 @@ fn render_content_text(state: &AppIndex, content: &Rc<String>) -> Vec<VDomElemen
     out
 }
 
-fn render_dir(state: &AppIndex, list: &Rc<HashMap<String, TreeItem>>) -> VDomElement {
+fn render_dir(list: &DirList) -> VDomElement {
     let mut result = Vec::new();
 
-    for (key, _) in list.as_ref() {
+    for item in list.get_list() {
         result.push(html! {
             <div>
-                { key}
+                { item.name }
             </div>
         })
     }
@@ -139,7 +138,7 @@ pub fn render_content(state: &AppIndex) -> VDomElement {
             }
         }
         CurrentContent::Dir { dir: _, dir_hash: _, list } => {
-            render_dir(state, list)
+            render_dir(list)
         },
         CurrentContent::None => {
             html!{

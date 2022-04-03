@@ -1,6 +1,6 @@
 use std::{collections::HashMap, rc::Rc};
-
 use vertigo::{Driver, Resource};
+use std::cmp::Ordering;
 
 mod node_dir;
 mod node_content;
@@ -9,6 +9,80 @@ mod root;
 pub use node_dir::{Dir, TreeItem};
 pub use node_content::Content;
 pub use root::Root;
+
+use super::ListItem;
+
+#[derive(PartialEq, Clone, Debug)]
+pub struct DirList {
+    list: Rc<HashMap<String, TreeItem>>,
+}
+
+impl DirList {
+    pub fn new(list: Rc<HashMap<String, TreeItem>>) -> DirList {
+        DirList {
+            list
+        }
+    }
+
+    pub fn len(&self) -> usize {
+        self.list.len()
+    }
+
+    pub fn get(&self, current_item: &String) -> Option<&TreeItem> {
+        self.list.get(current_item)
+    }
+
+    pub fn get_list(&self) -> Vec<ListItem> {
+        let mut list_out: Vec<ListItem> = Vec::new();
+
+        for (name, item) in self.list.as_ref() {
+            list_out.push(ListItem {
+                name: name.clone(),
+                dir: item.dir,
+                prirority: get_list_item_prirority(name),
+            });
+        }
+
+        list_out.sort_by(|a: &ListItem, b: &ListItem| -> Ordering {
+            let a_prirority = get_list_item_prirority(&a.name);
+            let b_prirority = get_list_item_prirority(&b.name);
+
+            if a_prirority == 2 && b_prirority == 2 {
+                if a.dir && !b.dir {
+                    return Ordering::Less;
+                }
+
+                if !a.dir && b.dir {
+                    return Ordering::Greater;
+                }
+            }
+
+            if a_prirority > b_prirority {
+                return Ordering::Less;
+            }
+
+            if a_prirority < b_prirority {
+                return Ordering::Greater;
+            }
+
+            a.name.to_lowercase().cmp(&b.name.to_lowercase())
+        });
+
+        list_out
+    }
+}
+
+fn get_list_item_prirority(name: &String) -> u8 {
+    if name.get(0..2) == Some("__") {
+        return 0
+    }
+
+    if name.get(0..1) == Some("_") {
+        return 2
+    }
+
+    1
+}
 
 
 #[derive(PartialEq, Clone, Debug)]
@@ -21,7 +95,7 @@ pub enum CurrentContent {
     Dir {
         dir: String,            //hash
         dir_hash: String,
-        list: Rc<HashMap<String, TreeItem>>,
+        list: DirList,
     },
     None
 }
@@ -35,7 +109,7 @@ impl CurrentContent {
         }
     }
 
-    fn dir(dir: String, dir_hash: String, list: Rc<HashMap<String, TreeItem>>) -> CurrentContent {
+    fn dir(dir: String, dir_hash: String, list: DirList) -> CurrentContent {
         CurrentContent::Dir {
             dir,
             dir_hash,
@@ -70,7 +144,7 @@ impl CurrentContent {
 
 
 
-fn get_item_from_map<'a>(current_wsk: &'a Rc<HashMap<String, TreeItem>>, path_item: &String) -> Resource<&'a TreeItem> {
+fn get_item_from_map<'a>(current_wsk: &'a DirList, path_item: &String) -> Resource<&'a TreeItem> {
     let wsk_child = current_wsk.get(path_item);
 
     let wsk_child = match wsk_child {
@@ -83,7 +157,7 @@ fn get_item_from_map<'a>(current_wsk: &'a Rc<HashMap<String, TreeItem>>, path_it
     Resource::Ready(wsk_child)
 }
 
-fn move_pointer(state_data: &Git, list: Rc<HashMap<String, TreeItem>>, path_item: &String) -> Resource<Rc<HashMap<String, TreeItem>>> {
+fn move_pointer(state_data: &Git, list: DirList, path_item: &String) -> Resource<DirList> {
 
     let child = get_item_from_map(&list, path_item)?;
 
@@ -120,7 +194,7 @@ impl Git {
     }
 
 
-    pub fn dir_list(&self, path: &[String]) -> Resource<Rc<HashMap<String, TreeItem>>> {
+    pub fn dir_list(&self, path: &[String]) -> Resource<DirList> {
         let root_wsk = self.root.get_current_root()?;
 
         let mut result = self.dir.get_list(&root_wsk)?;
