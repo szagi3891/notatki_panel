@@ -8,7 +8,7 @@ use super::app_newdir_render::app_newdir_render;
 
 #[derive(Clone)]
 pub struct AppNewdir {
-    driver: Driver,
+    pub driver: Driver,
 
     pub action_save: Value<bool>,
 
@@ -58,7 +58,9 @@ impl AppNewdir {
         app_newdir_render(view_new_name, state)
     }
 
-    pub fn on_save(&self) {
+    // pub fn on_save2(&self) -> 
+
+    pub async fn on_save(self) {
         let action_save = self.action_save.get_value();
 
         if *action_save {
@@ -67,29 +69,22 @@ impl AppNewdir {
         }
 
         self.action_save.set_value(true);
-
-        let new_dir_name = (*self.new_name.get_value()).clone();
+    
+        let new_dir_name = self.new_name.get_value().as_ref().clone();
 
         let body = HandlerCreateDirBody {
             path: self.parent.clone(),
             dir: new_dir_name.clone(),
         };
 
-        let request = self.driver
+        let _ = self.driver
             .request("/create_dir")
             .body_json(body)
-            .post();
+            .post().await;
 
-        let callback = self.app_state.clone();
-        let parent = self.parent.clone();
+        let parent_string = self.parent.join("/");
+        log::info!("Tworzenie katalogu {:?} udane -> przekierowanie na -> {:?}", new_dir_name, parent_string);
 
-
-        self.driver.spawn(async move {
-            let _ = request.await;
-            let parent_string = parent.join("/");
-            log::info!("Tworzenie katalogu {:?} udane -> przekierowanie na -> {:?}", new_dir_name, parent_string);
-
-            callback.redirect_to_index_with_path(parent, Some(new_dir_name));
-        });
+        self.app_state.redirect_to_index_with_path(self.parent.clone(), Some(new_dir_name));
     }
 }
