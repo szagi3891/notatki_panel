@@ -95,7 +95,7 @@ impl AppRenameitem {
         self.new_name.set_value(new_text);
     }
 
-    pub fn on_save(&self) {
+    pub async fn on_save(self) {
         let action_save = self.action_save.get_value();
 
         if *action_save {
@@ -112,23 +112,26 @@ impl AppRenameitem {
             new_name: (*self.new_name.get_value()).clone(),
         };
 
-        let request = self.driver
+        let _ = self.driver
             .request("/rename_item")
             .body_json(body)
-            .post();
+            .post()
+            .await;
 
-        let parent_state = self.app_state.clone();
         let redirect_path = self.path.clone();
         let redirect_new_name = self.new_name.get_value().as_ref().clone();
 
-        self.driver.spawn(async move {
+        log::info!("Zapis udany");
 
-            let _ = request.await;
+        self.app_state.redirect_to_index_with_path(redirect_path, Some(redirect_new_name));
+    }
 
-            log::info!("Zapis udany");
-
-            parent_state.redirect_to_index_with_path(redirect_path, Some(redirect_new_name));
-        });
+    pub fn bind_on_save(&self) -> impl Fn() {
+        let driver = self.driver.clone();
+        let state = self.clone();
+        move || {            
+            driver.spawn(state.clone().on_save());
+        }
     }
 }
 

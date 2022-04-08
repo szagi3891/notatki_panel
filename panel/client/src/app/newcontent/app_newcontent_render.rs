@@ -69,12 +69,7 @@ pub fn app_newcontent_render(view_new_name: VDomComponent, state: AppNewcontent)
         let save_enable = state.save_enable.get_value();
 
         if *save_enable {
-            buttons.push(button("Zapisz", {
-                let state = state.clone();
-                move || {
-                    state.on_save();
-                }
-            }));
+            buttons.push(button("Zapisz", state.bind_on_save()));
         }
 
         html! {

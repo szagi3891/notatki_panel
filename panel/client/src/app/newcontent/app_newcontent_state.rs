@@ -8,7 +8,7 @@ use crate::data::ListItem;
 
 #[derive(Clone)]
 pub struct AppNewcontent {
-    driver: Driver,
+    pub driver: Driver,
 
     pub action_save: Value<bool>,
 
@@ -94,7 +94,7 @@ impl AppNewcontent {
         self.content.set_value(new_value);
     }
 
-    pub fn on_save(&self) {
+    pub async fn on_save(self) {
         let action_save = self.action_save.get_value();
 
         if *action_save {
@@ -113,22 +113,22 @@ impl AppNewcontent {
             new_content: (*self.content.get_value()).clone(),
         };
 
-        let request = self.driver
+        let _ = self.driver
             .request("/create_file")
             .body_json(body)
-            .post();
+            .post()
+            .await;
 
-        let callback = self.app_state.clone();
+        let path_redirect = self.parent.clone(); 
+        log::info!("Zapis udany -> przekierowanie na -> {:?} {:?}", path_redirect, new_name);
+        self.app_state.redirect_to_index_with_path(path_redirect, Some(new_name));
+    }
 
-
-        self.driver.spawn({
-            let path_redirect = self.parent.clone();            
-            
-            async move {
-                let _ = request.await;
-                log::info!("Zapis udany -> przekierowanie na -> {:?} {:?}", path_redirect, new_name);
-                callback.redirect_to_index_with_path(path_redirect, Some(new_name));
-            }
-        });
+    pub fn bind_on_save(&self) -> impl Fn() {
+        let driver = self.driver.clone();
+        let state = self.clone();
+        move || {            
+            driver.spawn(state.clone().on_save());
+        }
     }
 }

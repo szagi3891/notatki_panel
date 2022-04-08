@@ -7,7 +7,7 @@ use super::app_editcontent_render::app_editcontent_render;
 
 #[derive(Clone)]
 pub struct AppEditcontent {
-    driver: Driver,
+    pub driver: Driver,
 
     pub path: Vec<String>,          //edutowany element
     pub hash: String,               //hash poprzedniej zawartosci
@@ -70,7 +70,7 @@ impl AppEditcontent {
         self.edit_content.set_value(new_text);
     }
 
-    pub fn on_save(&self) {
+    pub async fn on_save(self) {
         let action_save = self.action_save.get_value();
 
         if *action_save {
@@ -86,21 +86,22 @@ impl AppEditcontent {
             new_content: (*self.edit_content.get_value()).clone(),
         };
 
-        let request = self.driver
+        let _ = self.driver
             .request("/save_content")
             .body_json(body)
-            .post();
+            .post().await;
 
-        let callback = self.app_state.clone();
+        log::info!("Zapis udany");
+    
+        self.app_state.redirect_to_index_with_root_refresh();
+    }
 
-        self.driver.spawn(async move {
-
-            let _ = request.await;
-
-            log::info!("Zapis udany");
-
-            callback.redirect_to_index_with_root_refresh();
-        });
+    pub fn bind_on_save(&self) -> impl Fn() {
+        let driver = self.driver.clone();
+        let state = self.clone();
+        move || {
+            driver.spawn(state.clone().on_save());
+        }
     }
 }
 

@@ -3,7 +3,7 @@ use std::rc::Rc;
 use common::{HandlerDeleteItemBody};
 use vertigo::{
     VDomComponent,
-    Value
+    Value,
 };
 use crate::components::AlertBox;
 
@@ -13,7 +13,7 @@ use super::AppIndexAlert;
 pub struct AppIndexAlertDelete {
     full_path: Rc<Vec<String>>,
     progress: Value<bool>,
-    alert: AppIndexAlert,
+    pub alert: AppIndexAlert,
 }
 
 impl AppIndexAlertDelete {
@@ -27,17 +27,14 @@ impl AppIndexAlertDelete {
         }
     }
 
-    pub fn delete_yes(&self) {
+    pub async fn delete_yes(self) {
         if *self.progress.get_value() {
             return;
         }
 
-        let progress = self.progress.clone();
-        let alert_state = self.alert.clone();
-
         let current_path = self.full_path.as_ref().clone();
-        let current_hash = alert_state.app.data.git.content_hash(&current_path);
-    
+        let current_hash = self.alert.app.data.git.content_hash(&current_path);
+
         let current_hash = match current_hash {
             Some(current_hash) => current_hash,
             None => {
@@ -47,32 +44,31 @@ impl AppIndexAlertDelete {
         };
 
         log::info!("usuwamy ...");
-        progress.set_value(true);
+        self.progress.set_value(true);
 
-        let response = alert_state.app.driver
+        let _ = self.alert.app.driver
             .request("/delete_item")
             .body_json(HandlerDeleteItemBody {
                 path: current_path,
                 hash: current_hash
                 
             })
-            .post();    //::<RootResponse>();
+            .post()
+            .await;    //::<RootResponse>();
 
+        self.progress.set_value(false);
+        self.alert.app.data.tab.redirect_after_delete();
+        self.alert.app.data.git.root.refresh();
+        self.alert.close_modal();
+    }
 
-        alert_state.app.driver.spawn({
-            let alert_state = alert_state.clone();
-            let progress = progress.clone();
-            let self_copy = alert_state.clone();
+    pub fn bind_delete_yes(&self) -> impl Fn() {
+        let driver = self.alert.app.driver.clone();
+        let state = self.clone();
 
-            async move {
-                let _ = response.await;
-                progress.set_value(false);
-                self_copy.app.data.tab.redirect_after_delete();
-                self_copy.app.data.git.root.refresh();
-                // self_copy.view.set_value(AlertView::None);
-                alert_state.close_modal();
-            }
-        });
+        move || {
+            driver.spawn(state.clone().delete_yes());
+        }
     }
 
     pub fn delete_no(&self) {
@@ -83,6 +79,14 @@ impl AppIndexAlertDelete {
         self.alert.close_modal();
     }
 
+    pub fn bind_delete_no(&self) -> impl Fn() {
+        let state = self.clone();
+
+        move || {
+            state.delete_no();
+        }
+    }
+
     pub fn render(self) -> VDomComponent {
         VDomComponent::new(self, |state: &AppIndexAlertDelete| {
             let full_path = state.full_path.clone();
@@ -91,19 +95,8 @@ impl AppIndexAlertDelete {
             let message = format!("Czy usunąć -> {} ?", full_path.join("/"));
             let mut alert = AlertBox::new(message, progress_computed.clone());
 
-            alert.button("Tak", {
-                let state = state.clone();
-                move || {
-                    state.delete_yes();
-                }
-            });
-
-            alert.button("Nie", {
-                let state = state.clone();
-                move || {
-                    state.delete_no();
-                }
-            });
+            alert.button("Tak", state.bind_delete_yes());
+            alert.button("Nie", state.bind_delete_no());
 
             alert.render()
         })

@@ -58,8 +58,6 @@ impl AppNewdir {
         app_newdir_render(view_new_name, state)
     }
 
-    // pub fn on_save2(&self) -> 
-
     pub async fn on_save(self) {
         let action_save = self.action_save.get_value();
 
@@ -86,5 +84,13 @@ impl AppNewdir {
         log::info!("Tworzenie katalogu {:?} udane -> przekierowanie na -> {:?}", new_dir_name, parent_string);
 
         self.app_state.redirect_to_index_with_path(self.parent.clone(), Some(new_dir_name));
+    }
+
+    pub fn bind_on_save(&self) -> impl Fn() {
+        let driver = self.driver.clone();
+        let state = self.clone();
+        move || {
+            driver.spawn(state.clone().on_save());
+        }
     }
 }
