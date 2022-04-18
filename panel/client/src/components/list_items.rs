@@ -2,7 +2,7 @@ use vertigo::{
     html, css, Css,
     VDomElement, Resource,
 };
-use crate::data::Data;
+use crate::data::{Data, ListItem};
 use crate::components::icon;
 
 
@@ -89,6 +89,49 @@ fn label_css(prirority: u8) -> Css {
     ")
 }
 
+fn render_item(data: &Data, dir: &Vec<String>, current_item: &Option<String>, item: &ListItem) -> VDomElement {
+    let on_click = {
+        let is_dir = item.dir;
+        let mut path = dir.clone();
+        path.push(item.name.clone());
+
+        let tab = data.tab.clone();
+
+        move || {
+            if is_dir {
+                tab.redirect_to_dir(&path);
+            } else {
+                tab.redirect_to_file(&path);
+            }
+        }
+    };
+
+    let is_select = {
+        if let Some(list_pointer) = current_item.as_ref() {
+            item.name == *list_pointer
+        } else {
+            false
+        }
+    };
+
+    if is_select {
+        html!{
+            <div on_click={on_click} css={css_normal(is_select)} dom_ref="active">
+                {icon_arrow(is_select)}
+                {icon::icon_render(item.dir)}
+                <span css={label_css(item.prirority)}>{remove_prefix(&item.name)}</span>
+            </div>
+        }
+    } else {
+        html!{
+            <div on_click={on_click} css={css_normal(is_select)}>
+                {icon_arrow(is_select)}
+                {icon::icon_render(item.dir)}
+                <span css={label_css(item.prirority)}>{remove_prefix(&item.name)}</span>
+            </div>
+        }
+    }
+}
 
 pub fn list_items(data: &Data, dir: &Vec<String>, current_item: &Option<String>) -> Vec<VDomElement> {
     let current = data.git.dir_list(dir);
@@ -103,47 +146,7 @@ pub fn list_items(data: &Data, dir: &Vec<String>, current_item: &Option<String>)
     let mut out: Vec<VDomElement> = Vec::new();
 
     for item in (*list).iter() {
-        let on_click = {
-            let is_dir = item.dir;
-            let mut path = dir.clone();
-            path.push(item.name.clone());
-
-            let tab = data.tab.clone();
-
-            move || {
-                if is_dir {
-                    tab.redirect_to_dir(&path);
-                } else {
-                    tab.redirect_to_file(&path);
-                }
-            }
-        };
-
-        let is_select = {
-            if let Some(list_pointer) = current_item.as_ref() {
-                item.name == *list_pointer
-            } else {
-                false
-            }
-        };
-
-        if is_select {
-            out.push(html!{
-                <div on_click={on_click} css={css_normal(is_select)} dom_ref="active">
-                    {icon_arrow(is_select)}
-                    {icon::icon_render(item.dir)}
-                    <span css={label_css(item.prirority)}>{remove_prefix(&item.name)}</span>
-                </div>
-            });
-        } else {
-            out.push(html!{
-                <div on_click={on_click} css={css_normal(is_select)}>
-                    {icon_arrow(is_select)}
-                    {icon::icon_render(item.dir)}
-                    <span css={label_css(item.prirority)}>{remove_prefix(&item.name)}</span>
-                </div>
-            });
-        }
+        out.push(render_item(data, dir, current_item, item));
     }
 
     out

@@ -64,14 +64,13 @@ impl AppIndex {
     }
 
     pub fn current_edit(&self) {
-        let path = self.data.tab.dir.get_value();
-        let select_item = self.data.tab.current_item.get_value();
-        self.app.redirect_to_content(&path, &select_item);
+        let full_path = self.data.tab.full_path.get_value();
+        self.app.redirect_to_content(&full_path);
     }
 
     pub fn create_file(&self) {
         let path = self.data.tab.dir.get_value();
-        let list = self.data.tab.list.clone();
+        let list = self.data.tab.list.clone();              //TODO - ta lista ma być pobierana w widoku bezpośrednio z "tab"
 
         self.app.redirect_to_new_content(path.as_ref(), list);
     }

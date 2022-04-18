@@ -112,21 +112,31 @@ fn create_current_content(
 pub struct TabPath {
     driver: Driver,
 
-    pub dir: Value<Vec<String>>,               //TODO - zrobić mozliwość 
-    file: Value<Option<String>>,           //TODO - to mozna docelowo ukryć przed bezpośrednimi modyfikacjami zewnętrznymi
+    /// Bazowy katalog który został wybrany
+    pub dir: Value<Vec<String>>,
 
-    pub list_hash_map: Computed<Resource<DirList>>,
-    //aktualnie wyliczona lista
+    /// Wybrany element z listy
+    /// Ta zmienna nie powinna być bezpośrednio modyfikowana z zewnątrz
+    item: Value<Option<String>>,
+
+    /// Element na który najechano myszą (w lewym panelu)
+    item_hover: Value<Option<String>>,
+
+    /// Zawartość bazowego katalogu w formie HashMap z wszystkimi elementami z tego katalogi
+    pub dir_hash_map: Computed<Resource<DirList>>,
+
+    /// Aktualnie wyliczona lista, która jest prezentowana w lewej kolumnie menu
     pub list: Computed<Vec<ListItem>>,
 
 
-
-    //wybrany element z listy, dla widoku
+    /// Wybrany element z listy (dla widoku)
+    /// Jeśli w zmiennej "item" znajduje się None, to brany jest pierwszy element z "list"
     pub current_item: Computed<Option<String>>,
 
+    /// Suma "dir" + "current_item". Wskazuje na wybrany element do wyświetlenia w prawym panelu
     pub full_path: Computed<Vec<String>>,
 
-    //aktualnie wyliczony wybrany content wskazywany przez current_path
+    /// Aktualnie wyliczony wybrany content wskazywany przez full_path
     pub current_content: Computed<CurrentContent>,
 
     //Otworzone zakładki z podględem do zewnętrznych linków
@@ -136,13 +146,14 @@ pub struct TabPath {
 impl TabPath {
     pub fn new(driver: &Driver, git: &Git) -> TabPath {
         let dir: Value<Vec<String>> = driver.new_value(Vec::new());
-        let file: Value<Option<String>> = driver.new_value(None);
+        let item: Value<Option<String>> = driver.new_value(None);
+        let item_hover = driver.new_value::<Option<String>>(None);
 
-        let list_hash_map = create_list_hash_map(driver, git, &dir);
-        let list = create_list(driver, &list_hash_map);
+        let dir_hash_map = create_list_hash_map(driver, git, &dir);
+        let list = create_list(driver, &dir_hash_map);
 
 
-        let current_item = create_current_item_view(driver, &file, &list);
+        let current_item = create_current_item_view(driver, &item, &list);
 
         let full_path = create_current_full_path(
             driver,
@@ -156,15 +167,14 @@ impl TabPath {
             &current_item,
         );
 
-        // let tabs_url = driver.new_value(Vec::new());
-        // let tabs_active = driver.new_value(None);
         let open_links = OpenLinks::new(driver);
 
         TabPath {
             driver: driver.clone(),
             dir: dir.clone(),
-            file,
-            list_hash_map,
+            item,
+            item_hover,
+            dir_hash_map,
             list,
             current_item,
             full_path,
@@ -174,7 +184,7 @@ impl TabPath {
     }
 
     pub fn redirect_after_delete(&self) {
-        let current_path_item = self.file.get_value();
+        let current_path_item = self.item.get_value();
         let list = self.list.get_value();
 
         fn find_index(list: &Vec<ListItem>, value: &Option<String>) -> Option<usize> {
@@ -191,13 +201,13 @@ impl TabPath {
         if let Some(current_index) = find_index(list.as_ref(), current_path_item.as_ref()) {
             if current_index > 0 {
                 if let Some(prev) = list.get(current_index - 1) {
-                    self.file.set_value(Some(prev.name.clone()));
+                    self.item.set_value(Some(prev.name.clone()));
                     return;
                 }
             }
 
             if let Some(prev) = list.get(current_index + 1) {
-                self.file.set_value(Some(prev.name.clone()));
+                self.item.set_value(Some(prev.name.clone()));
                 return;
             }
         };
@@ -205,7 +215,8 @@ impl TabPath {
 
     pub fn redirect_to_dir(&self, path: &Vec<String>) {
         self.dir.set_value(path.clone());
-        self.file.set_value(None);
+        self.item.set_value(None);
+        self.item_hover.set_value(None);
     }
 
     pub fn redirect_to_file(&self, path: &Vec<String>) {
@@ -213,13 +224,13 @@ impl TabPath {
         let last = path.pop();
 
         self.dir.set_value(path);
-        self.file.set_value(last);
+        self.item.set_value(last);
     }
 
     pub fn redirect_to(&self, dir: Vec<String>, item: Option<String>) {
         self.driver.transaction(move || {
             self.dir.set_value(dir);
-            self.file.set_value(item);
+            self.item.set_value(item);
         });
     }
 
@@ -235,12 +246,12 @@ impl TabPath {
 
         self.driver.transaction(||{
             self.dir.set_value(new_current_path);
-            self.file.set_value(new_current_item_value);
+            self.item.set_value(new_current_item_value);
         });
     }
 
     fn click_list_item(&self, node: String) {
-        let list_hash_map_rc = self.list_hash_map.get_value();
+        let list_hash_map_rc = self.dir_hash_map.get_value();
 
         if let Resource::Ready(list) = list_hash_map_rc.as_ref() {
             if let Some(node_details) = list.get(&node) {
@@ -249,7 +260,7 @@ impl TabPath {
                     current.push(node.clone());
                     self.set_path(current);
                 } else {
-                    self.file.set_value(Some(node.clone()));
+                    self.item.set_value(Some(node.clone()));
                 }
                 return;
             }
@@ -281,7 +292,7 @@ impl TabPath {
         let list = self.list.get_value();
 
         if let Some(first) = list.get(index) {
-            self.file.set_value(Some(first.name.clone()));
+            self.item.set_value(Some(first.name.clone()));
             return true;
         }
 
@@ -322,7 +333,7 @@ impl TabPath {
     }
 
     pub fn pointer_escape(&self) {
-        self.file.set_value(None);
+        self.item.set_value(None);
     }
 
     pub fn pointer_enter(&self) {

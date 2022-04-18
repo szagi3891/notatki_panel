@@ -63,18 +63,9 @@ impl App {
         open_links.render(app)
     }
 
-    fn create_full_path(&self, path: &Vec<String>, select_item: &Option<String>) -> Vec<String> {
-        let mut path = path.clone();
-
-        if let Some(select_item) = select_item {
-            path.push(select_item.clone());
-        }
-
-        path
-    }
-    
-    pub fn redirect_to_content(&self, base_path: &Vec<String>, select_item: &Option<String>) {
-        let full_path = self.create_full_path(base_path, select_item);
+    pub fn redirect_to_content(&self, full_path: &Vec<String> /*base_path: &Vec<String>, select_item: &Option<String>*/ ) {
+        // let full_path = self.create_full_path(base_path, select_item);
+        let full_path = full_path.clone();
         let content = self.data.git.content_from_path(&full_path);
 
         match content {
@@ -95,9 +86,19 @@ impl App {
         }
     }
 
+    //TODO --- do usunięcia ?????
+
+    fn create_full_path(&self, path: &Vec<String>, select_item: &String) -> Vec<String> {
+        let mut path = path.clone();
+
+        path.push(select_item.clone());
+
+        path
+    }
+
     pub fn redirect_to_rename_item(&self, base_path: &Vec<String>, select_item: &String) {
         let select_item = select_item.clone();
-        let full_path = self.create_full_path(base_path, &Some(select_item.clone()));
+        let full_path = self.create_full_path(base_path, &select_item);
         let content_hash = self.data.git.content_hash(&full_path);
         let get_content_string = self.data.git.get_content_string(&full_path);
 
