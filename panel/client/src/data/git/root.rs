@@ -6,7 +6,6 @@ use vertigo::{
     Computed,
 };
 
-#[derive(PartialEq)]
 pub struct RootNode {
     pub value: Computed<Resource<RootResponse>>,
 }

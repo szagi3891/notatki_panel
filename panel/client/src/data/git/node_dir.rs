@@ -26,7 +26,7 @@ fn convert(list: HandlerFetchDirResponse) -> DirList {
     DirList::new(Rc::new(out))
 }
 
-#[derive(PartialEq, Clone)]
+#[derive(Clone)]
 pub struct NodeDir {
     value: Computed<Resource<DirList>>,
 }

@@ -4,7 +4,6 @@ use vertigo::{Driver, Computed, Value, VDomComponent};
 use crate::app::App;
 use crate::app::newcontent::app_newcontent_render::app_newcontent_render;
 use crate::components::new_name;
-use crate::data::ListItem;
 
 #[derive(Clone)]
 pub struct AppNewcontent {

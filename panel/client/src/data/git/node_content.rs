@@ -13,7 +13,7 @@ pub struct TreeItem {
     pub id: String,
 }
 
-#[derive(PartialEq, Clone)]
+#[derive(Clone)]
 pub struct NodeContent {
     value: Computed<Resource<Rc<String>>>,
 }

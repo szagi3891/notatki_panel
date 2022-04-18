@@ -9,10 +9,9 @@ use crate::app::index::alert::app_index_alert_search_state::AppIndexAlertSearch;
 use super::app_index_alert_moveitem_state::AppIndexAlertMoveitem;
 
 
-#[derive(PartialEq)]
 pub enum AlertView {
     None,
-    DeleteFile { path: Rc<Vec<String>> },
+    DeleteFile { state: AppIndexAlertDelete }, //path: Rc<Vec<String>> },
     SearchInPath,
     MoveItem { path: Rc<Vec<String>> },                       //TODO - zaimplementować
 }
@@ -38,7 +37,11 @@ impl AppIndexAlert {
 
     pub fn is_visible(&self) -> bool {
         let view = self.view.get_value();
-        *view != AlertView::None
+        match view.as_ref() {
+            AlertView::None => false,
+            _ => true
+        }
+        // *view != AlertView::None
     }
 
     pub fn delete(&self, path: Rc<Vec<String>>) {
@@ -46,7 +49,9 @@ impl AppIndexAlert {
             return;
         }
 
-        self.view.set_value(AlertView::DeleteFile { path });
+        let state = AppIndexAlertDelete::new(self, &path);
+
+        self.view.set_value(AlertView::DeleteFile { state });
     }
 
     pub fn redirect_to_search(&self) {
@@ -80,8 +85,8 @@ fn app_index_alert_render(alert: &AppIndexAlert) -> VDomElement {
                 <div />
             }
         },
-        AlertView::DeleteFile { path } => {
-            let view = AppIndexAlertDelete::new(alert, path).render();
+        AlertView::DeleteFile { state } => {
+            let view = state.clone().render();
 
             html! {
                 <div>
