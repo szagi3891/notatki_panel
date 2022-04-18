@@ -113,11 +113,11 @@ pub struct TabPath {
     driver: Driver,
 
     /// Bazowy katalog który został wybrany
-    pub dir: Value<Vec<String>>,
+    pub dir_select: Value<Vec<String>>,
 
     /// Wybrany element z listy
     /// Ta zmienna nie powinna być bezpośrednio modyfikowana z zewnątrz
-    item: Value<Option<String>>,
+    item_select: Value<Option<String>>,
 
     /// Element na który najechano myszą (w lewym panelu)
     item_hover: Value<Option<String>>,
@@ -171,8 +171,8 @@ impl TabPath {
 
         TabPath {
             driver: driver.clone(),
-            dir: dir.clone(),
-            item,
+            dir_select: dir.clone(),
+            item_select: item,
             item_hover,
             dir_hash_map,
             list,
@@ -184,7 +184,7 @@ impl TabPath {
     }
 
     pub fn redirect_after_delete(&self) {
-        let current_path_item = self.item.get_value();
+        let current_path_item = self.item_select.get_value();
         let list = self.list.get_value();
 
         fn find_index(list: &Vec<ListItem>, value: &Option<String>) -> Option<usize> {
@@ -201,21 +201,21 @@ impl TabPath {
         if let Some(current_index) = find_index(list.as_ref(), current_path_item.as_ref()) {
             if current_index > 0 {
                 if let Some(prev) = list.get(current_index - 1) {
-                    self.item.set_value(Some(prev.name.clone()));
+                    self.item_select.set_value(Some(prev.name.clone()));
                     return;
                 }
             }
 
             if let Some(prev) = list.get(current_index + 1) {
-                self.item.set_value(Some(prev.name.clone()));
+                self.item_select.set_value(Some(prev.name.clone()));
                 return;
             }
         };
     }
 
     pub fn redirect_to_dir(&self, path: &Vec<String>) {
-        self.dir.set_value(path.clone());
-        self.item.set_value(None);
+        self.dir_select.set_value(path.clone());
+        self.item_select.set_value(None);
         self.item_hover.set_value(None);
     }
 
@@ -223,19 +223,19 @@ impl TabPath {
         let mut path = path.clone();
         let last = path.pop();
 
-        self.dir.set_value(path);
-        self.item.set_value(last);
+        self.dir_select.set_value(path);
+        self.item_select.set_value(last);
     }
 
     pub fn redirect_to(&self, dir: Vec<String>, item: Option<String>) {
         self.driver.transaction(move || {
-            self.dir.set_value(dir);
-            self.item.set_value(item);
+            self.dir_select.set_value(dir);
+            self.item_select.set_value(item);
         });
     }
 
     pub fn set_path(&self, path: Vec<String>) {
-        let current_path = self.dir.get_value();
+        let current_path = self.dir_select.get_value();
 
         if current_path.as_ref().as_slice() == path.as_slice() {
             log::info!("path are equal");
@@ -245,8 +245,8 @@ impl TabPath {
         let (new_current_path, new_current_item_value) = calculate_next_path(current_path.as_ref(), path);
 
         self.driver.transaction(||{
-            self.dir.set_value(new_current_path);
-            self.item.set_value(new_current_item_value);
+            self.dir_select.set_value(new_current_path);
+            self.item_select.set_value(new_current_item_value);
         });
     }
 
@@ -256,11 +256,11 @@ impl TabPath {
         if let Resource::Ready(list) = list_hash_map_rc.as_ref() {
             if let Some(node_details) = list.get(&node) {
                 if node_details.dir {
-                    let mut current = self.dir.get_value().as_ref().clone();
+                    let mut current = self.dir_select.get_value().as_ref().clone();
                     current.push(node.clone());
                     self.set_path(current);
                 } else {
-                    self.item.set_value(Some(node.clone()));
+                    self.item_select.set_value(Some(node.clone()));
                 }
                 return;
             }
@@ -292,7 +292,7 @@ impl TabPath {
         let list = self.list.get_value();
 
         if let Some(first) = list.get(index) {
-            self.item.set_value(Some(first.name.clone()));
+            self.item_select.set_value(Some(first.name.clone()));
             return true;
         }
 
@@ -333,7 +333,7 @@ impl TabPath {
     }
 
     pub fn pointer_escape(&self) {
-        self.item.set_value(None);
+        self.item_select.set_value(None);
     }
 
     pub fn pointer_enter(&self) {
@@ -347,7 +347,7 @@ impl TabPath {
     }
 
     pub fn backspace(&self) {
-        let current_path = self.dir.get_value();
+        let current_path = self.dir_select.get_value();
         let mut current_path = current_path.as_ref().clone();
 
         current_path.pop();

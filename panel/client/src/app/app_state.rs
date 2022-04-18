@@ -26,7 +26,7 @@ pub enum View {
     },
     NewContent {
         parent: Vec<String>,
-        list: Computed<Vec<ListItem>>,
+        // list: Computed<Vec<ListItem>>,
     },
     Mkdir {
         parent: Rc<Vec<String>>,
@@ -63,8 +63,7 @@ impl App {
         open_links.render(app)
     }
 
-    pub fn redirect_to_content(&self, full_path: &Vec<String> /*base_path: &Vec<String>, select_item: &Option<String>*/ ) {
-        // let full_path = self.create_full_path(base_path, select_item);
+    pub fn redirect_to_content(&self, full_path: &Vec<String>) {
         let full_path = full_path.clone();
         let content = self.data.git.content_from_path(&full_path);
 
@@ -131,7 +130,7 @@ impl App {
     }
 
     pub fn redirect_to_mkdir(&self, list: Computed<Vec<ListItem>>) {
-        let parent = self.data.tab.dir.clone().get_value();
+        let parent = self.data.tab.dir_select.clone().get_value();
         self.view.set_value(View::Mkdir { parent, list });
     }
 
@@ -140,11 +139,10 @@ impl App {
         self.redirect_to_index();
     }
 
-    pub fn redirect_to_new_content(&self, parent: &Vec<String>, list: Computed<Vec<ListItem>>) {
+    pub fn redirect_to_new_content(&self, parent: &Vec<String>) {
         log::info!("redirect_to_new_content {:?}", parent);
         self.view.set_value(View::NewContent {
-            parent: parent.clone(),
-            list
+            parent: parent.clone()
         });
     }
 }

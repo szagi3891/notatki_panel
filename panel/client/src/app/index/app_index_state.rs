@@ -69,10 +69,8 @@ impl AppIndex {
     }
 
     pub fn create_file(&self) {
-        let path = self.data.tab.dir.get_value();
-        let list = self.data.tab.list.clone();              //TODO - ta lista ma być pobierana w widoku bezpośrednio z "tab"
-
-        self.app.redirect_to_new_content(path.as_ref(), list);
+        let select_dir = self.data.tab.dir_select.get_value();
+        self.app.redirect_to_new_content(select_dir.as_ref());
     }
 
     pub fn redirect_to_mkdir(&self) {
@@ -80,7 +78,7 @@ impl AppIndex {
     }
 
     pub fn current_rename(&self) {
-        let path = self.data.tab.dir.get_value();
+        let path = self.data.tab.dir_select.get_value();
         let select_item = self.data.tab.current_item.get_value();
 
         if let Some(select_item) = select_item.as_ref() {
@@ -91,6 +89,6 @@ impl AppIndex {
     }
 
     pub fn current_path_dir(&self) -> Rc<Vec<String>> {
-        self.data.tab.dir.get_value()
+        self.data.tab.dir_select.get_value()
     }
 }

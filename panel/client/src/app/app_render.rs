@@ -39,11 +39,10 @@ pub fn app_render(app_state: &App) -> VDomElement {
                 </div>
             }
         },
-        View::NewContent { parent, list } => {
+        View::NewContent { parent } => {
             let view = AppNewcontent::component(
                 app_state,
                 parent.clone(),
-                list.clone(),
             );
 
             html! {

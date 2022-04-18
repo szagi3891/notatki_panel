@@ -29,11 +29,12 @@ impl AppNewcontent {
     pub fn component(
         app_state: &App,
         parent: Vec<String>,
-        list: Computed<Vec<ListItem>>,
     ) -> VDomComponent {
         log::info!("buduję stan dla new content");
         let action_save = app_state.driver.new_value(false);
         // let name = new_name::NewName::new(&app_state, list, action_save.to_computed());
+
+        let list = app_state.data.tab.list.clone();
 
         let name = app_state.driver.new_value(String::from(""));
         let new_name = new_name::NewName::new(
