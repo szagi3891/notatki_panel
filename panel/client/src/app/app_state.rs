@@ -2,10 +2,9 @@ use vertigo::VDomComponent;
 use vertigo::{
     Driver,
     Value,
-    Computed,
 };
 use std::rc::Rc;
-use crate::data::{CurrentContent, ListItem};
+use crate::data::{CurrentContent};
 use crate::data::Data;
 
 use super::app_render::app_render;
@@ -24,14 +23,8 @@ pub enum View {
         prev_hash: String,
         prev_content: Option<String>
     },
-    NewContent {
-        parent: Vec<String>,
-        // list: Computed<Vec<ListItem>>,
-    },
-    Mkdir {
-        parent: Rc<Vec<String>>,
-        list: Computed<Vec<ListItem>>,
-    }
+    NewContent,
+    Mkdir,
 }
 
 
@@ -40,8 +33,6 @@ pub struct App {
     pub driver: Driver,
     pub data: Data,
     pub view: Value<View>,
-
-    //TODO - kontekst renderowania, idgrafu
 }
 
 impl App {
@@ -129,9 +120,8 @@ impl App {
         self.data.git.root.refresh();
     }
 
-    pub fn redirect_to_mkdir(&self, list: Computed<Vec<ListItem>>) {
-        let parent = self.data.tab.dir_select.clone().get_value();
-        self.view.set_value(View::Mkdir { parent, list });
+    pub fn redirect_to_mkdir(&self) {
+        self.view.set_value(View::Mkdir);
     }
 
     pub fn redirect_to_index_with_root_refresh(&self) {
@@ -139,10 +129,7 @@ impl App {
         self.redirect_to_index();
     }
 
-    pub fn redirect_to_new_content(&self, parent: &Vec<String>) {
-        log::info!("redirect_to_new_content {:?}", parent);
-        self.view.set_value(View::NewContent {
-            parent: parent.clone()
-        });
+    pub fn redirect_to_new_content(&self) {
+        self.view.set_value(View::NewContent);
     }
 }

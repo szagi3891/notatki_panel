@@ -69,12 +69,11 @@ impl AppIndex {
     }
 
     pub fn create_file(&self) {
-        let select_dir = self.data.tab.dir_select.get_value();
-        self.app.redirect_to_new_content(select_dir.as_ref());
+        self.app.redirect_to_new_content();
     }
 
     pub fn redirect_to_mkdir(&self) {
-        self.app.redirect_to_mkdir(self.data.tab.list.clone());
+        self.app.redirect_to_mkdir();
     }
 
     pub fn current_rename(&self) {

@@ -39,10 +39,9 @@ pub fn app_render(app_state: &App) -> VDomElement {
                 </div>
             }
         },
-        View::NewContent { parent } => {
+        View::NewContent => {
             let view = AppNewcontent::component(
                 app_state,
-                parent.clone(),
             );
 
             html! {
@@ -66,8 +65,8 @@ pub fn app_render(app_state: &App) -> VDomElement {
                 </div>
             }
         },
-        View::Mkdir { parent, list } => {
-            let view = AppNewdir::component(app_state, (*parent).to_vec(), list.clone());
+        View::Mkdir => {
+            let view = AppNewdir::component(app_state);
 
             html! {
                 <div id="root">

@@ -1,7 +1,7 @@
 use common::{HandlerCreateDirBody};
 use vertigo::{Driver, Computed, Value, VDomComponent};
 
-use crate::{app::{App}, data::ListItem};
+use crate::app::App;
 use crate::components::new_name;
 
 use super::app_newdir_render::app_newdir_render;
@@ -25,14 +25,12 @@ impl AppNewdir {
         self.app_state.redirect_to_index();
     }
 
-    pub fn component(
-        app_state: &App,
-        parent: Vec<String>,
-        list: Computed<Vec<ListItem>>,
-    ) -> VDomComponent {
+    pub fn component(app_state: &App) -> VDomComponent {
         log::info!("buduję stan dla new dir");
         let action_save = app_state.driver.new_value(false);
         let new_name = app_state.driver.new_value(String::from(""));
+        let list = app_state.data.tab.list.clone();
+        let parent = app_state.data.tab.dir_select.clone().get_value();
 
         let new_name = new_name::NewName::new(
             &app_state.driver,
@@ -46,7 +44,7 @@ impl AppNewdir {
 
             action_save,
 
-            parent,
+            parent: parent.as_ref().clone(),
             new_name: new_name.name.clone(),
             save_enable: new_name.is_valid.clone(),
 
