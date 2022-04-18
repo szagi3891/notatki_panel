@@ -161,7 +161,7 @@ pub struct AppIndexAlertSearch {
 }
 
 impl AppIndexAlertSearch {
-    pub fn component(alert: &AppIndexAlert) -> VDomComponent {
+    pub fn new(alert: &AppIndexAlert) -> AppIndexAlertSearch {
         let phrase = alert.app.driver.new_value("".to_string());
 
         let results = new_results(
@@ -170,13 +170,15 @@ impl AppIndexAlertSearch {
             phrase.to_computed(),
         );
 
-        let state = AppIndexAlertSearch {
+        AppIndexAlertSearch {
             alert: alert.clone(),
             phrase,
             results,
-        };
+        }
+    }
 
-        render(state)
+    pub fn render(&self) -> VDomComponent {
+        render(self)
     }
 }
 
@@ -222,7 +224,7 @@ fn render_results(search: &AppIndexAlertSearch) -> VDomElement {
     }
 }
 
-pub fn render(search: AppIndexAlertSearch) -> VDomComponent {
+pub fn render(search: &AppIndexAlertSearch) -> VDomComponent {
 
     let results = VDomComponent::new(search.clone(), render_results);
 

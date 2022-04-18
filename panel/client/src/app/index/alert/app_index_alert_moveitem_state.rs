@@ -15,14 +15,16 @@ pub struct AppIndexAlertMoveitem {
 
 
 impl AppIndexAlertMoveitem {
-    pub fn component(alert: &AppIndexAlert, path: &Rc<Vec<String>>) -> VDomComponent {
-        let state = AppIndexAlertMoveitem {
+    pub fn new(alert: &AppIndexAlert, path: &Rc<Vec<String>>) -> AppIndexAlertMoveitem {
+        AppIndexAlertMoveitem {
             alert: alert.clone(),
             path: path.clone(),
             progress: alert.app.driver.new_value(false),
-        };
+        }
+    }
 
-        render(state)
+    pub fn render(&self) -> VDomComponent {
+        render(self)
     }
 
     pub fn delete_no(&self) {
@@ -34,8 +36,8 @@ impl AppIndexAlertMoveitem {
     }
 }
 
-fn render(state: AppIndexAlertMoveitem) -> VDomComponent {
-    VDomComponent::new(state, move |state: &AppIndexAlertMoveitem| {
+fn render(state: &AppIndexAlertMoveitem) -> VDomComponent {
+    VDomComponent::new(state.clone(), move |state: &AppIndexAlertMoveitem| {
         let progress = state.progress.to_computed();
 
         let message = format!("Przenoszenie -> {} ?", state.path.join("/"));

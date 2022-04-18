@@ -11,9 +11,9 @@ use super::app_index_alert_moveitem_state::AppIndexAlertMoveitem;
 
 pub enum AlertView {
     None,
-    DeleteFile { state: AppIndexAlertDelete }, //path: Rc<Vec<String>> },
-    SearchInPath,
-    MoveItem { path: Rc<Vec<String>> },                       //TODO - zaimplementować
+    DeleteFile { state: AppIndexAlertDelete },
+    SearchInPath { state: AppIndexAlertSearch },
+    MoveItem { state: AppIndexAlertMoveitem },                       //TODO - zaimplementować
 }
 
 #[derive(Clone)]
@@ -59,7 +59,8 @@ impl AppIndexAlert {
             return;
         }
 
-        self.view.set_value(AlertView::SearchInPath);
+        let state = AppIndexAlertSearch::new(&self);
+        self.view.set_value(AlertView::SearchInPath { state });
     }
 
     pub fn move_current(&self,  path: Rc<Vec<String>>) {
@@ -67,7 +68,8 @@ impl AppIndexAlert {
             return;
         }
 
-        self.view.set_value(AlertView::MoveItem { path });
+        let state = AppIndexAlertMoveitem::new(&self, &path);
+        self.view.set_value(AlertView::MoveItem { state });
     }
 
     pub fn close_modal(&self) {
@@ -86,7 +88,7 @@ fn app_index_alert_render(alert: &AppIndexAlert) -> VDomElement {
             }
         },
         AlertView::DeleteFile { state } => {
-            let view = state.clone().render();
+            let view = state.render();
 
             html! {
                 <div>
@@ -94,8 +96,8 @@ fn app_index_alert_render(alert: &AppIndexAlert) -> VDomElement {
                 </div>
             }
         },
-        AlertView::SearchInPath => {
-            let view = AppIndexAlertSearch::component(&alert);
+        AlertView::SearchInPath { state } => {
+            let view = state.render();
 
             html! {
                 <div>
@@ -103,8 +105,8 @@ fn app_index_alert_render(alert: &AppIndexAlert) -> VDomElement {
                 </div>
             }
         },
-        AlertView::MoveItem { path } => {
-            let view = AppIndexAlertMoveitem::component(&alert, path);
+        AlertView::MoveItem { state } => {
+            let view = state.render();
 
             html! {
                 <div>
