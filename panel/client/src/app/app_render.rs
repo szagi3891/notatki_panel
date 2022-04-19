@@ -3,8 +3,6 @@ use vertigo::{
 };
 use vertigo::html;
 
-use crate::app::rename_item::AppRenameitem;
-
 use super::App;
 use super::app_state::View;
 
@@ -39,14 +37,8 @@ pub fn app_render(app_state: &App) -> VDomElement {
                 </div>
             }
         },
-        View::RenameItem { base_path, prev_name, prev_hash, prev_content } => {
-            let view = AppRenameitem::component(
-                app_state,
-                base_path.clone(),
-                prev_name.clone(),
-                prev_hash.clone(),
-                prev_content.clone(),
-            );
+        View::RenameItem {state } => {
+            let view = state.render(app_state);
 
             html! {
                 <div id="root">

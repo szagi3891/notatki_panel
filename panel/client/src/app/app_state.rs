@@ -11,16 +11,12 @@ use super::edit_content::AppEditcontent;
 use super::index::AppIndex;
 use super::new_dir::AppNewdir;
 use super::newcontent::AppNewcontent;
+use super::rename_item::AppRenameitem;
 
 pub enum View {
     Index { state: AppIndex },
     EditContent { state: AppEditcontent },
-    RenameItem {
-        base_path: Vec<String>,
-        prev_name: String,
-        prev_hash: String,
-        prev_content: Option<String>
-    },
+    RenameItem { state: AppRenameitem },
     NewContent { state: AppNewcontent },
     Mkdir { state: AppNewdir },
 }
@@ -101,11 +97,17 @@ impl App {
         match content_hash {
             Some(content_hash) => {
                 log::info!("redirect_to_rename_item {base_path:?} {select_item:?}");
+
+                let state = AppRenameitem::new(
+                    &self.data,
+                    base_path.clone(),
+                    select_item,
+                    content_hash,
+                    get_content_string
+                );
+
                 self.view.set_value(View::RenameItem {
-                    base_path: base_path.clone(),
-                    prev_name: select_item,
-                    prev_hash: content_hash,
-                    prev_content: get_content_string
+                    state
                 });
             },
             None => {

@@ -1,7 +1,7 @@
 use common::{HandlerRenameItemBody};
 use vertigo::{Driver, Computed, Value, VDomComponent};
 
-use crate::{app::App};
+use crate::{app::App, data::Data};
 
 use super::app_renameitem_render::app_renameitem_render;
 
@@ -18,29 +18,23 @@ pub struct AppRenameitem {
     pub action_save: Value<bool>,
 
     pub save_enable: Computed<bool>,
-
-    app_state: App,
 }
 
 impl AppRenameitem {
-    pub fn redirect_to_index(&self) {
-        self.app_state.redirect_to_index();
-    }
-
-    pub fn component(
-        app_state: &App,
+    pub fn new(
+        data: &Data,
         path: Vec<String>,
         prev_name: String,
         prev_hash: String,
         prev_content: Option<String>,
-    ) -> VDomComponent {
-        let new_name = app_state.driver.new_value(prev_name.clone());
+    ) -> AppRenameitem {
+        let new_name = data.driver.new_value(prev_name.clone());
 
         let save_enable = {
             let prev_name = prev_name.clone();
             let new_name = new_name.to_computed();
 
-            app_state.driver.from(move || -> bool {
+            data.driver.from(move || -> bool {
                 let new_name = new_name.get_value();
                 
                 if new_name.as_ref().trim() == "" {
@@ -55,10 +49,10 @@ impl AppRenameitem {
             })
         };
 
-        let action_save = app_state.driver.new_value(false);
+        let action_save = data.driver.new_value(false);
 
-        let state = AppRenameitem {
-            driver: app_state.driver.clone(),
+        AppRenameitem {
+            driver: data.driver.clone(),
 
             path,
             prev_name,
@@ -69,10 +63,11 @@ impl AppRenameitem {
 
             action_save,
             save_enable,
-            app_state: app_state.clone(),
-        };
+        }
+    }
 
-        app_renameitem_render(state)
+    pub fn render(&self, app: &App) -> VDomComponent {
+        app_renameitem_render(self.clone(), app.clone())
     }
 
     pub fn get_full_path(&self) -> String {
@@ -95,7 +90,7 @@ impl AppRenameitem {
         self.new_name.set_value(new_text);
     }
 
-    pub async fn on_save(self) {
+    pub async fn on_save(self, app: App) {
         let action_save = self.action_save.get_value();
 
         if *action_save {
@@ -123,14 +118,15 @@ impl AppRenameitem {
 
         log::info!("Zapis udany");
 
-        self.app_state.redirect_to_index_with_path(redirect_path, Some(redirect_new_name));
+        app.redirect_to_index_with_path(redirect_path, Some(redirect_new_name));
     }
 
-    pub fn bind_on_save(&self) -> impl Fn() {
+    pub fn bind_on_save(&self, app: App) -> impl Fn() {
         let driver = self.driver.clone();
-        let state = self.clone();
+        let state = self.clone();   
+        let app = app.clone();
         move || {            
-            driver.spawn(state.clone().on_save());
+            driver.spawn(state.clone().on_save(app.clone()));
         }
     }
 }
