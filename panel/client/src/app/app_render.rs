@@ -4,7 +4,6 @@ use vertigo::{
 use vertigo::html;
 
 use crate::app::new_dir::AppNewdir;
-use crate::app::newcontent::AppNewcontent;
 use crate::app::rename_item::AppRenameitem;
 
 use super::App;

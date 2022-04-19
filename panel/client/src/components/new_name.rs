@@ -20,7 +20,6 @@ fn is_exist_in_list(name: &String, list: Rc<Vec<ListItem>>) -> bool {
 
 #[derive(Clone)]
 pub struct NewName {
-    pub action_save: Computed<bool>,
     pub name: Value<String>,
     pub is_valid: Computed<bool>,
 }
@@ -29,9 +28,9 @@ impl NewName {
     pub fn new(
         driver: &Driver,
         list: Computed<Vec<ListItem>>,
-        name: Value<String>,
-        action_save: Computed<bool>,
     ) -> NewName {
+        let name: Value<String> = driver.new_value("".to_string());
+
         let name_exists = {
             let name = name.clone();
 
@@ -62,7 +61,6 @@ impl NewName {
         };
 
         NewName {
-            action_save,
             name,
             is_valid: is_valid.clone(),
         }
@@ -75,13 +73,6 @@ impl NewName {
     }
 
     pub fn on_input_name(&self, new_value: String) {
-        let action_save = self.action_save.get_value();
-
-        if *action_save {
-            log::error!("Trwa obecnie zapis");
-            return;
-        }
-
         self.name.set_value(new_value);
     }
 }

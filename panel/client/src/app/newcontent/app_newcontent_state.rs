@@ -32,8 +32,6 @@ impl AppNewcontent {
         let new_name = NewName::new(
             &data.driver,
             list,
-            name.clone(),
-            action_save.to_computed(),
         );
 
         let content = data.driver.new_value(String::from(""));

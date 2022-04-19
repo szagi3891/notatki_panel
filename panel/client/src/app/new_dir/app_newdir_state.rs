@@ -28,15 +28,12 @@ impl AppNewdir {
     pub fn component(app_state: &App) -> VDomComponent {
         log::info!("buduję stan dla new dir");
         let action_save = app_state.driver.new_value(false);
-        let new_name = app_state.driver.new_value(String::from(""));
         let list = app_state.data.tab.list.clone();
         let parent = app_state.data.tab.dir_select.clone().get_value();
 
         let new_name = new_name::NewName::new(
             &app_state.driver,
             list,
-            new_name.clone(),
-            action_save.to_computed(),
         );
 
         let state = AppNewdir {
