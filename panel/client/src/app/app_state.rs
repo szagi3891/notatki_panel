@@ -24,28 +24,28 @@ pub enum View {
 
 #[derive(Clone)]
 pub struct App {
-    pub driver: Driver,
     pub data: Data,
     pub view: Value<View>,
 }
 
 impl App {
-    pub fn component(driver: &Driver) -> VDomComponent {
+    pub fn new(driver: &Driver) -> App {
         let state_data = Data::new(driver);
 
         let view = driver.new_value(View::Index {
             state: AppIndex::new(&state_data)
         });
 
-        let state = App {
-            driver: driver.clone(),
+        App {
             data: state_data,
             view,
-        };
+        }
+    }
 
-        let open_links = state.data.tab.open_links.clone();
+    pub fn render(&self) -> VDomComponent {
+        let open_links = self.data.tab.open_links.clone();
         
-        let app = VDomComponent::new(state, app_render);
+        let app = VDomComponent::new(self.clone(), app_render);
 
         open_links.render(app)
     }
@@ -78,19 +78,9 @@ impl App {
         }
     }
 
-    //TODO --- do usunięcia ?????
-
-    fn create_full_path(&self, path: &Vec<String>, select_item: &String) -> Vec<String> {
-        let mut path = path.clone();
-
-        path.push(select_item.clone());
-
-        path
-    }
-
     pub fn redirect_to_rename_item(&self, base_path: &Vec<String>, select_item: &String) {
         let select_item = select_item.clone();
-        let full_path = self.create_full_path(base_path, &select_item);
+        let full_path = self.data.tab.full_path.clone().get_value();
         let content_hash = self.data.git.content_hash(&full_path);
         let get_content_string = self.data.git.get_content_string(&full_path);
 
@@ -151,10 +141,6 @@ impl App {
     pub fn current_edit(&self) {
         let full_path = self.data.tab.full_path.get_value();
         self.redirect_to_content(&full_path);
-    }
-
-    pub fn create_file(&self) {
-        self.redirect_to_new_content();
     }
 
     pub fn current_rename(&self) {

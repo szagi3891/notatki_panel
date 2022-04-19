@@ -91,7 +91,6 @@ pub fn app_renameitem_render(state: AppRenameitem, app: App) -> VDomComponent {
 
     VDomComponent::new(state, move |state: &AppRenameitem| {
         let on_click = {
-            let state = state.clone();
             let app = app.clone();
 
             move || {

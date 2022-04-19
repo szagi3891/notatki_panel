@@ -72,7 +72,7 @@ fn render_menu(app: &App, app_index: &AppIndex, avaible_delete_button: &Computed
         let app = app.clone();
         
         move || {
-            app.create_file();
+            app.redirect_to_new_content();
         }
     };
 

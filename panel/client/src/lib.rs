@@ -5,6 +5,7 @@
 #![allow(clippy::inherent_to_string)]
 #![allow(clippy::wrong_self_convention)]
 #![allow(clippy::module_inception)]
+use vertigo::{VDomComponent, Driver};
 use vertigo_browserdriver::{start_browser_app};
 
 mod content;
@@ -14,5 +15,7 @@ mod app;
 
 #[no_mangle]
 pub fn start_application() {
-    start_browser_app(app::App::component);
+    start_browser_app(|driver: &Driver| -> VDomComponent {
+        app::App::new(driver).render()
+    });
 }
