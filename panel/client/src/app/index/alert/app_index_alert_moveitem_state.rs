@@ -19,7 +19,7 @@ impl AppIndexAlertMoveitem {
         AppIndexAlertMoveitem {
             alert: alert.clone(),
             path: path.clone(),
-            progress: alert.app.driver.new_value(false),
+            progress: alert.data.driver.new_value(false),
         }
     }
 

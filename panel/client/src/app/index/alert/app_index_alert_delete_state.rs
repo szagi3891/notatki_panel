@@ -18,7 +18,7 @@ pub struct AppIndexAlertDelete {
 
 impl AppIndexAlertDelete {
     pub fn new(alert: &AppIndexAlert, full_path: &Rc<Vec<String>>) -> AppIndexAlertDelete {
-        let progress: Value<bool> = alert.app.driver.new_value(false);
+        let progress: Value<bool> = alert.data.driver.new_value(false);
 
         AppIndexAlertDelete {
             full_path: full_path.clone(),
@@ -33,7 +33,7 @@ impl AppIndexAlertDelete {
         }
 
         let current_path = self.full_path.as_ref().clone();
-        let current_hash = self.alert.app.data.git.content_hash(&current_path);
+        let current_hash = self.alert.data.git.content_hash(&current_path);
 
         let current_hash = match current_hash {
             Some(current_hash) => current_hash,
@@ -46,7 +46,7 @@ impl AppIndexAlertDelete {
         log::info!("usuwamy ...");
         self.progress.set_value(true);
 
-        let _ = self.alert.app.driver
+        let _ = self.alert.data.driver
             .request("/delete_item")
             .body_json(HandlerDeleteItemBody {
                 path: current_path,
@@ -57,13 +57,13 @@ impl AppIndexAlertDelete {
             .await;    //::<RootResponse>();
 
         self.progress.set_value(false);
-        self.alert.app.data.tab.redirect_after_delete();
-        self.alert.app.data.git.root.refresh();
+        self.alert.data.tab.redirect_after_delete();
+        self.alert.data.git.root.refresh();
         self.alert.close_modal();
     }
 
     pub fn bind_delete_yes(&self) -> impl Fn() {
-        let driver = self.alert.app.driver.clone();
+        let driver = self.alert.data.driver.clone();
         let state = self.clone();
 
         move || {

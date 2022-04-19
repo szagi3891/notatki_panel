@@ -19,7 +19,7 @@ impl AppIndex {
     pub fn component(app: &App) -> VDomComponent {
         let state_data = app.data.clone();
 
-        let (alert, alert_view) = AppIndexAlert::new(app.clone());
+        let (alert, alert_view) = AppIndexAlert::new(app.data.clone());
 
         let state = AppIndex {
             data: state_data,

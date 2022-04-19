@@ -2,9 +2,9 @@ use std::rc::Rc;
 
 use vertigo::{Value, VDomElement, VDomComponent};
 use vertigo::{html};
-use crate::app::App;
 use crate::app::index::alert::app_index_alert_delete_state::AppIndexAlertDelete;
 use crate::app::index::alert::app_index_alert_search_state::AppIndexAlertSearch;
+use crate::data::Data;
 
 use super::app_index_alert_moveitem_state::AppIndexAlertMoveitem;
 
@@ -18,16 +18,16 @@ pub enum AlertView {
 
 #[derive(Clone)]
 pub struct AppIndexAlert {
-    pub app: App,
+    pub data: Data,
     view: Value<AlertView>,
 }
 
 impl AppIndexAlert {
-    pub fn new(app_state: App) -> (AppIndexAlert, VDomComponent) {
-        let view = app_state.driver.new_value(AlertView::None);
+    pub fn new(data: Data) -> (AppIndexAlert, VDomComponent) {
+        let view = data.driver.new_value(AlertView::None);
 
         let state = AppIndexAlert {
-            app: app_state.clone(),
+            data: data.clone(),
             view,
         };
 

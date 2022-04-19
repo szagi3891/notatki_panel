@@ -162,11 +162,11 @@ pub struct AppIndexAlertSearch {
 
 impl AppIndexAlertSearch {
     pub fn new(alert: &AppIndexAlert) -> AppIndexAlertSearch {
-        let phrase = alert.app.driver.new_value("".to_string());
+        let phrase = alert.data.driver.new_value("".to_string());
 
         let results = new_results(
-            &alert.app.driver,
-            &alert.app.data,
+            &alert.data.driver,
+            &alert.data,
             phrase.to_computed(),
         );
 
@@ -200,9 +200,9 @@ fn render_results(search: &AppIndexAlertSearch) -> VDomElement {
             move || {
                 search.alert.close_modal();
                 if dir {
-                    search.alert.app.data.tab.redirect_to_dir(&path);
+                    search.alert.data.tab.redirect_to_dir(&path);
                 } else {
-                    search.alert.app.data.tab.redirect_to_file(&path);
+                    search.alert.data.tab.redirect_to_file(&path);
                 }
             }
         };
