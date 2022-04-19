@@ -2,7 +2,8 @@ use common::{HandlerCreateDirBody};
 use vertigo::{Driver, Computed, Value, VDomComponent};
 
 use crate::app::App;
-use crate::components::new_name;
+use crate::components::new_name::{self, NewName};
+use crate::data::Data;
 
 use super::app_newdir_render::app_newdir_render;
 
@@ -13,47 +14,39 @@ pub struct AppNewdir {
     pub action_save: Value<bool>,
 
     pub parent: Vec<String>,
-    pub new_name: Value<String>,
+    pub new_name: NewName,
 
     pub save_enable: Computed<bool>,
-
-    app_state: App,
 }
 
 impl AppNewdir {
-    pub fn redirect_to_index(&self) {
-        self.app_state.redirect_to_index();
-    }
-
-    pub fn component(app_state: &App) -> VDomComponent {
+    pub fn new(data: &Data) -> AppNewdir {
         log::info!("buduję stan dla new dir");
-        let action_save = app_state.driver.new_value(false);
-        let list = app_state.data.tab.list.clone();
-        let parent = app_state.data.tab.dir_select.clone().get_value();
+        let action_save = data.driver.new_value(false);
+        let list = data.tab.list.clone();
+        let parent = data.tab.dir_select.clone().get_value();
 
         let new_name = new_name::NewName::new(
-            &app_state.driver,
+            &data.driver,
             list,
         );
 
-        let state = AppNewdir {
-            driver: app_state.driver.clone(),
+        AppNewdir {
+            driver: data.driver.clone(),
 
             action_save,
 
             parent: parent.as_ref().clone(),
-            new_name: new_name.name.clone(),
+            new_name: new_name.clone(),
             save_enable: new_name.is_valid.clone(),
-
-            app_state: app_state.clone(),
-        };
-
-        let view_new_name = new_name.render(true);
-
-        app_newdir_render(view_new_name, state)
+        }
     }
 
-    pub async fn on_save(self) {
+    pub fn render(&self, app: App) -> VDomComponent {
+        app_newdir_render(self.clone(), app)
+    }
+
+    pub async fn on_save(self, app: App) {
         let action_save = self.action_save.get_value();
 
         if *action_save {
@@ -63,7 +56,7 @@ impl AppNewdir {
 
         self.action_save.set_value(true);
     
-        let new_dir_name = self.new_name.get_value().as_ref().clone();
+        let new_dir_name = self.new_name.name.get_value().as_ref().clone();
 
         let body = HandlerCreateDirBody {
             path: self.parent.clone(),
@@ -78,14 +71,15 @@ impl AppNewdir {
         let parent_string = self.parent.join("/");
         log::info!("Tworzenie katalogu {:?} udane -> przekierowanie na -> {:?}", new_dir_name, parent_string);
 
-        self.app_state.redirect_to_index_with_path(self.parent.clone(), Some(new_dir_name));
+        app.redirect_to_index_with_path(self.parent.clone(), Some(new_dir_name));
     }
 
-    pub fn bind_on_save(&self) -> impl Fn() {
+    pub fn bind_on_save(&self, app: App) -> impl Fn() {
         let driver = self.driver.clone();
         let state = self.clone();
         move || {
-            driver.spawn(state.clone().on_save());
+            let app = app.clone();
+            driver.spawn(state.clone().on_save(app));
         }
     }
 }

@@ -9,6 +9,7 @@ use crate::data::Data;
 use super::app_render::app_render;
 use super::edit_content::AppEditcontent;
 use super::index::AppIndex;
+use super::new_dir::AppNewdir;
 use super::newcontent::AppNewcontent;
 
 pub enum View {
@@ -21,7 +22,7 @@ pub enum View {
         prev_content: Option<String>
     },
     NewContent { state: AppNewcontent },
-    Mkdir,
+    Mkdir { state: AppNewdir },
 }
 
 
@@ -128,7 +129,11 @@ impl App {
     }
 
     pub fn redirect_to_mkdir(&self) {
-        self.view.set_value(View::Mkdir);
+        let state = AppNewdir::new(&self.data);
+
+        self.view.set_value(View::Mkdir {
+            state
+        });
     }
 
     pub fn redirect_to_index_with_root_refresh(&self) {

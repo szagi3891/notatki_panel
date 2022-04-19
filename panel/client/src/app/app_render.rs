@@ -3,7 +3,6 @@ use vertigo::{
 };
 use vertigo::html;
 
-use crate::app::new_dir::AppNewdir;
 use crate::app::rename_item::AppRenameitem;
 
 use super::App;
@@ -55,8 +54,8 @@ pub fn app_render(app_state: &App) -> VDomElement {
                 </div>
             }
         },
-        View::Mkdir => {
-            let view = AppNewdir::component(app_state);
+        View::Mkdir { state } => {
+            let view = state.render(app_state.clone());
 
             html! {
                 <div id="root">
