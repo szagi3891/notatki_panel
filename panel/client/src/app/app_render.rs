@@ -32,10 +32,8 @@ pub fn app_render(app_state: &App) -> VDomElement {
                 </div>
             }
         },
-        View::NewContent => {
-            let view = AppNewcontent::component(
-                app_state,
-            );
+        View::NewContent { state } => {
+            let view = state.render(app_state);
 
             html! {
                 <div id="root">

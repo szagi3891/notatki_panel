@@ -9,6 +9,7 @@ use crate::data::Data;
 use super::app_render::app_render;
 use super::edit_content::AppEditcontent;
 use super::index::AppIndex;
+use super::newcontent::AppNewcontent;
 
 pub enum View {
     Index { state: AppIndex },
@@ -19,7 +20,7 @@ pub enum View {
         prev_hash: String,
         prev_content: Option<String>
     },
-    NewContent,
+    NewContent { state: AppNewcontent },
     Mkdir,
 }
 
@@ -136,7 +137,8 @@ impl App {
     }
 
     pub fn redirect_to_new_content(&self) {
-        self.view.set_value(View::NewContent);
+        let state = AppNewcontent::new(&self.data);
+        self.view.set_value(View::NewContent { state });
     }
 
     pub fn current_edit(&self) {

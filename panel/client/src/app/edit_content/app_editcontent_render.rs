@@ -59,7 +59,6 @@ pub fn app_editcontent_render(app_state: &App, state: AppEditcontent) -> VDomCom
     VDomComponent::new(state, move |state: &AppEditcontent| {
         let on_click = {
             let app_state = app_state.clone();
-            let state = state.clone();
             move || {
                 app_state.redirect_to_index();
             }

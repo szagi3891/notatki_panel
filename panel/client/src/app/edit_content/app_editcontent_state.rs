@@ -15,8 +15,6 @@ pub struct AppEditcontent {
     pub action_save: Value<bool>,
     pub edit_content: Value<String>,
     pub save_enable: Computed<bool>,
-
-    data: Data,
 }
 
 impl AppEditcontent {
@@ -53,8 +51,6 @@ impl AppEditcontent {
             action_save,
             edit_content,
             save_enable,
-
-            data: data.clone()
         }
     }
 

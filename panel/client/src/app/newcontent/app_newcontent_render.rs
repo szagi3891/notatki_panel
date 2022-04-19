@@ -1,6 +1,7 @@
 use vertigo::{Css, VDomElement, VDomComponent};
 use vertigo::{css, html};
 
+use crate::app::App;
 use crate::components::{button};
 
 use super::AppNewcontent;
@@ -51,14 +52,15 @@ fn render_input_content(state: &AppNewcontent) -> VDomElement {
     }
 }
 
-pub fn app_newcontent_render(view_new_name: VDomComponent, state: AppNewcontent) -> VDomComponent {
+pub fn app_newcontent_render(state: AppNewcontent, app_state: App) -> VDomComponent {
     let view_input = VDomComponent::new(state.clone(), render_input_content);
+    let view_new_name = state.new_name.clone().render(true);
 
     VDomComponent::new(state, move |state: &AppNewcontent| -> VDomElement {
         let on_click = {
-            let state = state.clone();
+            let app_state = app_state.clone();
             move || {
-                state.redirect_to_index();
+                app_state.redirect_to_index();
             }
         };
 
@@ -69,7 +71,7 @@ pub fn app_newcontent_render(view_new_name: VDomComponent, state: AppNewcontent)
         let save_enable = state.save_enable.get_value();
 
         if *save_enable {
-            buttons.push(button("Zapisz", state.bind_on_save()));
+            buttons.push(button("Zapisz", state.bind_on_save(app_state.clone())));
         }
 
         html! {
