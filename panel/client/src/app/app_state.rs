@@ -3,20 +3,16 @@ use vertigo::{
     Driver,
     Value,
 };
-use std::rc::Rc;
 use crate::data::{CurrentContent};
 use crate::data::Data;
 
 use super::app_render::app_render;
+use super::edit_content::AppEditcontent;
 use super::index::AppIndex;
 
 pub enum View {
     Index { state: AppIndex },
-    EditContent {
-        full_path: Vec<String>,
-        file_hash: String,
-        content: Rc<String>
-    },
+    EditContent { state: AppEditcontent },
     RenameItem {
         base_path: Vec<String>,
         prev_name: String,
@@ -63,10 +59,16 @@ impl App {
         match content {
             CurrentContent::File { file_hash, content, ..} => {
                 log::info!("redirect_to_content {full_path:?}");
+
+                let state = AppEditcontent::new(
+                    &self.data,
+                    full_path.clone(),
+                    file_hash.clone(),
+                    content.as_ref().clone(),
+                );
+
                 self.view.set_value(View::EditContent {
-                    full_path,
-                    file_hash,
-                    content
+                    state
                 });
             },
             CurrentContent::Dir { .. } => {

@@ -2,6 +2,7 @@ use vertigo::{Css, VDomElement, VDomComponent};
 use vertigo::{css, html};
 
 use super::AppEditcontent;
+use crate::app::App;
 use crate::components::button;
 
 fn css_wrapper() -> Css {
@@ -51,14 +52,16 @@ fn render_textarea(state: &AppEditcontent) -> VDomElement {
     }
 }
 
-pub fn app_editcontent_render(state: AppEditcontent) -> VDomComponent {
+pub fn app_editcontent_render(app_state: &App, state: AppEditcontent) -> VDomComponent {
     let view_textares = VDomComponent::new(state.clone(), render_textarea);
+    let app_state = app_state.clone();
 
     VDomComponent::new(state, move |state: &AppEditcontent| {
         let on_click = {
+            let app_state = app_state.clone();
             let state = state.clone();
             move || {
-                state.redirect_to_index();
+                app_state.redirect_to_index();
             }
         };
 
@@ -71,7 +74,7 @@ pub fn app_editcontent_render(state: AppEditcontent) -> VDomComponent {
         let save_enable = state.save_enable.get_value();
 
         if *save_enable {
-            let on_save = state.bind_on_save();
+            let on_save = state.bind_on_save(&app_state);
             buttons.push(button("Zapisz", on_save));
         }
 

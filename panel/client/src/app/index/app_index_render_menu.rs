@@ -36,35 +36,22 @@ fn create_avaible_delete_current(
     })
 }
 
-#[derive(Clone)]
-pub struct AppIndexMenuState {
-    app_index: AppIndex,
 
-    //true - jeśli aktualnie podświetlony element jest mozliwy do usuniecia
-    pub avaible_delete_button: Computed<bool>,
+pub fn render_menu_state(app: &App, app_index: &AppIndex) -> VDomComponent {
+    let avaible_delete_button= create_avaible_delete_current(
+        &app_index.data.driver,
+        app_index.data.tab.current_content.clone()
+    );
+
+    let app = app.clone();
+    let app_index = app_index.clone();
+
+    VDomComponent::from_fn(move || -> VDomElement {
+        render_menu(&app, &app_index, &avaible_delete_button)
+    })
 }
 
-impl AppIndexMenuState {
-    pub fn component(app: &App, app_index: &AppIndex) -> VDomComponent {
-        let avaible_delete_current= create_avaible_delete_current(
-            &app_index.data.driver,
-            app_index.data.tab.current_content.clone()
-        );
-    
-        let state = AppIndexMenuState {
-            app_index: app_index.clone(),
-            avaible_delete_button: avaible_delete_current,
-        };
-
-        let app = app.clone();
-
-        VDomComponent::from_fn(move || -> VDomElement {
-            render_menu(&app, &state)
-        })
-    }
-}
-
-fn render_menu(app: &App, state: &AppIndexMenuState) -> VDomElement {
+fn render_menu(app: &App, app_index: &AppIndex, avaible_delete_button: &Computed<bool>) -> VDomElement {
     let on_click = {
         let app = app.clone();
         
@@ -104,10 +91,10 @@ fn render_menu(app: &App, state: &AppIndexMenuState) -> VDomElement {
     out.push(button("Edycja pliku", on_click));
     out.push(button("Utwórz katalog", on_mkdir));
     
-    let avaible_delete_button = state.avaible_delete_button.get_value();
+    let avaible_delete_button = avaible_delete_button.get_value();
 
     if *avaible_delete_button {
-        let alert = state.app_index.alert.clone();
+        let alert = app_index.alert.clone();
         let on_delete = {
             move || {
                 let path = alert.data.tab.full_path.get_value();
@@ -119,16 +106,16 @@ fn render_menu(app: &App, state: &AppIndexMenuState) -> VDomElement {
     }
 
     out.push(button("Wyszukaj", {
-        let alert = state.app_index.alert.clone();
+        let alert = app_index.alert.clone();
         move || {
             alert.redirect_to_search();
         }
     }));
 
-    let current_path = state.app_index.data.tab.full_path.get_value();
+    let current_path = app_index.data.tab.full_path.get_value();
 
     out.push(button("Przenieś", {
-        let alert = state.app_index.alert.clone();
+        let alert = app_index.alert.clone();
         move || {
             alert.move_current(current_path.clone());
         }

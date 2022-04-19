@@ -2,7 +2,7 @@
 use common::{HandlerSaveContentBody};
 use vertigo::{Driver, Computed, Value, VDomComponent};
 
-use crate::{app::App};
+use crate::{app::App, data::Data};
 use super::app_editcontent_render::app_editcontent_render;
 
 #[derive(Clone)]
@@ -16,36 +16,36 @@ pub struct AppEditcontent {
     pub edit_content: Value<String>,
     pub save_enable: Computed<bool>,
 
-    app_state: App,
+    data: Data,
 }
 
 impl AppEditcontent {
-    pub fn redirect_to_index(&self) {
-        self.app_state.redirect_to_index();
-    }
+    // pub fn redirect_to_index(&self) {
+    //     self.app_state.redirect_to_index();
+    // }
 
-    pub fn component(
-        app_state: &App,
+    pub fn new(
+        data: &Data,
         path: Vec<String>,
         hash: String,
         content: String,
-    ) -> VDomComponent {
-        let edit_content = app_state.driver.new_value(content.clone());
+    ) -> AppEditcontent {
+        let edit_content = data.driver.new_value(content.clone());
 
         let save_enable = {
             let edit_content = edit_content.to_computed();
 
-            app_state.driver.from(move || -> bool {
+            data.driver.from(move || -> bool {
                 let edit_content = edit_content.get_value();
                 let save_enabled = edit_content.as_ref() != &content;
                 save_enabled
             })
         };
 
-        let action_save = app_state.driver.new_value(false);
+        let action_save = data.driver.new_value(false);
 
-        let state = AppEditcontent {
-            driver: app_state.driver.clone(),
+        AppEditcontent {
+            driver: data.driver.clone(),
 
             path,
             hash,
@@ -53,10 +53,13 @@ impl AppEditcontent {
             action_save,
             edit_content,
             save_enable,
-            app_state: app_state.clone()
-        };
 
-        app_editcontent_render(state)
+            data: data.clone()
+        }
+    }
+
+    pub fn render(&self, app_state: &App) -> VDomComponent {
+        app_editcontent_render(app_state, self.clone())
     }
 
     pub fn on_input(&self, new_text: String) {
@@ -70,7 +73,7 @@ impl AppEditcontent {
         self.edit_content.set_value(new_text);
     }
 
-    pub async fn on_save(self) {
+    pub async fn on_save(self, app_state: App) {
         let action_save = self.action_save.get_value();
 
         if *action_save {
@@ -93,14 +96,16 @@ impl AppEditcontent {
 
         log::info!("Zapis udany");
     
-        self.app_state.redirect_to_index_with_root_refresh();
+        app_state.redirect_to_index_with_root_refresh();
     }
 
-    pub fn bind_on_save(&self) -> impl Fn() {
+    pub fn bind_on_save(&self, app_state: &App) -> impl Fn() {
         let driver = self.driver.clone();
         let state = self.clone();
+        let app_state = app_state.clone();
         move || {
-            driver.spawn(state.clone().on_save());
+            let app_state = app_state.clone();
+            driver.spawn(state.clone().on_save(app_state));
         }
     }
 }

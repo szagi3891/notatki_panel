@@ -3,7 +3,6 @@ use vertigo::{
 };
 use vertigo::html;
 
-use crate::app::edit_content::AppEditcontent;
 use crate::app::new_dir::AppNewdir;
 use crate::app::newcontent::AppNewcontent;
 use crate::app::rename_item::AppRenameitem;
@@ -24,13 +23,8 @@ pub fn app_render(app_state: &App) -> VDomElement {
                 </div>
             }
         },
-        View::EditContent { full_path, file_hash, content } => {
-            let view = AppEditcontent::component(
-                app_state,
-                full_path.clone(),
-                file_hash.clone(),
-                content.as_ref().clone(),
-            );
+        View::EditContent { state } => {
+            let view = state.render(app_state);
 
             html! {
                 <div id="root">
