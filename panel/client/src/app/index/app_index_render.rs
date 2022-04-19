@@ -5,6 +5,7 @@ use vertigo::{
 
 use vertigo::{html, css};
 
+use crate::app::App;
 use crate::app::index::app_index_render_menu::AppIndexMenuState;
 
 use super::AppIndex;
@@ -59,8 +60,8 @@ fn css_content_content() -> Css {
     //font-size: 20px;
 }
 
-pub fn app_index_render(view_alert: VDomComponent, state_value: AppIndex) -> VDomComponent {
-    let view_menu = AppIndexMenuState::component(&state_value);
+pub fn app_index_render(app: &App, view_alert: VDomComponent, state_value: AppIndex) -> VDomComponent {
+    let view_menu = AppIndexMenuState::component(app, &state_value);
     let view_header = VDomComponent::new(state_value.clone(), render_header);
     let view_list = VDomComponent::new(state_value.clone(), render_list);
     let view_content = VDomComponent::new(state_value.clone(), render_content);

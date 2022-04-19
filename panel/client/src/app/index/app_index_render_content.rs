@@ -133,7 +133,7 @@ fn render_dir(data: &Data, dir: &Vec<String>) -> VDomElement {
 }
 
 pub fn render_content(state: &AppIndex) -> VDomElement {
-    let current_content = state.app.data.tab.current_content.get_value();
+    let current_content = state.data.tab.current_content.get_value();
 
     match current_content.as_ref() {
         CurrentContent::File { file_name: _, file_hash: _, content } => {

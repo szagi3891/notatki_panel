@@ -23,16 +23,17 @@ pub struct AppIndexAlert {
 }
 
 impl AppIndexAlert {
-    pub fn new(data: Data) -> (AppIndexAlert, VDomComponent) {
+    pub fn new(data: Data) -> AppIndexAlert {
         let view = data.driver.new_value(AlertView::None);
 
-        let state = AppIndexAlert {
+        AppIndexAlert {
             data: data.clone(),
             view,
-        };
+        }
+    }
 
-        let view = VDomComponent::new(state.clone(), app_index_alert_render);
-        (state, view)
+    pub fn render(&self) -> VDomComponent {
+        VDomComponent::new(self.clone(), app_index_alert_render)
     }
 
     pub fn is_visible(&self) -> bool {

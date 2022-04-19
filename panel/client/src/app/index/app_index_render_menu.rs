@@ -6,6 +6,7 @@ use vertigo::{
 
 use vertigo::{html, css};
 use super::AppIndex;
+use crate::app::App;
 use crate::components::button;
 use crate::data::CurrentContent;
 
@@ -44,10 +45,10 @@ pub struct AppIndexMenuState {
 }
 
 impl AppIndexMenuState {
-    pub fn component(app_index: &AppIndex) -> VDomComponent {
+    pub fn component(app: &App, app_index: &AppIndex) -> VDomComponent {
         let avaible_delete_current= create_avaible_delete_current(
-            &app_index.app.driver,
-            app_index.app.data.tab.current_content.clone()
+            &app_index.data.driver,
+            app_index.data.tab.current_content.clone()
         );
     
         let state = AppIndexMenuState {
@@ -55,40 +56,44 @@ impl AppIndexMenuState {
             avaible_delete_button: avaible_delete_current,
         };
 
-        VDomComponent::new(state, render_menu)
+        let app = app.clone();
+
+        VDomComponent::from_fn(move || -> VDomElement {
+            render_menu(&app, &state)
+        })
     }
 }
 
-fn render_menu(state: &AppIndexMenuState) -> VDomElement {
+fn render_menu(app: &App, state: &AppIndexMenuState) -> VDomElement {
     let on_click = {
-        let state = state.app_index.clone();
+        let app = app.clone();
         
         move || {
-            state.current_edit();
+            app.current_edit();
         }
     };
 
     let on_rename = {
-        let state = state.app_index.clone();
+        let app = app.clone();
 
         move || {
-            state.current_rename();
+            app.current_rename();
         }
     };
 
     let on_create = {
-        let state = state.app_index.clone();
+        let app = app.clone();
         
         move || {
-            state.create_file();
+            app.create_file();
         }
     };
 
     let on_mkdir = {
-        let state = state.app_index.clone();
+        let app = app.clone();
 
         move || {
-            state.redirect_to_mkdir();
+            app.redirect_to_mkdir();
         }
     };
 

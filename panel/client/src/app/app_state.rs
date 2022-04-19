@@ -8,10 +8,10 @@ use crate::data::{CurrentContent};
 use crate::data::Data;
 
 use super::app_render::app_render;
+use super::index::AppIndex;
 
-#[derive(PartialEq)]
 pub enum View {
-    Index,
+    Index { state: AppIndex },
     EditContent {
         full_path: Vec<String>,
         file_hash: String,
@@ -39,7 +39,9 @@ impl App {
     pub fn component(driver: &Driver) -> VDomComponent {
         let state_data = Data::new(driver);
 
-        let view = driver.new_value(View::Index);
+        let view = driver.new_value(View::Index {
+            state: AppIndex::new(&state_data)
+        });
 
         let state = App {
             driver: driver.clone(),
@@ -110,7 +112,9 @@ impl App {
 
     pub fn redirect_to_index(&self) {
         log::info!("redirect_to_index");
-        self.view.set_value(View::Index);
+        self.view.set_value(View::Index {
+            state: AppIndex::new(&self.data)
+        });
     }
 
     pub fn redirect_to_index_with_path(&self, new_path: Vec<String>, new_item: Option<String>) {
@@ -131,5 +135,25 @@ impl App {
 
     pub fn redirect_to_new_content(&self) {
         self.view.set_value(View::NewContent);
+    }
+
+    pub fn current_edit(&self) {
+        let full_path = self.data.tab.full_path.get_value();
+        self.redirect_to_content(&full_path);
+    }
+
+    pub fn create_file(&self) {
+        self.redirect_to_new_content();
+    }
+
+    pub fn current_rename(&self) {
+        let path = self.data.tab.dir_select.get_value();
+        let select_item = self.data.tab.current_item.get_value();
+
+        if let Some(select_item) = select_item.as_ref() {
+            self.redirect_to_rename_item(&path, select_item);
+        } else {
+            log::error!("current_rename fail");
+        }
     }
 }

@@ -10,14 +10,13 @@ use crate::app::rename_item::AppRenameitem;
 
 use super::App;
 use super::app_state::View;
-use super::index::AppIndex;
 
 pub fn app_render(app_state: &App) -> VDomElement {
     let view = app_state.view.get_value();
 
     match view.as_ref() {
-        View::Index => {
-            let view = AppIndex::component(&app_state);
+        View::Index { state }=> {
+            let view = state.render(app_state);
 
             html! {
                 <div id="root">
