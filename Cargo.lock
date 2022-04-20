@@ -1221,7 +1221,7 @@ checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
 [[package]]
 name = "vertigo"
 version = "0.1.0-beta.3"
-source = "git+https://github.com/vertigo-web/vertigo?branch=partial_eq#a4838d3514114a5b6d77ca0667e93f2f45bcaafa"
+source = "git+https://github.com/vertigo-web/vertigo?branch=master#1c65456feb3c31772b63b76e05c51fa074352503"
 dependencies = [
  "log",
  "serde_json",
@@ -1231,7 +1231,7 @@ dependencies = [
 [[package]]
 name = "vertigo-browserdriver"
 version = "0.1.0-beta.3"
-source = "git+https://github.com/vertigo-web/vertigo?branch=partial_eq#a4838d3514114a5b6d77ca0667e93f2f45bcaafa"
+source = "git+https://github.com/vertigo-web/vertigo?branch=master#1c65456feb3c31772b63b76e05c51fa074352503"
 dependencies = [
  "log",
  "vertigo",
@@ -1240,7 +1240,7 @@ dependencies = [
 [[package]]
 name = "vertigo-macro"
 version = "0.1.0-beta.3"
-source = "git+https://github.com/vertigo-web/vertigo?branch=partial_eq#a4838d3514114a5b6d77ca0667e93f2f45bcaafa"
+source = "git+https://github.com/vertigo-web/vertigo?branch=master#1c65456feb3c31772b63b76e05c51fa074352503"
 dependencies = [
  "itertools",
  "pest",
