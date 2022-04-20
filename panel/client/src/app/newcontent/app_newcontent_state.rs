@@ -13,7 +13,6 @@ pub struct AppNewcontent {
     pub action_save: Value<bool>,
 
     pub parent: Vec<String>,
-    pub name: Value<String>,
     pub content: Value<String>,
 
     pub new_name: NewName,
@@ -28,7 +27,6 @@ impl AppNewcontent {
         let parent = data.tab.dir_select.clone().get_value();
         let list = data.tab.list.clone();
 
-        let name = data.driver.new_value(String::from(""));
         let new_name = NewName::new(
             &data.driver,
             list,
@@ -63,7 +61,6 @@ impl AppNewcontent {
             action_save,
             
             parent: parent.as_ref().clone(),
-            name,
             content,
 
             new_name,
@@ -89,7 +86,7 @@ impl AppNewcontent {
         self.content.set_value(new_value);
     }
 
-    pub async fn on_save(self, app_state: App) {
+    pub async fn on_save(self, app: App) {
         let action_save = self.action_save.get_value();
 
         if *action_save {
@@ -99,7 +96,7 @@ impl AppNewcontent {
 
         self.action_save.set_value(true);
 
-        let new_name_rc = self.name.get_value();
+        let new_name_rc = self.new_name.name.get_value();
         let new_name = (*new_name_rc).clone();
 
         let body: HandlerCreateFileBody = HandlerCreateFileBody {
@@ -116,15 +113,15 @@ impl AppNewcontent {
 
         let path_redirect = self.parent.clone(); 
         log::info!("Zapis udany -> przekierowanie na -> {:?} {:?}", path_redirect, new_name);
-        app_state.redirect_to_index_with_path(path_redirect, Some(new_name));
+        app.redirect_to_index_with_path(path_redirect, Some(new_name));
     }
 
-    pub fn bind_on_save(&self, app_state: App) -> impl Fn() {
+    pub fn bind_on_save(&self, app: App) -> impl Fn() {
         let driver = self.driver.clone();
         let state = self.clone();
         move || {            
-            let app_state = app_state.clone();
-            driver.spawn(state.clone().on_save(app_state));
+            let app = app.clone();
+            driver.spawn(state.clone().on_save(app));
         }
     }
 }

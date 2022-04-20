@@ -1,4 +1,4 @@
-use vertigo::VDomComponent;
+use vertigo::{VDomComponent, VDomElement, html};
 use vertigo::{
     Driver,
     Value,
@@ -6,14 +6,13 @@ use vertigo::{
 use crate::data::{CurrentContent};
 use crate::data::Data;
 
-use super::app_render::app_render;
 use super::edit_content::AppEditcontent;
 use super::index::AppIndex;
 use super::new_dir::AppNewdir;
 use super::newcontent::AppNewcontent;
 use super::rename_item::AppRenameitem;
 
-pub enum View {
+enum View {
     Index { state: AppIndex },
     EditContent { state: AppEditcontent },
     RenameItem { state: AppRenameitem },
@@ -25,7 +24,7 @@ pub enum View {
 #[derive(Clone)]
 pub struct App {
     pub data: Data,
-    pub view: Value<View>,
+    view: Value<View>,
 }
 
 impl App {
@@ -40,14 +39,6 @@ impl App {
             data: state_data,
             view,
         }
-    }
-
-    pub fn render(&self) -> VDomComponent {
-        let open_links = self.data.tab.open_links.clone();
-        
-        let app = VDomComponent::new(self.clone(), app_render);
-
-        open_links.render(app)
     }
 
     pub fn redirect_to_content(&self, full_path: &Vec<String>) {
@@ -151,6 +142,67 @@ impl App {
             self.redirect_to_rename_item(&path, select_item);
         } else {
             log::error!("current_rename fail");
+        }
+    }
+
+
+    pub fn render(&self) -> VDomComponent {
+        let open_links = self.data.tab.open_links.clone();
+        
+        let app = VDomComponent::new(self.clone(), app_render);
+
+        open_links.render(app)
+    }
+}
+
+fn app_render(app: &App) -> VDomElement {
+    let view = app.view.get_value();
+
+    match view.as_ref() {
+        View::Index { state }=> {
+            let view = state.render(app);
+
+            html! {
+                <div id="root">
+                    { view }
+                </div>
+            }
+        },
+        View::EditContent { state } => {
+            let view = state.render(app);
+
+            html! {
+                <div id="root">
+                    { view }
+                </div>
+            }
+        },
+        View::NewContent { state } => {
+            let view = state.render(app);
+
+            html! {
+                <div id="root">
+                    { view }
+                </div>
+            }
+        },
+        View::RenameItem {state } => {
+            let view = state.render(app);
+
+            html! {
+                <div id="root">
+                    {view}
+                </div>
+            }
+        },
+        View::Mkdir { state } => {
+            let view = state.render(app.clone());
+
+            html! {
+                <div id="root">
+                    { view }
+                </div>
+            }
         }
     }
 }

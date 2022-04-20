@@ -9,7 +9,7 @@ use crate::data::Data;
 use super::app_index_alert_moveitem_state::AppIndexAlertMoveitem;
 
 
-pub enum AlertView {
+enum AlertView {
     None,
     DeleteFile { state: AppIndexAlertDelete },
     SearchInPath { state: AppIndexAlertSearch },
@@ -80,8 +80,6 @@ impl AppIndexAlert {
 
 
 fn app_index_alert_render(alert: &AppIndexAlert) -> VDomElement {
-    // let alert = alert_state.view.get_value();
-
     match alert.view.get_value().as_ref() {
         AlertView::None => {
             html! {
