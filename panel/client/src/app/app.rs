@@ -29,14 +29,14 @@ pub struct App {
 
 impl App {
     pub fn new(driver: &Driver) -> App {
-        let state_data = Data::new(driver);
+        let data = Data::new(driver);
 
         let view = driver.new_value(View::Index {
-            state: AppIndex::new(&state_data)
+            state: AppIndex::new(&data)
         });
 
         App {
-            data: state_data,
+            data,
             view,
         }
     }
