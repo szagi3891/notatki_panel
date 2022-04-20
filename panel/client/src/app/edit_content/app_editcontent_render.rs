@@ -52,15 +52,15 @@ fn render_textarea(state: &AppEditcontent) -> VDomElement {
     }
 }
 
-pub fn app_editcontent_render(app_state: &App, state: AppEditcontent) -> VDomComponent {
+pub fn app_editcontent_render(app: &App, state: AppEditcontent) -> VDomComponent {
     let view_textares = VDomComponent::new(state.clone(), render_textarea);
-    let app_state = app_state.clone();
+    let app = app.clone();
 
     VDomComponent::new(state, move |state: &AppEditcontent| {
         let on_click = {
-            let app_state = app_state.clone();
+            let app = app.clone();
             move || {
-                app_state.redirect_to_index();
+                app.redirect_to_index();
             }
         };
 
@@ -73,7 +73,7 @@ pub fn app_editcontent_render(app_state: &App, state: AppEditcontent) -> VDomCom
         let save_enable = state.save_enable.get_value();
 
         if *save_enable {
-            let on_save = state.bind_on_save(&app_state);
+            let on_save = state.bind_on_save(&app);
             buttons.push(button("Zapisz", on_save));
         }
 

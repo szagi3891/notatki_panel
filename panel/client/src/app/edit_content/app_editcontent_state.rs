@@ -18,10 +18,6 @@ pub struct AppEditcontent {
 }
 
 impl AppEditcontent {
-    // pub fn redirect_to_index(&self) {
-    //     self.app_state.redirect_to_index();
-    // }
-
     pub fn new(
         data: &Data,
         path: Vec<String>,
@@ -54,8 +50,8 @@ impl AppEditcontent {
         }
     }
 
-    pub fn render(&self, app_state: &App) -> VDomComponent {
-        app_editcontent_render(app_state, self.clone())
+    pub fn render(&self, app: &App) -> VDomComponent {
+        app_editcontent_render(app, self.clone())
     }
 
     pub fn on_input(&self, new_text: String) {
@@ -69,7 +65,7 @@ impl AppEditcontent {
         self.edit_content.set_value(new_text);
     }
 
-    pub async fn on_save(self, app_state: App) {
+    pub async fn on_save(self, app: App) {
         let action_save = self.action_save.get_value();
 
         if *action_save {
@@ -92,16 +88,16 @@ impl AppEditcontent {
 
         log::info!("Zapis udany");
     
-        app_state.redirect_to_index_with_root_refresh();
+        app.redirect_to_index_with_root_refresh();
     }
 
-    pub fn bind_on_save(&self, app_state: &App) -> impl Fn() {
+    pub fn bind_on_save(&self, app: &App) -> impl Fn() {
         let driver = self.driver.clone();
         let state = self.clone();
-        let app_state = app_state.clone();
+        let app = app.clone();
         move || {
-            let app_state = app_state.clone();
-            driver.spawn(state.clone().on_save(app_state));
+            let app = app.clone();
+            driver.spawn(state.clone().on_save(app));
         }
     }
 }

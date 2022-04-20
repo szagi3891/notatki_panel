@@ -52,15 +52,15 @@ fn render_input_content(state: &AppNewcontent) -> VDomElement {
     }
 }
 
-pub fn app_newcontent_render(state: AppNewcontent, app_state: App) -> VDomComponent {
+pub fn app_newcontent_render(state: AppNewcontent, app: App) -> VDomComponent {
     let view_input = VDomComponent::new(state.clone(), render_input_content);
     let view_new_name = state.new_name.clone().render(true);
 
     VDomComponent::new(state, move |state: &AppNewcontent| -> VDomElement {
         let on_click = {
-            let app_state = app_state.clone();
+            let app = app.clone();
             move || {
-                app_state.redirect_to_index();
+                app.redirect_to_index();
             }
         };
 
@@ -71,7 +71,7 @@ pub fn app_newcontent_render(state: AppNewcontent, app_state: App) -> VDomCompon
         let save_enable = state.save_enable.get_value();
 
         if *save_enable {
-            buttons.push(button("Zapisz", state.bind_on_save(app_state.clone())));
+            buttons.push(button("Zapisz", state.bind_on_save(app.clone())));
         }
 
         html! {

@@ -4,7 +4,7 @@ mod edit_content;
 mod rename_item;
 mod newcontent;
 
-mod app_state;
+mod app;
 
-pub use app_state::App;
+pub use app::App;
 
