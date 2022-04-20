@@ -27,8 +27,7 @@ impl AppIndex {
     }
 
     pub fn render(&self, app: &App) -> VDomComponent {
-        let alert_view = self.alert.render();
-        app_index_render(app, alert_view, self.clone())
+        app_index_render(self.clone(), app)
     }
 
     pub fn keydown(&self, code: String) -> bool {
