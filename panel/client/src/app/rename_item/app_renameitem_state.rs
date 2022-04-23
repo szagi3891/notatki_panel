@@ -90,47 +90,35 @@ impl AppRenameitem {
         self.new_name.set_value(new_text);
     }
 
-    pub fn on_save(&self, app: &App) -> impl Fn() {
-        let driver = self.driver.clone();
-        let state = self.clone();
-        let app = app.clone();
 
-        move || {
-            let state = state.clone();
-            let app = app.clone();
+    pub async fn on_save(self, app: App) {
+        let action_save = self.action_save.get_value();
 
-            driver.spawn(async move {
-                                
-                let action_save = state.action_save.get_value();
-
-                if *action_save {
-                    log::error!("Trwa obecnie zapis");
-                    return;
-                }
-
-                state.action_save.set_value(true);
-
-                let body: HandlerRenameItemBody = HandlerRenameItemBody {
-                    path: state.path.clone(),
-                    prev_name: state.prev_name.clone(),
-                    prev_hash: state.prev_hash.clone(),
-                    new_name: (*state.new_name.get_value()).clone(),
-                };
-
-                let _ = state.driver
-                    .request("/rename_item")
-                    .body_json(body)
-                    .post()
-                    .await;
-
-                let redirect_path = state.path.clone();
-                let redirect_new_name = state.new_name.get_value().as_ref().clone();
-
-                log::info!("Zapis udany");
-
-                app.redirect_to_index_with_path(redirect_path, Some(redirect_new_name));
-            });
+        if *action_save {
+            log::error!("Trwa obecnie zapis");
+            return;
         }
+
+        self.action_save.set_value(true);
+
+        let body: HandlerRenameItemBody = HandlerRenameItemBody {
+            path: self.path.clone(),
+            prev_name: self.prev_name.clone(),
+            prev_hash: self.prev_hash.clone(),
+            new_name: (*self.new_name.get_value()).clone(),
+        };
+
+        let _ = self.driver
+            .request("/rename_item")
+            .body_json(body)
+            .post()
+            .await;
+
+        let redirect_path = self.path.clone();
+        let redirect_new_name = self.new_name.get_value().as_ref().clone();
+
+        log::info!("Zapis udany");
+
+        app.redirect_to_index_with_path(redirect_path, Some(redirect_new_name));
     }
 }
-
