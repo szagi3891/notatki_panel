@@ -65,39 +65,41 @@ impl AppEditcontent {
         self.edit_content.set_value(new_text);
     }
 
-    pub async fn on_save(self, app: App) {
-        let action_save = self.action_save.get_value();
-
-        if *action_save {
-            log::error!("Trwa obecnie zapis");
-            return;
-        }
-
-        self.action_save.set_value(true);
-
-        let body: HandlerSaveContentBody = HandlerSaveContentBody {
-            path: self.path.clone(),
-            prev_hash: self.hash.clone(),
-            new_content: (*self.edit_content.get_value()).clone(),
-        };
-
-        let _ = self.driver
-            .request("/save_content")
-            .body_json(body)
-            .post().await;
-
-        log::info!("Zapis udany");
-    
-        app.redirect_to_index_with_root_refresh();
-    }
-
-    pub fn bind_on_save(&self, app: &App) -> impl Fn() {
+    pub fn on_save(&self, app: &App) -> impl Fn() {
         let driver = self.driver.clone();
         let state = self.clone();
         let app = app.clone();
+
         move || {
+            let state = state.clone();
             let app = app.clone();
-            driver.spawn(state.clone().on_save(app));
+
+            driver.spawn(async move {
+                        
+                let action_save = state.action_save.get_value();
+
+                if *action_save {
+                    log::error!("Trwa obecnie zapis");
+                    return;
+                }
+
+                state.action_save.set_value(true);
+
+                let body: HandlerSaveContentBody = HandlerSaveContentBody {
+                    path: state.path.clone(),
+                    prev_hash: state.hash.clone(),
+                    new_content: (*state.edit_content.get_value()).clone(),
+                };
+
+                let _ = state.driver
+                    .request("/save_content")
+                    .body_json(body)
+                    .post().await;
+
+                log::info!("Zapis udany");
+            
+                app.redirect_to_index_with_root_refresh();
+            });
         }
     }
 }

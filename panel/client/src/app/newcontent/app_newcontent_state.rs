@@ -86,42 +86,44 @@ impl AppNewcontent {
         self.content.set_value(new_value);
     }
 
-    pub async fn on_save(self, app: App) {
-        let action_save = self.action_save.get_value();
-
-        if *action_save {
-            log::error!("Trwa obecnie zapis");
-            return;
-        }
-
-        self.action_save.set_value(true);
-
-        let new_name_rc = self.new_name.name.get_value();
-        let new_name = (*new_name_rc).clone();
-
-        let body: HandlerCreateFileBody = HandlerCreateFileBody {
-            path: self.parent.clone(),
-            new_name: new_name.clone(),
-            new_content: (*self.content.get_value()).clone(),
-        };
-
-        let _ = self.driver
-            .request("/create_file")
-            .body_json(body)
-            .post()
-            .await;
-
-        let path_redirect = self.parent.clone(); 
-        log::info!("Zapis udany -> przekierowanie na -> {:?} {:?}", path_redirect, new_name);
-        app.redirect_to_index_with_path(path_redirect, Some(new_name));
-    }
-
-    pub fn bind_on_save(&self, app: App) -> impl Fn() {
+    pub fn on_save(&self, app: &App) -> impl Fn() {
         let driver = self.driver.clone();
         let state = self.clone();
-        move || {            
+        let app = app.clone();
+
+        move || {
+            let state = state.clone();
             let app = app.clone();
-            driver.spawn(state.clone().on_save(app));
+
+            driver.spawn(async move {
+                let action_save = state.action_save.get_value();
+
+                if *action_save {
+                    log::error!("Trwa obecnie zapis");
+                    return;
+                }
+
+                state.action_save.set_value(true);
+
+                let new_name_rc = state.new_name.name.get_value();
+                let new_name = (*new_name_rc).clone();
+
+                let body: HandlerCreateFileBody = HandlerCreateFileBody {
+                    path: state.parent.clone(),
+                    new_name: new_name.clone(),
+                    new_content: (*state.content.get_value()).clone(),
+                };
+
+                let _ = state.driver
+                    .request("/create_file")
+                    .body_json(body)
+                    .post()
+                    .await;
+
+                let path_redirect = state.parent.clone(); 
+                log::info!("Zapis udany -> przekierowanie na -> {:?} {:?}", path_redirect, new_name);
+                app.redirect_to_index_with_path(path_redirect, Some(new_name));
+            });
         }
     }
 }

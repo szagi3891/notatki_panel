@@ -71,7 +71,7 @@ pub fn app_newcontent_render(state: AppNewcontent, app: App) -> VDomComponent {
         let save_enable = state.save_enable.get_value();
 
         if *save_enable {
-            buttons.push(button("Zapisz", state.bind_on_save(app.clone())));
+            buttons.push(button("Zapisz", state.on_save(&app)));
         }
 
         html! {

@@ -46,40 +46,42 @@ impl AppNewdir {
         app_newdir_render(self.clone(), app)
     }
 
-    pub async fn on_save(self, app: App) {
-        let action_save = self.action_save.get_value();
-
-        if *action_save {
-            log::error!("Trwa obecnie zapis");
-            return;
-        }
-
-        self.action_save.set_value(true);
-    
-        let new_dir_name = self.new_name.name.get_value().as_ref().clone();
-
-        let body = HandlerCreateDirBody {
-            path: self.parent.clone(),
-            dir: new_dir_name.clone(),
-        };
-
-        let _ = self.driver
-            .request("/create_dir")
-            .body_json(body)
-            .post().await;
-
-        let parent_string = self.parent.join("/");
-        log::info!("Tworzenie katalogu {:?} udane -> przekierowanie na -> {:?}", new_dir_name, parent_string);
-
-        app.redirect_to_index_with_path(self.parent.clone(), Some(new_dir_name));
-    }
-
-    pub fn bind_on_save(&self, app: App) -> impl Fn() {
+    pub fn bind_on_save(&self, app: &App) -> impl Fn() {
         let driver = self.driver.clone();
         let state = self.clone();
+        let app = app.clone();
+
         move || {
+            let state = state.clone();
             let app = app.clone();
-            driver.spawn(state.clone().on_save(app));
+
+            driver.spawn(async move {
+                let action_save = state.action_save.get_value();
+
+                if *action_save {
+                    log::error!("Trwa obecnie zapis");
+                    return;
+                }
+
+                state.action_save.set_value(true);
+            
+                let new_dir_name = state.new_name.name.get_value().as_ref().clone();
+
+                let body = HandlerCreateDirBody {
+                    path: state.parent.clone(),
+                    dir: new_dir_name.clone(),
+                };
+
+                let _ = state.driver
+                    .request("/create_dir")
+                    .body_json(body)
+                    .post().await;
+
+                let parent_string = state.parent.join("/");
+                log::info!("Tworzenie katalogu {:?} udane -> przekierowanie na -> {:?}", new_dir_name, parent_string);
+
+                app.redirect_to_index_with_path(state.parent.clone(), Some(new_dir_name));
+            });
         }
     }
 }

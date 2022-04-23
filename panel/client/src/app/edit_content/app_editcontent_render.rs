@@ -73,7 +73,7 @@ pub fn app_editcontent_render(app: &App, state: AppEditcontent) -> VDomComponent
         let save_enable = state.save_enable.get_value();
 
         if *save_enable {
-            let on_save = state.bind_on_save(&app);
+            let on_save = state.on_save(&app);
             buttons.push(button("Zapisz", on_save));
         }
 

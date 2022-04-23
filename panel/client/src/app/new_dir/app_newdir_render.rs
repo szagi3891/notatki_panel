@@ -40,7 +40,7 @@ pub fn app_newdir_render(state: AppNewdir, app: App) -> VDomComponent {
         let save_enable = state.save_enable.get_value();
 
         if *save_enable {
-            buttons.push(button("Zapisz", state.bind_on_save(app.clone())));
+            buttons.push(button("Zapisz", state.bind_on_save(&app)));
         }
 
         html! {

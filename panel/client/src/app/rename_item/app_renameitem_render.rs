@@ -107,7 +107,7 @@ pub fn app_renameitem_render(state: AppRenameitem, app: App) -> VDomComponent {
         let save_enable = state.save_enable.get_value();
 
         if *save_enable {
-            let on_save = state.bind_on_save(app.clone());
+            let on_save = state.on_save(&app);
             buttons.push(button("Zmień nazwę", on_save));
         }
 
