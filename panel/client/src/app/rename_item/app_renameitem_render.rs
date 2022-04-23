@@ -4,7 +4,7 @@ use vertigo::{css, html};
 use super::AppRenameitem;
 use crate::app::App;
 use crate::components::button;
-use crate::utils::{bind_ref, bind_all};
+use crate::utils::{bind};
 
 fn css_wrapper() -> Css {
     css!("
@@ -91,10 +91,11 @@ pub fn app_renameitem_render(state: AppRenameitem, app: App) -> VDomComponent {
     let view_textarea = VDomComponent::new(state.clone(), render_textarea);
 
     VDomComponent::new(state, move |state: &AppRenameitem| {
+        let app = app.clone();
         let path = state.get_full_path();
 
         let mut buttons = vec![
-            button("Wróć", bind_ref(&app, |app| {
+            button("Wróć", bind(&app).exec_ref(|app| {  //bind_ref(&app, |app| {
                 app.redirect_to_index();
             }))
         ];
@@ -102,14 +103,15 @@ pub fn app_renameitem_render(state: AppRenameitem, app: App) -> VDomComponent {
         let save_enable = state.save_enable.get_value();
 
         if *save_enable {
-            let on_save = app.data.driver.spawn_bind2(state, &app, |state, app| {
+            // let on_save = app.data.driver.spawn_bind2(state, &app, |state, app| {
+            //     state.on_save(app)
+            // });
+
+            let driver = app.data.driver.clone();
+
+            let on_save = bind(state).bind(&app).spawn(driver, move |state, app| {
                 state.on_save(app)
             });
-
-            // let driver = app.data.driver.clone();
-            // let on_save = bind_all((state, app), |(state, app)| {
-                
-            // });
 
             buttons.push(button("Zmień nazwę", on_save));
         }
