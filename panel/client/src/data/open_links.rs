@@ -1,6 +1,6 @@
 use vertigo::{
     Value,
-    Driver, VDomComponent, html, css, VDomElement, Css,
+    Driver, VDomComponent, html, css, VDomElement, Css, bind,
 };
 
 #[derive(Clone)]
@@ -219,10 +219,9 @@ fn open_links_render(open_links: OpenLinks, default_view: VDomComponent) -> VDom
             let is_select_default = active.is_none();
 
             tabs_menu.push({
-                let open_links = open_links.clone();
-                let on_click = move || {
+                let on_click = bind(open_links).call(|open_links| {
                     open_links.tabs_default();
-                };
+                });
 
                 button("default", on_click, None::<fn()>, is_select_default)
             });
@@ -247,22 +246,17 @@ fn open_links_render(open_links: OpenLinks, default_view: VDomComponent) -> VDom
                     <iframe src={tab_item.clone()} css={css_iframe(is_select)} />
                 });
 
-                let on_click = {
-                    let open_links = open_links.clone();
-                    let tab_item = tab_item.clone();
-        
-                    move || {
+                let on_click = bind(open_links)
+                    .and(&tab_item)
+                    .call(|open_links, tab_item| {
                         open_links.tabs_set(tab_item.clone());
-                    }
-                };
+                    });
 
-                let on_close = {
-                    let open_links = open_links.clone();
-                    let tab_item = tab_item.clone();
-                    move || {
+                let on_close = bind(open_links)
+                    .and(&tab_item)
+                    .call(|open_links, tab_item| {
                         open_links.tabs_remove(tab_item.clone());
-                    }
-                };
+                    });
         
                 tabs_menu.push(button(tab_item, on_click, Some(on_close), is_select));
             }
