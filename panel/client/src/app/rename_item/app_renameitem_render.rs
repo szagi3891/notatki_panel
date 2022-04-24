@@ -1,10 +1,9 @@
 use vertigo::{Css, VDomElement, VDomComponent};
-use vertigo::{css, html};
+use vertigo::{css, html, bind};
 
 use super::AppRenameitem;
 use crate::app::App;
 use crate::components::button;
-use crate::utils::{bind};
 
 fn css_wrapper() -> Css {
     css!("
@@ -51,21 +50,16 @@ fn css_textarea() -> Css {
 }
 
 fn render_input(state: &AppRenameitem) -> VDomElement {
-    let content = &state.new_name.get_value();
+    let content = state.new_name.get_value().as_ref().clone();
 
-    let on_input = {
-        let state = state.clone();
-
-        move |new_value: String| {
-            state.on_input(new_value);
-        }
-    };
+    let on_input = bind(state).call1(|state, new_value: String| {
+        state.on_input(new_value);
+    });
 
     html! {
-        <input css={css_input()} on_input={on_input} value={content.as_ref()} autofocus="" />
+        <input css={css_input()} on_input={on_input} value={content} autofocus="" />
     }
 }
-
 
 fn render_textarea(state: &AppRenameitem) -> VDomElement {
     let prev_content = state.prev_content.clone();
@@ -84,7 +78,6 @@ fn render_textarea(state: &AppRenameitem) -> VDomElement {
     }
 }
 
-
 pub fn app_renameitem_render(state: AppRenameitem, app: App) -> VDomComponent {
 
     let view_input = VDomComponent::new(state.clone(), render_input);
@@ -95,7 +88,7 @@ pub fn app_renameitem_render(state: AppRenameitem, app: App) -> VDomComponent {
         let path = state.get_full_path();
 
         let mut buttons = vec![
-            button("Wróć", bind(&app).exec_ref(|app| {  //bind_ref(&app, |app| {
+            button("Wróć", bind(&app).call(|app| {
                 app.redirect_to_index();
             }))
         ];
@@ -103,10 +96,6 @@ pub fn app_renameitem_render(state: AppRenameitem, app: App) -> VDomComponent {
         let save_enable = state.save_enable.get_value();
 
         if *save_enable {
-            // let on_save = app.data.driver.spawn_bind2(state, &app, |state, app| {
-            //     state.on_save(app)
-            // });
-
             let driver = app.data.driver.clone();
 
             let on_save = bind(state).bind(&app).spawn(driver, move |state, app| {

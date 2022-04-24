@@ -1,7 +1,7 @@
-use vertigo::{Css, VDomComponent, css, html};
+use vertigo::{Css, VDomComponent, css, html, bind};
 
 use super::AppNewdir;
-use crate::{components::button, app::App, utils::bind};
+use crate::{components::button, app::App};
 
 fn css_wrapper() -> Css {
     css!("
@@ -28,7 +28,7 @@ pub fn app_newdir_render(state: AppNewdir, app: App) -> VDomComponent {
     VDomComponent::new(state, move |state| {
         let parent_path = state.parent.as_slice().join("/");
 
-        let mut buttons = vec!(button("Wróć", bind(&app).exec_ref(|app| {
+        let mut buttons = vec!(button("Wróć", bind(&app).call(|app| {
             app.redirect_to_index();
         })));
 

@@ -1,9 +1,8 @@
-use vertigo::{Css, VDomElement, VDomComponent};
+use vertigo::{Css, VDomElement, VDomComponent, bind};
 use vertigo::{css, html};
 
 use crate::app::App;
 use crate::components::{button};
-use crate::utils::bind;
 
 use super::AppNewcontent;
 
@@ -58,7 +57,7 @@ pub fn app_newcontent_render(state: AppNewcontent, app: App) -> VDomComponent {
     let view_new_name = state.new_name.clone().render(true);
 
     VDomComponent::new(state, move |state: &AppNewcontent| -> VDomElement {
-        let on_click = bind(&app).exec_ref(|app| {
+        let on_click = bind(&app).call(|app| {
             app.redirect_to_index();
         });
 

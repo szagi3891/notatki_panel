@@ -12,7 +12,6 @@ mod content;
 mod data;
 mod components;
 mod app;
-mod utils;
 
 #[no_mangle]
 pub fn start_application() {

@@ -1,10 +1,9 @@
-use vertigo::{Css, VDomElement, VDomComponent};
+use vertigo::{Css, VDomElement, VDomComponent, bind};
 use vertigo::{css, html};
 
 use super::AppEditcontent;
 use crate::app::App;
 use crate::components::button;
-use crate::utils::bind;
 
 fn css_wrapper() -> Css {
     css!("
@@ -58,7 +57,7 @@ pub fn app_editcontent_render(app: &App, state: AppEditcontent) -> VDomComponent
     let app = app.clone();
 
     VDomComponent::new(state, move |state: &AppEditcontent| {
-        let on_click = bind(&app).exec_ref(|app| {
+        let on_click = bind(&app).call(|app| {
             app.redirect_to_index();
         });
 
