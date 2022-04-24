@@ -1,13 +1,8 @@
 use std::fmt::Debug;
 
-// use axum::{http::StatusCode};
 use git2::Error;
-use super::create_response_message;
-
-fn format_message(context: Vec<String>, message: String) -> String {
-    let context = context.as_slice().join(",");
-    format!("{} context=({})", message, context)
-}
+use super::{response::ApiResponseHttp};
+use poem_openapi::types::{ToJSON, ParseFromJSON};
 
 #[derive(Debug)]
 pub enum ErrorProcess {
@@ -43,15 +38,8 @@ impl ErrorProcess {
         })
     }
 
-    pub fn to_response(self) -> (StatusCode, String) {
-        match self {
-            ErrorProcess::Server { message, context } => {
-                create_response_message(StatusCode::INTERNAL_SERVER_ERROR, format_message(context, message))
-            },
-            ErrorProcess::User { message, context } => {
-                create_response_message(StatusCode::NOT_FOUND, format_message(context, message))
-            }
-        }
+    pub fn to_response<T: Send + ToJSON + ParseFromJSON>(self) -> ApiResponseHttp<T> {
+        ApiResponseHttp::from(Err(self))
     }
 
     pub fn context<T: Debug>(self, label: &str, label_message: T) -> Self {

@@ -3,8 +3,9 @@
 #![allow(clippy::module_inception)]
 #![allow(clippy::wrong_self_convention)]
 #![allow(clippy::len_zero)]
+mod models;
 
-use common::{
+use models::{
     RootResponse,
     HandlerCreateDirBody,
     HandlerCreateFileBody,
@@ -30,7 +31,12 @@ use poem_openapi::{
         Html,
     }
 };
-// use utils::{ErrorProcess, create_response, create_response_message};
+use utils::{
+    ErrorProcess, ApiResponseHttp,
+    // create_response,
+    // create_response_message
+};
+
 use std::net::Ipv4Addr;
 // use std::sync::Arc;
 // use axum::{
@@ -46,15 +52,16 @@ use std::net::Ipv4Addr;
 use serde::{Deserialize};
 use std::net::SocketAddr;
 // use tower_http::{services::ServeDir, trace::TraceLayer};
+use poem_openapi::payload::Json;
 
 
-// mod git;
+mod git;
 mod utils;
 // mod sync;
 
 // use sync::start_sync;
 
-// use git::Git;
+use git::Git;
 
 #[derive(Deserialize)]
 struct Config {
@@ -65,14 +72,14 @@ struct Config {
 
 #[derive(Clone)]
 struct App {
-    // git: Git,
+    git: Git,
 }
 
 #[OpenApi]
 impl App {
-    pub fn new(/*git: Git*/) -> App {
+    pub fn new(git: Git) -> App {
         App {
-            // git
+            git
         }
     }
 
@@ -99,92 +106,101 @@ impl App {
             "##
         )
     }
-    
+
+    #[oai(method = "get", path = "/fetch_root")]
+    async fn handler_fetch_root(&self) -> ApiResponseHttp<RootResponse> {
+        let result = self.git.main_commit().await;
+        response_with_root(result)
+    }
+
+
+    #[oai(method = "post", path = "/fetch_tree_item")]
+    async fn handler_fetch_dir(
+        &self,
+        json: Json<HandlerFetchDirBody>,
+    ) -> ApiResponseHttp<HandlerFetchDirResponse> {
+        let Json(body_request) = json;
+
+        let root = self.git.get_from_id(&body_request.id).await;
+
+        let root = match root {
+            Ok(root) => root,
+            Err(message) => {
+                return message.to_response();
+            }
+        };
+
+        if let Some(git::GitBlob::Tree { list }) = root {
+            let mut response: HandlerFetchDirResponse = HandlerFetchDirResponse::new();
+            for item in list {
+                response.add(item);
+            }
+
+            return ApiResponseHttp::ok(response);
+        }
+
+        ApiResponseHttp::not_found("missing")
+    }
+
+
+    #[oai(method = "post", path = "/fetch_node")]
+    async fn handler_fetch_node(
+        &self,
+        json: Json<HandlerFetchNodeBody>,
+    ) -> ApiResponseHttp<HandlerFetchNodeResponse> {
+        let Json(body_request) = json;
+
+        let hash_id = body_request.hash;
+
+        let data = self.git.get_from_id(&hash_id).await;
+
+        let data = match data {
+            Ok(data) => data,
+            Err(message) => {
+                return message.to_response();
+            }
+        };
+
+        if let Some(git::GitBlob::Blob { content }) = data {
+            let content = String::from_utf8(content);
+
+            return match content {
+                Ok(content) => {
+                    let response = HandlerFetchNodeResponse {
+                        content
+                    };
+
+                    ApiResponseHttp::ok(response)
+                },
+                Err(_) => {
+                    ApiResponseHttp::internal("content is not correctly encoded in utf8")
+                }
+            };
+        }
+
+        ApiResponseHttp::not_found(format!("missing content {}", hash_id))
+    }
+
+
+    //....
 }
 
 
-// fn response_with_root(result: Result<String, ErrorProcess>) -> (StatusCode, String) { //Box<dyn IntoResponse> {
-//     match result {
-//         Ok(root) => {
-//             let response = RootResponse {
-//                 root,
-//             };
-//             create_response(StatusCode::OK, response)
-//         },
-//         Err(err) => {
-//             err.to_response()
-//         }
-//     }
-// }
+fn response_with_root(result: Result<String, ErrorProcess>) -> ApiResponseHttp<RootResponse> {
+    match result {
+        Ok(root) => {
+            let response = RootResponse {
+                root,
+            };
+            ApiResponseHttp::ok(response)
+        },
+        Err(err) => {
+            ApiResponseHttp::from(Err(err))
+        }
+    }
+}
 
-// async fn handler_fetch_root(
-//     Extension(app_state): Extension<Arc<App>>,
-// ) -> (StatusCode, String) {
-//     let result = app_state.git.main_commit().await;
-//     response_with_root(result)
-// }
-
-// async fn handler_fetch_dir(
-//     Extension(app_state): Extension<Arc<App>>,
-//     Json(body_request): Json<HandlerFetchDirBody>,
-// ) -> (StatusCode, String) {
-//     let root = app_state.git.get_from_id(&body_request.id).await;
-
-//     let root = match root {
-//         Ok(root) => root,
-//         Err(message) => {
-//             return message.to_response();
-//         }
-//     };
-
-//     if let Some(git::GitBlob::Tree { list }) = root {
-//         let mut response: HandlerFetchDirResponse = HandlerFetchDirResponse::new();
-//         for item in list {
-//             response.add(item);
-//         }
-
-//         return create_response(StatusCode::OK, response);
-//     }
-
-//     create_response_message(StatusCode::NOT_FOUND, "missing")
-// }
-
-// async fn handler_fetch_node(
-//     Extension(app_state): Extension<Arc<App>>,
-//     Json(body_request): Json<HandlerFetchNodeBody>,
-// ) -> (StatusCode, String) {
-
-//     let hash_id = body_request.hash;
-
-//     let data = app_state.git.get_from_id(&hash_id).await;
-
-//     let data = match data {
-//         Ok(data) => data,
-//         Err(message) => {
-//             return message.to_response();
-//         }
-//     };
-
-//     if let Some(git::GitBlob::Blob { content }) = data {
-//         let content = String::from_utf8(content);
-
-//         return match content {
-//             Ok(content) => {
-//                 let response = HandlerFetchNodeResponse {
-//                     content
-//                 };
-
-//                 create_response(StatusCode::OK, response)
-//             },
-//             Err(_) => {
-//                 create_response_message(StatusCode::INTERNAL_SERVER_ERROR, "content is not correctly encoded in utf8")
-//             }
-//         };
-//     }
-
-//     create_response_message(StatusCode::NOT_FOUND, format!("missing content {}", hash_id))
-// }
-
+    //     .route("/save_content", post(handler_save_content))
 // async fn handler_save_content(
 //     Extension(app_state): Extension<Arc<App>>,
 //     Json(body_request): Json<HandlerSaveContentBody>,
@@ -199,6 +215,8 @@ impl App {
 //     response_with_root(result)
 // }
 
+
+    //     .route("/create_file", post(handler_create_file))
 // async fn handler_create_file(
 //     Extension(app_state): Extension<Arc<App>>,
 //     Json(body_request): Json<HandlerCreateFileBody>,
@@ -212,6 +230,8 @@ impl App {
 //     response_with_root(result)
 // }
 
+
+    //     .route("/create_dir", post(handler_create_dir))
 // async fn handler_create_dir(
 //     Extension(app_state): Extension<Arc<App>>,
 //     Json(body_request): Json<HandlerCreateDirBody>,
@@ -224,6 +244,7 @@ impl App {
 //     response_with_root(result)
 // }
 
+    //     .route("/rename_item", post(handler_rename_item))
 // async fn handler_rename_item(
 //     Extension(app_state): Extension<Arc<App>>,
 //     Json(body_request): Json<HandlerRenameItemBody>,
@@ -238,6 +259,8 @@ impl App {
 //     response_with_root(result)
 // }
 
+
+    //     .route("/delete_item", post(handler_delete_item))
 // async fn handler_delete_item(
 //     Extension(app_state): Extension<Arc<App>>,
 //     Json(body_request): Json<HandlerDeleteItemBody>,
@@ -268,10 +291,10 @@ async fn main() {
     };
 
     println!("start git test: {}", &config.git_repo);
-    // let git = Git::new(config.git_repo, "master".into()).unwrap();
+    let git = Git::new(config.git_repo, "master".into()).unwrap();
 
 
-    let app = App::new(/*git.clone()*/);
+    let app = App::new(git.clone());
 
     //chwilowo wyłączamy synchronizację
     // let task_synchronize = start_sync(config.git_repo.clone()).await;
@@ -300,50 +323,4 @@ async fn main() {
             .nest_no_strip("/", api_service)
         )
         .await.unwrap();
-
-
-    //TODO - do builda trzeba dodać jakoś te nagłówki przeciw keszowaniu
-    // //cache-control: private, no-cache, no-store, must-revalidate, max-age=0
-    // headers.insert(
-    //     "cache-control", 
-    //     HeaderValue::from_static("private, no-cache, no-store, must-revalidate, max-age=0")
-    // );
-
-    // let app = Router::new()
-    //     .route("/", get(handler_index))
-    //     .nest(
-    //         "/build",
-    //         get_service(ServeDir::new("build")).handle_error(|error: std::io::Error| async move {
-    //             (
-    //                 StatusCode::INTERNAL_SERVER_ERROR,
-    //                 format!("Unhandled internal error: {}", error),
-    //             )
-    //         }),
-    //     )
-
-    //     .route("/fetch_root", get(handler_fetch_root))
-    //     .route("/fetch_tree_item", post(handler_fetch_dir))
-    //     .route("/fetch_node", post(handler_fetch_node))
-    //     .route("/save_content", post(handler_save_content))
-    //     .route("/create_file", post(handler_create_file))
-    //     .route("/create_dir", post(handler_create_dir))
-    //     .route("/rename_item", post(handler_rename_item))
-    //     .route("/delete_item", post(handler_delete_item))
-    //     .fallback(error404.into_service())
-    //     .layer(AddExtensionLayer::new(app))
-    //     .layer(TraceLayer::new_for_http())
-    // ;
-
-    // let addr = SocketAddr::from(([0, 0, 0, 0], config.http_port));
-    
-    // //TODO ....
-    // //.run((config.http_host, config.http_port))
-
-    // //tracing::debug!("listening on {}", addr);
-    // axum::Server::bind(&addr)
-    //     .serve(app.into_make_service())
-    //     .await
-    //     .unwrap();
-
-    // task_synchronize.off();
 }

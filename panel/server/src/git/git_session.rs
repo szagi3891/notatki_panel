@@ -1,7 +1,7 @@
 use git2::{BranchType, ObjectType, Oid, Repository, Tree, TreeBuilder, TreeEntry};
 use crate::utils::ErrorProcess;
 use tokio::sync::{MutexGuard};
-use common::GitTreeItem;
+use crate::models::GitTreeItem;
 use tokio::task;
 
 use crate::git::GitBlob;

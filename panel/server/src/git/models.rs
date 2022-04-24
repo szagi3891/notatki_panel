@@ -1,5 +1,5 @@
 
-use common::GitTreeItem;
+use crate::models::GitTreeItem;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]

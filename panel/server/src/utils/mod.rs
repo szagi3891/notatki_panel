@@ -4,8 +4,8 @@
 
 
 
-// mod response;
-// mod error;
+mod response;
+mod error;
 
-// pub use response::{create_response, create_response_message};
-// pub use error::{ErrorProcess};
+pub use response::{ApiResponseHttp};
+pub use error::{ErrorProcess};
