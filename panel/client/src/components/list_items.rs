@@ -1,6 +1,7 @@
 use vertigo::{
     html, css, Css,
     VDomElement, Resource,
+    bind
 };
 use crate::data::{Data, ListItem};
 use crate::components::icon;
@@ -89,21 +90,21 @@ fn label_css(prirority: u8) -> Css {
     ")
 }
 
-fn render_item(data: &Data, dir: &Vec<String>, current_item: &Option<String>, item: &ListItem) -> VDomElement {
+fn render_item(data: &Data, dir: &Vec<String>, current_item: &Option<String>, item: &ListItem, mouse_over_enable: bool) -> VDomElement {
     let on_click = {
-        let is_dir = item.dir;
         let mut path = dir.clone();
         path.push(item.name.clone());
 
-        let tab = data.tab.clone();
-
-        move || {
-            if is_dir {
-                tab.redirect_to_dir(&path);
-            } else {
-                tab.redirect_to_file(&path);
-            }
-        }
+        bind(&data.tab)
+            .and(&item.dir)
+            .and(&path)
+            .call(|tab, is_dir, path| {
+                if *is_dir {
+                    tab.redirect_to_dir(&path);
+                } else {
+                    tab.redirect_to_file(&path);
+                } 
+            })
     };
 
     let is_select = {
@@ -114,26 +115,50 @@ fn render_item(data: &Data, dir: &Vec<String>, current_item: &Option<String>, it
         }
     };
 
+    let mouse_over_enter = {
+        bind(&item.name)
+            .and(&mouse_over_enable)
+            .and(&data.tab)
+            .call(|item_name, mouse_over_enable, tab| {
+                if *mouse_over_enable {
+                    tab.set_item_select(item_name);
+                }
+            })
+    };
+
     if is_select {
         html!{
-            <div on_click={on_click} css={css_normal(is_select)} dom_ref="active">
+            <div
+                on_click={on_click}
+                css={css_normal(is_select)}
+                dom_ref="active"
+                on_mouse_enter={mouse_over_enter}
+            >
                 {icon_arrow(is_select)}
                 {icon::icon_render(item.dir)}
-                <span css={label_css(item.prirority)}>{remove_prefix(&item.name)}</span>
+                <span css={label_css(item.prirority)}>
+                    {remove_prefix(&item.name)}
+                </span>
             </div>
         }
     } else {
         html!{
-            <div on_click={on_click} css={css_normal(is_select)}>
+            <div
+                on_click={on_click}
+                css={css_normal(is_select)}
+                on_mouse_enter={mouse_over_enter}
+            >
                 {icon_arrow(is_select)}
                 {icon::icon_render(item.dir)}
-                <span css={label_css(item.prirority)}>{remove_prefix(&item.name)}</span>
+                <span css={label_css(item.prirority)}>
+                    {remove_prefix(&item.name)}
+                </span>
             </div>
         }
     }
 }
 
-pub fn list_items(data: &Data, dir: &Vec<String>, current_item: &Option<String>) -> Vec<VDomElement> {
+pub fn list_items(data: &Data, dir: &Vec<String>, current_item: &Option<String>, mouse_over_enable: bool) -> Vec<VDomElement> {
     let current = data.git.dir_list(dir);
 
     let list = match current {
@@ -146,7 +171,7 @@ pub fn list_items(data: &Data, dir: &Vec<String>, current_item: &Option<String>)
     let mut out: Vec<VDomElement> = Vec::new();
 
     for item in (*list).iter() {
-        out.push(render_item(data, dir, current_item, item));
+        out.push(render_item(data, dir, current_item, item, mouse_over_enable));
     }
 
     out

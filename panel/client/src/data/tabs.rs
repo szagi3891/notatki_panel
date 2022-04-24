@@ -119,9 +119,6 @@ pub struct TabPath {
     /// Ta zmienna nie powinna być bezpośrednio modyfikowana z zewnątrz
     item_select: Value<Option<String>>,
 
-    /// Element na który najechano myszą (w lewym panelu)
-    item_hover: Value<Option<String>>,
-
     /// Zawartość bazowego katalogu w formie HashMap z wszystkimi elementami z tego katalogi
     pub dir_hash_map: Computed<Resource<DirList>>,
 
@@ -147,7 +144,6 @@ impl TabPath {
     pub fn new(driver: &Driver, git: &Git) -> TabPath {
         let dir: Value<Vec<String>> = driver.new_value(Vec::new());
         let item: Value<Option<String>> = driver.new_value(None);
-        let item_hover = driver.new_value::<Option<String>>(None);
 
         let dir_hash_map = create_list_hash_map(driver, git, &dir);
         let list = create_list(driver, &dir_hash_map);
@@ -173,7 +169,6 @@ impl TabPath {
             driver: driver.clone(),
             dir_select: dir.clone(),
             item_select: item,
-            item_hover,
             dir_hash_map,
             list,
             current_item,
@@ -181,6 +176,10 @@ impl TabPath {
             current_content,
             open_links,
         }
+    }
+
+    pub fn set_item_select(&self, item: &String) {
+        self.item_select.set_value(Some(item.clone()));
     }
 
     pub fn redirect_after_delete(&self) {
@@ -216,7 +215,6 @@ impl TabPath {
     pub fn redirect_to_dir(&self, path: &Vec<String>) {
         self.dir_select.set_value(path.clone());
         self.item_select.set_value(None);
-        self.item_hover.set_value(None);
     }
 
     pub fn redirect_to_file(&self, path: &Vec<String>) {
