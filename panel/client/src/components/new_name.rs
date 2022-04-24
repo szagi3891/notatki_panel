@@ -67,7 +67,7 @@ impl NewName {
     }
 
     pub fn render(&self, autofocus: bool) -> VDomComponent {
-        VDomComponent::new(self.clone(), move |state: &NewName| {
+        VDomComponent::new(self, move |state: &NewName| {
             render(state, autofocus)
         })
     }

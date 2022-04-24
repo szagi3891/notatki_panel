@@ -37,7 +37,7 @@ impl AppIndexAlertMoveitem {
 }
 
 fn render(state: &AppIndexAlertMoveitem) -> VDomComponent {
-    VDomComponent::new(state.clone(), move |state: &AppIndexAlertMoveitem| {
+    VDomComponent::new(state, move |state: &AppIndexAlertMoveitem| {
         let progress = state.progress.to_computed();
 
         let message = format!("Przenoszenie -> {} ?", state.path.join("/"));

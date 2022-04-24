@@ -70,7 +70,7 @@ impl AppNewcontent {
 
     pub fn render(&self, app: &App) -> VDomComponent {
         app_newcontent_render(
-            self.clone(),
+            &self,
             app.clone()
         )
     }

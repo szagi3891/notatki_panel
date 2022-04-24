@@ -39,21 +39,17 @@ fn css_body() -> Css {
 fn render_textarea(state: &AppEditcontent) -> VDomElement {
     let content = &state.edit_content.get_value();
 
-    let on_input = {
-        let state = state.clone();
-        
-        move |new_value: String| {
-            state.on_input(new_value);
-        }
-    };
+    let on_input = bind(state).call1(|state, new_value| {
+        state.on_input(new_value);
+    });
 
     html! {
         <textarea css={css_body()} on_input={on_input} value={content.as_ref()} />
     }
 }
 
-pub fn app_editcontent_render(app: &App, state: AppEditcontent) -> VDomComponent {
-    let view_textares = VDomComponent::new(state.clone(), render_textarea);
+pub fn app_editcontent_render(app: &App, state: &AppEditcontent) -> VDomComponent {
+    let view_textares = VDomComponent::new(state, render_textarea);
     let app = app.clone();
 
     VDomComponent::new(state, move |state: &AppEditcontent| {

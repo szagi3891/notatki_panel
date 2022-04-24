@@ -226,9 +226,9 @@ fn render_results(search: &AppIndexAlertSearch) -> VDomElement {
 
 pub fn render(search: &AppIndexAlertSearch) -> VDomComponent {
 
-    let results = VDomComponent::new(search.clone(), render_results);
+    let results = VDomComponent::new(search, render_results);
 
-    VDomComponent::new(search.clone(), move |search: &AppIndexAlertSearch| {
+    VDomComponent::new(search, move |search: &AppIndexAlertSearch| {
         let phrase = search.phrase.clone();
         let current_value = phrase.get_value();
 

@@ -193,7 +193,7 @@ fn button(
 
 fn open_links_render(open_links: OpenLinks, default_view: VDomComponent) -> VDomComponent {
 
-    VDomComponent::new(open_links, move |open_links: &OpenLinks| {
+    VDomComponent::new(&open_links, move |open_links: &OpenLinks| {
         let active = open_links.tabs_active.get_value();
         let tabs = open_links.tabs_url.get_value();
 

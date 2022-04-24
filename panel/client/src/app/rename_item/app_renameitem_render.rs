@@ -78,13 +78,12 @@ fn render_textarea(state: &AppRenameitem) -> VDomElement {
     }
 }
 
-pub fn app_renameitem_render(state: AppRenameitem, app: App) -> VDomComponent {
+pub fn app_renameitem_render(state: &AppRenameitem, app: App) -> VDomComponent {
 
-    let view_input = VDomComponent::new(state.clone(), render_input);
-    let view_textarea = VDomComponent::new(state.clone(), render_textarea);
+    let view_input = VDomComponent::new(state, render_input);
+    let view_textarea = VDomComponent::new(state, render_textarea);
 
     VDomComponent::new(state, move |state: &AppRenameitem| {
-        let app = app.clone();
         let path = state.get_full_path();
 
         let mut buttons = vec![

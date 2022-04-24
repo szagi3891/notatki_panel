@@ -60,13 +60,13 @@ fn css_content_content() -> Css {
     //font-size: 20px;
 }
 
-pub fn app_index_render(state_value: AppIndex, app: &App) -> VDomComponent {
+pub fn app_index_render(state_value: &AppIndex, app: &App) -> VDomComponent {
 
     let view_alert = state_value.alert.render();
-    let view_menu = render_menu_state(app, &state_value);
-    let view_header = VDomComponent::new(state_value.clone(), render_header);
-    let view_list = VDomComponent::new(state_value.clone(), render_list);
-    let view_content = VDomComponent::new(state_value.clone(), render_content);
+    let view_menu = render_menu_state(app, state_value);
+    let view_header = VDomComponent::new(state_value, render_header);
+    let view_list = VDomComponent::new(state_value, render_list);
+    let view_content = VDomComponent::new(state_value, render_content);
 
     VDomComponent::new(state_value, move |state_value: &AppIndex| {
         let hook_keydown = {

@@ -51,7 +51,7 @@ impl AppEditcontent {
     }
 
     pub fn render(&self, app: &App) -> VDomComponent {
-        app_editcontent_render(app, self.clone())
+        app_editcontent_render(app, self)
     }
 
     pub fn on_input(&self, new_text: String) {

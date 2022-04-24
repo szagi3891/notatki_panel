@@ -25,7 +25,7 @@ pub fn app_newdir_render(state: AppNewdir, app: App) -> VDomComponent {
 
     let view_new_name = state.new_name.render(true);
 
-    VDomComponent::new(state, move |state| {
+    VDomComponent::new(&state, move |state| {
         let parent_path = state.parent.as_slice().join("/");
 
         let mut buttons = vec!(button("Wróć", bind(&app).call(|app| {

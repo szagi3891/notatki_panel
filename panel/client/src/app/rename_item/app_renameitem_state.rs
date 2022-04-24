@@ -67,7 +67,7 @@ impl AppRenameitem {
     }
 
     pub fn render(&self, app: &App) -> VDomComponent {
-        app_renameitem_render(self.clone(), app.clone())
+        app_renameitem_render(self, app.clone())
     }
 
     pub fn get_full_path(&self) -> String {
