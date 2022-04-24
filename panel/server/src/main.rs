@@ -27,31 +27,17 @@ use poem_openapi::{
     OpenApiService,
     OpenApi,
     payload::{
-        PlainText,
+        // PlainText,
         Html,
     }
 };
 use utils::{
     ErrorProcess, ApiResponseHttp,
-    // create_response,
-    // create_response_message
 };
 
 use std::net::Ipv4Addr;
-// use std::sync::Arc;
-// use axum::{
-//     http::StatusCode,
-//     response::Html,
-//     handler::Handler,
-//     routing::{get, post},
-//     extract::Extension,
-//     Json, Router,
-//     AddExtensionLayer,
-//     routing::get_service,
-// };
 use serde::{Deserialize};
 use std::net::SocketAddr;
-// use tower_http::{services::ServeDir, trace::TraceLayer};
 use poem_openapi::payload::Json;
 
 
@@ -181,10 +167,84 @@ impl App {
         ApiResponseHttp::not_found(format!("missing content {}", hash_id))
     }
 
+    #[oai(method = "post", path = "/save_content")]
+    async fn handler_save_content(
+        &self,
+        json: Json<HandlerSaveContentBody>,
+    ) -> ApiResponseHttp<RootResponse> {
+        let Json(body_request) = json;
+        let result = self.git.save_content(
+            body_request.path,
+            body_request.prev_hash,
+            body_request.new_content
+        ).await;
 
-    //....
+        response_with_root(result)
+    }
+
+
+    #[oai(method = "post", path = "/create_file")]
+    async fn handler_create_file(
+        &self,
+        json: Json<HandlerCreateFileBody>,
+    ) -> ApiResponseHttp<RootResponse> {
+        let Json(body_request) = json;
+        let result = self.git.create_file(
+            body_request.path,
+            body_request.new_name,
+            body_request.new_content
+        ).await;
+
+        response_with_root(result)
+    }
+
+
+    #[oai(method = "post", path = "/create_dir")]
+    async fn handler_create_dir(
+        &self,
+        json: Json<HandlerCreateDirBody>,
+    ) -> ApiResponseHttp<RootResponse> {
+        let Json(body_request) = json;
+        let result = self.git.create_dir(
+            body_request.path,
+            body_request.dir
+        ).await;
+
+        response_with_root(result)
+    }
+
+
+    #[oai(method = "post", path = "/rename_item")]
+    async fn handler_rename_item(
+        &self,
+        json: Json<HandlerRenameItemBody>,
+    ) -> ApiResponseHttp<RootResponse> {
+        let Json(body_request) = json;
+        let result = self.git.rename_item(
+            body_request.path,
+            body_request.prev_name,
+            body_request.prev_hash,
+            body_request.new_name
+        ).await;
+
+        response_with_root(result)
+    }
+
+
+    #[oai(method = "post", path = "/delete_item")]
+    async fn handler_delete_item(
+        &self,
+        json: Json<HandlerDeleteItemBody>,
+    ) -> ApiResponseHttp<RootResponse> {
+        let Json(body_request) = json;
+        let result = self.git.delete_item(
+            body_request.path,
+            body_request.hash,
+        ).await;
+
+        response_with_root(result)
+    }
 }
-
 
 fn response_with_root(result: Result<String, ErrorProcess>) -> ApiResponseHttp<RootResponse> {
     match result {
@@ -199,86 +259,6 @@ fn response_with_root(result: Result<String, ErrorProcess>) -> ApiResponseHttp<R
         }
     }
 }
-
-    //     .route("/save_content", post(handler_save_content))
-// async fn handler_save_content(
-//     Extension(app_state): Extension<Arc<App>>,
-//     Json(body_request): Json<HandlerSaveContentBody>,
-// ) -> (StatusCode, String) {
-
-//     let result = app_state.git.save_content(
-//         body_request.path,
-//         body_request.prev_hash,
-//         body_request.new_content
-//     ).await;
-
-//     response_with_root(result)
-// }
-
-
-    //     .route("/create_file", post(handler_create_file))
-// async fn handler_create_file(
-//     Extension(app_state): Extension<Arc<App>>,
-//     Json(body_request): Json<HandlerCreateFileBody>,
-// ) -> (StatusCode, String) {
-//     let result = app_state.git.create_file(
-//         body_request.path,
-//         body_request.new_name,
-//         body_request.new_content
-//     ).await;
-
-//     response_with_root(result)
-// }
-
-
-    //     .route("/create_dir", post(handler_create_dir))
-// async fn handler_create_dir(
-//     Extension(app_state): Extension<Arc<App>>,
-//     Json(body_request): Json<HandlerCreateDirBody>,
-// ) -> (StatusCode, String) {
-//     let result = app_state.git.create_dir(
-//         body_request.path,
-//         body_request.dir
-//     ).await;
-
-//     response_with_root(result)
-// }
-
-    //     .route("/rename_item", post(handler_rename_item))
-// async fn handler_rename_item(
-//     Extension(app_state): Extension<Arc<App>>,
-//     Json(body_request): Json<HandlerRenameItemBody>,
-// ) -> (StatusCode, String) {
-//     let result = app_state.git.rename_item(
-//         body_request.path,
-//         body_request.prev_name,
-//         body_request.prev_hash,
-//         body_request.new_name
-//     ).await;
-
-//     response_with_root(result)
-// }
-
-
-    //     .route("/delete_item", post(handler_delete_item))
-// async fn handler_delete_item(
-//     Extension(app_state): Extension<Arc<App>>,
-//     Json(body_request): Json<HandlerDeleteItemBody>,
-// ) -> (StatusCode, String) {
-//     let result = app_state.git.delete_item(
-//         body_request.path,
-//         body_request.hash,
-//     ).await;
-
-//     response_with_root(result)
-// }
-
-// async fn error404() -> (StatusCode, String) {
-//     (StatusCode::NOT_FOUND, "aa".into())
-// }
-
-
-
 
 
 #[tokio::main]
@@ -316,10 +296,7 @@ async fn main() {
     Server::new(TcpListener::bind(addr)) //"127.0.0.1:3000"))
         .run(Route::new()
             .nest("/swagger", ui)
-            .nest(
-                "/build",
-                StaticFilesEndpoint::new("./build").show_files_listing(),
-            )
+            .nest("/build", StaticFilesEndpoint::new("./build").show_files_listing())
             .nest_no_strip("/", api_service)
         )
         .await.unwrap();

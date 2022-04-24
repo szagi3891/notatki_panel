@@ -3,7 +3,7 @@
 use serde::{Deserialize, Serialize};
 use poem_openapi::{Object};
 
-pub type TimestampType = u128;
+// pub type TimestampType = u128;
 
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Object)]
