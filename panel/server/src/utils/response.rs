@@ -1,6 +1,9 @@
 use poem_openapi::ApiResponse;
 use poem_openapi::types::{ToJSON, ParseFromJSON};
-use poem_openapi::{payload::Json};
+use poem_openapi::payload::{
+    // Binary,
+    Json
+};
 
 use super::ErrorProcess;
 
@@ -36,17 +39,26 @@ impl<T: Send + ToJSON + ParseFromJSON> ApiResponseHttp<T> {
     pub fn from(value: Result<T, ErrorProcess>) -> ApiResponseHttp<T> {
         match value {
             Ok(value) => ApiResponseHttp::Ok(Json(value)),
-            Err(ErrorProcess::Server { message, context }) => {
-                ApiResponseHttp::Internal(Json(format_message(context, message)))
+            Err(error) => {
+                let (internal, message) = error.to_string();
+                match internal {
+                    true => ApiResponseHttp::Internal(Json(message)),
+                    false => ApiResponseHttp::User(Json(message)),
+                }
             },
-            Err(ErrorProcess::User { message, context }) => {
-                ApiResponseHttp::User(Json(format_message(context, message)))
-            }
         }
     }
 }
 
-fn format_message(context: Vec<String>, message: String) -> String {
-    let context = context.as_slice().join(",");
-    format!("{} context=({})", message, context)
-}
+
+// #[derive(ApiResponse)]
+// enum GetResponse {
+//     #[oai(status = 200)]
+//     #[oai(content_type="")]
+//     ImageFile(
+//         Binary<Vec<u8>>
+//     ),
+
+//     #[oai(status = 404)]
+//     NotFound(PlainText<String>),
+// }

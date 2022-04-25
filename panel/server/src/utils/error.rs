@@ -54,6 +54,17 @@ impl ErrorProcess {
             },
         }
     }
+
+    pub fn to_string(self) -> (bool, String) {
+        match self {
+            ErrorProcess::Server { message, context } => {
+                (true, format_message(context, message))
+            },
+            ErrorProcess::User { message, context } => {
+                (false, format_message(context, message))
+            }
+        }
+    }
 }
 
 impl From<Error> for ErrorProcess {
@@ -64,3 +75,10 @@ impl From<Error> for ErrorProcess {
         }
     }
 }
+
+
+fn format_message(context: Vec<String>, message: String) -> String {
+    let context = context.as_slice().join(",");
+    format!("{} context=({})", message, context)
+}
+

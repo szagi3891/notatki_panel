@@ -48,6 +48,9 @@ pub fn app_newdir_render(state: AppNewdir, app: App) -> VDomComponent {
                     { ..buttons }
                 </div>
                 { view_new_name.clone() }
+
+                <div data-run-module="funkcjaJs">
+                </div>
             </div>
         }
     })
