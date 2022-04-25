@@ -7,7 +7,7 @@ mod open_links;
 mod calculate_next_path;
 
 pub use git::{CurrentContent, DirList};
-pub use tabs::ListItem;
+pub use git::ListItem;
 pub use open_links::OpenLinks;
 
 #[derive(Clone)]

@@ -1,7 +1,6 @@
 use std::rc::Rc;
 
-use vertigo::{Css, VDomElement};
-use vertigo::{css, html};
+use vertigo::{Css, VDomElement, css, html, bind};
 
 use super::AppIndex;
 use crate::components::list_items;
@@ -67,14 +66,11 @@ fn render_content_text(state: &AppIndex, content: &Rc<String>) -> Vec<VDomElemen
                     false => "(otwórz)"
                 };
 
-                let on_click = {
-                    let state = state.clone();
-                    let url = url.clone();
-                    
-                    move || {
+                let on_click = bind(state)
+                    .and(&url)
+                    .call(|state, url| {
                         state.data.tab.open_links.tabs_toogle(url.clone());
-                    }
-                };
+                    });
 
                 let img = if let Some(thumb) = get_thumbnail(url.as_str()) {
                     html! {

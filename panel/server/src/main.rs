@@ -259,17 +259,25 @@ impl App {
             }
         };
 
-        if meta == "webp" {
-            return StaticFileResponse::Ok(
-                Binary(Body::from_vec(content)),
-                None,
-                None,
-                Some(String::from("Content-type: image/webp"))
-            );
+        let header = match meta.as_str() {
+            "webp" => Some("Content-Type: image/webp"),
+            "png" => Some("Content-Type: image/png"),
+            "jpg" => Some("Content-Type: image/jpeg"),
+            "jpeg" => Some("Content-Type: image/jpeg"),
+            _ => None
+        };
+
+        match header {
+            Some(header) => {
+                StaticFileResponse::Ok(
+                    Binary(Body::from_vec(content)),
+                    None,
+                    None,
+                    Some(String::from(header))
+                )
+            },
+            None => StaticFileResponse::NotFound
         }
-    
-        // StaticFileResponse::
-        todo!()
     }
 }
 

@@ -145,13 +145,9 @@ impl App {
         }
     }
 
-
     pub fn render(&self) -> VDomComponent {
-        let open_links = self.data.tab.open_links.clone();
-        
         let app = VDomComponent::new(self, app_render);
-
-        open_links.render(app)
+        self.data.tab.open_links.render(app)
     }
 }
 

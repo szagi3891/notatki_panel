@@ -158,6 +158,15 @@ fn render_item(data: &Data, dir: &Vec<String>, current_item: &Option<String>, it
     }
 }
 
+fn css_image() -> Css {
+    css!("
+        width: 100px;
+        margin: 5px;
+        border:1px solid black;
+        padding: 1px;
+    ")
+}
+
 pub fn list_items(data: &Data, dir: &Vec<String>, current_item: &Option<String>, mouse_over_enable: bool) -> Vec<VDomElement> {
     let current = data.git.dir_list(dir);
 
@@ -169,10 +178,29 @@ pub fn list_items(data: &Data, dir: &Vec<String>, current_item: &Option<String>,
     };
 
     let mut out: Vec<VDomElement> = Vec::new();
+    let mut picture: Vec<VDomElement> = Vec::new();
 
     for item in (*list).iter() {
-        out.push(render_item(data, dir, current_item, item, mouse_over_enable));
+        if mouse_over_enable {
+            out.push(render_item(data, dir, current_item, item, mouse_over_enable));
+        } else {
+            if let Some(ext) = item.get_picture_ext() {
+                let id = item.id.clone();
+                let url = format!("/image/{id}/{ext}");
+
+                picture.push(html! {
+                    <img
+                        css={css_image()}
+                        src={url}
+                    />
+                });
+            } else {
+                out.push(render_item(data, dir, current_item, item, mouse_over_enable));
+            }
+        }
     }
+
+    out.extend(picture.into_iter());
 
     out
 }

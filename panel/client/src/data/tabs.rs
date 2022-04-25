@@ -1,5 +1,5 @@
 use vertigo::{Driver, Resource, Value, Computed};
-use super::{git::{Git}, CurrentContent, open_links::OpenLinks, DirList, calculate_next_path::calculate_next_path};
+use super::{git::{Git, ListItem}, CurrentContent, open_links::OpenLinks, DirList, calculate_next_path::calculate_next_path};
 
 
 fn create_list_hash_map(driver: &Driver, git: &Git, current_path: &Value<Vec<String>>) -> Computed<Resource<DirList>> {
@@ -35,14 +35,6 @@ fn create_list(driver: &Driver, list: &Computed<Resource<DirList>>) -> Computed<
     })
 }
 
-
-
-#[derive(PartialEq, Debug, Clone)]
-pub struct ListItem {
-    pub name: String,
-    pub dir: bool,
-    pub prirority: u8,
-}
 
 fn create_current_item_view(
     driver: &Driver,

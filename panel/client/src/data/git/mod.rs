@@ -10,7 +10,54 @@ pub use node_dir::{Dir, TreeItem};
 pub use node_content::Content;
 pub use root::Root;
 
-use super::ListItem;
+
+fn get_ext(filename: &String) -> Option<String> {
+    use std::path::Path;
+    use std::ffi::OsStr;
+
+    Path::new(filename)
+        .extension()
+        .and_then(OsStr::to_str)
+        .map(|item| item.to_string())
+}
+
+#[test]
+fn extract() {
+    let name1 = String::from("aaaa.webp");
+    let name2 = String::from("aaaa.txt");
+
+    assert_eq!(get_ext(&name1), Some("webp".to_string()));
+    assert_eq!(get_ext(&name2), Some("txt".to_string()));
+}
+
+#[derive(PartialEq, Debug, Clone)]
+pub struct ListItem {
+    pub name: String,
+    pub dir: bool,
+    pub prirority: u8,
+    pub id: String,     //hash tego elementu
+}
+
+impl ListItem {
+    pub fn get_ext(&self) -> Option<String> {
+        get_ext(&self.name)
+    }
+
+    pub fn get_picture_ext(&self) -> Option<String> {
+        let ext = self.get_ext();
+
+        if let Some(ext) = ext {
+            let ext_str = ext.as_str();
+
+            if ext_str == "webp" || ext_str == "jpg" || ext_str == "jpeg" || ext_str == "png" {
+                return Some(ext);
+            }
+        }
+
+        None
+    }
+}
+
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct DirList {
@@ -40,6 +87,7 @@ impl DirList {
                 name: name.clone(),
                 dir: item.dir,
                 prirority: get_list_item_prirority(name),
+                id: item.id.clone(),
             });
         }
 
