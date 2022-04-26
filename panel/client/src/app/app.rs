@@ -46,13 +46,13 @@ impl App {
         let content = self.data.git.content_from_path(&full_path);
 
         match content {
-            CurrentContent::File { file_hash, content, ..} => {
+            CurrentContent::File { file, content, ..} => {
                 log::info!("redirect_to_content {full_path:?}");
 
                 let state = AppEditcontent::new(
                     &self.data,
                     full_path.clone(),
-                    file_hash.clone(),
+                    file.id.clone(),
                     content.as_ref().clone(),
                 );
 

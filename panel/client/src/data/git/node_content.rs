@@ -7,12 +7,6 @@ use vertigo::{
     AutoMap,
 };
 
-#[derive(PartialEq, Clone)]
-pub struct TreeItem {
-    pub dir: bool,
-    pub id: String,
-}
-
 #[derive(Clone)]
 pub struct NodeContent {
     value: Computed<Resource<Rc<String>>>,

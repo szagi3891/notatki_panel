@@ -136,7 +136,7 @@ fn render_item(data: &Data, dir: &Vec<String>, current_item: &Option<String>, it
             >
                 {icon_arrow(is_select)}
                 {icon::icon_render(item.dir)}
-                <span css={label_css(item.prirority)}>
+                <span css={label_css(item.prirority())}>
                     {remove_prefix(&item.name)}
                 </span>
             </div>
@@ -150,7 +150,7 @@ fn render_item(data: &Data, dir: &Vec<String>, current_item: &Option<String>, it
             >
                 {icon_arrow(is_select)}
                 {icon::icon_render(item.dir)}
-                <span css={label_css(item.prirority)}>
+                <span css={label_css(item.prirority())}>
                     {remove_prefix(&item.name)}
                 </span>
             </div>

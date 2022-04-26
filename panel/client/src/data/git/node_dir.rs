@@ -7,15 +7,9 @@ use vertigo::{
     AutoMap,
 };
 
-use super::DirList;
+use super::models::{GitDirList, TreeItem};
 
-#[derive(PartialEq, Clone, Debug)]
-pub struct TreeItem {
-    pub dir: bool,
-    pub id: String,
-}
-
-fn convert(list: HandlerFetchDirResponse) -> DirList {
+fn convert(list: HandlerFetchDirResponse) -> GitDirList {
     let mut out: HashMap<String, TreeItem> = HashMap::new();
 
     for item in list.list.into_iter() {
@@ -23,12 +17,12 @@ fn convert(list: HandlerFetchDirResponse) -> DirList {
         out.insert(name, TreeItem { dir, id });
     }
 
-    DirList::new(Rc::new(out))
+    GitDirList::new(Rc::new(out))
 }
 
 #[derive(Clone)]
 pub struct NodeDir {
-    value: Computed<Resource<DirList>>,
+    value: Computed<Resource<GitDirList>>,
 }
 
 impl NodeDir {
@@ -58,11 +52,11 @@ impl NodeDir {
         }
     }
 
-    pub fn get(&self) -> Rc<Resource<DirList>> {
+    pub fn get(&self) -> Rc<Resource<GitDirList>> {
         self.value.get_value()
     }
 
-    pub fn get_list(&self) -> Resource<DirList> {
+    pub fn get_list(&self) -> Resource<GitDirList> {
         self.get().ref_clone()
     }
 }
@@ -85,7 +79,7 @@ impl Dir {
         }
     }
 
-    pub fn get_list(&self, id: &String) -> Resource<DirList> {
+    pub fn get_list(&self, id: &String) -> Resource<GitDirList> {
         self.data.get_value(id).get_list()
     }
 }

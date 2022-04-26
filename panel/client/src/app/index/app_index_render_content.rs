@@ -132,7 +132,7 @@ pub fn render_content(state: &AppIndex) -> VDomElement {
     let current_content = state.data.tab.current_content.get_value();
 
     match current_content.as_ref() {
-        CurrentContent::File { file_name: _, file_hash: _, content } => {
+        CurrentContent::File { file: _, content } => {
             let out: Vec<VDomElement> = render_content_text(state, content);
 
             html! {
@@ -141,8 +141,8 @@ pub fn render_content(state: &AppIndex) -> VDomElement {
                 </div>
             }
         },
-        CurrentContent::Dir { dir_full, .. } => {
-            render_dir(&state.data, dir_full)
+        CurrentContent::Dir { dir, .. } => {
+            render_dir(&state.data, &dir.full_path())
         },
         CurrentContent::None => {
             html!{

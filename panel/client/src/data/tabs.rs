@@ -1,12 +1,16 @@
 use vertigo::{Driver, Resource, Value, Computed};
-use super::{git::{Git, ListItem}, CurrentContent, open_links::OpenLinks, DirList, calculate_next_path::calculate_next_path};
+use super::{
+    git::{Git, ListItem, CurrentContent},
+    open_links::OpenLinks,
+    calculate_next_path::calculate_next_path, ViewDirList
+};
 
 
-fn create_list_hash_map(driver: &Driver, git: &Git, current_path: &Value<Vec<String>>) -> Computed<Resource<DirList>> {
+fn create_list_hash_map(driver: &Driver, git: &Git, current_path: &Value<Vec<String>>) -> Computed<Resource<ViewDirList>> {
     let git = git.clone();
     let current_path = current_path.to_computed();
 
-    driver.from(move || -> Resource<DirList> {
+    driver.from(move || -> Resource<ViewDirList> {
         let current_path_rc = current_path.get_value();
         let current_path = current_path_rc.as_ref();
 
@@ -15,7 +19,7 @@ fn create_list_hash_map(driver: &Driver, git: &Git, current_path: &Value<Vec<Str
 }
 
 
-fn create_list(driver: &Driver, list: &Computed<Resource<DirList>>) -> Computed<Vec<ListItem>> {
+fn create_list(driver: &Driver, list: &Computed<Resource<ViewDirList>>) -> Computed<Vec<ListItem>> {
     let list = list.clone();
 
     driver.from(move || -> Vec<ListItem> {
@@ -112,7 +116,7 @@ pub struct TabPath {
     item_select: Value<Option<String>>,
 
     /// Zawartość bazowego katalogu w formie HashMap z wszystkimi elementami z tego katalogi
-    pub dir_hash_map: Computed<Resource<DirList>>,
+    pub dir_hash_map: Computed<Resource<ViewDirList>>,
 
     /// Aktualnie wyliczona lista, która jest prezentowana w lewej kolumnie menu
     pub list: Computed<Vec<ListItem>>,

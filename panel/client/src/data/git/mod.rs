@@ -1,200 +1,27 @@
-use std::{collections::HashMap, rc::Rc};
+use std::rc::Rc;
+
 use vertigo::{Driver, Resource};
-use std::cmp::Ordering;
 
 mod node_dir;
 mod node_content;
 mod root;
+mod models;
 
-pub use node_dir::{Dir, TreeItem};
+pub use node_dir::Dir;
 pub use node_content::Content;
 pub use root::Root;
 
-
-fn get_ext(filename: &String) -> Option<String> {
-    use std::path::Path;
-    use std::ffi::OsStr;
-
-    Path::new(filename)
-        .extension()
-        .and_then(OsStr::to_str)
-        .map(|item| item.to_string())
-}
-
-#[test]
-fn extract() {
-    let name1 = String::from("aaaa.webp");
-    let name2 = String::from("aaaa.txt");
-
-    assert_eq!(get_ext(&name1), Some("webp".to_string()));
-    assert_eq!(get_ext(&name2), Some("txt".to_string()));
-}
-
-#[derive(PartialEq, Debug, Clone)]
-pub struct ListItem {
-    pub name: String,
-    pub dir: bool,
-    pub prirority: u8,
-    pub id: String,     //hash tego elementu
-}
-
-impl ListItem {
-    pub fn get_ext(&self) -> Option<String> {
-        get_ext(&self.name)
-    }
-
-    pub fn get_picture_ext(&self) -> Option<String> {
-        let ext = self.get_ext();
-
-        if let Some(ext) = ext {
-            let ext_str = ext.as_str();
-
-            if ext_str == "webp" || ext_str == "jpg" || ext_str == "jpeg" || ext_str == "png" {
-                return Some(ext);
-            }
-        }
-
-        None
-    }
-}
-
-
-#[derive(PartialEq, Clone, Debug)]
-pub struct DirList {
-    list: Rc<HashMap<String, TreeItem>>,
-}
-
-impl DirList {
-    pub fn new(list: Rc<HashMap<String, TreeItem>>) -> DirList {
-        DirList {
-            list
-        }
-    }
-
-    pub fn len(&self) -> usize {
-        self.list.len()
-    }
-
-    pub fn get(&self, current_item: &String) -> Option<&TreeItem> {
-        self.list.get(current_item)
-    }
-
-    pub fn get_list(&self) -> Vec<ListItem> {
-        let mut list_out: Vec<ListItem> = Vec::new();
-
-        for (name, item) in self.list.as_ref() {
-            list_out.push(ListItem {
-                name: name.clone(),
-                dir: item.dir,
-                prirority: get_list_item_prirority(name),
-                id: item.id.clone(),
-            });
-        }
-
-        list_out.sort_by(|a: &ListItem, b: &ListItem| -> Ordering {
-            let a_prirority = get_list_item_prirority(&a.name);
-            let b_prirority = get_list_item_prirority(&b.name);
-
-            if a_prirority == 2 && b_prirority == 2 {
-                if a.dir && !b.dir {
-                    return Ordering::Less;
-                }
-
-                if !a.dir && b.dir {
-                    return Ordering::Greater;
-                }
-            }
-
-            if a_prirority > b_prirority {
-                return Ordering::Less;
-            }
-
-            if a_prirority < b_prirority {
-                return Ordering::Greater;
-            }
-
-            a.name.to_lowercase().cmp(&b.name.to_lowercase())
-        });
-
-        list_out
-    }
-}
-
-fn get_list_item_prirority(name: &String) -> u8 {
-    if name.get(0..2) == Some("__") {
-        return 0
-    }
-
-    if name.get(0..1) == Some("_") {
-        return 2
-    }
-
-    1
-}
-
-
-#[derive(PartialEq, Clone, Debug)]
-pub enum CurrentContent {
-    File {
-        file_name: String,      //name
-        file_hash: String,      //hash
-        content: Rc<String>,    //content file
-    },
-    Dir {
-        dir_full: Vec<String>,  //Pełna ścieka prowadząca do tego katalogu
-        dir: String,            //hash
-        dir_hash: String,
-        list: DirList,
-    },
-    None
-}
-
-impl CurrentContent {
-    fn file(file_name: String, file_hash: String, content: Rc<String>) -> CurrentContent {
-        CurrentContent::File {
-            file_name,
-            file_hash,
-            content,
-        }
-    }
-
-    fn dir(dir_full: Vec<String>, dir: String, dir_hash: String, list: DirList) -> CurrentContent {
-        CurrentContent::Dir {
-            dir_full,
-            dir,
-            dir_hash,
-            list,
-        }
-    }
-
-    // pub fn is_file(&self) -> bool {
-    //     if let Self::File{..} = self {
-    //         true
-    //     } else {
-    //         false
-    //     }
-    // }
-
-    // pub fn is_dir(&self) -> bool {
-    //     if let Self::Dir{..} = self {
-    //         true
-    //     } else {
-    //         false
-    //     }
-    // }
-
-    // pub fn is_none(&self) -> bool {
-    //     if let Self::None = self {
-    //         true
-    //     } else {
-    //         false
-    //     }
-    // }
-}
+pub use models::{
+    GitDirList,
+    TreeItem,
+    CurrentContent,
+    ViewDirList,
+    ListItem
+};
 
 
 
-fn get_item_from_map<'a>(current_wsk: &'a DirList, path_item: &String) -> Resource<&'a TreeItem> {
+fn get_item_from_map<'a>(current_wsk: &'a GitDirList, path_item: &String) -> Resource<&'a TreeItem> {
     let wsk_child = current_wsk.get(path_item);
 
     let wsk_child = match wsk_child {
@@ -207,7 +34,7 @@ fn get_item_from_map<'a>(current_wsk: &'a DirList, path_item: &String) -> Resour
     Resource::Ready(wsk_child)
 }
 
-fn move_pointer(state_data: &Git, list: DirList, path_item: &String) -> Resource<DirList> {
+fn move_pointer(state_data: &Git, list: GitDirList, path_item: &String) -> Resource<GitDirList> {
 
     let child = get_item_from_map(&list, path_item)?;
 
@@ -243,8 +70,7 @@ impl Git {
         }
     }
 
-
-    pub fn dir_list(&self, path: &[String]) -> Resource<DirList> {
+    pub fn dir_list(&self, path: &[String]) -> Resource<ViewDirList> {
         let root_wsk = self.root.get_current_root()?;
 
         let mut result = self.dir.get_list(&root_wsk)?;
@@ -253,7 +79,8 @@ impl Git {
             result = move_pointer(self, result, path_item)?;
         }
 
-        Resource::Ready(result)
+        let base_dir = Rc::new(Vec::from(path));
+        Resource::Ready(ViewDirList::new(base_dir, result))
     }
 
     fn node_content(&self, base_dir: &[String], current_item: &Option<String>) -> Resource<CurrentContent> {
@@ -269,15 +96,28 @@ impl Git {
         let current_value = list.get(current_item);
 
         if let Some(current_value) = current_value {
-            if current_value.dir {
-                let mut dir_full = Vec::from(base_dir);
-                dir_full.push(current_item.clone());
+            let base_dir = Rc::new(Vec::from(base_dir));
 
+            if current_value.dir {
+                let dir = ListItem {
+                    base_dir: base_dir.clone(),
+                    name: current_item.clone(),
+                    dir: true,
+                    id: current_value.id.clone()
+                };
                 let list = self.dir.get_list(&current_value.id)?;
-                return Resource::Ready(CurrentContent::dir(dir_full, current_item.clone(), current_value.id.clone(), list));
+                let dir_list_view = ViewDirList::new(base_dir, list);
+
+                return Resource::Ready(CurrentContent::dir(dir, dir_list_view));
             } else {
+                let file = ListItem {
+                    base_dir,
+                    name: current_item.clone(),
+                    dir: false,
+                    id: current_value.id.clone()
+                };
                 let content = self.content.get(&current_value.id)?;
-                return Resource::Ready(CurrentContent::file(current_item.clone(), current_value.id.clone(), content));
+                return Resource::Ready(CurrentContent::file(file, content));
             }
         }
 
@@ -307,11 +147,11 @@ impl Git {
         let result = self.content_from_path(path);
 
         match result {
-            CurrentContent::File { file_hash, .. } => {
-                Some(file_hash)
+            CurrentContent::File { file, .. } => {
+                Some(file.id)
             },
-            CurrentContent::Dir { dir_hash, .. } => {
-                Some(dir_hash)
+            CurrentContent::Dir { dir, .. } => {
+                Some(dir.id)
             },
             CurrentContent::None => None,
         }
