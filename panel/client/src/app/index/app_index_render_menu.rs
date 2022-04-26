@@ -2,6 +2,7 @@ use vertigo::{
     VDomElement,
     Css,
     Computed, VDomComponent, Driver,
+    bind,
 };
 
 use vertigo::{html, css};
@@ -52,37 +53,21 @@ pub fn render_menu_state(app: &App, app_index: &AppIndex) -> VDomComponent {
 }
 
 fn render_menu(app: &App, app_index: &AppIndex, avaible_delete_button: &Computed<bool>) -> VDomElement {
-    let on_click = {
-        let app = app.clone();
-        
-        move || {
-            app.current_edit();
-        }
-    };
+    let on_click = bind(app).call(|app|{
+        app.current_edit();
+    });
 
-    let on_rename = {
-        let app = app.clone();
+    let on_rename = bind(app).call(|app| {
+        app.current_rename();
+    });
 
-        move || {
-            app.current_rename();
-        }
-    };
+    let on_create = bind(app).call(|app| {
+        app.redirect_to_new_content();
+    });
 
-    let on_create = {
-        let app = app.clone();
-        
-        move || {
-            app.redirect_to_new_content();
-        }
-    };
-
-    let on_mkdir = {
-        let app = app.clone();
-
-        move || {
-            app.redirect_to_mkdir();
-        }
-    };
+    let on_mkdir = bind(app).call(|app| {
+        app.redirect_to_mkdir();
+    });
 
     let mut out = Vec::new();
 
@@ -95,31 +80,22 @@ fn render_menu(app: &App, app_index: &AppIndex, avaible_delete_button: &Computed
 
     if *avaible_delete_button {
         let alert = app_index.alert.clone();
-        let on_delete = {
-            move || {
-                let path = alert.data.tab.full_path.get_value();
-                alert.delete(path);
-            }
-        };
+        let on_delete = bind(&alert).call(|alert| {
+            let path = alert.data.tab.full_path.get_value();
+            alert.delete(path);
+        });
 
         out.push(button("Usuń", on_delete));
     }
 
-    out.push(button("Wyszukaj", {
-        let alert = app_index.alert.clone();
-        move || {
-            alert.redirect_to_search();
-        }
-    }));
+    out.push(button("Wyszukaj", bind(&app_index.alert).call(|alert| {
+        alert.redirect_to_search();
+    })));
 
-    let current_path = app_index.data.tab.full_path.get_value();
-
-    out.push(button("Przenieś", {
-        let alert = app_index.alert.clone();
-        move || {
-            alert.move_current(current_path.clone());
-        }
-    }));
+    out.push(button("Przenieś", bind(app_index).call(|app_index| {
+        let current_path = app_index.data.tab.full_path.get_value();
+        app_index.alert.move_current(current_path.clone());
+    })));
 
     html! {
         <div css={css_footer()}>
