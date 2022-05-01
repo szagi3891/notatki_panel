@@ -3,37 +3,36 @@ use vertigo::{
     Driver,
     Resource,
     Value,
-    Computed,
+    LazyCache,
 };
 
 pub struct RootNode {
-    pub value: Computed<Resource<RootResponse>>,
+    root: LazyCache<RootResponse>,
 }
 
 impl RootNode {
-    fn new(request: &Driver) -> RootNode {
-        let value = request.new_value(Resource::Loading);
-        let value_read = value.to_computed();
-        let response = request.request("/fetch_root").get();
+    fn new(driver: &Driver) -> RootNode {
+        let root = LazyCache::new(driver, 10 * 60 * 60 * 1000, move |driver: Driver| async move {
+            let request = driver
+                .request("/fetch_root")
+                .get();
 
-        request.spawn(async move {
-            let response = response.await.into(|status, body| {
+            request.await.into(|status, body| {
                 if status == 200 {
-                    return Some(body.into::<RootResponse>());
+                    Some(body.into::<RootResponse>())
+                } else {
+                    None
                 }
-                None
-            });
-
-            value.set_value(response);
+            })
         });
 
         RootNode {
-            value: value_read,
+            root,
         }
     }
 
     pub fn get(&self) -> Resource<String> {
-        let handler_root = self.value.get_value();
+        let handler_root = self.root.get_value();
         handler_root.ref_map(|item| item.root.clone())
     }
 }

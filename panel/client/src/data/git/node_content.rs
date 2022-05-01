@@ -3,45 +3,48 @@ use common::{HandlerFetchNodeBody, HandlerFetchNodeResponse};
 use vertigo::{
     Resource,
     Driver,
-    Computed,
-    AutoMap,
+    AutoMap, LazyCache,
 };
 
 #[derive(Clone)]
 pub struct NodeContent {
-    value: Computed<Resource<Rc<String>>>,
+    value: LazyCache<Rc<String>>,
 }
 
 impl NodeContent {
     pub fn new(driver: &Driver, hash: &String) -> NodeContent {
-        let value = driver.new_value(Resource::Loading);
-        let value_read = value.to_computed();
+        let hash = hash.clone();
 
-        let response = driver
-            .request("/fetch_node")
-            .body_json(HandlerFetchNodeBody {
-                hash: hash.clone(),
-            })
-            .post();
+        let response = LazyCache::new(driver, 10 * 60 * 60 * 1000, move |driver: Driver| {
+            let hash = hash.clone();
+            async move {
+                let request = driver
+                    .request("/fetch_node")
+                    .body_json(HandlerFetchNodeBody {
+                        hash: hash.clone(),
+                    })
+                    .post();
 
-
-        driver.spawn(async move {
-            let response = response.await.into(|status, body| {
-                if status == 200 {
-                    return Some(body.into::<HandlerFetchNodeResponse>());
-                }
-                None
-            });
-            value.set_value(response.map(|item| Rc::new(item.content)));
+                request.await.into(|status, body| {
+                    if status == 200 {
+                        let response = body.into::<HandlerFetchNodeResponse>();
+                        Some(response.map(|inner| {
+                            Rc::new(inner.content.clone())
+                        }))
+                    } else {
+                        None
+                    }
+                })
+            }
         });
 
         NodeContent {
-            value: value_read,
+            value: response,
         }
     }
 
     fn get(&self) -> Resource<Rc<String>> {
-        self.value.get_value().ref_clone()
+        self.value.get_value().ref_map(|inner| inner.clone())
     }
 }
 

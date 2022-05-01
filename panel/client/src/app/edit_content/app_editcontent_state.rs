@@ -1,6 +1,6 @@
 
 use common::{HandlerSaveContentBody};
-use vertigo::{Driver, Computed, Value, VDomComponent};
+use vertigo::{Driver, Computed, Value, VDomComponent, bind};
 
 use crate::{app::App, data::Data};
 use super::app_editcontent_render::app_editcontent_render;
@@ -66,15 +66,9 @@ impl AppEditcontent {
     }
 
     pub fn on_save(&self, app: &App) -> impl Fn() {
-        let driver = self.driver.clone();
-        let state = self.clone();
-        let app = app.clone();
-
-        move || {
-            let state = state.clone();
-            let app = app.clone();
-
-            driver.spawn(async move {
+        bind(self)
+            .and(app)
+            .spawn(self.driver.clone(), |state, app| async move {
                         
                 let action_save = state.action_save.get_value();
 
@@ -99,8 +93,7 @@ impl AppEditcontent {
                 log::info!("Zapis udany");
             
                 app.redirect_to_index_with_root_refresh();
-            });
-        }
+            })
     }
 }
 

@@ -1,5 +1,5 @@
 use common::{HandlerCreateFileBody};
-use vertigo::{Driver, Computed, Value, VDomComponent};
+use vertigo::{Driver, Computed, Value, VDomComponent, bind};
 
 use crate::app::App;
 use crate::app::newcontent::app_newcontent_render::app_newcontent_render;
@@ -87,15 +87,9 @@ impl AppNewcontent {
     }
 
     pub fn on_save(&self, app: &App) -> impl Fn() {
-        let driver = self.driver.clone();
-        let state = self.clone();
-        let app = app.clone();
-
-        move || {
-            let state = state.clone();
-            let app = app.clone();
-
-            driver.spawn(async move {
+        bind(self)
+            .and(app)
+            .spawn(self.driver.clone(), |state, app| async move {
                 let action_save = state.action_save.get_value();
 
                 if *action_save {
@@ -123,7 +117,6 @@ impl AppNewcontent {
                 let path_redirect = state.parent.clone(); 
                 log::info!("Zapis udany -> przekierowanie na -> {:?} {:?}", path_redirect, new_name);
                 app.redirect_to_index_with_path(path_redirect, Some(new_name));
-            });
-        }
+            })
     }
 }

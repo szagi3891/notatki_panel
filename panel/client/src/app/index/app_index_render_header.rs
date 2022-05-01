@@ -1,6 +1,7 @@
 use vertigo::{
     VDomElement,
     Css,
+    bind,
 };
 use vertigo::{html, css};
 use super::AppIndex;
@@ -64,13 +65,11 @@ fn create_link(state: &AppIndex, title: String, node_id: Vec<String>, create_css
         };
     }
 
-    let on_click = {
-        let state = state.clone();
-        let node_id = node_id;
-        move || {
+    let on_click = bind(state)
+        .and(&node_id)
+        .call(|state, node_id| {
             state.data.tab.set_path(node_id.clone());
-        }
-    };
+        });
 
     let css = create_css(false);
 

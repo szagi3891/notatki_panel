@@ -4,6 +4,7 @@ use common::{HandlerDeleteItemBody};
 use vertigo::{
     VDomComponent,
     Value,
+    bind,
 };
 use crate::components::AlertBox;
 
@@ -63,12 +64,9 @@ impl AppIndexAlertDelete {
     }
 
     pub fn bind_delete_yes(&self) -> impl Fn() {
-        let driver = self.alert.data.driver.clone();
-        let state = self.clone();
-
-        move || {
-            driver.spawn(state.clone().delete_yes());
-        }
+        bind(self).spawn(self.alert.data.driver.clone(), |state| {
+            state.delete_yes()
+        })
     }
 
     pub fn delete_no(&self) {
@@ -80,11 +78,9 @@ impl AppIndexAlertDelete {
     }
 
     pub fn bind_delete_no(&self) -> impl Fn() {
-        let state = self.clone();
-
-        move || {
+        bind(self).call(|state| {
             state.delete_no();
-        }
+        })
     }
 
     pub fn render(&self) -> VDomComponent {

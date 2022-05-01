@@ -4,17 +4,20 @@ use vertigo::{
     Resource,
     Driver,
     Computed,
-    AutoMap,
+    AutoMap, LazyCache,
 };
 
 use super::models::{GitDirList, TreeItem};
 
-fn convert(list: HandlerFetchDirResponse) -> GitDirList {
+fn convert(list: &HandlerFetchDirResponse) -> GitDirList {
     let mut out: HashMap<String, TreeItem> = HashMap::new();
 
-    for item in list.list.into_iter() {
+    for item in list.list.iter() {
         let GitTreeItem {id, dir, name} = item;
-        out.insert(name, TreeItem { dir, id });
+        out.insert(name.clone(), TreeItem {
+            dir: dir.clone(),
+            id: id.clone(),
+        });
     }
 
     GitDirList::new(Rc::new(out))
@@ -22,38 +25,49 @@ fn convert(list: HandlerFetchDirResponse) -> GitDirList {
 
 #[derive(Clone)]
 pub struct NodeDir {
-    value: Computed<Resource<GitDirList>>,
+    _response: LazyCache<HandlerFetchDirResponse>,
+    list: Computed<Resource<GitDirList>>,
 }
 
 impl NodeDir {
     pub fn new(driver: &Driver, id: &String) -> NodeDir {
-        let value = driver.new_value(Resource::Loading);
-        let value_read = value.to_computed();
+        let id = id.clone();
 
-        let response = driver
-            .request("/fetch_tree_item")
-            .body_json(HandlerFetchDirBody {
-                id: id.clone(),
-            })
-            .post();
+        let response = LazyCache::new(driver, 10 * 60 * 60 * 1000, move |driver: Driver| {
+            let id = id.clone();
+            async move {
+                let request = driver
+                    .request("/fetch_tree_item")
+                    .body_json(HandlerFetchDirBody {
+                        id,
+                    })
+                    .post();
 
-        driver.spawn(async move {
-            let response = response.await.into(|status, body| {
-                if status == 200 {
-                    return Some(body.into::<HandlerFetchDirResponse>());
-                }
-                None
-            });
-            value.set_value(response.map(convert));
+                request.await.into(|status, body| {
+                    if status == 200 {
+                        Some(body.into::<HandlerFetchDirResponse>())
+                    } else {
+                        None
+                    }
+                })
+            }
+        });
+
+        let response2 = response.clone();
+
+        let list = driver.from(move || {
+            let resource = response2.get_value();
+            resource.ref_map(convert)
         });
 
         NodeDir {
-            value: value_read,
+            _response: response,
+            list,
         }
     }
 
     pub fn get(&self) -> Rc<Resource<GitDirList>> {
-        self.value.get_value()
+        self.list.get_value()
     }
 
     pub fn get_list(&self) -> Resource<GitDirList> {

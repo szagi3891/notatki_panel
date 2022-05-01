@@ -1,5 +1,5 @@
 use common::{HandlerCreateDirBody};
-use vertigo::{Driver, Computed, Value, VDomComponent};
+use vertigo::{Driver, Computed, Value, VDomComponent, bind};
 
 use crate::app::App;
 use crate::components::new_name::{self, NewName};
@@ -47,15 +47,9 @@ impl AppNewdir {
     }
 
     pub fn bind_on_save(&self, app: &App) -> impl Fn() {
-        let driver = self.driver.clone();
-        let state = self.clone();
-        let app = app.clone();
-
-        move || {
-            let state = state.clone();
-            let app = app.clone();
-
-            driver.spawn(async move {
+        bind(self)
+            .and(app)
+            .spawn(self.driver.clone(), |state, app| async move {
                 let action_save = state.action_save.get_value();
 
                 if *action_save {
@@ -81,7 +75,6 @@ impl AppNewdir {
                 log::info!("Tworzenie katalogu {:?} udane -> przekierowanie na -> {:?}", new_dir_name, parent_string);
 
                 app.redirect_to_index_with_path(state.parent.clone(), Some(new_dir_name));
-            });
-        }
+            })
     }
 }
