@@ -1,4 +1,4 @@
-use vertigo::{Css, Driver, Resource, VDomElement, Computed, Value, VDomComponent};
+use vertigo::{Css, Driver, Resource, VDomElement, Computed, Value, VDomComponent, bind};
 use vertigo::{css, html};
 use crate::{components::AlertBox, data::{Data}};
 use crate::components::icon;
@@ -39,7 +39,7 @@ fn css_result_icon() -> Css {
     ")
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 struct ResultItem {
     path: Vec<String>,
     dir: bool,
@@ -192,20 +192,20 @@ fn render_results(search: &AppIndexAlertSearch) -> VDomElement {
         let icon_el = icon::icon_render(item.dir);
         let path = item.to_string();
 
-        let on_click = {
-            let search = search.clone();
-            let path = item.path.clone();
-            let dir = item.dir;
+        let on_click = bind(search)
+            .and(item)
+            .call(|search, item| {
+                let path = item.path.clone();
+                let dir = item.dir;
 
-            move || {
                 search.alert.close_modal();
                 if dir {
                     search.alert.data.tab.redirect_to_dir(&path);
                 } else {
                     search.alert.data.tab.redirect_to_file(&path);
                 }
-            }
-        };
+            })
+        ;
 
         list.push(html! {
             <div css={css_result_row()} on_click={on_click}>
@@ -229,22 +229,15 @@ pub fn render(search: &AppIndexAlertSearch) -> VDomComponent {
     let results = VDomComponent::new(search, render_results);
 
     VDomComponent::new(search, move |search: &AppIndexAlertSearch| {
-        let phrase = search.phrase.clone();
-        let current_value = phrase.get_value();
+        let current_value = search.phrase.get_value();
 
-        let on_input = {
-            move |new_value: String| {
-                phrase.set_value(new_value);
-            }
-        };
+        let on_input = bind(search).call1(|search, new_value| {
+            search.phrase.set_value(new_value);
+        });
 
-        let alert_state = search.alert.clone();
-
-        let on_close = {
-            move || {
-                alert_state.close_modal();
-            }
-        };
+        let on_close = bind(search).call(|search| {
+            search.alert.close_modal();
+        });
 
         let content = html! {
             <div css={css_content()}>
