@@ -115,16 +115,23 @@ fn render_item(data: &Data, dir: &Vec<String>, current_item: &Option<String>, it
         }
     };
 
-    let mouse_over_enter = {
-        bind(&item.name)
-            .and(&mouse_over_enable)
-            .and(&data.tab)
-            .call(|item_name, mouse_over_enable, tab| {
-                if *mouse_over_enable {
-                    tab.set_item_select(item_name);
-                }
-            })
-    };
+    let mouse_over_enter = bind(&item.name)
+        .and(&mouse_over_enable)
+        .and(&data.tab)
+        .call(|item_name, mouse_over_enable, tab| {
+            if *mouse_over_enable {
+                tab.hover_on(item_name);
+            }
+        });
+
+    let mouse_over_leave = bind(&item.name)
+        .and(&mouse_over_enable)
+        .and(&data.tab)
+        .call(|item_name, mouse_over_enable, tab| {
+            if *mouse_over_enable {
+                tab.hover_off(item_name);
+            }
+        });
 
     if is_select {
         html!{
@@ -133,6 +140,7 @@ fn render_item(data: &Data, dir: &Vec<String>, current_item: &Option<String>, it
                 css={css_normal(is_select)}
                 dom_ref="active"
                 on_mouse_enter={mouse_over_enter}
+                on_mouse_leave={mouse_over_leave}
             >
                 {icon_arrow(is_select)}
                 {icon::icon_render(item.dir)}
@@ -147,6 +155,7 @@ fn render_item(data: &Data, dir: &Vec<String>, current_item: &Option<String>, it
                 on_click={on_click}
                 css={css_normal(is_select)}
                 on_mouse_enter={mouse_over_enter}
+                on_mouse_leave={mouse_over_leave}
             >
                 {icon_arrow(is_select)}
                 {icon::icon_render(item.dir)}

@@ -124,7 +124,7 @@ impl Git {
         Resource::Ready(CurrentContent::None)
     }
 
-    pub fn get_content(&self, base_dir: &[String], item: &Option<String>) -> CurrentContent {
+    fn get_content(&self, base_dir: &[String], item: &Option<String>) -> CurrentContent {
 
         let result = self.node_content(base_dir, item);
 

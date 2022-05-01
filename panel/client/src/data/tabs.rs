@@ -68,14 +68,18 @@ fn create_current_full_path(
     driver: &Driver,
     current_path_dir: &Value<Vec<String>>,
     list_current_item: &Computed<Option<String>>,
+    item_hover: &Value<Option<String>>,
 ) -> Computed<Vec<String>> {
     let current_path_dir = current_path_dir.clone();
     let list_current_item = list_current_item.clone();
+    let item_hover = item_hover.clone();
 
     driver.from(move || -> Vec<String> {
         let mut current_path_dir = current_path_dir.get_value().as_ref().clone();
 
-        if let Some(list_current_item) = list_current_item.get_value().as_ref() {
+        if let Some(item_hover) = item_hover.get_value().as_ref() {
+            current_path_dir.push(item_hover.clone());
+        } else if let Some(list_current_item) = list_current_item.get_value().as_ref() {
             current_path_dir.push(list_current_item.clone());
         }
 
@@ -86,19 +90,14 @@ fn create_current_full_path(
 fn create_current_content(
     driver: &Driver,
     state_data_git: &Git,
-    current_path_dir: &Value<Vec<String>>,
-    list_current_item: &Computed<Option<String>>
+    full_path: &Computed<Vec<String>>,
 ) -> Computed<CurrentContent> {
 
     let state_data_git = state_data_git.clone();
-    let current_path_dir = current_path_dir.to_computed();
-    let list_current_item = list_current_item.clone();
+    let full_path = full_path.clone();
 
     driver.from(move || -> CurrentContent {
-        let current_path_dir = current_path_dir.get_value();
-        let list_current_item = list_current_item.get_value();
-
-        state_data_git.get_content(current_path_dir.as_ref(), list_current_item.as_ref())
+        state_data_git.content_from_path(full_path.get_value().as_ref())
     })
 }
 
@@ -114,6 +113,9 @@ pub struct TabPath {
     /// Wybrany element z listy
     /// Ta zmienna nie powinna być bezpośrednio modyfikowana z zewnątrz
     item_select: Value<Option<String>>,
+
+    ///Element nad którym znajduje się hover
+    item_hover: Value<Option<String>>,
 
     /// Zawartość bazowego katalogu w formie HashMap z wszystkimi elementami z tego katalogi
     pub dir_hash_map: Computed<Resource<ViewDirList>>,
@@ -140,6 +142,7 @@ impl TabPath {
     pub fn new(driver: &Driver, git: &Git) -> TabPath {
         let dir: Value<Vec<String>> = driver.new_value(Vec::new());
         let item: Value<Option<String>> = driver.new_value(None);
+        let item_hover = driver.new_value(None);
 
         let dir_hash_map = create_list_hash_map(driver, git, &dir);
         let list = create_list(driver, &dir_hash_map);
@@ -151,12 +154,12 @@ impl TabPath {
             driver,
             &dir,
             &current_item,
+            &item_hover,
         );
         let current_content = create_current_content(
             driver,
             git,
-            &dir,
-            &current_item,
+            &full_path,
         );
 
         let open_links = OpenLinks::new(driver);
@@ -165,6 +168,7 @@ impl TabPath {
             driver: driver.clone(),
             dir_select: dir.clone(),
             item_select: item,
+            item_hover,
             dir_hash_map,
             list,
             current_item,
@@ -172,10 +176,6 @@ impl TabPath {
             current_content,
             open_links,
         }
-    }
-
-    pub fn set_item_select(&self, item: &String) {
-        self.item_select.set_value(Some(item.clone()));
     }
 
     pub fn redirect_after_delete(&self) {
@@ -349,4 +349,17 @@ impl TabPath {
         self.set_path(current_path);
     }
 
+    pub fn hover_on(&self, name: &str) {
+        self.item_hover.set_value(Some(name.to_string()));
+    }
+
+    pub fn hover_off(&self, name: &str) {
+        let item_hover = self.item_hover.get_value();
+
+        if let Some(item_hover) = item_hover.as_ref() {
+            if item_hover == name {
+                self.item_hover.set_value(None);
+            }
+        }
+    }
 }
