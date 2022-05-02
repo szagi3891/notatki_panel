@@ -115,7 +115,7 @@ pub struct TabPath {
     item_select: Value<Option<String>>,
 
     ///Element nad którym znajduje się hover
-    item_hover: Value<Option<String>>,
+    pub item_hover: Value<Option<String>>,
 
     /// Zawartość bazowego katalogu w formie HashMap z wszystkimi elementami z tego katalogi
     pub dir_hash_map: Computed<Resource<ViewDirList>>,
@@ -209,16 +209,20 @@ impl TabPath {
     }
 
     pub fn redirect_to_dir(&self, path: &Vec<String>) {
-        self.dir_select.set_value(path.clone());
-        self.item_select.set_value(None);
+        self.driver.transaction(|| {
+            self.dir_select.set_value(path.clone());
+            self.item_select.set_value(None);
+        });
     }
 
     pub fn redirect_to_file(&self, path: &Vec<String>) {
         let mut path = path.clone();
         let last = path.pop();
 
-        self.dir_select.set_value(path);
-        self.item_select.set_value(last);
+        self.driver.transaction(|| {
+            self.dir_select.set_value(path);
+            self.item_select.set_value(last);
+        });
     }
 
     pub fn redirect_to(&self, dir: Vec<String>, item: Option<String>) {

@@ -26,41 +26,42 @@ fn dom_apply(node_refs: &NodeRefs) {
         node_refs.expect_one("wrapper"),
         node_refs.expect_one("active")
     ) {
-        // let wrapper_rect = wrapper.get_bounding_client_rect();
-        // let active_rect = active.get_bounding_client_rect();
-
         let active_rect_y = active.get_bounding_client_rect_y();
-        let active_rect_height = active.get_bounding_client_rect_height();
+        let active_rect_height = active.get_bounding_client_rect_height() as i32;
 
         let wrapper_rect_y = wrapper.get_bounding_client_rect_y();
-        let wrapper_rect_height = wrapper.get_bounding_client_rect_height();
+        let wrapper_rect_height = wrapper.get_bounding_client_rect_height() as i32;
+
+        //Wybrany element znajduje się w obszarze widoku, nic nie trzeba korygować
+        if active_rect_y > wrapper_rect_y && active_rect_y < wrapper_rect_y + wrapper_rect_height {
+            return;
+        }
 
         if active_rect_y < wrapper_rect_y {
             let offset = wrapper_rect_y - active_rect_y;
 
             let scroll_top = wrapper.scroll_top();
-            wrapper.set_scroll_top(scroll_top - offset as i32);
+            wrapper.set_scroll_top(scroll_top - offset);
             return;
         }
 
-        let wrapper_y2 = wrapper_rect_y + wrapper_rect_height as i32;
-        let active_y2 = active_rect_y + active_rect_height as i32;
+        let wrapper_y2 = wrapper_rect_y + wrapper_rect_height;
+        let active_y2 = active_rect_y + active_rect_height;
 
         if active_y2 > wrapper_y2 {
             let offset = active_y2 - wrapper_y2;
 
             let scroll_top = wrapper.scroll_top();
-            wrapper.set_scroll_top(scroll_top + offset as i32);
+            wrapper.set_scroll_top(scroll_top + offset);
             return;
         }
     }
 }
 
-pub fn render_list(state: &AppIndex) -> VDomElement {    
+pub fn render_list(state: &AppIndex) -> VDomElement {
     let dir = state.data.tab.dir_select.get_value();
-    let current_item = state.data.tab.current_item.get_value();
 
-    let out = list_items(&state.data, dir.as_ref(), current_item.as_ref(), true);
+    let out = list_items(&state.data, dir.as_ref(), true);
 
     html! {
         <div css={css_wrapper()} dom_ref="wrapper" dom_apply={dom_apply}>

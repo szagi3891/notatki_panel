@@ -119,7 +119,7 @@ fn render_dir(data: &Data, dir: &Vec<String>) -> VDomElement {
     //     })
     // }
 
-    let result = list_items(data, dir, &None, false);
+    let result = list_items(data, dir, false);
 
     html! {
         <div css={css_content_dir()}>

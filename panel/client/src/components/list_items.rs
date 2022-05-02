@@ -1,13 +1,13 @@
 use vertigo::{
     html, css, Css,
     VDomElement, Resource,
-    bind
+    bind, VDomComponent
 };
 use crate::data::{Data, ListItem};
 use crate::components::icon;
 
 
-fn css_normal(is_select: bool) -> Css {
+fn css_normal(is_select: bool, is_hover: bool) -> Css {
     let css = css!("
         display: flex;
         border-bottom: 1px solid #c0c0c0;
@@ -19,6 +19,10 @@ fn css_normal(is_select: bool) -> Css {
     if is_select {
         return css.push_str("
             background-color: #c0c0c0;
+        ");
+    } else if is_hover {
+        return css.push_str("
+            background-color: #03fc7740;
         ");
     }
 
@@ -90,7 +94,26 @@ fn label_css(prirority: u8) -> Css {
     ")
 }
 
-fn render_item(data: &Data, dir: &Vec<String>, current_item: &Option<String>, item: &ListItem, mouse_over_enable: bool) -> VDomElement {
+fn render_item(data: &Data, dir: &Vec<String>, item: &ListItem, mouse_over_enable: bool) -> VDomElement {
+    let current_item = data.tab.current_item.get_value();
+    let current_hover = data.tab.item_hover.get_value();
+
+    let is_select = {
+        if let Some(list_pointer) = current_item.as_ref() {
+            item.name == *list_pointer
+        } else {
+            false
+        }
+    };
+
+    let is_hover = {
+        if let Some(hover) = current_hover.as_ref() {
+            *hover == item.name
+        } else {
+            false
+        }
+    };
+
     let on_click = {
         let mut path = dir.clone();
         path.push(item.name.clone());
@@ -105,14 +128,6 @@ fn render_item(data: &Data, dir: &Vec<String>, current_item: &Option<String>, it
                     tab.redirect_to_file(&path);
                 } 
             })
-    };
-
-    let is_select = {
-        if let Some(list_pointer) = current_item.as_ref() {
-            item.name == *list_pointer
-        } else {
-            false
-        }
     };
 
     let mouse_over_enter = bind(&item.name)
@@ -137,7 +152,7 @@ fn render_item(data: &Data, dir: &Vec<String>, current_item: &Option<String>, it
         html!{
             <div
                 on_click={on_click}
-                css={css_normal(is_select)}
+                css={css_normal(is_select, is_hover)}
                 dom_ref="active"
                 on_mouse_enter={mouse_over_enter}
                 on_mouse_leave={mouse_over_leave}
@@ -153,7 +168,7 @@ fn render_item(data: &Data, dir: &Vec<String>, current_item: &Option<String>, it
         html!{
             <div
                 on_click={on_click}
-                css={css_normal(is_select)}
+                css={css_normal(is_select, is_hover)}
                 on_mouse_enter={mouse_over_enter}
                 on_mouse_leave={mouse_over_leave}
             >
@@ -176,7 +191,7 @@ fn css_image() -> Css {
     ")
 }
 
-pub fn list_items(data: &Data, dir: &Vec<String>, current_item: &Option<String>, mouse_over_enable: bool) -> Vec<VDomElement> {
+pub fn list_items(data: &Data, dir: &Vec<String>, mouse_over_enable: bool) -> Vec<VDomComponent> {
     let current = data.git.dir_list(dir);
 
     let list = match current {
@@ -186,25 +201,40 @@ pub fn list_items(data: &Data, dir: &Vec<String>, current_item: &Option<String>,
         }
     };
 
-    let mut out: Vec<VDomElement> = Vec::new();
-    let mut picture: Vec<VDomElement> = Vec::new();
+    let mut out: Vec<VDomComponent> = Vec::new();
+    let mut picture: Vec<VDomComponent> = Vec::new();
 
-    for item in (*list).iter() {
+    for item in list.iter() {
         if mouse_over_enable {
-            out.push(render_item(data, dir, current_item, item, mouse_over_enable));
+            let data = data.clone();
+            let dir = dir.clone();
+            let item = item.clone();
+
+            out.push(VDomComponent::from_fn(move || {
+                render_item(&data, &dir, &item, mouse_over_enable)
+            }));
+
         } else {
             if let Some(ext) = item.get_picture_ext() {
                 let id = item.id.clone();
                 let url = format!("/image/{id}/{ext}");
 
-                picture.push(html! {
-                    <img
-                        css={css_image()}
-                        src={url}
-                    />
-                });
+                picture.push(VDomComponent::from_fn(move || {
+                    html!{
+                        <img
+                            css={css_image()}
+                            src={&url}
+                        />
+                    }
+                }));
             } else {
-                out.push(render_item(data, dir, current_item, item, mouse_over_enable));
+                let data = data.clone();
+                let dir = dir.clone();
+                let item = item.clone();
+
+                out.push(VDomComponent::from_fn(move || {
+                    render_item(&data, &dir, &item, mouse_over_enable)
+                }));
             }
         }
     }
