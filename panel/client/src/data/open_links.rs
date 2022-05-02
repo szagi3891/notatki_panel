@@ -1,6 +1,5 @@
 use vertigo::{
-    Value,
-    Driver, VDomComponent, html, css, VDomElement, Css, bind,
+    Value, VDomComponent, html, css, VDomElement, Css, bind,
 };
 
 #[derive(Clone)]
@@ -10,9 +9,9 @@ pub struct OpenLinks {
 }
 
 impl OpenLinks {
-    pub fn new(driver: &Driver) -> OpenLinks {
-        let tabs_url = driver.new_value(Vec::new());
-        let tabs_active = driver.new_value(None);
+    pub fn new() -> OpenLinks {
+        let tabs_url = Value::new(Vec::new());
+        let tabs_active = Value::new(None);
 
         OpenLinks {
             tabs_url,

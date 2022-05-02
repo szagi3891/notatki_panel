@@ -1,4 +1,4 @@
-use vertigo::{Driver, Resource, Value, Computed};
+use vertigo::{Resource, Value, Computed, get_driver};
 use super::{
     git::{Git, ListItem, CurrentContent},
     open_links::OpenLinks,
@@ -6,11 +6,11 @@ use super::{
 };
 
 
-fn create_list_hash_map(driver: &Driver, git: &Git, current_path: &Value<Vec<String>>) -> Computed<Resource<ViewDirList>> {
+fn create_list_hash_map(git: &Git, current_path: &Value<Vec<String>>) -> Computed<Resource<ViewDirList>> {
     let git = git.clone();
     let current_path = current_path.to_computed();
 
-    driver.from(move || -> Resource<ViewDirList> {
+    Computed::from(move || -> Resource<ViewDirList> {
         let current_path_rc = current_path.get_value();
         let current_path = current_path_rc.as_ref();
 
@@ -19,10 +19,10 @@ fn create_list_hash_map(driver: &Driver, git: &Git, current_path: &Value<Vec<Str
 }
 
 
-fn create_list(driver: &Driver, list: &Computed<Resource<ViewDirList>>) -> Computed<Vec<ListItem>> {
+fn create_list(list: &Computed<Resource<ViewDirList>>) -> Computed<Vec<ListItem>> {
     let list = list.clone();
 
-    driver.from(move || -> Vec<ListItem> {
+    Computed::from(move || -> Vec<ListItem> {
         match list.get_value().as_ref() {
             Resource::Ready(current_view) => {
                 current_view.get_list()
@@ -41,14 +41,13 @@ fn create_list(driver: &Driver, list: &Computed<Resource<ViewDirList>>) -> Compu
 
 
 fn create_current_item_view(
-    driver: &Driver,
     current_item: &Value<Option<String>>,
     list: &Computed<Vec<ListItem>>
 ) -> Computed<Option<String>> {
     let current_item = current_item.clone();
     let list = list.clone();
 
-    driver.from(move || -> Option<String> {
+    Computed::from(move || -> Option<String> {
         let current_item = current_item.get_value();
 
         if let Some(current_item) = current_item.as_ref() {
@@ -65,7 +64,6 @@ fn create_current_item_view(
 }
 
 fn create_current_full_path(
-    driver: &Driver,
     current_path_dir: &Value<Vec<String>>,
     list_current_item: &Computed<Option<String>>,
     item_hover: &Value<Option<String>>,
@@ -74,7 +72,7 @@ fn create_current_full_path(
     let list_current_item = list_current_item.clone();
     let item_hover = item_hover.clone();
 
-    driver.from(move || -> Vec<String> {
+    Computed::from(move || -> Vec<String> {
         let mut current_path_dir = current_path_dir.get_value().as_ref().clone();
 
         if let Some(item_hover) = item_hover.get_value().as_ref() {
@@ -88,7 +86,6 @@ fn create_current_full_path(
 }
 
 fn create_current_content(
-    driver: &Driver,
     state_data_git: &Git,
     full_path: &Computed<Vec<String>>,
 ) -> Computed<CurrentContent> {
@@ -96,7 +93,7 @@ fn create_current_content(
     let state_data_git = state_data_git.clone();
     let full_path = full_path.clone();
 
-    driver.from(move || -> CurrentContent {
+    Computed::from(move || -> CurrentContent {
         state_data_git.content_from_path(full_path.get_value().as_ref())
     })
 }
@@ -105,8 +102,6 @@ fn create_current_content(
 
 #[derive(Clone)]
 pub struct TabPath {
-    driver: Driver,
-
     /// Bazowy katalog który został wybrany
     pub dir_select: Value<Vec<String>>,
 
@@ -139,33 +134,30 @@ pub struct TabPath {
 }
 
 impl TabPath {
-    pub fn new(driver: &Driver, git: &Git) -> TabPath {
-        let dir: Value<Vec<String>> = driver.new_value(Vec::new());
-        let item: Value<Option<String>> = driver.new_value(None);
-        let item_hover = driver.new_value(None);
+    pub fn new(git: &Git) -> TabPath {
+        let dir: Value<Vec<String>> = Value::new(Vec::new());
+        let item: Value<Option<String>> = Value::new(None);
+        let item_hover = Value::new(None);
 
-        let dir_hash_map = create_list_hash_map(driver, git, &dir);
-        let list = create_list(driver, &dir_hash_map);
+        let dir_hash_map = create_list_hash_map(git, &dir);
+        let list = create_list(&dir_hash_map);
 
 
-        let current_item = create_current_item_view(driver, &item, &list);
+        let current_item = create_current_item_view(&item, &list);
 
         let full_path = create_current_full_path(
-            driver,
             &dir,
             &current_item,
             &item_hover,
         );
         let current_content = create_current_content(
-            driver,
             git,
             &full_path,
         );
 
-        let open_links = OpenLinks::new(driver);
+        let open_links = OpenLinks::new();
 
         TabPath {
-            driver: driver.clone(),
             dir_select: dir.clone(),
             item_select: item,
             item_hover,
@@ -209,7 +201,7 @@ impl TabPath {
     }
 
     pub fn redirect_to_dir(&self, path: &Vec<String>) {
-        self.driver.transaction(|| {
+        get_driver().transaction(|| {
             self.dir_select.set_value(path.clone());
             self.item_select.set_value(None);
         });
@@ -219,14 +211,14 @@ impl TabPath {
         let mut path = path.clone();
         let last = path.pop();
 
-        self.driver.transaction(|| {
+        get_driver().transaction(|| {
             self.dir_select.set_value(path);
             self.item_select.set_value(last);
         });
     }
 
     pub fn redirect_to(&self, dir: Vec<String>, item: Option<String>) {
-        self.driver.transaction(move || {
+        get_driver().transaction(move || {
             self.dir_select.set_value(dir);
             self.item_select.set_value(item);
         });
@@ -242,7 +234,7 @@ impl TabPath {
     
         let (new_current_path, new_current_item_value) = calculate_next_path(current_path.as_ref(), path);
 
-        self.driver.transaction(||{
+        get_driver().transaction(||{
             self.dir_select.set_value(new_current_path);
             self.item_select.set_value(new_current_item_value);
         });

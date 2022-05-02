@@ -24,7 +24,7 @@ pub struct AppIndexAlert {
 
 impl AppIndexAlert {
     pub fn new(data: Data) -> AppIndexAlert {
-        let view = data.driver.new_value(AlertView::None);
+        let view = Value::new(AlertView::None);
 
         AppIndexAlert {
             data: data.clone(),

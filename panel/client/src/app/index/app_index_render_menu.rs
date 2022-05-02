@@ -1,7 +1,7 @@
 use vertigo::{
     VDomElement,
     Css,
-    Computed, VDomComponent, Driver,
+    Computed, VDomComponent,
     bind,
 };
 
@@ -22,11 +22,10 @@ fn css_footer() -> Css {
 
 
 fn create_avaible_delete_current(
-    driver: &Driver,
     current_content: Computed<CurrentContent>
 ) -> Computed<bool> {
 
-    driver.from(move || -> bool {
+    Computed::from(move || -> bool {
         let current = current_content.get_value();
 
         match current.as_ref() {
@@ -40,7 +39,6 @@ fn create_avaible_delete_current(
 
 pub fn render_menu_state(app: &App, app_index: &AppIndex) -> VDomComponent {
     let avaible_delete_button= create_avaible_delete_current(
-        &app_index.data.driver,
         app_index.data.tab.current_content.clone()
     );
 

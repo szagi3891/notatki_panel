@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use vertigo::{Driver, Resource};
+use vertigo::Resource;
 
 mod node_dir;
 mod node_content;
@@ -50,20 +50,18 @@ fn move_pointer(state_data: &Git, list: GitDirList, path_item: &String) -> Resou
 
 #[derive(Clone)]
 pub struct Git {
-    pub driver: Driver,
     pub dir: Dir,
     pub content: Content,
     pub root: Root
 }
 
 impl Git {
-    pub fn new(driver: &Driver) -> Git {
-        let dir = Dir::new(driver);
-        let content = Content::new(driver);
-        let root = Root::new(driver);
+    pub fn new() -> Git {
+        let dir = Dir::new();
+        let content = Content::new();
+        let root = Root::new();
 
         Git {
-            driver: driver.clone(),
             dir,
             content,
             root,

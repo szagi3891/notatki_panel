@@ -4,7 +4,7 @@ use common::{HandlerDeleteItemBody};
 use vertigo::{
     VDomComponent,
     Value,
-    bind,
+    bind, get_driver,
 };
 use crate::components::AlertBox;
 
@@ -19,7 +19,7 @@ pub struct AppIndexAlertDelete {
 
 impl AppIndexAlertDelete {
     pub fn new(alert: &AppIndexAlert, full_path: &Rc<Vec<String>>) -> AppIndexAlertDelete {
-        let progress: Value<bool> = alert.data.driver.new_value(false);
+        let progress: Value<bool> = Value::new(false);
 
         AppIndexAlertDelete {
             full_path: full_path.clone(),
@@ -47,7 +47,7 @@ impl AppIndexAlertDelete {
         log::info!("usuwamy ...");
         self.progress.set_value(true);
 
-        let _ = self.alert.data.driver
+        let _ = get_driver()
             .request("/delete_item")
             .body_json(HandlerDeleteItemBody {
                 path: current_path,
@@ -64,7 +64,7 @@ impl AppIndexAlertDelete {
     }
 
     pub fn bind_delete_yes(&self) -> impl Fn() {
-        bind(self).spawn(self.alert.data.driver.clone(), |state| {
+        bind(self).spawn(|state| {
             state.delete_yes()
         })
     }

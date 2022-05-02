@@ -1,14 +1,12 @@
 
 use common::{HandlerSaveContentBody};
-use vertigo::{Driver, Computed, Value, VDomComponent, bind};
+use vertigo::{Computed, Value, VDomComponent, bind, get_driver};
 
-use crate::{app::App, data::Data};
+use crate::{app::App};
 use super::app_editcontent_render::app_editcontent_render;
 
 #[derive(Clone)]
 pub struct AppEditcontent {
-    pub driver: Driver,
-
     pub path: Vec<String>,          //edutowany element
     pub hash: String,               //hash poprzedniej zawartosci
 
@@ -19,28 +17,25 @@ pub struct AppEditcontent {
 
 impl AppEditcontent {
     pub fn new(
-        data: &Data,
         path: Vec<String>,
         hash: String,
         content: String,
     ) -> AppEditcontent {
-        let edit_content = data.driver.new_value(content.clone());
+        let edit_content = Value::new(content.clone());
 
         let save_enable = {
             let edit_content = edit_content.to_computed();
 
-            data.driver.from(move || -> bool {
+            Computed::from(move || -> bool {
                 let edit_content = edit_content.get_value();
                 let save_enabled = edit_content.as_ref() != &content;
                 save_enabled
             })
         };
 
-        let action_save = data.driver.new_value(false);
+        let action_save = Value::new(false);
 
         AppEditcontent {
-            driver: data.driver.clone(),
-
             path,
             hash,
 
@@ -68,7 +63,7 @@ impl AppEditcontent {
     pub fn on_save(&self, app: &App) -> impl Fn() {
         bind(self)
             .and(app)
-            .spawn(self.driver.clone(), |state, app| async move {
+            .spawn(|state, app| async move {
                         
                 let action_save = state.action_save.get_value();
 
@@ -85,7 +80,7 @@ impl AppEditcontent {
                     new_content: (*state.edit_content.get_value()).clone(),
                 };
 
-                let _ = state.driver
+                let _ = get_driver()
                     .request("/save_content")
                     .body_json(body)
                     .post().await;

@@ -1,5 +1,5 @@
 use common::{HandlerCreateDirBody};
-use vertigo::{Driver, Computed, Value, VDomComponent, bind};
+use vertigo::{Computed, Value, VDomComponent, bind, get_driver};
 
 use crate::app::App;
 use crate::components::new_name::{self, NewName};
@@ -9,8 +9,6 @@ use super::app_newdir_render::app_newdir_render;
 
 #[derive(Clone)]
 pub struct AppNewdir {
-    pub driver: Driver,
-
     pub action_save: Value<bool>,
 
     pub parent: Vec<String>,
@@ -22,18 +20,13 @@ pub struct AppNewdir {
 impl AppNewdir {
     pub fn new(data: &Data) -> AppNewdir {
         log::info!("buduję stan dla new dir");
-        let action_save = data.driver.new_value(false);
+        let action_save = Value::new(false);
         let list = data.tab.list.clone();
         let parent = data.tab.dir_select.clone().get_value();
 
-        let new_name = new_name::NewName::new(
-            &data.driver,
-            list,
-        );
+        let new_name = new_name::NewName::new(list);
 
         AppNewdir {
-            driver: data.driver.clone(),
-
             action_save,
 
             parent: parent.as_ref().clone(),
@@ -49,7 +42,7 @@ impl AppNewdir {
     pub fn bind_on_save(&self, app: &App) -> impl Fn() {
         bind(self)
             .and(app)
-            .spawn(self.driver.clone(), |state, app| async move {
+            .spawn(|state, app| async move {
                 let action_save = state.action_save.get_value();
 
                 if *action_save {
@@ -66,7 +59,7 @@ impl AppNewdir {
                     dir: new_dir_name.clone(),
                 };
 
-                let _ = state.driver
+                let _ = get_driver()
                     .request("/create_dir")
                     .body_json(body)
                     .post().await;

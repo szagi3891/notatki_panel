@@ -2,9 +2,8 @@ use std::{collections::HashMap, rc::Rc};
 use common::{GitTreeItem, HandlerFetchDirBody, HandlerFetchDirResponse};
 use vertigo::{
     Resource,
-    Driver,
     Computed,
-    AutoMap, LazyCache,
+    AutoMap, LazyCache, get_driver,
 };
 
 use super::models::{GitDirList, TreeItem};
@@ -30,13 +29,13 @@ pub struct NodeDir {
 }
 
 impl NodeDir {
-    pub fn new(driver: &Driver, id: &String) -> NodeDir {
+    pub fn new(id: &String) -> NodeDir {
         let id = id.clone();
 
-        let response = LazyCache::new(driver, 10 * 60 * 60 * 1000, move |driver: Driver| {
+        let response = LazyCache::new(10 * 60 * 60 * 1000, move || {
             let id = id.clone();
             async move {
-                let request = driver
+                let request = get_driver()
                     .request("/fetch_tree_item")
                     .body_json(HandlerFetchDirBody {
                         id,
@@ -55,7 +54,7 @@ impl NodeDir {
 
         let response2 = response.clone();
 
-        let list = driver.from(move || {
+        let list = Computed::from(move || {
             let resource = response2.get_value();
             resource.ref_map(convert)
         });
@@ -81,12 +80,8 @@ pub struct Dir {
 }
 
 impl Dir {
-    pub fn new(driver: &Driver) -> Dir {
-        let data = {
-            let request = driver.clone();
-
-            AutoMap::new(move |id: &String| NodeDir::new(&request, id))
-        };
+    pub fn new() -> Dir {
+        let data = AutoMap::new(move |id: &String| NodeDir::new(id));
 
         Dir {
             data

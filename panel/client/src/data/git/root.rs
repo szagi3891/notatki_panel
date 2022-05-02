@@ -1,9 +1,8 @@
 use common::RootResponse;
 use vertigo::{
-    Driver,
     Resource,
     Value,
-    LazyCache,
+    LazyCache, get_driver,
 };
 
 pub struct RootNode {
@@ -11,9 +10,9 @@ pub struct RootNode {
 }
 
 impl RootNode {
-    fn new(driver: &Driver) -> RootNode {
-        let root = LazyCache::new(driver, 10 * 60 * 60 * 1000, move |driver: Driver| async move {
-            let request = driver
+    fn new() -> RootNode {
+        let root = LazyCache::new(10 * 60 * 60 * 1000, move || async move {
+            let request = get_driver()
                 .request("/fetch_root")
                 .get();
 
@@ -39,18 +38,16 @@ impl RootNode {
 
 #[derive(Clone)]
 pub struct Root {
-    driver: Driver,
     pub current: Value<RootNode>,
     //list: Value<VecDeque<RootNode>>,      //todo zaimplementowach historie, zeby zniwelowac ilosc migań
 }
 
 impl Root {
-    pub fn new(driver: &Driver) -> Root {
-        let current = RootNode::new(driver);
-        let current = driver.new_value(current);
+    pub fn new() -> Root {
+        let current = RootNode::new();
+        let current = Value::new(current);
        
         Root {
-            driver: driver.clone(),
             current,
         }
     }
@@ -61,7 +58,7 @@ impl Root {
     }
 
     pub fn refresh(&self) {
-        let current = RootNode::new(&self.driver);
+        let current = RootNode::new();
         self.current.set_value(current);
     }
 }

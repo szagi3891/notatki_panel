@@ -1,8 +1,5 @@
 use vertigo::{VDomComponent, VDomElement, html};
-use vertigo::{
-    Driver,
-    Value,
-};
+use vertigo::Value;
 use crate::data::{CurrentContent};
 use crate::data::Data;
 
@@ -28,10 +25,10 @@ pub struct App {
 }
 
 impl App {
-    pub fn new(driver: &Driver) -> App {
-        let data = Data::new(driver);
+    pub fn new() -> App {
+        let data = Data::new();
 
-        let view = driver.new_value(View::Index {
+        let view = Value::new(View::Index {
             state: AppIndex::new(&data)
         });
 
@@ -50,7 +47,6 @@ impl App {
                 log::info!("redirect_to_content {full_path:?}");
 
                 let state = AppEditcontent::new(
-                    &self.data,
                     full_path.clone(),
                     file.id.clone(),
                     content.as_ref().clone(),
@@ -80,7 +76,6 @@ impl App {
                 log::info!("redirect_to_rename_item {base_path:?} {select_item:?}");
 
                 let state = AppRenameitem::new(
-                    &self.data,
                     base_path.clone(),
                     select_item,
                     content_hash,

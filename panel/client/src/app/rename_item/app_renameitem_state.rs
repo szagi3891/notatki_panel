@@ -1,14 +1,12 @@
 use common::{HandlerRenameItemBody};
-use vertigo::{Driver, Computed, Value, VDomComponent};
+use vertigo::{Computed, Value, VDomComponent, get_driver};
 
-use crate::{app::App, data::Data};
+use crate::app::App;
 
 use super::app_renameitem_render::app_renameitem_render;
 
 #[derive(Clone)]
 pub struct AppRenameitem {
-    driver: Driver,
-
     pub path: Vec<String>,          //edutowany element
     pub prev_name: String,
     pub prev_hash: String,               //hash poprzedniej zawartosci
@@ -22,19 +20,18 @@ pub struct AppRenameitem {
 
 impl AppRenameitem {
     pub fn new(
-        data: &Data,
         path: Vec<String>,
         prev_name: String,
         prev_hash: String,
         prev_content: Option<String>,
     ) -> AppRenameitem {
-        let new_name = data.driver.new_value(prev_name.clone());
+        let new_name = Value::new(prev_name.clone());
 
         let save_enable = {
             let prev_name = prev_name.clone();
             let new_name = new_name.to_computed();
 
-            data.driver.from(move || -> bool {
+            Computed::from(move || -> bool {
                 let new_name = new_name.get_value();
                 
                 if new_name.as_ref().trim() == "" {
@@ -49,11 +46,9 @@ impl AppRenameitem {
             })
         };
 
-        let action_save = data.driver.new_value(false);
+        let action_save = Value::new(false);
 
         AppRenameitem {
-            driver: data.driver.clone(),
-
             path,
             prev_name,
             prev_hash,
@@ -108,7 +103,7 @@ impl AppRenameitem {
             new_name: (*self.new_name.get_value()).clone(),
         };
 
-        let _ = self.driver
+        let _ = get_driver()
             .request("/rename_item")
             .body_json(body)
             .post()

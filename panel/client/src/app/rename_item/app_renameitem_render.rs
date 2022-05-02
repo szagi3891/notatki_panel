@@ -95,9 +95,7 @@ pub fn app_renameitem_render(state: &AppRenameitem, app: App) -> VDomComponent {
         let save_enable = state.save_enable.get_value();
 
         if *save_enable {
-            let driver = app.data.driver.clone();
-
-            let on_save = bind(state).and(&app).spawn(driver, move |state, app| {
+            let on_save = bind(state).and(&app).spawn(move |state, app| {
                 state.on_save(app)
             });
 

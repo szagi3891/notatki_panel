@@ -1,4 +1,4 @@
-use vertigo::{Css, Driver, Resource, VDomElement, Computed, Value, VDomComponent, bind};
+use vertigo::{Css, Resource, VDomElement, Computed, Value, VDomComponent, bind};
 use vertigo::{css, html};
 use crate::{components::AlertBox, data::{Data}};
 use crate::components::icon;
@@ -120,10 +120,10 @@ fn push_list<F: Fn(&String) -> bool>(
     Resource::Ready(())
 }
 
-fn new_results(driver: &Driver, data_state: &Data, phrase: Computed<String>) -> Computed<Vec<ResultItem>> {
+fn new_results(data_state: &Data, phrase: Computed<String>) -> Computed<Vec<ResultItem>> {
     let data_state = data_state.clone();
 
-    driver.from(move || {
+    Computed::from(move || {
         let mut result = Vec::<ResultItem>::new();
         let phrase_value = phrase.get_value().to_lowercase();
 
@@ -162,10 +162,9 @@ pub struct AppIndexAlertSearch {
 
 impl AppIndexAlertSearch {
     pub fn new(alert: &AppIndexAlert) -> AppIndexAlertSearch {
-        let phrase = alert.data.driver.new_value("".to_string());
+        let phrase = Value::new("".to_string());
 
         let results = new_results(
-            &alert.data.driver,
             &alert.data,
             phrase.to_computed(),
         );

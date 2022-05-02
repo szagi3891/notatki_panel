@@ -1,5 +1,5 @@
 use common::{HandlerCreateFileBody};
-use vertigo::{Driver, Computed, Value, VDomComponent, bind};
+use vertigo::{Computed, Value, VDomComponent, bind, get_driver};
 
 use crate::app::App;
 use crate::app::newcontent::app_newcontent_render::app_newcontent_render;
@@ -8,8 +8,6 @@ use crate::data::Data;
 
 #[derive(Clone)]
 pub struct AppNewcontent {
-    pub driver: Driver,
-
     pub action_save: Value<bool>,
 
     pub parent: Vec<String>,
@@ -22,24 +20,21 @@ pub struct AppNewcontent {
 impl AppNewcontent {
     pub fn new(data: &Data) -> AppNewcontent {
         log::info!("buduję stan dla new content");
-        let action_save = data.driver.new_value(false);
+        let action_save = Value::new(false);
 
         let parent = data.tab.dir_select.clone().get_value();
         let list = data.tab.list.clone();
 
-        let new_name = NewName::new(
-            &data.driver,
-            list,
-        );
+        let new_name = NewName::new(list);
 
-        let content = data.driver.new_value(String::from(""));
+        let content = Value::new(String::from(""));
 
 
         let save_enable = {
             let content = content.to_computed();
             let is_valid = new_name.is_valid.clone();
 
-            data.driver.from(move || -> bool {
+            Computed::from(move || -> bool {
                 let new_name_is_valid = is_valid.get_value();
 
                 if !*new_name_is_valid  {
@@ -56,8 +51,6 @@ impl AppNewcontent {
         };
 
         AppNewcontent {
-            driver: data.driver.clone(),
-
             action_save,
             
             parent: parent.as_ref().clone(),
@@ -89,7 +82,7 @@ impl AppNewcontent {
     pub fn on_save(&self, app: &App) -> impl Fn() {
         bind(self)
             .and(app)
-            .spawn(self.driver.clone(), |state, app| async move {
+            .spawn(|state, app| async move {
                 let action_save = state.action_save.get_value();
 
                 if *action_save {
@@ -108,7 +101,7 @@ impl AppNewcontent {
                     new_content: (*state.content.get_value()).clone(),
                 };
 
-                let _ = state.driver
+                let _ = get_driver()
                     .request("/create_file")
                     .body_json(body)
                     .post()

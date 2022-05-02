@@ -1,8 +1,6 @@
 use std::rc::Rc;
 
-use vertigo::{ 
-    Computed, Value, VDomComponent, Driver,
-};
+use vertigo::{Computed, Value, VDomComponent};
 
 use vertigo::{Css, VDomElement};
 use vertigo::{css, html};
@@ -26,15 +24,14 @@ pub struct NewName {
 
 impl NewName {
     pub fn new(
-        driver: &Driver,
         list: Computed<Vec<ListItem>>,
     ) -> NewName {
-        let name: Value<String> = driver.new_value("".to_string());
+        let name: Value<String> = Value::new("".to_string());
 
         let name_exists = {
             let name = name.clone();
 
-            driver.from(move || -> bool {
+            Computed::from(move || -> bool {
                 let list = list.get_value();
 
                 let name = name.get_value();
@@ -45,7 +42,7 @@ impl NewName {
         let is_valid = {
             let name = name.clone();
 
-            driver.from(move || -> bool {
+            Computed::from(move || -> bool {
                 let name_exists = name_exists.get_value();
 
                 if *name_exists {

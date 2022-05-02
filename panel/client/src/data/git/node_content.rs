@@ -1,10 +1,6 @@
 use std::rc::Rc;
-use common::{HandlerFetchNodeBody, HandlerFetchNodeResponse};
-use vertigo::{
-    Resource,
-    Driver,
-    AutoMap, LazyCache,
-};
+use common::{ HandlerFetchNodeBody, HandlerFetchNodeResponse };
+use vertigo::{ Resource, AutoMap, LazyCache, get_driver };
 
 #[derive(Clone)]
 pub struct NodeContent {
@@ -12,13 +8,13 @@ pub struct NodeContent {
 }
 
 impl NodeContent {
-    pub fn new(driver: &Driver, hash: &String) -> NodeContent {
+    pub fn new(hash: &String) -> NodeContent {
         let hash = hash.clone();
 
-        let response = LazyCache::new(driver, 10 * 60 * 60 * 1000, move |driver: Driver| {
+        let response = LazyCache::new(10 * 60 * 60 * 1000, move || {
             let hash = hash.clone();
             async move {
-                let request = driver
+                let request = get_driver()
                     .request("/fetch_node")
                     .body_json(HandlerFetchNodeBody {
                         hash: hash.clone(),
@@ -54,11 +50,9 @@ pub struct Content {
 }
 
 impl Content {
-    pub fn new(driver: &Driver) -> Content {
+    pub fn new() -> Content {
         let data = {
-            let request = driver.clone();
-
-            AutoMap::new(move |id: &String| NodeContent::new(&request, id))
+            AutoMap::new(move |id: &String| NodeContent::new(id))
         };
 
         Content {
