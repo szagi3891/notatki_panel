@@ -167,7 +167,6 @@ pub fn render_content(state: &AppIndex) -> VDomElement {
                 },
                 ContentType::Dir { list } => {
                     render_dir(&state.data, list.dir_path().as_ref())
-                    // todo!()
                 },
             }
         },

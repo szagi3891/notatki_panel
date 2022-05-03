@@ -1,7 +1,5 @@
 use std::{rc::Rc};
-
 use vertigo::Resource;
-
 mod node_dir;
 mod node_content;
 mod root;
@@ -19,8 +17,6 @@ pub use models::{
     ViewDirList,
     ListItem
 };
-
-
 
 fn get_item_from_map<'a>(current_wsk: &'a GitDirList, path_item: &String) -> Resource<&'a TreeItem> {
     let wsk_child = current_wsk.get(path_item);
@@ -82,6 +78,7 @@ impl Git {
         Resource::Ready(ViewDirList::new(&self.dir, &self.content, base_dir, result))
     }
 
+    #[deprecated]
     fn node_content(&self, base_dir: &[String], current_item: &Option<String>) -> Resource<CurrentContent> {
         let list = self.dir_list(base_dir)?;
 
@@ -120,7 +117,7 @@ impl Git {
                     id: current_value.id.clone()
                 };
 
-                let content = file.get_file_content()?;
+                let content = file.get_content_type()?;
                 return Resource::Ready(CurrentContent::file(file, content));
             }
         }
@@ -128,8 +125,43 @@ impl Git {
         Resource::Ready(CurrentContent::None)
     }
 
-    fn get_content(&self, base_dir: &[String], item: &Option<String>) -> CurrentContent {
+    fn node_content2(&self, base_dir: &[String], current_item: &String) -> Resource<ListItem> {
+        let list = self.dir_list(base_dir)?;
+        let current_value = list.get(current_item);
 
+        if let Some(current_value) = current_value {
+            let base_dir = Rc::new(Vec::from(base_dir));
+
+            if current_value.dir {
+                let dir = ListItem {
+                    dir: self.dir.clone(),
+                    content: self.content.clone(),
+                    base_dir: base_dir.clone(),
+                    name: current_item.clone(),
+                    is_dir: true,
+                    id: current_value.id.clone()
+                };
+                Resource::Ready(dir)
+            } else {
+                let file = ListItem {
+                    dir: self.dir.clone(),
+                    content: self.content.clone(),
+                    base_dir,
+                    name: current_item.clone(),
+                    is_dir: false,
+                    id: current_value.id.clone()
+                };
+
+                Resource::Ready(file)
+            }
+        } else {
+            let message = format!("Brakuje {current_item} w {base_dir:?}");
+            Resource::Error(message)
+        }
+    }
+
+    #[deprecated]
+    fn get_content(&self, base_dir: &[String], item: &Option<String>) -> CurrentContent {
         let result = self.node_content(base_dir, item);
 
         if let Resource::Ready(result) = result {
@@ -139,6 +171,7 @@ impl Git {
         CurrentContent::None
     }
 
+    #[deprecated]
     pub fn content_from_path(&self, path: &[String]) -> CurrentContent {
         let mut path: Vec<String> = Vec::from(path);
 
@@ -147,6 +180,33 @@ impl Git {
         self.get_content(path.as_slice(), &last)
     }
 
+    pub fn content_from_path2(&self, path: &[String]) -> Resource<ListItem> {
+        let mut path: Vec<String> = Vec::from(path);
+        let last = path.pop();
+
+        let last = match last {
+            Some(last) => last,
+            None => {
+
+                let id = self.root.get_current_root()?;
+
+                let dir = ListItem {
+                    dir: self.dir.clone(),
+                    content: self.content.clone(),
+                    base_dir: Rc::new(Vec::new()),
+                    name: "root".into(),
+                    is_dir: true,
+                    id: id
+                };
+
+                return Resource::Ready(dir);
+            }
+        };
+
+        self.node_content2(path.as_slice(), &last)
+    }
+
+    #[deprecated]
     pub fn content_hash(&self, path: &[String]) -> Option<String> {
         let result = self.content_from_path(path);
 
@@ -161,6 +221,7 @@ impl Git {
         }
     }
 
+    #[deprecated]
     pub fn get_content_string(&self, path: &[String]) -> Option<String> {
         let result = self.content_from_path(path);
 

@@ -185,15 +185,24 @@ impl ListItem {
         result
     }
 
-    pub fn get_file_content(&self) -> Resource<ContentType> {
-        // if self.dir {
-        //     // self.content.
-        //     // ContentType {
-        //     //     Dir {
-        //     //         list: ViewDirList
+    pub fn get_content_type(&self) -> Resource<ContentType> {
+        if self.is_dir {
+            let list = self.dir.get_list(&self.id)?;
 
-        //     todo!()
-        // }
+            let mut full_path = self.base_dir.as_ref().clone();
+            full_path.push(self.name.clone());
+
+            let dir_list = ViewDirList::new(
+                &self.dir,
+                &self.content,
+                Rc::new(full_path),
+                list,
+            );
+
+            return Resource::Ready(ContentType::Dir {
+                list: dir_list
+            });
+        }
 
         let ext = self.get_ext();
 

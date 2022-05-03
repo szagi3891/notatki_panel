@@ -2,14 +2,14 @@ use vertigo::{
     VDomElement,
     Css,
     Computed, VDomComponent,
-    bind,
+    bind, Resource,
 };
 
 use vertigo::{html, css};
 use super::AppIndex;
 use crate::app::App;
 use crate::components::button;
-use crate::data::CurrentContent;
+use crate::data::ContentType;
 
 fn css_footer() -> Css {
     css!("
@@ -22,16 +22,19 @@ fn css_footer() -> Css {
 
 
 fn create_avaible_delete_current(
-    current_content: Computed<CurrentContent>
+    current_content: Computed<Resource<ContentType>>
 ) -> Computed<bool> {
 
     Computed::from(move || -> bool {
         let current = current_content.get_value();
 
-        match current.as_ref() {
-            CurrentContent::None => false,
-            CurrentContent::File { .. } => true,
-            CurrentContent::Dir { list, ..} => list.len() == 0
+        if let Resource::Ready(content) = current.as_ref() {
+            match content {
+                ContentType::Dir { list } => list.len() == 0,
+                _ => true
+            }
+        } else {
+            false
         }
     })
 }
@@ -39,7 +42,7 @@ fn create_avaible_delete_current(
 
 pub fn render_menu_state(app: &App, app_index: &AppIndex) -> VDomComponent {
     let avaible_delete_button= create_avaible_delete_current(
-        app_index.data.tab.current_content.clone()
+        app_index.data.tab.current_content2.clone()
     );
 
     let app = app.clone();

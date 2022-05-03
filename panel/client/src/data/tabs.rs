@@ -2,7 +2,7 @@ use vertigo::{Resource, Value, Computed, get_driver};
 use super::{
     git::{Git, ListItem, CurrentContent},
     open_links::OpenLinks,
-    calculate_next_path::calculate_next_path, ViewDirList
+    calculate_next_path::calculate_next_path, ViewDirList, ContentType
 };
 
 
@@ -98,6 +98,20 @@ fn create_current_content(
     })
 }
 
+fn create_current_content2(
+    state_data_git: &Git,
+    full_path: &Computed<Vec<String>>,
+) -> Computed<Resource<ContentType>> {
+
+    let state_data_git = state_data_git.clone();
+    let full_path = full_path.clone();
+
+    Computed::from(move || -> Resource<ContentType> {
+        let list_item = state_data_git.content_from_path2(full_path.get_value().as_ref())?;
+
+        list_item.get_content_type()
+    })
+}
 
 
 #[derive(Clone)]
@@ -127,7 +141,9 @@ pub struct TabPath {
     pub full_path: Computed<Vec<String>>,
 
     /// Aktualnie wyliczony wybrany content wskazywany przez full_path
+    #[deprecated]
     pub current_content: Computed<CurrentContent>,
+    pub current_content2: Computed<Resource<ContentType>>,
 
     //Otworzone zakładki z podględem do zewnętrznych linków
     pub open_links: OpenLinks,
@@ -155,6 +171,11 @@ impl TabPath {
             &full_path,
         );
 
+        let current_content2 = create_current_content2(
+            git,
+            &full_path,
+        );
+
         let open_links = OpenLinks::new();
 
         TabPath {
@@ -166,6 +187,7 @@ impl TabPath {
             current_item,
             full_path,
             current_content,
+            current_content2,
             open_links,
         }
     }
