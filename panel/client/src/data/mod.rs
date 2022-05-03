@@ -5,7 +5,7 @@ mod tabs;
 mod open_links;
 mod calculate_next_path;
 
-pub use git::{CurrentContent, GitDirList, ViewDirList, ContentType};
+pub use git::{GitDirList, ViewDirList, ContentType, ContentView};
 pub use git::ListItem;
 pub use open_links::OpenLinks;
 

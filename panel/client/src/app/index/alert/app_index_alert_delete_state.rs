@@ -6,7 +6,7 @@ use vertigo::{
     Value,
     bind, get_driver,
 };
-use crate::components::AlertBox;
+use crate::{components::AlertBox, data::ContentView};
 
 use super::AppIndexAlert;
 
@@ -34,10 +34,10 @@ impl AppIndexAlertDelete {
         }
 
         let current_path = self.full_path.as_ref().clone();
-        let current_hash = self.alert.data.git.content_hash(&current_path);
+        let current_hash = self.alert.data.git.get_content2(&current_path);
 
         let current_hash = match current_hash {
-            Some(current_hash) => current_hash,
+            Some(ContentView { id, .. }) => id,
             None => {
                 log::error!("Problem z usunięciem ...");
                 return;

@@ -179,6 +179,7 @@ impl ListItem {
         get_list_item_prirority(&self.name)
     }
 
+    #[allow(dead_code)]
     pub fn full_path(&self) -> Vec<String> {
         let mut result = self.base_dir.as_ref().clone();
         result.push(self.name.clone());
@@ -263,32 +264,3 @@ fn get_list_item_prirority(name: &String) -> u8 {
     1
 }
 
-
-#[derive(Clone)]
-pub enum CurrentContent {
-    File {
-        file: ListItem,
-        content: ContentType,
-    },
-    Dir {
-        dir: ListItem,
-        list: ViewDirList,
-    },
-    None
-}
-
-impl CurrentContent {
-    pub fn file(file: ListItem, content: ContentType) -> CurrentContent {
-        CurrentContent::File {
-            file,
-            content,
-        }
-    }
-
-    pub fn dir(dir: ListItem, list: ViewDirList) -> CurrentContent {
-        CurrentContent::Dir {
-            dir,
-            list,
-        }
-    }
-}

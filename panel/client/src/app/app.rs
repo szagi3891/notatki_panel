@@ -1,6 +1,6 @@
 use vertigo::{VDomComponent, VDomElement, html};
 use vertigo::Value;
-use crate::data::{CurrentContent, ContentType};
+use crate::data::ContentView;
 use crate::data::Data;
 
 use super::edit_content::AppEditcontent;
@@ -40,53 +40,42 @@ impl App {
 
     pub fn redirect_to_content(&self, full_path: &Vec<String>) {
         let full_path = full_path.clone();
-        let content = self.data.git.content_from_path(&full_path);
+        let content = self.data.git.get_content2(&full_path);
 
         match content {
-            CurrentContent::File { file, content, ..} => {
-                match content {
-                    ContentType::Text { content } => {
-                        log::info!("redirect_to_content {full_path:?}");
+            Some(ContentView { id, content }) => {
+                log::info!("redirect_to_content {full_path:?}");
 
-                        let state = AppEditcontent::new(
-                            full_path.clone(),
-                            file.id.clone(),
-                            content.as_ref().clone(),
-                        );
+                let state = AppEditcontent::new(
+                    full_path.clone(),
+                    id.clone(),
+                    content.as_ref().clone(),
+                );
 
-                        self.view.set_value(View::EditContent {
-                            state
-                        });
-                    },
-                    _ => {
-                        log::error!("Oczekiwano pliku będącego tekstem");
-                    }
-                }
+                self.view.set_value(View::EditContent {
+                    state
+                });
             },
-            CurrentContent::Dir { .. } => {
-                log::error!("Oczekiwano pliku, znaleziono katalog");
+            None => {
+                log::error!("Oczekiwano pliku, problem z pobraniem");
             },
-            CurrentContent::None => {
-                log::error!("Oczekiwano pliku, nic nie znaleziono");
-            }
         }
     }
 
     pub fn redirect_to_rename_item(&self, base_path: &Vec<String>, select_item: &String) {
         let select_item = select_item.clone();
         let full_path = self.data.tab.full_path.clone().get_value();
-        let content_hash = self.data.git.content_hash(&full_path);
-        let get_content_string = self.data.git.get_content_string(&full_path);
+        let content = self.data.git.get_content2(&full_path);
 
-        match content_hash {
-            Some(content_hash) => {
+        match content {
+            Some(ContentView { id, content }) => {
                 log::info!("redirect_to_rename_item {base_path:?} {select_item:?}");
 
                 let state = AppRenameitem::new(
                     base_path.clone(),
                     select_item,
-                    content_hash,
-                    get_content_string
+                    id,
+                    Some(content.as_ref().clone())
                 );
 
                 self.view.set_value(View::RenameItem {
