@@ -4,7 +4,7 @@ use vertigo::{Css, VDomElement, css, html, bind};
 
 use super::AppIndex;
 use crate::components::list_items;
-use crate::data::{CurrentContent, Data};
+use crate::data::{CurrentContent, Data, ContentType};
 use crate::{
     content::{
         parse_text,
@@ -24,6 +24,13 @@ fn css_content_file() -> Css {
 fn css_content_dir() -> Css {
     css!("
         width: 100%;
+    ")
+}
+
+fn css_content_file_image() -> Css {
+    css!("
+        width: 100%;
+        display: block;
     ")
 }
 
@@ -133,13 +140,33 @@ pub fn render_content(state: &AppIndex) -> VDomElement {
 
     match current_content.as_ref() {
         CurrentContent::File { file: _, content } => {
-            let out: Vec<VDomElement> = render_content_text(state, content);
+            match content {
+                ContentType::Text { content } => {
+                    let out: Vec<VDomElement> = render_content_text(state, content);
 
-            html! {
-                <div css={css_content_file()}>
-                    { ..out }
-                </div>
+                    html! {
+                        <div css={css_content_file()}>
+                            { ..out }
+                        </div>
+                    }
+                },
+                ContentType::Image { url } => {
+                    let url = url.as_str();
+                    html! {
+                        <div css={css_content_file()}>
+                            <img css={css_content_file_image()} src={url} />
+                        </div>
+                    }
+                },
+                ContentType::Unknown => {
+                    html! {
+                        <div css={css_content_file()}>
+                            "ContentType::Unknown"
+                        </div>
+                    }
+                }
             }
+
         },
         CurrentContent::Dir { dir, .. } => {
             render_dir(&state.data, &dir.full_path())

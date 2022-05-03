@@ -1,7 +1,6 @@
 use std::{collections::HashMap, rc::Rc};
 use std::cmp::Ordering;
 
-
 #[derive(PartialEq, Clone, Debug)]
 pub struct TreeItem {
     pub dir: bool,
@@ -168,12 +167,22 @@ impl ViewDirList {
     }
 }
 
+#[derive(PartialEq, Clone, Debug)]
+pub enum ContentType {
+    Text {
+        content: Rc<String>,
+    },
+    Image {
+        url: Rc<String>,
+    },
+    Unknown,
+}
 
 #[derive(PartialEq, Clone, Debug)]
 pub enum CurrentContent {
     File {
         file: ListItem,
-        content: Rc<String>,    //content file
+        content: ContentType,
     },
     Dir {
         dir: ListItem,
@@ -183,7 +192,7 @@ pub enum CurrentContent {
 }
 
 impl CurrentContent {
-    pub fn file(file: ListItem, content: Rc<String>) -> CurrentContent {
+    pub fn file(file: ListItem, content: ContentType) -> CurrentContent {
         CurrentContent::File {
             file,
             content,

@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::{rc::Rc};
 
 use vertigo::Resource;
 
@@ -12,6 +12,7 @@ pub use node_content::Content;
 pub use root::Root;
 
 pub use models::{
+    ContentType,
     GitDirList,
     TreeItem,
     CurrentContent,
@@ -46,6 +47,53 @@ fn move_pointer(state_data: &Git, list: GitDirList, path_item: &String) -> Resou
 
     return Resource::Error(format!("dir expected {}", path_item));
 }
+
+enum FileType {
+    Txt,
+    Image {
+        ext: String,
+    },
+    Unknown,
+}
+
+fn get_file_content(file: &ListItem, content: &Content) -> Resource<ContentType> {
+    let ext = file.get_ext();
+
+    let file_type = match ext {
+        Some(ext) => {
+            match ext.as_str() {
+                "txt" => FileType::Txt,
+                "webp" => FileType::Image { ext: "webp".into() },
+                "jpg" => FileType::Image { ext: "jpg".into() },
+                "jpeg" => FileType::Image { ext: "jpeg".into() },
+                "png" => FileType::Image { ext: "png".into() },
+                _ => {
+                    log::warn!("Nierozpoznany typ pliku: {ext}");
+                    FileType::Unknown
+                }
+            }
+        },
+        None => FileType::Txt,
+    };
+
+    let content = match file_type {
+        FileType::Txt => {
+            let content = content.get(&file.id)?;
+            ContentType::Text { content }
+        },
+        FileType::Image { ext } => {
+            let id = &file.id;
+            let url = format!("/image/{id}/{ext}");
+            ContentType::Image { url: Rc::new(url) }
+        }
+        FileType::Unknown => {
+            ContentType::Unknown
+        }
+    };
+
+    Resource::Ready(content)
+}
+
 
 
 #[derive(Clone)]
@@ -114,7 +162,8 @@ impl Git {
                     dir: false,
                     id: current_value.id.clone()
                 };
-                let content = self.content.get(&current_value.id)?;
+
+                let content = get_file_content(&file, &self.content)?;
                 return Resource::Ready(CurrentContent::file(file, content));
             }
         }
@@ -159,11 +208,13 @@ impl Git {
         let result = self.content_from_path(path);
 
         match result {
-            CurrentContent::File { content, .. } => {
+            CurrentContent::File { content: ContentType::Text { content } , .. } => {
+
                 Some(content.as_ref().clone())
             },
             CurrentContent::Dir { .. } => None,
             CurrentContent::None => None,
+            _ => None,
         }
     }
 

@@ -1,6 +1,6 @@
 use vertigo::{VDomComponent, VDomElement, html};
 use vertigo::Value;
-use crate::data::{CurrentContent};
+use crate::data::{CurrentContent, ContentType};
 use crate::data::Data;
 
 use super::edit_content::AppEditcontent;
@@ -44,17 +44,24 @@ impl App {
 
         match content {
             CurrentContent::File { file, content, ..} => {
-                log::info!("redirect_to_content {full_path:?}");
+                match content {
+                    ContentType::Text { content } => {
+                        log::info!("redirect_to_content {full_path:?}");
 
-                let state = AppEditcontent::new(
-                    full_path.clone(),
-                    file.id.clone(),
-                    content.as_ref().clone(),
-                );
+                        let state = AppEditcontent::new(
+                            full_path.clone(),
+                            file.id.clone(),
+                            content.as_ref().clone(),
+                        );
 
-                self.view.set_value(View::EditContent {
-                    state
-                });
+                        self.view.set_value(View::EditContent {
+                            state
+                        });
+                    },
+                    _ => {
+                        log::error!("Oczekiwano pliku będącego tekstem");
+                    }
+                }
             },
             CurrentContent::Dir { .. } => {
                 log::error!("Oczekiwano pliku, znaleziono katalog");
