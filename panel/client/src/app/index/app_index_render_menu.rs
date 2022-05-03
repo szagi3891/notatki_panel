@@ -42,7 +42,7 @@ fn create_avaible_delete_current(
 
 pub fn render_menu_state(app: &App, app_index: &AppIndex) -> VDomComponent {
     let avaible_delete_button= create_avaible_delete_current(
-        app_index.data.tab.current_content2.clone()
+        app_index.data.tab.current_content.clone()
     );
 
     let app = app.clone();

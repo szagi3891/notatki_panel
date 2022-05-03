@@ -1,10 +1,10 @@
 use std::rc::Rc;
 
-use vertigo::{Css, VDomElement, css, html, bind};
+use vertigo::{Css, VDomElement, css, html, bind, Resource};
 
 use super::AppIndex;
 use crate::components::list_items;
-use crate::data::{CurrentContent, Data, ContentType};
+use crate::data::{Data, ContentType};
 use crate::{
     content::{
         parse_text,
@@ -139,7 +139,20 @@ pub fn render_content(state: &AppIndex) -> VDomElement {
     let current_content = state.data.tab.current_content.get_value();
 
     match current_content.as_ref() {
-        CurrentContent::File { file: _, content } => {
+        Resource::Loading => {
+            html! {
+                <div></div>
+            }
+        },
+        Resource::Error(message) => {
+            let message = format!("Error: {message}");
+            html! {
+                <div>
+                    { message }
+                </div>
+            }
+        },
+        Resource::Ready(content) => {
             match content {
                 ContentType::Text { content } => {
                     let out: Vec<VDomElement> = render_content_text(state, content);
@@ -170,14 +183,6 @@ pub fn render_content(state: &AppIndex) -> VDomElement {
                 },
             }
         },
-        CurrentContent::Dir { dir, .. } => {
-            render_dir(&state.data, &dir.full_path())
-        },
-        CurrentContent::None => {
-            html!{
-                <div></div>
-            }
-        }
     }
 }
 
