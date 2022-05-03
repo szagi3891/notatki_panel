@@ -3,7 +3,7 @@ use std::cmp::Ordering;
 
 use vertigo::Resource;
 
-use super::Content;
+use super::{Content, Dir};
 
 #[derive(PartialEq, Clone, Debug)]
 pub struct TreeItem {
@@ -52,15 +52,107 @@ fn extract() {
     assert_eq!(get_ext(&name2), Some("txt".to_string()));
 }
 
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 #[derive(Clone)]
+pub struct ViewDirList {
+    dir: Dir,
+    content: Content,
+    dir_path: Rc<Vec<String>>,
+    list: Rc<HashMap<String, TreeItem>>,
+}
+
+
+impl ViewDirList {
+    pub fn new(dir: &Dir, content: &Content, base_dir: Rc<Vec<String>>, list: GitDirList) -> ViewDirList {
+        ViewDirList {
+            dir: dir.clone(),
+            content: content.clone(),
+            dir_path: base_dir,
+            list: list.list,
+        }
+    }
+
+    pub fn get_list(&self) -> Vec<ListItem> {
+        let mut list_out: Vec<ListItem> = Vec::new();
+
+        for (name, item) in self.list.as_ref() {
+            list_out.push(ListItem {
+                dir: self.dir.clone(),
+                content: self.content.clone(),
+                base_dir: self.dir_path.clone(),
+                name: name.clone(),
+                is_dir: item.dir,
+                id: item.id.clone(),
+            });
+        }
+
+        list_out.sort_by(|a: &ListItem, b: &ListItem| -> Ordering {
+            let a_prirority = get_list_item_prirority(&a.name);
+            let b_prirority = get_list_item_prirority(&b.name);
+
+            if a_prirority == 2 && b_prirority == 2 {
+                if a.is_dir && !b.is_dir {
+                    return Ordering::Less;
+                }
+
+                if !a.is_dir && b.is_dir {
+                    return Ordering::Greater;
+                }
+            }
+
+            if a_prirority > b_prirority {
+                return Ordering::Less;
+            }
+
+            if a_prirority < b_prirority {
+                return Ordering::Greater;
+            }
+
+            a.name.to_lowercase().cmp(&b.name.to_lowercase())
+        });
+
+        list_out
+    }
+
+    pub fn get(&self, current_item: &String) -> Option<&TreeItem> {
+        self.list.get(current_item)
+    }
+
+    pub fn len(&self) -> usize {
+        self.list.len()
+    }
+
+    pub fn dir_path(&self) -> Rc<Vec<String>> {
+        self.dir_path.clone()
+    }
+}
+
+
+#[derive(Clone)]
+pub enum ContentType {
+    Dir {
+        list: ViewDirList
+    },
+    Text {
+        content: Rc<String>,
+    },
+    Image {
+        url: Rc<String>,
+    },
+    Unknown,
+}
+
+
+#[derive(Clone)]
 pub struct ListItem {
-    pub content: Content,
+    pub content: Content,                   //TODO - scalić te dwa store
+    pub dir: Dir,                           //TODO - scalić te dwa store
     pub base_dir: Rc<Vec<String>>,
     pub name: String,
-    pub dir: bool,
+    pub is_dir: bool,
     pub id: String,     //hash tego elementu
 }
 
@@ -94,6 +186,15 @@ impl ListItem {
     }
 
     pub fn get_file_content(&self) -> Resource<ContentType> {
+        // if self.dir {
+        //     // self.content.
+        //     // ContentType {
+        //     //     Dir {
+        //     //         list: ViewDirList
+
+        //     todo!()
+        // }
+
         let ext = self.get_ext();
 
         enum FileType {
@@ -153,84 +254,6 @@ fn get_list_item_prirority(name: &String) -> u8 {
     1
 }
 
-
-#[derive(Clone)]
-pub struct ViewDirList {
-    content: Content,
-    base_dir: Rc<Vec<String>>,
-    list: Rc<HashMap<String, TreeItem>>,
-}
-
-
-impl ViewDirList {
-    pub fn new(content: &Content, base_dir: Rc<Vec<String>>, list: GitDirList) -> ViewDirList {
-        ViewDirList {
-            content: content.clone(),
-            base_dir,
-            list: list.list,
-        }
-    }
-
-    pub fn get_list(&self) -> Vec<ListItem> {
-        let mut list_out: Vec<ListItem> = Vec::new();
-
-        for (name, item) in self.list.as_ref() {
-            list_out.push(ListItem {
-                content: self.content.clone(),
-                base_dir: self.base_dir.clone(),
-                name: name.clone(),
-                dir: item.dir,
-                id: item.id.clone(),
-            });
-        }
-
-        list_out.sort_by(|a: &ListItem, b: &ListItem| -> Ordering {
-            let a_prirority = get_list_item_prirority(&a.name);
-            let b_prirority = get_list_item_prirority(&b.name);
-
-            if a_prirority == 2 && b_prirority == 2 {
-                if a.dir && !b.dir {
-                    return Ordering::Less;
-                }
-
-                if !a.dir && b.dir {
-                    return Ordering::Greater;
-                }
-            }
-
-            if a_prirority > b_prirority {
-                return Ordering::Less;
-            }
-
-            if a_prirority < b_prirority {
-                return Ordering::Greater;
-            }
-
-            a.name.to_lowercase().cmp(&b.name.to_lowercase())
-        });
-
-        list_out
-    }
-
-    pub fn get(&self, current_item: &String) -> Option<&TreeItem> {
-        self.list.get(current_item)
-    }
-
-    pub fn len(&self) -> usize {
-        self.list.len()
-    }
-}
-
-#[derive(PartialEq, Clone, Debug)]
-pub enum ContentType {
-    Text {
-        content: Rc<String>,
-    },
-    Image {
-        url: Rc<String>,
-    },
-    Unknown,
-}
 
 #[derive(Clone)]
 pub enum CurrentContent {

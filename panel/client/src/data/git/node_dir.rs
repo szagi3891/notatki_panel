@@ -23,7 +23,7 @@ fn convert(list: &HandlerFetchDirResponse) -> GitDirList {
 }
 
 #[derive(Clone)]
-pub struct NodeDir {
+struct NodeDir {
     _response: LazyCache<HandlerFetchDirResponse>,
     list: Computed<Resource<GitDirList>>,
 }

@@ -79,7 +79,7 @@ impl Git {
         }
 
         let base_dir = Rc::new(Vec::from(path));
-        Resource::Ready(ViewDirList::new(&self.content, base_dir, result))
+        Resource::Ready(ViewDirList::new(&self.dir, &self.content, base_dir, result))
     }
 
     fn node_content(&self, base_dir: &[String], current_item: &Option<String>) -> Resource<CurrentContent> {
@@ -99,22 +99,24 @@ impl Git {
 
             if current_value.dir {
                 let dir = ListItem {
+                    dir: self.dir.clone(),
                     content: self.content.clone(),
                     base_dir: base_dir.clone(),
                     name: current_item.clone(),
-                    dir: true,
+                    is_dir: true,
                     id: current_value.id.clone()
                 };
                 let list = self.dir.get_list(&current_value.id)?;
-                let dir_list_view = ViewDirList::new(&self.content, base_dir, list);
+                let dir_list_view = ViewDirList::new(&self.dir, &self.content, base_dir, list);
 
                 return Resource::Ready(CurrentContent::dir(dir, dir_list_view));
             } else {
                 let file = ListItem {
+                    dir: self.dir.clone(),
                     content: self.content.clone(),
                     base_dir,
                     name: current_item.clone(),
-                    dir: false,
+                    is_dir: false,
                     id: current_value.id.clone()
                 };
 

@@ -119,7 +119,7 @@ fn render_item(data: &Data, dir: &Vec<String>, item: &ListItem, mouse_over_enabl
         path.push(item.name.clone());
 
         bind(&data.tab)
-            .and(&item.dir)
+            .and(&item.is_dir)
             .and(&path)
             .call(|tab, is_dir, path| {
                 if *is_dir {
@@ -158,7 +158,7 @@ fn render_item(data: &Data, dir: &Vec<String>, item: &ListItem, mouse_over_enabl
                 on_mouse_leave={mouse_over_leave}
             >
                 {icon_arrow(is_select)}
-                {icon::icon_render(item.dir)}
+                {icon::icon_render(item.is_dir)}
                 <span css={label_css(item.prirority())}>
                     {remove_prefix(&item.name)}
                 </span>
@@ -173,7 +173,7 @@ fn render_item(data: &Data, dir: &Vec<String>, item: &ListItem, mouse_over_enabl
                 on_mouse_leave={mouse_over_leave}
             >
                 {icon_arrow(is_select)}
-                {icon::icon_render(item.dir)}
+                {icon::icon_render(item.is_dir)}
                 <span css={label_css(item.prirority())}>
                     {remove_prefix(&item.name)}
                 </span>

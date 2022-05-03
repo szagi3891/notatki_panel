@@ -164,9 +164,12 @@ pub fn render_content(state: &AppIndex) -> VDomElement {
                             "ContentType::Unknown"
                         </div>
                     }
-                }
+                },
+                ContentType::Dir { list } => {
+                    render_dir(&state.data, list.dir_path().as_ref())
+                    // todo!()
+                },
             }
-
         },
         CurrentContent::Dir { dir, .. } => {
             render_dir(&state.data, &dir.full_path())

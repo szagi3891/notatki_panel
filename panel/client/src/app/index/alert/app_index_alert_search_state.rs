@@ -81,7 +81,7 @@ fn push_list<F: Fn(&String) -> bool>(
         let mut files = Vec::<String>::new();
 
         for item in list.get_list() {
-            if !item.dir && test_name(&item.name) {
+            if !item.is_dir && test_name(&item.name) {
                 files.push(item.name.clone());
             }
         }
@@ -101,7 +101,7 @@ fn push_list<F: Fn(&String) -> bool>(
         let mut dirs = Vec::<String>::new();
 
         for item in list.get_list() {
-            if item.dir {
+            if item.is_dir {
                 dirs.push(item.name.clone());
             }
         }
