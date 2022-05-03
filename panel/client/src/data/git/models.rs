@@ -1,6 +1,10 @@
 use std::{collections::HashMap, rc::Rc};
 use std::cmp::Ordering;
 
+use vertigo::Resource;
+
+use super::Content;
+
 #[derive(PartialEq, Clone, Debug)]
 pub struct TreeItem {
     pub dir: bool,
@@ -51,8 +55,9 @@ fn extract() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(Clone)]
 pub struct ListItem {
+    pub content: Content,
     pub base_dir: Rc<Vec<String>>,
     pub name: String,
     pub dir: bool,
@@ -87,6 +92,52 @@ impl ListItem {
         result.push(self.name.clone());
         result
     }
+
+    pub fn get_file_content(&self) -> Resource<ContentType> {
+        let ext = self.get_ext();
+
+        enum FileType {
+            Txt,
+            Image {
+                ext: String,
+            },
+            Unknown,
+        }
+
+        let file_type = match ext {
+            Some(ext) => {
+                match ext.as_str() {
+                    "txt" => FileType::Txt,
+                    "webp" => FileType::Image { ext: "webp".into() },
+                    "jpg" => FileType::Image { ext: "jpg".into() },
+                    "jpeg" => FileType::Image { ext: "jpeg".into() },
+                    "png" => FileType::Image { ext: "png".into() },
+                    _ => {
+                        log::warn!("Nierozpoznany typ pliku: {ext}");
+                        FileType::Unknown
+                    }
+                }
+            },
+            None => FileType::Txt,
+        };
+
+        let content = match file_type {
+            FileType::Txt => {
+                let content = self.content.get(&self.id)?;
+                ContentType::Text { content }
+            },
+            FileType::Image { ext } => {
+                let id = &self.id;
+                let url = format!("/image/{id}/{ext}");
+                ContentType::Image { url: Rc::new(url) }
+            }
+            FileType::Unknown => {
+                ContentType::Unknown
+            }
+        };
+
+        Resource::Ready(content)
+    }
 }
 
 
@@ -103,16 +154,18 @@ fn get_list_item_prirority(name: &String) -> u8 {
 }
 
 
-#[derive(PartialEq, Clone, Debug)]
+#[derive(Clone)]
 pub struct ViewDirList {
+    content: Content,
     base_dir: Rc<Vec<String>>,
     list: Rc<HashMap<String, TreeItem>>,
 }
 
 
 impl ViewDirList {
-    pub fn new(base_dir: Rc<Vec<String>>, list: GitDirList) -> ViewDirList {
+    pub fn new(content: &Content, base_dir: Rc<Vec<String>>, list: GitDirList) -> ViewDirList {
         ViewDirList {
+            content: content.clone(),
             base_dir,
             list: list.list,
         }
@@ -123,6 +176,7 @@ impl ViewDirList {
 
         for (name, item) in self.list.as_ref() {
             list_out.push(ListItem {
+                content: self.content.clone(),
                 base_dir: self.base_dir.clone(),
                 name: name.clone(),
                 dir: item.dir,
@@ -178,7 +232,7 @@ pub enum ContentType {
     Unknown,
 }
 
-#[derive(PartialEq, Clone, Debug)]
+#[derive(Clone)]
 pub enum CurrentContent {
     File {
         file: ListItem,

@@ -48,53 +48,6 @@ fn move_pointer(state_data: &Git, list: GitDirList, path_item: &String) -> Resou
     return Resource::Error(format!("dir expected {}", path_item));
 }
 
-enum FileType {
-    Txt,
-    Image {
-        ext: String,
-    },
-    Unknown,
-}
-
-fn get_file_content(file: &ListItem, content: &Content) -> Resource<ContentType> {
-    let ext = file.get_ext();
-
-    let file_type = match ext {
-        Some(ext) => {
-            match ext.as_str() {
-                "txt" => FileType::Txt,
-                "webp" => FileType::Image { ext: "webp".into() },
-                "jpg" => FileType::Image { ext: "jpg".into() },
-                "jpeg" => FileType::Image { ext: "jpeg".into() },
-                "png" => FileType::Image { ext: "png".into() },
-                _ => {
-                    log::warn!("Nierozpoznany typ pliku: {ext}");
-                    FileType::Unknown
-                }
-            }
-        },
-        None => FileType::Txt,
-    };
-
-    let content = match file_type {
-        FileType::Txt => {
-            let content = content.get(&file.id)?;
-            ContentType::Text { content }
-        },
-        FileType::Image { ext } => {
-            let id = &file.id;
-            let url = format!("/image/{id}/{ext}");
-            ContentType::Image { url: Rc::new(url) }
-        }
-        FileType::Unknown => {
-            ContentType::Unknown
-        }
-    };
-
-    Resource::Ready(content)
-}
-
-
 
 #[derive(Clone)]
 pub struct Git {
@@ -126,7 +79,7 @@ impl Git {
         }
 
         let base_dir = Rc::new(Vec::from(path));
-        Resource::Ready(ViewDirList::new(base_dir, result))
+        Resource::Ready(ViewDirList::new(&self.content, base_dir, result))
     }
 
     fn node_content(&self, base_dir: &[String], current_item: &Option<String>) -> Resource<CurrentContent> {
@@ -146,24 +99,26 @@ impl Git {
 
             if current_value.dir {
                 let dir = ListItem {
+                    content: self.content.clone(),
                     base_dir: base_dir.clone(),
                     name: current_item.clone(),
                     dir: true,
                     id: current_value.id.clone()
                 };
                 let list = self.dir.get_list(&current_value.id)?;
-                let dir_list_view = ViewDirList::new(base_dir, list);
+                let dir_list_view = ViewDirList::new(&self.content, base_dir, list);
 
                 return Resource::Ready(CurrentContent::dir(dir, dir_list_view));
             } else {
                 let file = ListItem {
+                    content: self.content.clone(),
                     base_dir,
                     name: current_item.clone(),
                     dir: false,
                     id: current_value.id.clone()
                 };
 
-                let content = get_file_content(&file, &self.content)?;
+                let content = file.get_file_content()?;
                 return Resource::Ready(CurrentContent::file(file, content));
             }
         }
