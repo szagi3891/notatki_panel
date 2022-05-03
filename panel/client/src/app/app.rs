@@ -40,7 +40,7 @@ impl App {
 
     pub fn redirect_to_content(&self, full_path: &Vec<String>) {
         let full_path = full_path.clone();
-        let content = self.data.git.get_content2(&full_path);
+        let content = self.data.git.get_content(&full_path);
 
         match content {
             Some(ContentView { id, content }) => {
@@ -65,7 +65,7 @@ impl App {
     pub fn redirect_to_rename_item(&self, base_path: &Vec<String>, select_item: &String) {
         let select_item = select_item.clone();
         let full_path = self.data.tab.full_path.clone().get_value();
-        let content = self.data.git.get_content2(&full_path);
+        let content = self.data.git.get_content(&full_path);
 
         match content {
             Some(ContentView { id, content }) => {

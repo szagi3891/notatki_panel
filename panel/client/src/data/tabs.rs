@@ -94,7 +94,7 @@ fn create_current_content(
     let full_path = full_path.clone();
 
     Computed::from(move || -> Resource<ContentType> {
-        let list_item = state_data_git.content_from_path2(full_path.get_value().as_ref())?;
+        let list_item = state_data_git.content_from_path(full_path.get_value().as_ref())?;
 
         list_item.get_content_type()
     })

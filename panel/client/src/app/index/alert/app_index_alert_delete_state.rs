@@ -34,7 +34,7 @@ impl AppIndexAlertDelete {
         }
 
         let current_path = self.full_path.as_ref().clone();
-        let current_hash = self.alert.data.git.get_content2(&current_path);
+        let current_hash = self.alert.data.git.get_content(&current_path);
 
         let current_hash = match current_hash {
             Some(ContentView { id, .. }) => id,

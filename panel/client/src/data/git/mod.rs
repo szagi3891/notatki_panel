@@ -81,7 +81,7 @@ impl Git {
         Resource::Ready(ViewDirList::new(&self.dir, &self.content, base_dir, result))
     }
 
-    fn node_content2(&self, base_dir: &[String], current_item: &String) -> Resource<ListItem> {
+    fn node_content(&self, base_dir: &[String], current_item: &String) -> Resource<ListItem> {
         let list = self.dir_list(base_dir)?;
         let current_value = list.get(current_item);
 
@@ -116,7 +116,7 @@ impl Git {
         }
     }
 
-    pub fn content_from_path2(&self, path: &[String]) -> Resource<ListItem> {
+    pub fn content_from_path(&self, path: &[String]) -> Resource<ListItem> {
         let mut path: Vec<String> = Vec::from(path);
         let last = path.pop();
 
@@ -139,11 +139,11 @@ impl Git {
             }
         };
 
-        self.node_content2(path.as_slice(), &last)
+        self.node_content(path.as_slice(), &last)
     }
 
-    pub fn get_content2(&self, path: &[String]) -> Option<ContentView> {
-        let result = self.content_from_path2(path);
+    pub fn get_content(&self, path: &[String]) -> Option<ContentView> {
+        let result = self.content_from_path(path);
 
         if let Resource::Ready(item) = result {
             let content_type = item.get_content_type();
