@@ -50,7 +50,7 @@ fn css_textarea() -> Css {
 }
 
 fn render_input(state: &AppRenameitem) -> VDomElement {
-    let content = state.new_name.get_value().as_ref().clone();
+    let content = state.new_name.get().as_ref().clone();
 
     let on_input = bind(state).call1(|state, new_value: String| {
         state.on_input(new_value);
@@ -92,7 +92,7 @@ pub fn app_renameitem_render(state: &AppRenameitem, app: App) -> VDomComponent {
             }))
         ];
 
-        let save_enable = state.save_enable.get_value();
+        let save_enable = state.save_enable.get();
 
         if *save_enable {
             let on_save = bind(state).and(&app).spawn(move |state, app| {

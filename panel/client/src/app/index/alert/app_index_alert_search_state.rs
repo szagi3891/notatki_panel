@@ -125,7 +125,7 @@ fn new_results(data_state: &Data, phrase: Computed<String>) -> Computed<Vec<Resu
 
     Computed::from(move || {
         let mut result = Vec::<ResultItem>::new();
-        let phrase_value = phrase.get_value().to_lowercase();
+        let phrase_value = phrase.get().to_lowercase();
 
         if phrase_value.len() < 2 {
             return result;
@@ -183,7 +183,7 @@ impl AppIndexAlertSearch {
 
 
 fn render_results(search: &AppIndexAlertSearch) -> VDomElement {
-    let results = search.results.get_value();
+    let results = search.results.get();
 
     let mut list = Vec::<VDomElement>::new();
 
@@ -228,10 +228,10 @@ pub fn render(search: &AppIndexAlertSearch) -> VDomComponent {
     let results = VDomComponent::new(search, render_results);
 
     VDomComponent::new(search, move |search: &AppIndexAlertSearch| {
-        let current_value = search.phrase.get_value();
+        let current_value = search.phrase.get();
 
         let on_input = bind(search).call1(|search, new_value| {
-            search.phrase.set_value(new_value);
+            search.phrase.set(new_value);
         });
 
         let on_close = bind(search).call(|search| {

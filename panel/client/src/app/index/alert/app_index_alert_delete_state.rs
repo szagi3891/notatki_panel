@@ -29,7 +29,7 @@ impl AppIndexAlertDelete {
     }
 
     pub async fn delete_yes(self) {
-        if *self.progress.get_value() {
+        if *self.progress.get() {
             return;
         }
 
@@ -45,7 +45,7 @@ impl AppIndexAlertDelete {
         };
 
         log::info!("usuwamy ...");
-        self.progress.set_value(true);
+        self.progress.set(true);
 
         let _ = get_driver()
             .request("/delete_item")
@@ -57,7 +57,7 @@ impl AppIndexAlertDelete {
             .post()
             .await;    //::<RootResponse>();
 
-        self.progress.set_value(false);
+        self.progress.set(false);
         self.alert.data.tab.redirect_after_delete();
         self.alert.data.git.root.refresh();
         self.alert.close_modal();
@@ -70,7 +70,7 @@ impl AppIndexAlertDelete {
     }
 
     pub fn delete_no(&self) {
-        if *self.progress.get_value() {
+        if *self.progress.get() {
             return;
         }
 

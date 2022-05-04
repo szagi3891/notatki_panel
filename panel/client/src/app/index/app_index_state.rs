@@ -64,6 +64,6 @@ impl AppIndex {
     }
 
     pub fn current_path_dir(&self) -> Rc<Vec<String>> {
-        self.data.tab.dir_select.get_value()
+        self.data.tab.dir_select.get()
     }
 }

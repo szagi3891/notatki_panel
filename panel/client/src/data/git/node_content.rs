@@ -40,7 +40,7 @@ impl NodeContent {
     }
 
     fn get(&self) -> Resource<Rc<String>> {
-        self.value.get_value().ref_map(|inner| inner.clone())
+        self.value.get().ref_map(|inner| inner.clone())
     }
 }
 
@@ -61,6 +61,6 @@ impl Content {
     }
 
     pub fn get(&self, id: &String) -> Resource<Rc<String>> {
-        self.data.get_value(id).get()
+        self.data.get(id).get()
     }
 }

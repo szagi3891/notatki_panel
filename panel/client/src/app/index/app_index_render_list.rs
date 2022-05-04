@@ -59,7 +59,7 @@ fn dom_apply(node_refs: &NodeRefs) {
 }
 
 pub fn render_list(state: &AppIndex) -> VDomElement {
-    let dir = state.data.tab.dir_select.get_value();
+    let dir = state.data.tab.dir_select.get();
 
     let out = list_items(&state.data, dir.as_ref(), true);
 

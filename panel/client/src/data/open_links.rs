@@ -20,13 +20,13 @@ impl OpenLinks {
     }
 
     pub fn tabs_has(&self, url: &String) -> bool {
-        let tabs_url = self.tabs_url.get_value();
+        let tabs_url = self.tabs_url.get();
         tabs_url.contains(url)
     }
 
     pub fn tabs_add(&self, url: String) {
         log::info!("add ... {}", &url);
-        let tabs_url = self.tabs_url.get_value();
+        let tabs_url = self.tabs_url.get();
 
         if tabs_url.contains(&url) {
             log::error!("is contain {}", url);
@@ -35,7 +35,7 @@ impl OpenLinks {
 
         let mut tabs_url = tabs_url.as_ref().clone();
         tabs_url.push(url);
-        self.tabs_url.set_value(tabs_url);
+        self.tabs_url.set(tabs_url);
     }
 
     pub fn tabs_toogle(&self, url: String) {
@@ -49,7 +49,7 @@ impl OpenLinks {
     }
 
     pub fn tabs_remove(&self, url: String) {
-        let tabs_url = self.tabs_url.get_value();
+        let tabs_url = self.tabs_url.get();
 
         if !tabs_url.contains(&url) {
             log::error!("not contain {}", url);
@@ -65,27 +65,27 @@ impl OpenLinks {
             }
         }
 
-        self.tabs_url.set_value(new_tabs);
+        self.tabs_url.set(new_tabs);
 
-        let tabs_active = self.tabs_active.get_value();
+        let tabs_active = self.tabs_active.get();
         if *tabs_active == Some(url) {
             self.tabs_default();
         }
     }
 
     pub fn tabs_set(&self, url: String) {
-        let tabs_url = self.tabs_url.get_value();
+        let tabs_url = self.tabs_url.get();
 
         if !tabs_url.contains(&url) {
             log::error!("not contain {}", url);
             return;
         }
 
-        self.tabs_active.set_value(Some(url));
+        self.tabs_active.set(Some(url));
     }
 
     pub fn tabs_default(&self) {
-        self.tabs_active.set_value(None);
+        self.tabs_active.set(None);
     }
 
     pub fn render(&self, default_view: VDomComponent) -> VDomComponent {
@@ -193,8 +193,8 @@ fn button(
 fn open_links_render(open_links: &OpenLinks, default_view: VDomComponent) -> VDomComponent {
 
     VDomComponent::new(open_links, move |open_links: &OpenLinks| {
-        let active = open_links.tabs_active.get_value();
-        let tabs = open_links.tabs_url.get_value();
+        let active = open_links.tabs_active.get();
+        let tabs = open_links.tabs_url.get();
 
         let style_css = html! {
             <style>

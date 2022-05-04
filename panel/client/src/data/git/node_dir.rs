@@ -55,7 +55,7 @@ impl NodeDir {
         let response2 = response.clone();
 
         let list = Computed::from(move || {
-            let resource = response2.get_value();
+            let resource = response2.get();
             resource.ref_map(convert)
         });
 
@@ -66,7 +66,7 @@ impl NodeDir {
     }
 
     pub fn get(&self) -> Rc<Resource<GitDirList>> {
-        self.list.get_value()
+        self.list.get()
     }
 
     pub fn get_list(&self) -> Resource<GitDirList> {
@@ -89,6 +89,6 @@ impl Dir {
     }
 
     pub fn get_list(&self, id: &String) -> Resource<GitDirList> {
-        self.data.get_value(id).get_list()
+        self.data.get(id).get_list()
     }
 }

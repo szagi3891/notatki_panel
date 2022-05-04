@@ -37,7 +37,7 @@ impl AppIndexAlert {
     }
 
     pub fn is_visible(&self) -> bool {
-        let view = self.view.get_value();
+        let view = self.view.get();
         match view.as_ref() {
             AlertView::None => false,
             _ => true
@@ -52,7 +52,7 @@ impl AppIndexAlert {
 
         let state = AppIndexAlertDelete::new(self, &path);
 
-        self.view.set_value(AlertView::DeleteFile { state });
+        self.view.set(AlertView::DeleteFile { state });
     }
 
     pub fn redirect_to_search(&self) {
@@ -61,7 +61,7 @@ impl AppIndexAlert {
         }
 
         let state = AppIndexAlertSearch::new(&self);
-        self.view.set_value(AlertView::SearchInPath { state });
+        self.view.set(AlertView::SearchInPath { state });
     }
 
     pub fn move_current(&self,  path: Rc<Vec<String>>) {
@@ -70,17 +70,17 @@ impl AppIndexAlert {
         }
 
         let state = AppIndexAlertMoveitem::new(&self, &path);
-        self.view.set_value(AlertView::MoveItem { state });
+        self.view.set(AlertView::MoveItem { state });
     }
 
     pub fn close_modal(&self) {
-        self.view.set_value(AlertView::None);
+        self.view.set(AlertView::None);
     }
 }
 
 
 fn app_index_alert_render(alert: &AppIndexAlert) -> VDomElement {
-    match alert.view.get_value().as_ref() {
+    match alert.view.get().as_ref() {
         AlertView::None => {
             html! {
                 <div />

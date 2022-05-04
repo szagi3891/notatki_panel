@@ -136,7 +136,7 @@ fn render_dir(data: &Data, dir: &Vec<String>) -> VDomElement {
 }
 
 pub fn render_content(state: &AppIndex) -> VDomElement {
-    let current_content = state.data.tab.current_content.get_value();
+    let current_content = state.data.tab.current_content.get();
 
     match current_content.as_ref() {
         Resource::Loading => {

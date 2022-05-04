@@ -121,7 +121,7 @@ impl AlertBox {
 
     pub fn render(self) -> VDomElement {
         let AlertBox { message, progress, buttons, content } = self;
-        let progress_value = progress.get_value();
+        let progress_value = progress.get();
 
         let content = match content {
             Some(content) => {

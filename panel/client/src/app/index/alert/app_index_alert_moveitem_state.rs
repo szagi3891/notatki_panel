@@ -28,7 +28,7 @@ impl AppIndexAlertMoveitem {
     }
 
     pub fn delete_no(&self) {
-        if *self.progress.get_value() {
+        if *self.progress.get() {
             return;
         }
 

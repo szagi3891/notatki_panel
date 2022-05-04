@@ -95,8 +95,8 @@ fn label_css(prirority: u8) -> Css {
 }
 
 fn render_item(data: &Data, dir: &Vec<String>, item: &ListItem, mouse_over_enable: bool) -> VDomElement {
-    let current_item = data.tab.current_item.get_value();
-    let current_hover = data.tab.item_hover.get_value();
+    let current_item = data.tab.current_item.get();
+    let current_hover = data.tab.item_hover.get();
 
     let is_select = {
         if let Some(list_pointer) = current_item.as_ref() {

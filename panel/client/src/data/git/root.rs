@@ -31,7 +31,7 @@ impl RootNode {
     }
 
     pub fn get(&self) -> Resource<String> {
-        let handler_root = self.root.get_value();
+        let handler_root = self.root.get();
         handler_root.ref_map(|item| item.root.clone())
     }
 }
@@ -53,12 +53,12 @@ impl Root {
     }
 
     pub fn get_current_root(&self) -> Resource<String> {
-        let current = self.current.get_value();
+        let current = self.current.get();
         current.get()
     }
 
     pub fn refresh(&self) {
         let current = RootNode::new();
-        self.current.set_value(current);
+        self.current.set(current);
     }
 }

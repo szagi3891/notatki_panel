@@ -22,7 +22,7 @@ impl AppNewdir {
         log::info!("buduję stan dla new dir");
         let action_save = Value::new(false);
         let list = data.tab.list.clone();
-        let parent = data.tab.dir_select.clone().get_value();
+        let parent = data.tab.dir_select.clone().get();
 
         let new_name = new_name::NewName::new(list);
 
@@ -43,16 +43,16 @@ impl AppNewdir {
         bind(self)
             .and(app)
             .spawn(|state, app| async move {
-                let action_save = state.action_save.get_value();
+                let action_save = state.action_save.get();
 
                 if *action_save {
                     log::error!("Trwa obecnie zapis");
                     return;
                 }
 
-                state.action_save.set_value(true);
+                state.action_save.set(true);
             
-                let new_dir_name = state.new_name.name.get_value().as_ref().clone();
+                let new_dir_name = state.new_name.name.get().as_ref().clone();
 
                 let body = HandlerCreateDirBody {
                     path: state.parent.clone(),

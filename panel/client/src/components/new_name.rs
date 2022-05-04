@@ -32,9 +32,9 @@ impl NewName {
             let name = name.clone();
 
             Computed::from(move || -> bool {
-                let list = list.get_value();
+                let list = list.get();
 
-                let name = name.get_value();
+                let name = name.get();
                 is_exist_in_list(name.as_ref(), list)
             })
         };
@@ -43,13 +43,13 @@ impl NewName {
             let name = name.clone();
 
             Computed::from(move || -> bool {
-                let name_exists = name_exists.get_value();
+                let name_exists = name_exists.get();
 
                 if *name_exists {
                     return false;
                 }
 
-                if name.get_value().is_empty() {
+                if name.get().is_empty() {
                     return false;
                 }
 
@@ -70,7 +70,7 @@ impl NewName {
     }
 
     pub fn on_input_name(&self, new_value: String) {
-        self.name.set_value(new_value);
+        self.name.set(new_value);
     }
 }
 
@@ -106,7 +106,7 @@ fn css_input_name() -> Css {
 }
 
 pub fn render(state: &NewName, autofocus: bool) -> VDomElement {
-    let content = &state.name.get_value();
+    let content = &state.name.get();
 
     let on_input = {
         let state = state.clone();

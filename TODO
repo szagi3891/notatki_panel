@@ -163,7 +163,7 @@ dodać zakładki
 dodać obsługę innych statusów, np. 404
         request.spawn_local(async move {
             let response = response.await;
-            value.set_value(response.map(|item| Rc::new(item.content)));
+            value.set(response.map(|item| Rc::new(item.content)));
         });
     teraz za kadym razem spodzieway się obiektu.
     a czasami moze coś innego zwrócić serwer

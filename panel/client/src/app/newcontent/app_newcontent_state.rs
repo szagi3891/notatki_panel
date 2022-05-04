@@ -22,7 +22,7 @@ impl AppNewcontent {
         log::info!("buduję stan dla new content");
         let action_save = Value::new(false);
 
-        let parent = data.tab.dir_select.clone().get_value();
+        let parent = data.tab.dir_select.clone().get();
         let list = data.tab.list.clone();
 
         let new_name = NewName::new(list);
@@ -35,13 +35,13 @@ impl AppNewcontent {
             let is_valid = new_name.is_valid.clone();
 
             Computed::from(move || -> bool {
-                let new_name_is_valid = is_valid.get_value();
+                let new_name_is_valid = is_valid.get();
 
                 if !*new_name_is_valid  {
                     return false;
                 }
 
-                let content = content.get_value();
+                let content = content.get();
                 if content.is_empty() {
                     return false;
                 }
@@ -69,36 +69,36 @@ impl AppNewcontent {
     }
 
     pub fn on_input_content(&self, new_value: String) {
-        let action_save = self.action_save.get_value();
+        let action_save = self.action_save.get();
 
         if *action_save {
             log::error!("Trwa obecnie zapis");
             return;
         }
 
-        self.content.set_value(new_value);
+        self.content.set(new_value);
     }
 
     pub fn on_save(&self, app: &App) -> impl Fn() {
         bind(self)
             .and(app)
             .spawn(|state, app| async move {
-                let action_save = state.action_save.get_value();
+                let action_save = state.action_save.get();
 
                 if *action_save {
                     log::error!("Trwa obecnie zapis");
                     return;
                 }
 
-                state.action_save.set_value(true);
+                state.action_save.set(true);
 
-                let new_name_rc = state.new_name.name.get_value();
+                let new_name_rc = state.new_name.name.get();
                 let new_name = (*new_name_rc).clone();
 
                 let body: HandlerCreateFileBody = HandlerCreateFileBody {
                     path: state.parent.clone(),
                     new_name: new_name.clone(),
-                    new_content: (*state.content.get_value()).clone(),
+                    new_content: (*state.content.get()).clone(),
                 };
 
                 let _ = get_driver()

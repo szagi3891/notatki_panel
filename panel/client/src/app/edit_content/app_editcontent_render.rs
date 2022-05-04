@@ -37,7 +37,7 @@ fn css_body() -> Css {
 }
 
 fn render_textarea(state: &AppEditcontent) -> VDomElement {
-    let content = &state.edit_content.get_value();
+    let content = &state.edit_content.get();
 
     let on_input = bind(state).call1(|state, new_value| {
         state.on_input(new_value);
@@ -63,7 +63,7 @@ pub fn app_editcontent_render(app: &App, state: &AppEditcontent) -> VDomComponen
 
         buttons.push(button("Wróć", on_click));
 
-        let save_enable = state.save_enable.get_value();
+        let save_enable = state.save_enable.get();
 
         if *save_enable {
             let on_save = state.on_save(&app);

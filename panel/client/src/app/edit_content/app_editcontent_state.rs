@@ -27,7 +27,7 @@ impl AppEditcontent {
             let edit_content = edit_content.to_computed();
 
             Computed::from(move || -> bool {
-                let edit_content = edit_content.get_value();
+                let edit_content = edit_content.get();
                 let save_enabled = edit_content.as_ref() != &content;
                 save_enabled
             })
@@ -50,14 +50,14 @@ impl AppEditcontent {
     }
 
     pub fn on_input(&self, new_text: String) {
-        let action_save = self.action_save.get_value();
+        let action_save = self.action_save.get();
 
         if *action_save {
             log::error!("Trwa obecnie zapis");
             return;
         }
 
-        self.edit_content.set_value(new_text);
+        self.edit_content.set(new_text);
     }
 
     pub fn on_save(&self, app: &App) -> impl Fn() {
@@ -65,19 +65,19 @@ impl AppEditcontent {
             .and(app)
             .spawn(|state, app| async move {
                         
-                let action_save = state.action_save.get_value();
+                let action_save = state.action_save.get();
 
                 if *action_save {
                     log::error!("Trwa obecnie zapis");
                     return;
                 }
 
-                state.action_save.set_value(true);
+                state.action_save.set(true);
 
                 let body: HandlerSaveContentBody = HandlerSaveContentBody {
                     path: state.path.clone(),
                     prev_hash: state.hash.clone(),
-                    new_content: (*state.edit_content.get_value()).clone(),
+                    new_content: (*state.edit_content.get()).clone(),
                 };
 
                 let _ = get_driver()

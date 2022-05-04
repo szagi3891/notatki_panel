@@ -52,7 +52,7 @@ impl App {
                     content.as_ref().clone(),
                 );
 
-                self.view.set_value(View::EditContent {
+                self.view.set(View::EditContent {
                     state
                 });
             },
@@ -64,7 +64,7 @@ impl App {
 
     pub fn redirect_to_rename_item(&self, base_path: &Vec<String>, select_item: &String) {
         let select_item = select_item.clone();
-        let full_path = self.data.tab.full_path.clone().get_value();
+        let full_path = self.data.tab.full_path.clone().get();
         let content = self.data.git.get_content(&full_path);
 
         match content {
@@ -78,7 +78,7 @@ impl App {
                     Some(content.as_ref().clone())
                 );
 
-                self.view.set_value(View::RenameItem {
+                self.view.set(View::RenameItem {
                     state
                 });
             },
@@ -90,7 +90,7 @@ impl App {
 
     pub fn redirect_to_index(&self) {
         log::info!("redirect_to_index");
-        self.view.set_value(View::Index {
+        self.view.set(View::Index {
             state: AppIndex::new(&self.data)
         });
     }
@@ -105,7 +105,7 @@ impl App {
     pub fn redirect_to_mkdir(&self) {
         let state = AppNewdir::new(&self.data);
 
-        self.view.set_value(View::Mkdir {
+        self.view.set(View::Mkdir {
             state
         });
     }
@@ -117,17 +117,17 @@ impl App {
 
     pub fn redirect_to_new_content(&self) {
         let state = AppNewcontent::new(&self.data);
-        self.view.set_value(View::NewContent { state });
+        self.view.set(View::NewContent { state });
     }
 
     pub fn current_edit(&self) {
-        let full_path = self.data.tab.full_path.get_value();
+        let full_path = self.data.tab.full_path.get();
         self.redirect_to_content(&full_path);
     }
 
     pub fn current_rename(&self) {
-        let path = self.data.tab.dir_select.get_value();
-        let select_item = self.data.tab.current_item.get_value();
+        let path = self.data.tab.dir_select.get();
+        let select_item = self.data.tab.current_item.get();
 
         if let Some(select_item) = select_item.as_ref() {
             self.redirect_to_rename_item(&path, select_item);
@@ -143,7 +143,7 @@ impl App {
 }
 
 fn app_render(app: &App) -> VDomElement {
-    let view = app.view.get_value();
+    let view = app.view.get();
 
     match view.as_ref() {
         View::Index { state }=> {

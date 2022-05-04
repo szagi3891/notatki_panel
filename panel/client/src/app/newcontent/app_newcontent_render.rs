@@ -38,7 +38,7 @@ fn css_input_content() -> Css {
 }
 
 fn render_input_content(state: &AppNewcontent) -> VDomElement {
-    let content = &state.content.get_value();
+    let content = &state.content.get();
 
     let on_input = {
         let state = state.clone();
@@ -65,7 +65,7 @@ pub fn app_newcontent_render(state: &AppNewcontent, app: App) -> VDomComponent {
 
         let mut buttons = vec!(button("Wróć", on_click));
 
-        let save_enable = state.save_enable.get_value();
+        let save_enable = state.save_enable.get();
 
         if *save_enable {
             buttons.push(button("Zapisz", state.on_save(&app)));
