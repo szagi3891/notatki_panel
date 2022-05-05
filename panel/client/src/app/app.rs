@@ -1,4 +1,4 @@
-use vertigo::{VDomComponent, VDomElement, html};
+use vertigo::{VDomComponent, VDomElement, html, Resource};
 use vertigo::Value;
 use crate::data::ContentView;
 use crate::data::Data;
@@ -38,7 +38,7 @@ impl App {
         }
     }
 
-    pub fn redirect_to_content(&self, full_path: &Vec<String>) {
+    pub fn redirect_to_edit_content(&self, full_path: &Vec<String>) {
         let full_path = full_path.clone();
         let content = self.data.git.get_content(&full_path);
 
@@ -65,24 +65,24 @@ impl App {
     pub fn redirect_to_rename_item(&self, base_path: &Vec<String>, select_item: &String) {
         let select_item = select_item.clone();
         let full_path = self.data.tab.full_path.clone().get();
-        let content = self.data.git.get_content(&full_path);
+        let content = self.data.git.content_from_path(&full_path);
 
         match content {
-            Some(ContentView { id, content }) => {
+            Resource::Ready(list_item) => {
                 log::info!("redirect_to_rename_item {base_path:?} {select_item:?}");
 
                 let state = AppRenameitem::new(
+                    self.data.clone(),
                     base_path.clone(),
                     select_item,
-                    id,
-                    Some(content.as_ref().clone())
+                    list_item.id,
                 );
 
                 self.view.set(View::RenameItem {
                     state
                 });
             },
-            None => {
+            _ => {
                 log::error!("redirect_to_rename_item fail - {base_path:?} {select_item:?}");
             }
         }
@@ -122,7 +122,7 @@ impl App {
 
     pub fn current_edit(&self) {
         let full_path = self.data.tab.full_path.get();
-        self.redirect_to_content(&full_path);
+        self.redirect_to_edit_content(&full_path);
     }
 
     pub fn current_rename(&self) {

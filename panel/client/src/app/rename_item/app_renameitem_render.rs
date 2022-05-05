@@ -4,6 +4,7 @@ use vertigo::{css, html, bind};
 use super::AppRenameitem;
 use crate::app::App;
 use crate::components::button;
+use crate::data::ContentView;
 
 fn css_wrapper() -> Css {
     css!("
@@ -62,10 +63,13 @@ fn render_input(state: &AppRenameitem) -> VDomElement {
 }
 
 fn render_textarea(state: &AppRenameitem) -> VDomElement {
-    let prev_content = state.prev_content.clone();
+    let mut full_path = state.path.clone();
+    full_path.push(state.prev_name.clone());
+    let content = state.data.git.get_content(&full_path);
 
-    match prev_content {
-        Some(text) => {
+    match content {
+        Some(ContentView { content, .. }) => {
+            let text = content.as_str();
             html! {
                 <textarea css={css_textarea()} readonly="readonly" value={text} />
             }

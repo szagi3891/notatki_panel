@@ -1,16 +1,16 @@
 use common::{HandlerRenameItemBody};
 use vertigo::{Computed, Value, VDomComponent, get_driver};
 
-use crate::app::App;
+use crate::{app::App, data::Data};
 
 use super::app_renameitem_render::app_renameitem_render;
 
 #[derive(Clone)]
 pub struct AppRenameitem {
+    pub data: Data,
     pub path: Vec<String>,          //edutowany element
     pub prev_name: String,
     pub prev_hash: String,               //hash poprzedniej zawartosci
-    pub prev_content: Option<String>,
 
     pub new_name: Value<String>,
     pub action_save: Value<bool>,
@@ -20,10 +20,10 @@ pub struct AppRenameitem {
 
 impl AppRenameitem {
     pub fn new(
+        data: Data,
         path: Vec<String>,
         prev_name: String,
         prev_hash: String,
-        prev_content: Option<String>,
     ) -> AppRenameitem {
         let new_name = Value::new(prev_name.clone());
 
@@ -49,10 +49,10 @@ impl AppRenameitem {
         let action_save = Value::new(false);
 
         AppRenameitem {
+            data,
             path,
             prev_name,
             prev_hash,
-            prev_content,
 
             new_name,
 

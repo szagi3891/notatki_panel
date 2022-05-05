@@ -1,4 +1,5 @@
-
+Zrobić komponent do "podglądu" zawartości jakiejś ścieki.
+Zrobić dodatkowy parametr, czy treść mze byc edytowalna czy tylko do odczytu
 
 
 dodać aktualną ściezke zeby byla dodawana po hashu
@@ -27,12 +28,6 @@ zrobic jakis tryb akcji
 
 
 
-spróbować zrobić funkcję, która umozliwi batchowy updejt
-spróbować zastąpić web-sys za pomocą natywnego kodu jsowego
-rollupem mozna zbijac w jeden wynikowy plik jsowy. A moze wystarczy zrobic kawałek skryptu rust który
-będzie robił to pakowanie do jednego pliku ... ?
-
-
 
 zrobić opcjonalny tryb widokowy, coś jak NortonCommander
 lewy panel i prawy panel pokazujący listę plików i katalogów
@@ -41,10 +36,6 @@ w tym trybie powinno dać się przenosić pliki i katalogi
 
 
 Dodać przycisk pozwalający wypchnąć zmiany lokalne na zdalny serwer
-
-
-
-jak nawigujemy kursorami, to w prawo na pliku powinno otwierać edykcję tego pliku
 
 
 
@@ -62,26 +53,9 @@ zrobić wyszukiwarkę w nazwach.
 Dodać jakąś nawigację po hashu, po to aby mozna było miec kilka zakladek w przegladarce
 
 
-jeśli w callbacku wywołana będzie metoda get_value, to mechanizm conmputed ma rzucić jakimś błędem
-w konsoli pewnie
-
-    let on_click = {
-        let state = state.clone();
-        let node_id = node_id.clone();
-        move || {
-            state.set_path(node_id.clone());
-        }
-    };
-
-
 /*
 onKeyDown={on_keydown} tabindex="0"
 */
-
-
-
-jak jestesmy w podgladzie katalogu, wyświetlać miniaturki
-    zdjęcia, wyświetlać w jakiejś rozdzielczości ...
 
 
 
