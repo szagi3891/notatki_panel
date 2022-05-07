@@ -53,10 +53,10 @@ fn render_input_content(state: &AppNewcontent) -> VDomElement {
 }
 
 pub fn app_newcontent_render(state: &AppNewcontent, app: App) -> VDomComponent {
-    let view_input = VDomComponent::new(state, render_input_content);
+    let view_input = VDomComponent::from_ref(state, render_input_content);
     let view_new_name = state.new_name.clone().render(true);
 
-    VDomComponent::new(state, move |state: &AppNewcontent| -> VDomElement {
+    VDomComponent::from_ref(state, move |state: &AppNewcontent| -> VDomElement {
         let on_click = bind(&app).call(|app| {
             app.redirect_to_index();
         });

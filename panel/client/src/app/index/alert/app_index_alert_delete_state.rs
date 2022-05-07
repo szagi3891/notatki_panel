@@ -84,7 +84,7 @@ impl AppIndexAlertDelete {
     }
 
     pub fn render(&self) -> VDomComponent {
-        VDomComponent::new(self, |state: &AppIndexAlertDelete| {
+        VDomComponent::from_ref(self, |state: &AppIndexAlertDelete| {
             let full_path = state.full_path.clone();
             let progress_computed = state.progress.to_computed();
 

@@ -926,9 +926,9 @@ dependencies = [
 
 [[package]]
 name = "num_threads"
-version = "0.1.5"
+version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aba1801fb138d8e85e11d0fc70baf4fe1cdfffda7c6cd34a854905df588e5ed0"
+checksum = "2819ce041d2ee131036f4fc9d6ae7ae125a3a40e97ba64d04fe799ad9dabbb44"
 dependencies = [
  "libc",
 ]
@@ -1213,9 +1213,9 @@ dependencies = [
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.37"
+version = "1.0.38"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ec757218438d5fda206afc041538b2f6d889286160d649a86a24d37e1235afd1"
+checksum = "9027b48e9d4c9175fa2218adf3557f91c1137021739951d4932f5f8268ac48aa"
 dependencies = [
  "unicode-xid",
 ]
@@ -1764,7 +1764,7 @@ checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
 [[package]]
 name = "vertigo"
 version = "0.1.0-beta.3"
-source = "git+https://github.com/vertigo-web/vertigo?branch=set_value#14cddb9fc735154988a181f51d276f02c0f4231f"
+source = "git+https://github.com/vertigo-web/vertigo?branch=set_value#1c1d1bbdd7c4a5b0f015c3388e8ecf1b0bbd14eb"
 dependencies = [
  "log",
  "serde_json",
@@ -1774,7 +1774,7 @@ dependencies = [
 [[package]]
 name = "vertigo-macro"
 version = "0.1.0-beta.3"
-source = "git+https://github.com/vertigo-web/vertigo?branch=set_value#14cddb9fc735154988a181f51d276f02c0f4231f"
+source = "git+https://github.com/vertigo-web/vertigo?branch=set_value#1c1d1bbdd7c4a5b0f015c3388e8ecf1b0bbd14eb"
 dependencies = [
  "itertools",
  "pest",

@@ -225,12 +225,12 @@ fn render_results(search: &AppIndexAlertSearch) -> VDomElement {
 
 pub fn render(search: &AppIndexAlertSearch) -> VDomComponent {
 
-    let results = VDomComponent::new(search, render_results);
+    let results = VDomComponent::from_ref(search, render_results);
 
-    VDomComponent::new(search, move |search: &AppIndexAlertSearch| {
+    VDomComponent::from_ref(search, move |search: &AppIndexAlertSearch| {
         let current_value = search.phrase.get();
 
-        let on_input = bind(search).call1(|search, new_value| {
+        let on_input = bind(search).call_param(|search, new_value| {
             search.phrase.set(new_value);
         });
 

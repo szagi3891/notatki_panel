@@ -137,7 +137,7 @@ impl App {
     }
 
     pub fn render(&self) -> VDomComponent {
-        let app = VDomComponent::new(self, app_render);
+        let app = VDomComponent::from_ref(self, app_render);
         self.data.tab.open_links.render(app)
     }
 }

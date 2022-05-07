@@ -33,7 +33,7 @@ impl AppIndexAlert {
     }
 
     pub fn render(&self) -> VDomComponent {
-        VDomComponent::new(self, app_index_alert_render)
+        VDomComponent::from_ref(self, app_index_alert_render)
     }
 
     pub fn is_visible(&self) -> bool {

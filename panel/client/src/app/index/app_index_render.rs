@@ -64,11 +64,11 @@ pub fn app_index_render(state_value: &AppIndex, app: &App) -> VDomComponent {
 
     let view_alert = state_value.alert.render();
     let view_menu = render_menu_state(app, state_value);
-    let view_header = VDomComponent::new(state_value, render_header);
-    let view_list = VDomComponent::new(state_value, render_list);
-    let view_content = VDomComponent::new(state_value, render_content);
+    let view_header = VDomComponent::from_ref(state_value, render_header);
+    let view_list = VDomComponent::from_ref(state_value, render_list);
+    let view_content = VDomComponent::from_ref(state_value, render_content);
 
-    VDomComponent::new(state_value, move |state_value: &AppIndex| {
+    VDomComponent::from_ref(state_value, move |state_value: &AppIndex| {
         let hook_keydown = {
             let state = state_value.clone();
             move |event: vertigo::KeyDownEvent| {

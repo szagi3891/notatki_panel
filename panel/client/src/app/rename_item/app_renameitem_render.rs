@@ -53,7 +53,7 @@ fn css_textarea() -> Css {
 fn render_input(state: &AppRenameitem) -> VDomElement {
     let content = state.new_name.get().as_ref().clone();
 
-    let on_input = bind(state).call1(|state, new_value: String| {
+    let on_input = bind(state).call_param(|state, new_value: String| {
         state.on_input(new_value);
     });
 
@@ -84,10 +84,10 @@ fn render_textarea(state: &AppRenameitem) -> VDomElement {
 
 pub fn app_renameitem_render(state: &AppRenameitem, app: App) -> VDomComponent {
 
-    let view_input = VDomComponent::new(state, render_input);
-    let view_textarea = VDomComponent::new(state, render_textarea);
+    let view_input = VDomComponent::from_ref(state, render_input);
+    let view_textarea = VDomComponent::from_ref(state, render_textarea);
 
-    VDomComponent::new(state, move |state: &AppRenameitem| {
+    VDomComponent::from_ref(state, move |state: &AppRenameitem| {
         let path = state.get_full_path();
 
         let mut buttons = vec![
