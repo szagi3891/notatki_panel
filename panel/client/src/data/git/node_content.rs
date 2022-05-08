@@ -4,7 +4,7 @@ use vertigo::{ Resource, AutoMap, LazyCache, get_driver };
 
 #[derive(Clone)]
 pub struct NodeContent {
-    value: LazyCache<Rc<String>>,
+    value: LazyCache<String>,
 }
 
 impl NodeContent {
@@ -25,7 +25,7 @@ impl NodeContent {
                     if status == 200 {
                         let response = body.into::<HandlerFetchNodeResponse>();
                         Some(response.map(|inner| {
-                            Rc::new(inner.content.clone())
+                            inner.content
                         }))
                     } else {
                         None
@@ -40,7 +40,7 @@ impl NodeContent {
     }
 
     fn get(&self) -> Resource<Rc<String>> {
-        self.value.get().ref_map(|inner| inner.clone())
+        self.value.get()
     }
 }
 

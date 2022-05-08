@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use vertigo::{VDomElement, VDomComponent};
 
 use vertigo::{
@@ -70,8 +68,8 @@ fn css_progress() -> Css {
     ")
 }
 
-fn render_progress(progress: Rc<bool>) -> VDomElement {
-    if *progress {
+fn render_progress(progress: bool) -> VDomElement {
+    if progress {
         return html! {
             <div css={css_progress()}>
                 "Przetwarzanie ..."

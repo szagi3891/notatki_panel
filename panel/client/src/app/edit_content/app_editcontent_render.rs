@@ -44,7 +44,7 @@ fn render_textarea(state: &AppEditcontent) -> VDomElement {
     });
 
     html! {
-        <textarea css={css_body()} on_input={on_input} value={content.as_ref()} />
+        <textarea css={css_body()} on_input={on_input} value={content} />
     }
 }
 
@@ -65,7 +65,7 @@ pub fn app_editcontent_render(app: &App, state: &AppEditcontent) -> VDomComponen
 
         let save_enable = state.save_enable.get();
 
-        if *save_enable {
+        if save_enable {
             let on_save = state.on_save(&app);
             buttons.push(button("Zapisz", on_save));
         }

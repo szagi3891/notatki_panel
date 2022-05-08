@@ -33,7 +33,7 @@ impl OpenLinks {
             return;
         }
 
-        let mut tabs_url = tabs_url.as_ref().clone();
+        let mut tabs_url = tabs_url;
         tabs_url.push(url);
         self.tabs_url.set(tabs_url);
     }
@@ -56,7 +56,6 @@ impl OpenLinks {
             return;
         }
         
-        let tabs_url = tabs_url.as_ref().clone();
         let mut new_tabs = Vec::<String>::with_capacity(tabs_url.len());
 
         for tab_url in tabs_url.into_iter() {
@@ -68,7 +67,7 @@ impl OpenLinks {
         self.tabs_url.set(new_tabs);
 
         let tabs_active = self.tabs_active.get();
-        if *tabs_active == Some(url) {
+        if tabs_active == Some(url) {
             self.tabs_default();
         }
     }

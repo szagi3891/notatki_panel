@@ -25,13 +25,14 @@ impl AppNewdir {
         let parent = data.tab.dir_select.clone().get();
 
         let new_name = new_name::NewName::new(list);
+        let is_valid = new_name.is_valid.clone();
 
         AppNewdir {
             action_save,
 
-            parent: parent.as_ref().clone(),
-            new_name: new_name.clone(),
-            save_enable: new_name.is_valid.clone(),
+            parent,
+            new_name,
+            save_enable: is_valid,
         }
     }
 
@@ -45,14 +46,14 @@ impl AppNewdir {
             .spawn(|state, app| async move {
                 let action_save = state.action_save.get();
 
-                if *action_save {
+                if action_save {
                     log::error!("Trwa obecnie zapis");
                     return;
                 }
 
                 state.action_save.set(true);
             
-                let new_dir_name = state.new_name.name.get().as_ref().clone();
+                let new_dir_name = state.new_name.name.get();
 
                 let body = HandlerCreateDirBody {
                     path: state.parent.clone(),

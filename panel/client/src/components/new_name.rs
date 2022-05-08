@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use vertigo::{Computed, Value, VDomComponent};
 
 use vertigo::{Css, VDomElement};
@@ -7,8 +5,8 @@ use vertigo::{css, html};
 
 use crate::data::ListItem;
 
-fn is_exist_in_list(name: &String, list: Rc<Vec<ListItem>>) -> bool {
-    for item in list.as_ref() {
+fn is_exist_in_list(name: String, list: Vec<ListItem>) -> bool {
+    for item in list.into_iter() {
         if item.name == *name {
             return true;
         }
@@ -35,7 +33,7 @@ impl NewName {
                 let list = list.get();
 
                 let name = name.get();
-                is_exist_in_list(name.as_ref(), list)
+                is_exist_in_list(name, list)
             })
         };
 
@@ -45,7 +43,7 @@ impl NewName {
             Computed::from(move || -> bool {
                 let name_exists = name_exists.get();
 
-                if *name_exists {
+                if name_exists {
                     return false;
                 }
 
@@ -106,7 +104,7 @@ fn css_input_name() -> Css {
 }
 
 pub fn render(state: &NewName, autofocus: bool) -> VDomElement {
-    let content = &state.name.get();
+    let content = state.name.get();
 
     let on_input = {
         let state = state.clone();
@@ -121,7 +119,7 @@ pub fn render(state: &NewName, autofocus: bool) -> VDomElement {
             <input
                 css={css_input_name()}
                 on_input={on_input}
-                value={content.as_ref()}
+                value={content}
                 autofocus=""
             />
         }
@@ -130,7 +128,7 @@ pub fn render(state: &NewName, autofocus: bool) -> VDomElement {
             <input
                 css={css_input_name()}
                 on_input={on_input}
-                value={content.as_ref()}
+                value={content}
             />
         }
     };

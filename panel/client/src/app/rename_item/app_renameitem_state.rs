@@ -34,11 +34,11 @@ impl AppRenameitem {
             Computed::from(move || -> bool {
                 let new_name = new_name.get();
                 
-                if new_name.as_ref().trim() == "" {
+                if new_name.trim() == "" {
                     return false;
                 }
 
-                if new_name.as_ref() != &prev_name {
+                if new_name != prev_name {
                     return true;
                 }
 
@@ -77,7 +77,7 @@ impl AppRenameitem {
     pub fn on_input(&self, new_text: String) {
         let action_save = self.action_save.get();
 
-        if *action_save {
+        if action_save {
             log::error!("Trwa obecnie zapis");
             return;
         }
@@ -89,7 +89,7 @@ impl AppRenameitem {
     pub async fn on_save(self, app: App) {
         let action_save = self.action_save.get();
 
-        if *action_save {
+        if action_save {
             log::error!("Trwa obecnie zapis");
             return;
         }
@@ -100,7 +100,7 @@ impl AppRenameitem {
             path: self.path.clone(),
             prev_name: self.prev_name.clone(),
             prev_hash: self.prev_hash.clone(),
-            new_name: (*self.new_name.get()).clone(),
+            new_name: self.new_name.get(),
         };
 
         let _ = get_driver()
@@ -110,7 +110,7 @@ impl AppRenameitem {
             .await;
 
         let redirect_path = self.path.clone();
-        let redirect_new_name = self.new_name.get().as_ref().clone();
+        let redirect_new_name = self.new_name.get();
 
         log::info!("Zapis udany");
 

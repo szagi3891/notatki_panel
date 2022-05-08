@@ -8,7 +8,7 @@ use vertigo::{
 
 use super::models::{GitDirList, TreeItem};
 
-fn convert(list: &HandlerFetchDirResponse) -> GitDirList {
+fn convert(list: Rc<HandlerFetchDirResponse>) -> GitDirList {
     let mut out: HashMap<String, TreeItem> = HashMap::new();
 
     for item in list.list.iter() {
@@ -54,9 +54,9 @@ impl NodeDir {
 
         let response2 = response.clone();
 
-        let list = Computed::from(move || {
+        let list  = Computed::from(move || {
             let resource = response2.get();
-            resource.ref_map(convert)
+            resource.map(convert)
         });
 
         NodeDir {
@@ -65,7 +65,7 @@ impl NodeDir {
         }
     }
 
-    pub fn get(&self) -> Rc<Resource<GitDirList>> {
+    pub fn get(&self) -> Resource<GitDirList> {
         self.list.get()
     }
 

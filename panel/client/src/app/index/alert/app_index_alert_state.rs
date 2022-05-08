@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use vertigo::{Value, VDomElement, VDomComponent};
 use vertigo::{html};
 use crate::app::index::alert::app_index_alert_delete_state::AppIndexAlertDelete;
@@ -8,7 +6,7 @@ use crate::data::Data;
 
 use super::app_index_alert_moveitem_state::AppIndexAlertMoveitem;
 
-
+#[derive(Clone)]
 enum AlertView {
     None,
     DeleteFile { state: AppIndexAlertDelete },
@@ -38,14 +36,14 @@ impl AppIndexAlert {
 
     pub fn is_visible(&self) -> bool {
         let view = self.view.get();
-        match view.as_ref() {
+        match view {
             AlertView::None => false,
             _ => true
         }
         // *view != AlertView::None
     }
 
-    pub fn delete(&self, path: Rc<Vec<String>>) {
+    pub fn delete(&self, path: Vec<String>) {
         if self.is_visible() {
             return;
         }
@@ -64,12 +62,12 @@ impl AppIndexAlert {
         self.view.set(AlertView::SearchInPath { state });
     }
 
-    pub fn move_current(&self,  path: Rc<Vec<String>>) {
+    pub fn move_current(&self,  path: Vec<String>) {
         if self.is_visible() {
             return;
         }
 
-        let state = AppIndexAlertMoveitem::new(&self, &path);
+        let state = AppIndexAlertMoveitem::new(&self, path);
         self.view.set(AlertView::MoveItem { state });
     }
 
@@ -80,7 +78,7 @@ impl AppIndexAlert {
 
 
 fn app_index_alert_render(alert: &AppIndexAlert) -> VDomElement {
-    match alert.view.get().as_ref() {
+    match alert.view.get() {
         AlertView::None => {
             html! {
                 <div />

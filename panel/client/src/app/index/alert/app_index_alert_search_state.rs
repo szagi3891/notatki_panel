@@ -240,7 +240,7 @@ pub fn render(search: &AppIndexAlertSearch) -> VDomComponent {
 
         let content = html! {
             <div css={css_content()}>
-                <input autofocus="" value={current_value.as_ref()} on_input={on_input} />
+                <input autofocus="" value={current_value} on_input={on_input} />
                 <br/>
                 
                 <div css={css_close()} on_click={on_close}>

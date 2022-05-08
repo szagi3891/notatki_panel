@@ -23,7 +23,7 @@ fn create_list(list: &Computed<Resource<ViewDirList>>) -> Computed<Vec<ListItem>
     let list = list.clone();
 
     Computed::from(move || -> Vec<ListItem> {
-        match list.get().as_ref() {
+        match list.get() {
             Resource::Ready(current_view) => {
                 current_view.get_list()
             },
@@ -73,7 +73,7 @@ fn create_current_full_path(
     let item_hover = item_hover.clone();
 
     Computed::from(move || -> Vec<String> {
-        let mut current_path_dir = current_path_dir.get().as_ref().clone();
+        let mut current_path_dir = current_path_dir.get();
 
         if let Some(item_hover) = item_hover.get().as_ref() {
             current_path_dir.push(item_hover.clone());
@@ -176,7 +176,7 @@ impl TabPath {
         let current_path_item = self.item_select.get();
         let list = self.list.get();
 
-        fn find_index(list: &Vec<ListItem>, value: &Option<String>) -> Option<usize> {
+        fn find_index(list: &Vec<ListItem>, value: Option<String>) -> Option<usize> {
             if let Some(value) = value {
                 for (index, item) in list.iter().enumerate() {
                     if item.name == *value {
@@ -187,7 +187,7 @@ impl TabPath {
             None
         }
 
-        if let Some(current_index) = find_index(list.as_ref(), current_path_item.as_ref()) {
+        if let Some(current_index) = find_index(list.as_ref(), current_path_item) {
             if current_index > 0 {
                 if let Some(prev) = list.get(current_index - 1) {
                     self.item_select.set(Some(prev.name.clone()));
@@ -229,7 +229,7 @@ impl TabPath {
     pub fn set_path(&self, path: Vec<String>) {
         let current_path = self.dir_select.get();
 
-        if current_path.as_ref().as_slice() == path.as_slice() {
+        if current_path == path.as_slice() {
             log::info!("path are equal");
             return;
         }
@@ -243,12 +243,10 @@ impl TabPath {
     }
 
     fn click_list_item(&self, node: String) {
-        let list_hash_map_rc = self.dir_hash_map.get();
-
-        if let Resource::Ready(list) = list_hash_map_rc.as_ref() {
+        if let Resource::Ready(list) = self.dir_hash_map.get() {
             if let Some(node_details) = list.get(&node) {
                 if node_details.dir {
-                    let mut current = self.dir_select.get().as_ref().clone();
+                    let mut current = self.dir_select.get();
                     current.push(node.clone());
                     self.set_path(current);
                 } else {
@@ -264,7 +262,7 @@ impl TabPath {
     fn find(&self, item_finding: &String) -> Option<isize> {
         let list = self.list.get();
 
-        for (index, item) in list.as_ref().iter().enumerate() {
+        for (index, item) in list.iter().enumerate() {
             if item.name == *item_finding {
                 return Some(index as isize);
             }
@@ -339,8 +337,7 @@ impl TabPath {
     }
 
     pub fn backspace(&self) {
-        let current_path = self.dir_select.get();
-        let mut current_path = current_path.as_ref().clone();
+        let mut current_path = self.dir_select.get();
 
         current_path.pop();
 

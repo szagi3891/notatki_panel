@@ -22,7 +22,7 @@ impl AppNewcontent {
         log::info!("buduję stan dla new content");
         let action_save = Value::new(false);
 
-        let parent = data.tab.dir_select.clone().get();
+        let parent = data.tab.dir_select.get();
         let list = data.tab.list.clone();
 
         let new_name = NewName::new(list);
@@ -35,9 +35,7 @@ impl AppNewcontent {
             let is_valid = new_name.is_valid.clone();
 
             Computed::from(move || -> bool {
-                let new_name_is_valid = is_valid.get();
-
-                if !*new_name_is_valid  {
+                if !is_valid.get()  {
                     return false;
                 }
 
@@ -53,7 +51,7 @@ impl AppNewcontent {
         AppNewcontent {
             action_save,
             
-            parent: parent.as_ref().clone(),
+            parent,
             content,
 
             new_name,
@@ -71,7 +69,7 @@ impl AppNewcontent {
     pub fn on_input_content(&self, new_value: String) {
         let action_save = self.action_save.get();
 
-        if *action_save {
+        if action_save {
             log::error!("Trwa obecnie zapis");
             return;
         }
@@ -85,20 +83,19 @@ impl AppNewcontent {
             .spawn(|state, app| async move {
                 let action_save = state.action_save.get();
 
-                if *action_save {
+                if action_save {
                     log::error!("Trwa obecnie zapis");
                     return;
                 }
 
                 state.action_save.set(true);
 
-                let new_name_rc = state.new_name.name.get();
-                let new_name = (*new_name_rc).clone();
+                let new_name = state.new_name.name.get();
 
                 let body: HandlerCreateFileBody = HandlerCreateFileBody {
                     path: state.parent.clone(),
                     new_name: new_name.clone(),
-                    new_content: (*state.content.get()).clone(),
+                    new_content: state.content.get(),
                 };
 
                 let _ = get_driver()

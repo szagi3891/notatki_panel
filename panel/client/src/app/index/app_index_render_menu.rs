@@ -26,9 +26,7 @@ fn create_avaible_delete_current(
 ) -> Computed<bool> {
 
     Computed::from(move || -> bool {
-        let current = current_content.get();
-
-        if let Resource::Ready(content) = current.as_ref() {
+        if let Resource::Ready(content) = current_content.get() {
             match content {
                 ContentType::Dir { list } => list.len() == 0,
                 _ => true
@@ -79,7 +77,7 @@ fn render_menu(app: &App, app_index: &AppIndex, avaible_delete_button: &Computed
     
     let avaible_delete_button = avaible_delete_button.get();
 
-    if *avaible_delete_button {
+    if avaible_delete_button {
         let alert = app_index.alert.clone();
         let on_delete = bind(&alert).call(|alert| {
             let path = alert.data.tab.full_path.get();
@@ -95,7 +93,7 @@ fn render_menu(app: &App, app_index: &AppIndex, avaible_delete_button: &Computed
 
     out.push(button("Przenieś", bind(app_index).call(|app_index| {
         let current_path = app_index.data.tab.full_path.get();
-        app_index.alert.move_current(current_path.clone());
+        app_index.alert.move_current(current_path);
     })));
 
     html! {

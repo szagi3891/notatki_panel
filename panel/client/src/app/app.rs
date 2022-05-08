@@ -9,6 +9,7 @@ use super::new_dir::AppNewdir;
 use super::newcontent::AppNewcontent;
 use super::rename_item::AppRenameitem;
 
+#[derive(Clone)]
 enum View {
     Index { state: AppIndex },
     EditContent { state: AppEditcontent },
@@ -145,7 +146,7 @@ impl App {
 fn app_render(app: &App) -> VDomElement {
     let view = app.view.get();
 
-    match view.as_ref() {
+    match view {
         View::Index { state }=> {
             let view = state.render(app);
 

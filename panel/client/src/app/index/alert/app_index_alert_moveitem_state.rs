@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use vertigo::{VDomComponent, Value};
 
 use crate::components::AlertBox;
@@ -9,16 +7,16 @@ use super::AppIndexAlert;
 #[derive(Clone)]
 pub struct AppIndexAlertMoveitem {
     alert: AppIndexAlert,
-    path: Rc<Vec<String>>,
+    path: Vec<String>,
     progress: Value<bool>,
 }
 
 
 impl AppIndexAlertMoveitem {
-    pub fn new(alert: &AppIndexAlert, path: &Rc<Vec<String>>) -> AppIndexAlertMoveitem {
+    pub fn new(alert: &AppIndexAlert, path: Vec<String>) -> AppIndexAlertMoveitem {
         AppIndexAlertMoveitem {
             alert: alert.clone(),
-            path: path.clone(),
+            path,
             progress: Value::new(false),
         }
     }
@@ -28,7 +26,7 @@ impl AppIndexAlertMoveitem {
     }
 
     pub fn delete_no(&self) {
-        if *self.progress.get() {
+        if self.progress.get() {
             return;
         }
 

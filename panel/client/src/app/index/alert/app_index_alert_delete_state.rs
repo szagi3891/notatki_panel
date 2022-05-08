@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use common::{HandlerDeleteItemBody};
 use vertigo::{
     VDomComponent,
@@ -12,13 +10,13 @@ use super::AppIndexAlert;
 
 #[derive(Clone)]
 pub struct AppIndexAlertDelete {
-    full_path: Rc<Vec<String>>,
+    full_path: Vec<String>,
     progress: Value<bool>,
     pub alert: AppIndexAlert,
 }
 
 impl AppIndexAlertDelete {
-    pub fn new(alert: &AppIndexAlert, full_path: &Rc<Vec<String>>) -> AppIndexAlertDelete {
+    pub fn new(alert: &AppIndexAlert, full_path: &Vec<String>) -> AppIndexAlertDelete {
         let progress: Value<bool> = Value::new(false);
 
         AppIndexAlertDelete {
@@ -29,11 +27,11 @@ impl AppIndexAlertDelete {
     }
 
     pub async fn delete_yes(self) {
-        if *self.progress.get() {
+        if self.progress.get() {
             return;
         }
 
-        let current_path = self.full_path.as_ref().clone();
+        let current_path = self.full_path;
         let current_hash = self.alert.data.git.get_content(&current_path);
 
         let current_hash = match current_hash {
@@ -70,7 +68,7 @@ impl AppIndexAlertDelete {
     }
 
     pub fn delete_no(&self) {
-        if *self.progress.get() {
+        if self.progress.get() {
             return;
         }
 

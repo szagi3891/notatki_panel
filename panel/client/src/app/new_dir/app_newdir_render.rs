@@ -34,7 +34,7 @@ pub fn app_newdir_render(state: AppNewdir, app: App) -> VDomComponent {
 
         let save_enable = state.save_enable.get();
 
-        if *save_enable {
+        if save_enable {
             buttons.push(button("Zapisz", state.bind_on_save(&app)));
         }
 

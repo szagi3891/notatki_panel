@@ -1,4 +1,3 @@
-use std::rc::Rc;
 use vertigo::{
     VDomComponent,
 };
@@ -63,7 +62,7 @@ impl AppIndex {
         false
     }
 
-    pub fn current_path_dir(&self) -> Rc<Vec<String>> {
+    pub fn current_path_dir(&self) -> Vec<String> {
         self.data.tab.dir_select.get()
     }
 }

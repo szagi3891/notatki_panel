@@ -57,7 +57,7 @@ fn open_css() -> Css {
     ")
 }
 
-fn render_content_text(state: &AppIndex, content: &Rc<String>) -> Vec<VDomElement> {
+fn render_content_text(state: &AppIndex, content: Rc<String>) -> Vec<VDomElement> {
     let chunks = parse_text(content.as_str());
 
     let mut out: Vec<VDomElement> = Vec::new();
@@ -138,7 +138,7 @@ fn render_dir(data: &Data, dir: &Vec<String>) -> VDomElement {
 pub fn render_content(state: &AppIndex) -> VDomElement {
     let current_content = state.data.tab.current_content.get();
 
-    match current_content.as_ref() {
+    match current_content {
         Resource::Loading => {
             html! {
                 <div></div>
