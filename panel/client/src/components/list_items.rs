@@ -99,7 +99,7 @@ fn render_item(data: &Data, dir: &Vec<String>, item: &ListItem, mouse_over_enabl
     let current_hover = data.tab.item_hover.get();
 
     let is_select = {
-        if let Some(list_pointer) = current_item.as_ref() {
+        if let Some(list_pointer) = &current_item {
             item.name == *list_pointer
         } else {
             false
@@ -107,7 +107,7 @@ fn render_item(data: &Data, dir: &Vec<String>, item: &ListItem, mouse_over_enabl
     };
 
     let is_hover = {
-        if let Some(hover) = current_hover.as_ref() {
+        if let Some(hover) = &current_hover {
             *hover == item.name
         } else {
             false
@@ -188,7 +188,49 @@ fn css_image() -> Css {
         margin: 5px;
         border:1px solid black;
         padding: 1px;
+        cursor: pointer;
     ")
+}
+
+#[derive(Clone)]
+struct ItemImage {
+    data: Data,
+    item: ListItem,
+    ext: String,
+}
+
+impl ItemImage {
+    pub fn component(data: &Data, item: &ListItem, ext: String, ) -> VDomComponent {
+
+        let state = ItemImage {
+            data: data.clone(),
+            item: item.clone(),
+            ext
+        };
+
+        VDomComponent::from(state, render_image_item)
+    }
+}
+
+fn render_image_item(state: &ItemImage) -> VDomElement {
+    let id = state.item.id.clone();
+    let url = format!("/image/{id}/{ext}", ext = state.ext);
+
+    let full_path = state.item.full_path();
+
+    let on_click = bind(&full_path)
+        .and(&state.data.tab)
+        .call(|full_path, tab| {
+            tab.redirect_to_file(full_path);
+        });
+
+    html!{
+        <img
+            css={css_image()}
+            src={&url}
+            on_click={on_click}
+        />
+    }
 }
 
 pub fn list_items(data: &Data, dir: &Vec<String>, mouse_over_enable: bool) -> Vec<VDomComponent> {
@@ -216,17 +258,7 @@ pub fn list_items(data: &Data, dir: &Vec<String>, mouse_over_enable: bool) -> Ve
 
         } else {
             if let Some(ext) = item.get_picture_ext() {
-                let id = item.id.clone();
-                let url = format!("/image/{id}/{ext}");
-
-                picture.push(VDomComponent::from_fn(move || {
-                    html!{
-                        <img
-                            css={css_image()}
-                            src={&url}
-                        />
-                    }
-                }));
+                picture.push(ItemImage::component(data, item, ext));
             } else {
                 let data = data.clone();
                 let dir = dir.clone();
