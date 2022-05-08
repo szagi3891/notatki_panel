@@ -94,7 +94,32 @@ fn label_css(prirority: u8) -> Css {
     ")
 }
 
-fn render_item(data: &Data, dir: &Vec<String>, item: &ListItem, mouse_over_enable: bool) -> VDomElement {
+struct ItemDefault {
+    data: Data,
+    item: ListItem,
+    dir: Vec<String>,
+    mouse_over_enable: bool
+}
+
+impl ItemDefault {
+    pub fn component(data: &Data, item: &ListItem, dir: &Vec<String>, mouse_over_enable: bool) -> VDomComponent {
+        let state = ItemDefault {
+            data: data.clone(),
+            item: item.clone(),
+            dir: dir.clone(),
+            mouse_over_enable
+        };
+
+        VDomComponent::from(state, item_default_render)
+    }
+}
+
+fn item_default_render(state: &ItemDefault) -> VDomElement {
+    let data = &state.data;
+    let dir = &state.dir;
+    let item = &state.item;
+    let mouse_over_enable = state.mouse_over_enable;
+
     let current_item = data.tab.current_item.get();
     let current_hover = data.tab.item_hover.get();
 
@@ -201,7 +226,6 @@ struct ItemImage {
 
 impl ItemImage {
     pub fn component(data: &Data, item: &ListItem, ext: String, ) -> VDomComponent {
-
         let state = ItemImage {
             data: data.clone(),
             item: item.clone(),
@@ -248,25 +272,12 @@ pub fn list_items(data: &Data, dir: &Vec<String>, mouse_over_enable: bool) -> Ve
 
     for item in list.iter() {
         if mouse_over_enable {
-            let data = data.clone();
-            let dir = dir.clone();
-            let item = item.clone();
-
-            out.push(VDomComponent::from_fn(move || {
-                render_item(&data, &dir, &item, mouse_over_enable)
-            }));
-
+            out.push(ItemDefault::component(data, item, dir, mouse_over_enable));
         } else {
             if let Some(ext) = item.get_picture_ext() {
                 picture.push(ItemImage::component(data, item, ext));
             } else {
-                let data = data.clone();
-                let dir = dir.clone();
-                let item = item.clone();
-
-                out.push(VDomComponent::from_fn(move || {
-                    render_item(&data, &dir, &item, mouse_over_enable)
-                }));
+                out.push(ItemDefault::component(data, item, dir, mouse_over_enable));
             }
         }
     }
