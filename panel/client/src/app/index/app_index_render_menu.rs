@@ -22,8 +22,10 @@ fn css_footer() -> Css {
 
 
 fn create_avaible_delete_current(
-    current_content: Computed<Resource<ContentType>>
+    current_content: &Computed<Resource<ContentType>>
 ) -> Computed<bool> {
+
+    let current_content = current_content.clone();
 
     Computed::from(move || -> bool {
         if let Resource::Ready(content) = current_content.get() {
@@ -37,34 +39,45 @@ fn create_avaible_delete_current(
     })
 }
 
-
-pub fn render_menu_state(app: &App, app_index: &AppIndex) -> VDomComponent {
-    let avaible_delete_button= create_avaible_delete_current(
-        app_index.data.tab.current_content.clone()
-    );
-
-    let app = app.clone();
-    let app_index = app_index.clone();
-
-    VDomComponent::from_fn(move || -> VDomElement {
-        render_menu(&app, &app_index, &avaible_delete_button)
-    })
+pub struct MenuComponent {
+    app: App,
+    app_index: AppIndex,
+    avaible_delete_button: Computed<bool>,
 }
 
-fn render_menu(app: &App, app_index: &AppIndex, avaible_delete_button: &Computed<bool>) -> VDomElement {
-    let on_click = bind(app).call(|app|{
+impl MenuComponent {
+    pub fn component(app: &App, app_index: &AppIndex) -> VDomComponent {
+        let avaible_delete_button= create_avaible_delete_current(
+            &app_index.data.tab.current_content
+        );
+
+        let state = MenuComponent {
+            app: app.clone(),
+            app_index: app_index.clone(),
+            avaible_delete_button
+        };
+
+        VDomComponent::from(state, render_menu)
+    }
+}
+
+fn render_menu(state: &MenuComponent) -> VDomElement {
+    let app = state.app.clone();
+    let app_index = state.app_index.clone();
+
+    let on_click = bind(&app).call(|app|{
         app.current_edit();
     });
 
-    let on_rename = bind(app).call(|app| {
+    let on_rename = bind(&app).call(|app| {
         app.current_rename();
     });
 
-    let on_create = bind(app).call(|app| {
+    let on_create = bind(&app).call(|app| {
         app.redirect_to_new_content();
     });
 
-    let on_mkdir = bind(app).call(|app| {
+    let on_mkdir = bind(&app).call(|app| {
         app.redirect_to_mkdir();
     });
 
@@ -75,7 +88,7 @@ fn render_menu(app: &App, app_index: &AppIndex, avaible_delete_button: &Computed
     out.push(button("Edycja pliku", on_click));
     out.push(button("Utwórz katalog", on_mkdir));
     
-    let avaible_delete_button = avaible_delete_button.get();
+    let avaible_delete_button = state.avaible_delete_button.get();
 
     if avaible_delete_button {
         let alert = app_index.alert.clone();
@@ -91,7 +104,7 @@ fn render_menu(app: &App, app_index: &AppIndex, avaible_delete_button: &Computed
         alert.redirect_to_search();
     })));
 
-    out.push(button("Przenieś", bind(app_index).call(|app_index| {
+    out.push(button("Przenieś", bind(&app_index).call(|app_index| {
         let current_path = app_index.data.tab.full_path.get();
         app_index.alert.move_current(current_path);
     })));

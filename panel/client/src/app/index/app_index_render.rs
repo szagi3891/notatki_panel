@@ -12,7 +12,7 @@ use super::AppIndex;
 use super::app_index_render_list::render_list;
 use super::app_index_render_header::render_header;
 use super::app_index_render_content::render_content;
-use super::app_index_render_menu::render_menu_state;
+use super::app_index_render_menu::MenuComponent;
 
 fn css_wrapper() -> Css {
     css!("
@@ -63,7 +63,7 @@ fn css_content_content() -> Css {
 pub fn app_index_render(state_value: &AppIndex, app: &App) -> VDomComponent {
 
     let view_alert = state_value.alert.render();
-    let view_menu = render_menu_state(app, state_value);
+    let view_menu = MenuComponent::component(app, state_value);
     let view_header = VDomComponent::from_ref(state_value, render_header);
     let view_list = VDomComponent::from_ref(state_value, render_list);
     let view_content = VDomComponent::from_ref(state_value, render_content);
