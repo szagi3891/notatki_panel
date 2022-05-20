@@ -109,6 +109,8 @@ impl AppRenameitem {
             .post()
             .await;
 
+        self.action_save.set(false);
+
         match check_request_response(response) {
             Ok(()) => {  
                 let redirect_path = self.path.clone();
