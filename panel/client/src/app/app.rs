@@ -1,8 +1,8 @@
 use std::rc::Rc;
 
-use vertigo::{VDomComponent, VDomElement, html, Resource};
+use vertigo::{VDomComponent, VDomElement, html, Resource, get_driver};
 use vertigo::Value;
-use crate::components::{error_line, stict_to_top};
+use crate::components::{message_box, MessageBoxType, stict_to_top};
 use crate::data::ContentView;
 use crate::data::Data;
 
@@ -16,6 +16,7 @@ use vertigo::struct_mut::CounterMut;
 #[derive(Clone)]
 struct Error {
     id: u32,
+    info: MessageBoxType,
     message: String,
 }
 
@@ -48,32 +49,11 @@ impl App {
 
         let next_id = Rc::new(CounterMut::new(1));
 
-        let errors = vec![
-            Error {
-                id: next_id.get_next(),
-                message: "Unknown http error: code=400 body=Invalid value for: body (Int at 'place') 1".into(),
-            },
-            Error {
-                id: next_id.get_next(),
-                message: "Unknown http error: code=400 body=Invalid value for: body (Int at 'place') 2".into(),
-            },
-            Error {
-                id: next_id.get_next(),
-                message: "Unknown http error: code=400 body=Invalid value for: body (Int at 'place') 3".into(),
-            },
-            Error {
-                id: next_id.get_next(),
-                message: "Unknown http error: code=400 body=Invalid value for: body (Int at 'place') 4".into(),
-            },
-        ];
-
-        log::info!("errors {len}", len = errors.len());
-
         App {
             data,
             view,
             next_id,
-            errors: Value::new(errors),
+            errors: Value::new(Vec::new()),
         }
     }
 
@@ -175,15 +155,43 @@ impl App {
         }
     }
 
-    pub fn add_error_message(&self, message: String) {
+    fn message_add(&self, info: MessageBoxType, message: String) -> u32 {
+        let message_id = self.next_id.get_next();
+
         let error = Error {
-            id: self.next_id.get_next(),
+            id: message_id,
+            info,
             message,
         };
 
         let mut messages = self.errors.get();
         messages.push(error);
         self.errors.set(messages);
+
+        message_id
+    }
+
+    fn message_off_with_timeout(&self, message_id: u32, timeout: u32) {
+        let self_copy = self.clone();
+
+        get_driver().spawn(async move {
+            get_driver().sleep(timeout).await;
+            self_copy.remove_message(message_id);
+        });
+    }
+
+    pub fn show_message_error(&self, message: impl Into<String>, timeout: Option<u32>) {
+        let message_id = self.message_add(MessageBoxType::Error, message.into());
+        if let Some(timeout) = timeout {
+            self.message_off_with_timeout(message_id, timeout);
+        }
+    }
+
+    pub fn show_message_info(&self, message: impl Into<String>, timeout: Option<u32>) {
+        let message_id = self.message_add(MessageBoxType::Info, message.into());
+        if let Some(timeout) = timeout {
+            self.message_off_with_timeout(message_id, timeout);
+        }
     }
 
     pub fn remove_message(&self, message_id: u32) {
@@ -205,10 +213,10 @@ impl App {
             let mut list = Vec::new();
 
             for error in errors {
-                let Error { id, message } = error;
+                let Error { id, info, message } = error;
                 let state = state.clone();
 
-                list.push(error_line(message, move || {
+                list.push(message_box(info, message, move || {
                     state.remove_message(id);
                 }));
             }

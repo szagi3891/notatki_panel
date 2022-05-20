@@ -2,7 +2,7 @@
 use common::{HandlerSaveContentBody};
 use vertigo::{Computed, Value, VDomComponent, bind, get_driver};
 
-use crate::{app::App};
+use crate::{app::{App, response::check_request_response}};
 use super::app_editcontent_render::app_editcontent_render;
 
 #[derive(Clone)]
@@ -80,14 +80,22 @@ impl AppEditcontent {
                     new_content: state.edit_content.get(),
                 };
 
-                let _ = get_driver()
+                let response = get_driver()
                     .request("/save_content")
                     .body_json(body)
                     .post().await;
 
-                log::info!("Zapis udany");
-            
-                app.redirect_to_index_with_root_refresh();
+                state.action_save.set(false);
+
+                match check_request_response(response) {
+                    Ok(()) => {
+                        log::info!("Zapis udany");
+                        app.redirect_to_index_with_root_refresh();        
+                    },
+                    Err(message) => {
+                        app.show_message_error(message, Some(10000));
+                    }
+                }
             })
     }
 }

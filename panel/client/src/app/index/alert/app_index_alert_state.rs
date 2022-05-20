@@ -1,5 +1,6 @@
 use vertigo::{Value, VDomElement, VDomComponent};
 use vertigo::{html};
+use crate::app::App;
 use crate::app::index::alert::app_index_alert_delete_state::AppIndexAlertDelete;
 use crate::app::index::alert::app_index_alert_search_state::AppIndexAlertSearch;
 use crate::data::Data;
@@ -30,8 +31,8 @@ impl AppIndexAlert {
         }
     }
 
-    pub fn render(&self) -> VDomComponent {
-        VDomComponent::from_ref(self, app_index_alert_render)
+    pub fn render(&self, app: &App) -> VDomComponent {
+        VDomComponent::from((self.clone(), app.clone()), app_index_alert_render)
     }
 
     pub fn is_visible(&self) -> bool {
@@ -77,7 +78,7 @@ impl AppIndexAlert {
 }
 
 
-fn app_index_alert_render(alert: &AppIndexAlert) -> VDomElement {
+fn app_index_alert_render((alert, app): &(AppIndexAlert, App)) -> VDomElement {
     match alert.view.get() {
         AlertView::None => {
             html! {
@@ -85,7 +86,7 @@ fn app_index_alert_render(alert: &AppIndexAlert) -> VDomElement {
             }
         },
         AlertView::DeleteFile { state } => {
-            let view = state.render();
+            let view = state.render(&app);
 
             html! {
                 <div>

@@ -2,6 +2,7 @@ use common::{HandlerCreateDirBody};
 use vertigo::{Computed, Value, VDomComponent, bind, get_driver};
 
 use crate::app::App;
+use crate::app::response::check_request_response;
 use crate::components::new_name::{self, NewName};
 use crate::data::Data;
 
@@ -60,15 +61,24 @@ impl AppNewdir {
                     dir: new_dir_name.clone(),
                 };
 
-                let _ = get_driver()
+                let response = get_driver()
                     .request("/create_dir")
                     .body_json(body)
                     .post().await;
 
-                let parent_string = state.parent.join("/");
-                log::info!("Tworzenie katalogu {:?} udane -> przekierowanie na -> {:?}", new_dir_name, parent_string);
+                state.action_save.set(false);
 
-                app.redirect_to_index_with_path(state.parent.clone(), Some(new_dir_name));
+                match check_request_response(response) {
+                    Ok(()) => {                
+                        let parent_string = state.parent.join("/");
+                        log::info!("Tworzenie katalogu {:?} udane -> przekierowanie na -> {:?}", new_dir_name, parent_string);
+
+                        app.redirect_to_index_with_path(state.parent.clone(), Some(new_dir_name));
+                    },
+                    Err(message) => {
+                        app.show_message_error(message, Some(10000));
+                    }
+                }
             })
     }
 }

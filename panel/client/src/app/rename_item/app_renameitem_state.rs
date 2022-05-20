@@ -1,7 +1,7 @@
 use common::{HandlerRenameItemBody};
 use vertigo::{Computed, Value, VDomComponent, get_driver};
 
-use crate::{app::App, data::Data};
+use crate::{app::{App, response::check_request_response}, data::Data};
 
 use super::app_renameitem_render::app_renameitem_render;
 
@@ -103,17 +103,24 @@ impl AppRenameitem {
             new_name: self.new_name.get(),
         };
 
-        let _ = get_driver()
+        let response = get_driver()
             .request("/rename_item")
             .body_json(body)
             .post()
             .await;
 
-        let redirect_path = self.path.clone();
-        let redirect_new_name = self.new_name.get();
+        match check_request_response(response) {
+            Ok(()) => {  
+                let redirect_path = self.path.clone();
+                let redirect_new_name = self.new_name.get();
 
-        log::info!("Zapis udany");
+                log::info!("Zapis udany");
 
-        app.redirect_to_index_with_path(redirect_path, Some(redirect_new_name));
+                app.redirect_to_index_with_path(redirect_path, Some(redirect_new_name));
+            },
+            Err(message) => {
+                app.show_message_error(message, Some(10000));
+            }
+        }
     }
 }

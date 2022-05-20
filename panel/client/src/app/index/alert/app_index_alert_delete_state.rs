@@ -4,7 +4,7 @@ use vertigo::{
     Value,
     bind, get_driver,
 };
-use crate::{components::AlertBox, data::ContentView};
+use crate::{components::AlertBox, data::ContentView, app::{response::check_request_response, App}};
 
 use super::AppIndexAlert;
 
@@ -26,7 +26,7 @@ impl AppIndexAlertDelete {
         }
     }
 
-    pub async fn delete_yes(self) {
+    pub async fn delete_yes(self, app: App) {
         if self.progress.get() {
             return;
         }
@@ -45,7 +45,7 @@ impl AppIndexAlertDelete {
         log::info!("usuwamy ...");
         self.progress.set(true);
 
-        let _ = get_driver()
+        let response = get_driver()
             .request("/delete_item")
             .body_json(HandlerDeleteItemBody {
                 path: current_path,
@@ -56,15 +56,25 @@ impl AppIndexAlertDelete {
             .await;    //::<RootResponse>();
 
         self.progress.set(false);
-        self.alert.data.tab.redirect_after_delete();
-        self.alert.data.git.root.refresh();
-        self.alert.close_modal();
+
+        match check_request_response(response) {
+            Ok(()) => {
+                self.alert.data.tab.redirect_after_delete();
+                self.alert.data.git.root.refresh();
+                self.alert.close_modal();
+            },
+            Err(message) => {
+                app.show_message_error(message, Some(10000));
+            }
+        }
     }
 
-    pub fn bind_delete_yes(&self) -> impl Fn() {
-        bind(self).spawn(|state| {
-            state.delete_yes()
-        })
+    pub fn bind_delete_yes(&self, app: &App) -> impl Fn() {
+        bind(self)
+            .and(app)
+            .spawn(|state, app| {
+                state.delete_yes(app)
+            })
     }
 
     pub fn delete_no(&self) {
@@ -81,15 +91,15 @@ impl AppIndexAlertDelete {
         })
     }
 
-    pub fn render(&self) -> VDomComponent {
-        VDomComponent::from_ref(self, |state: &AppIndexAlertDelete| {
+    pub fn render(&self, app: &App) -> VDomComponent {
+        VDomComponent::from((self.clone(), app.clone()), |(state, app)| {
             let full_path = state.full_path.clone();
             let progress_computed = state.progress.to_computed();
 
             let message = format!("Czy usunąć -> {} ?", full_path.join("/"));
             let mut alert = AlertBox::new(message, progress_computed.clone());
 
-            alert.button("Tak", state.bind_delete_yes());
+            alert.button("Tak", state.bind_delete_yes(app));
             alert.button("Nie", state.bind_delete_no());
 
             alert.render()

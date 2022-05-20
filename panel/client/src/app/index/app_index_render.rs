@@ -62,7 +62,7 @@ fn css_content_content() -> Css {
 
 pub fn app_index_render(state_value: &AppIndex, app: &App) -> VDomComponent {
 
-    let view_alert = state_value.alert.render();
+    let view_alert = state_value.alert.render(app);
     let view_menu = MenuComponent::component(app, state_value);
     let view_header = VDomComponent::from_ref(state_value, render_header);
     let view_list = VDomComponent::from_ref(state_value, render_list);

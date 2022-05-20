@@ -3,6 +3,7 @@ use vertigo::{Computed, Value, VDomComponent, bind, get_driver};
 
 use crate::app::App;
 use crate::app::newcontent::app_newcontent_render::app_newcontent_render;
+use crate::app::response::check_request_response;
 use crate::components::new_name::NewName;
 use crate::data::Data;
 
@@ -98,15 +99,24 @@ impl AppNewcontent {
                     new_content: state.content.get(),
                 };
 
-                let _ = get_driver()
+                let response = get_driver()
                     .request("/create_file")
                     .body_json(body)
                     .post()
                     .await;
 
-                let path_redirect = state.parent.clone(); 
-                log::info!("Zapis udany -> przekierowanie na -> {:?} {:?}", path_redirect, new_name);
-                app.redirect_to_index_with_path(path_redirect, Some(new_name));
+                state.action_save.set(false);
+                
+                match check_request_response(response) {
+                    Ok(()) => {       
+                        let path_redirect = state.parent.clone(); 
+                        log::info!("Zapis udany -> przekierowanie na -> {:?} {:?}", path_redirect, new_name);
+                        app.redirect_to_index_with_path(path_redirect, Some(new_name));
+                    },
+                    Err(message) => {
+                        app.show_message_error(message, Some(10000));
+                    }
+                }
             })
     }
 }
