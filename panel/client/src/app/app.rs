@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use vertigo::{VDomComponent, VDomElement, html, Resource};
 use vertigo::Value;
 use crate::components::{error_line, stict_to_top};
@@ -9,6 +11,14 @@ use super::index::AppIndex;
 use super::new_dir::AppNewdir;
 use super::newcontent::AppNewcontent;
 use super::rename_item::AppRenameitem;
+use vertigo::struct_mut::CounterMut;
+
+#[derive(Clone)]
+struct Error {
+    id: u32,
+    message: String,
+}
+
 
 #[derive(Clone)]
 enum View {
@@ -23,6 +33,9 @@ enum View {
 pub struct App {
     pub data: Data,
     view: Value<View>,
+
+    next_id: Rc<CounterMut>,
+    errors: Value<Vec<Error>>,
 }
 
 impl App {
@@ -33,9 +46,34 @@ impl App {
             state: AppIndex::new(&data)
         });
 
+        let next_id = Rc::new(CounterMut::new(1));
+
+        let errors = vec![
+            Error {
+                id: next_id.get_next(),
+                message: "Unknown http error: code=400 body=Invalid value for: body (Int at 'place') 1".into(),
+            },
+            Error {
+                id: next_id.get_next(),
+                message: "Unknown http error: code=400 body=Invalid value for: body (Int at 'place') 2".into(),
+            },
+            Error {
+                id: next_id.get_next(),
+                message: "Unknown http error: code=400 body=Invalid value for: body (Int at 'place') 3".into(),
+            },
+            Error {
+                id: next_id.get_next(),
+                message: "Unknown http error: code=400 body=Invalid value for: body (Int at 'place') 4".into(),
+            },
+        ];
+
+        log::info!("errors {len}", len = errors.len());
+
         App {
             data,
             view,
+            next_id,
+            errors: Value::new(errors),
         }
     }
 
@@ -137,34 +175,59 @@ impl App {
         }
     }
 
-    pub fn render(&self) -> VDomComponent {
+    pub fn add_error_message(&self, message: String) {
+        let error = Error {
+            id: self.next_id.get_next(),
+            message,
+        };
+
+        let mut messages = self.errors.get();
+        messages.push(error);
+        self.errors.set(messages);
+    }
+
+    pub fn remove_message(&self, message_id: u32) {
+        let mut messages = self.errors.get();
+        messages.retain(|item| item.id != message_id);
+        self.errors.set(messages);
+    }
+
+    fn render_view(&self) -> VDomComponent {
         let app = VDomComponent::from_ref(self, app_render);
         let view = self.data.tab.open_links.render(app);
+        view
+    }
 
-        VDomComponent::from(view, |view| {
-            let view = view.clone();
+    fn render_errors(&self) -> VDomComponent {
+        VDomComponent::from_ref(self, |state| {
+            let errors = state.errors.get();
 
-            let message1 = error_line("Unknown http error: code=400 body=Invalid value for: body (Int at 'place') 1", || {
-                log::info!("zamknij 1");
-            });
+            let mut list = Vec::new();
 
-            let message2 = error_line("Unknown http error: code=400 body=Invalid value for: body (Int at 'place') 2", || {
-                log::info!("zamknij 2");
-            });
+            for error in errors {
+                let Error { id, message } = error;
+                let state = state.clone();
 
-            let message3 = error_line("Unknown http error: code=400 body=Invalid value for: body (Int at 'place') 3", || {
-                log::info!("zamknij 3");
-            });
+                list.push(error_line(message, move || {
+                    state.remove_message(id);
+                }));
+            }
 
-            let errors = stict_to_top(html! {
+            stict_to_top(html! {
                 <div>
-                    { message1 }
-
-                    { message2 }
-
-                    { message3 }
+                    {..list}
                 </div>
-            });
+            })
+        })
+    }
+
+    pub fn render(&self) -> VDomComponent {
+        let view = self.render_view();
+        let errors = self.render_errors();
+
+        VDomComponent::from_fn(move || {
+            let view = view.clone();
+            let errors = errors.clone();
 
             html! {
                 <div>
