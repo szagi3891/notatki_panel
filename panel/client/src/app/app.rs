@@ -1,5 +1,6 @@
 use vertigo::{VDomComponent, VDomElement, html, Resource};
 use vertigo::Value;
+use crate::components::{error_line, stict_to_top};
 use crate::data::ContentView;
 use crate::data::Data;
 
@@ -17,7 +18,6 @@ enum View {
     NewContent { state: AppNewcontent },
     Mkdir { state: AppNewdir },
 }
-
 
 #[derive(Clone)]
 pub struct App {
@@ -139,7 +139,40 @@ impl App {
 
     pub fn render(&self) -> VDomComponent {
         let app = VDomComponent::from_ref(self, app_render);
-        self.data.tab.open_links.render(app)
+        let view = self.data.tab.open_links.render(app);
+
+        VDomComponent::from(view, |view| {
+            let view = view.clone();
+
+            let message1 = error_line("Unknown http error: code=400 body=Invalid value for: body (Int at 'place') 1", || {
+                log::info!("zamknij 1");
+            });
+
+            let message2 = error_line("Unknown http error: code=400 body=Invalid value for: body (Int at 'place') 2", || {
+                log::info!("zamknij 2");
+            });
+
+            let message3 = error_line("Unknown http error: code=400 body=Invalid value for: body (Int at 'place') 3", || {
+                log::info!("zamknij 3");
+            });
+
+            let errors = stict_to_top(html! {
+                <div>
+                    { message1 }
+
+                    { message2 }
+
+                    { message3 }
+                </div>
+            });
+
+            html! {
+                <div>
+                    { view }
+                    { errors }
+                </div>
+            }
+        })
     }
 }
 
