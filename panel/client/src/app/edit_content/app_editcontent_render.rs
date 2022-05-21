@@ -41,14 +41,21 @@ fn render_textarea(state: &AppEditcontent) -> VDomElement {
     let content = state.content_view.get();
 
     if let Some(EditContent { hash, content}) = content {
-        let on_input = bind(state)
-            .and(&hash)
-            .call_param(|state, hash, new_value| {
-                state.on_input(new_value, hash.clone());
-            });
+        if let Some(hash) = hash {
+            let on_input = bind(state)
+                .and(&hash)
+                .call_param(|state, hash, new_value| {
+                    state.on_input(new_value, hash.clone());
+                });
 
-        html! {
-            <textarea css={css_body()} on_input={on_input} value={content} />
+            html! {
+                <textarea css={css_body()} on_input={on_input} value={content} />
+            }
+        } else {
+
+            html! {
+                <textarea css={css_body()} value={content} />
+            }
         }
     } else {
         html! {
@@ -82,6 +89,9 @@ pub fn app_editcontent_render(app: &App, state: &AppEditcontent) -> VDomComponen
 
             let on_save = state.on_save(&app, false);
             buttons.push(button("Zapisz i zostań", on_save));
+
+            let on_reset = state.on_reset();
+            buttons.push(button("Usuń naniesione zmiany", on_reset));
         }
 
         html! {

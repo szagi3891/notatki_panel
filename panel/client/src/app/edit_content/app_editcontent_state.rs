@@ -8,17 +8,20 @@ use super::app_editcontent_render::app_editcontent_render;
 #[derive(Clone)]
 pub struct EditContent {
     pub content: String,
-    pub hash: String,
+    pub hash: Option<String>,
 }
+
 
 #[derive(Clone)]
 pub struct AppEditcontent {
     pub data: Data,
     pub path: Vec<String>,          //edutowany element
-    // pub hash: String,               //hash poprzedniej zawartosci
 
     pub action_save: Value<bool>,
-    pub content_edit: Value<Option<EditContent>>,
+
+    pub edit_content: Value<Option<String>>,
+    pub edit_hash: Value<Option<String>>,
+
     pub save_enable: Computed<bool>,
 
     pub content_view: Computed<Option<EditContent>>,        //None - ładowanie
@@ -29,31 +32,42 @@ impl AppEditcontent {
         data: Data,
         path: Vec<String>,
     ) -> AppEditcontent {
-        let content_edit = Value::<Option<EditContent>>::new(None);
+        let edit_content = Value::<Option<String>>::new(None);
+        let edit_hash = Value::<Option<String>>::new(None);
 
         let save_enable = {
-            let content_edit = content_edit.to_computed();
+            let data = data.clone();
+            let path = path.clone();
+
+            let edit_content = edit_content.to_computed();
 
             Computed::from(move || -> bool {
-                let content_edit = content_edit.get();
-                content_edit.is_some()
-                // let save_enabled = edit_content != content;
-                // save_enabled
+                let edit_content = edit_content.get();
+                if let Some(edit_content) = edit_content {
+                    if let Some(ContentView { id: _, content }) = data.git.get_content(&path) {
+                        return edit_content != *content;
+                    }
+                }
 
-                //TODO - to miejsce mona ciut usprawnić
+                false
             })
         };
 
         let content_view = {
             let data = data.clone();
             let path = path.clone();
-            let content_edit = content_edit.to_computed();
+            let edit_content = edit_content.to_computed();
+            let edit_hash = edit_hash.to_computed();
 
-            Computed::from(move || {
-                let content_edit = content_edit.get();
+            Computed::from(move || -> Option<EditContent> {
+                let edit_content = edit_content.get();
+                let edit_hash = edit_hash.get();
 
-                if let Some(content_edit) = content_edit {
-                    return Some(content_edit);
+                if let (Some(content_edit), Some(edit_hash)) = (&edit_content, edit_hash) {
+                    return Some(EditContent {
+                        content: content_edit.clone(),
+                        hash: Some(edit_hash)
+                    });
                 }
 
                 println!("ładowanie danych {path:?}");
@@ -63,7 +77,14 @@ impl AppEditcontent {
 
                     return Some(EditContent {
                         content,
-                        hash: id,
+                        hash: Some(id),
+                    });
+                }
+
+                if let Some(content_edit) = edit_content {
+                    return Some(EditContent {
+                        content: content_edit,
+                        hash: None,
                     });
                 }
 
@@ -76,7 +97,10 @@ impl AppEditcontent {
             path,
 
             action_save: Value::new(false),
-            content_edit,
+
+            edit_content,
+            edit_hash,
+
             save_enable,
             content_view,
         }
@@ -94,10 +118,16 @@ impl AppEditcontent {
             return;
         }
 
-        self.content_edit.set(Some(EditContent {
-            content: new_text,
-            hash: new_hash,
-        }));
+        self.edit_content.set(Some(new_text));
+        self.edit_hash.set(Some(new_hash));
+    }
+
+    pub fn on_reset(&self) -> impl Fn() {
+        bind(self)
+            .spawn(|state| async move {
+                state.edit_content.set(None);
+                state.edit_hash.set(None);
+            })
     }
 
     pub fn on_save(&self, app: &App, and_back_to_view: bool) -> impl Fn() {
@@ -113,10 +143,18 @@ impl AppEditcontent {
                     return;
                 }
 
-                let content_edit = match state.content_edit.get() {
+                let content_edit = match state.edit_content.get() {
                     Some(content_edit) => content_edit,
                     None => {
                         log::error!("Brak danych do zapisania");
+                        return;
+                    }
+                };
+
+                let content_edit_hash = match state.edit_hash.get() {
+                    Some(content_edit_hash) => content_edit_hash,
+                    None => {
+                        log::error!("Brak hasha danych");
                         return;
                     }
                 };
@@ -126,8 +164,8 @@ impl AppEditcontent {
 
                 let body: HandlerSaveContentBody = HandlerSaveContentBody {
                     path: state.path.clone(),
-                    prev_hash: content_edit.hash,
-                    new_content: content_edit.content,
+                    prev_hash: content_edit_hash,
+                    new_content: content_edit,
                 };
 
                 let response = get_driver()
@@ -141,7 +179,7 @@ impl AppEditcontent {
                     Ok(()) => {
                         log::info!("Zapis udany");
 
-                        state.content_edit.set(None);
+                        state.edit_hash.set(None);
 
                         if and_back_to_view {
                             app.redirect_to_index_with_root_refresh();        
@@ -151,6 +189,7 @@ impl AppEditcontent {
                         }
                     },
                     Err(message) => {
+                        app.data.git.root.refresh();
                         app.show_message_error(message, Some(2000));
                     }
                 }
