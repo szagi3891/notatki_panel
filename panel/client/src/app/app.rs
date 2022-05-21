@@ -3,7 +3,6 @@ use std::rc::Rc;
 use vertigo::{VDomComponent, VDomElement, html, Resource, get_driver};
 use vertigo::Value;
 use crate::components::{message_box, MessageBoxType, stict_to_top};
-use crate::data::ContentView;
 use crate::data::Data;
 
 use super::edit_content::AppEditcontent;
@@ -59,26 +58,15 @@ impl App {
 
     pub fn redirect_to_edit_content(&self, full_path: &Vec<String>) {
         let full_path = full_path.clone();
-        let content = self.data.git.get_content(&full_path);
 
-        match content {
-            Some(ContentView { id, content }) => {
-                log::info!("redirect_to_content {full_path:?}");
+        let state = AppEditcontent::new(
+            self.data.clone(),
+            full_path.clone(),
+        );
 
-                let state = AppEditcontent::new(
-                    full_path.clone(),
-                    id.clone(),
-                    content.as_ref().clone(),
-                );
-
-                self.view.set(View::EditContent {
-                    state
-                });
-            },
-            None => {
-                log::error!("Oczekiwano pliku, problem z pobraniem");
-            },
-        }
+        self.view.set(View::EditContent {
+            state
+        });
     }
 
     pub fn redirect_to_rename_item(&self, base_path: &Vec<String>, select_item: &String) {

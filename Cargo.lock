@@ -1744,7 +1744,7 @@ checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
 [[package]]
 name = "vertigo"
 version = "0.1.0-beta.4"
-source = "git+https://github.com/vertigo-web/vertigo?branch=master#95f1bffd8a305f8c6c0a5d5529c3dffd6c4c0a36"
+source = "git+https://github.com/vertigo-web/vertigo?branch=rename_node_fix#5790ddd165fbc843b104acfa783e71a7034b8bf1"
 dependencies = [
  "log",
  "serde_json",
@@ -1754,7 +1754,7 @@ dependencies = [
 [[package]]
 name = "vertigo-macro"
 version = "0.1.0-beta.4"
-source = "git+https://github.com/vertigo-web/vertigo?branch=master#95f1bffd8a305f8c6c0a5d5529c3dffd6c4c0a36"
+source = "git+https://github.com/vertigo-web/vertigo?branch=rename_node_fix#5790ddd165fbc843b104acfa783e71a7034b8bf1"
 dependencies = [
  "itertools",
  "pest",

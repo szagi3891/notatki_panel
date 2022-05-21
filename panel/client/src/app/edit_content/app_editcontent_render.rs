@@ -2,6 +2,7 @@ use vertigo::{Css, VDomElement, VDomComponent, bind};
 use vertigo::{css, html};
 
 use super::AppEditcontent;
+use super::app_editcontent_state::EditContent;
 use crate::app::App;
 use crate::components::button;
 
@@ -37,14 +38,24 @@ fn css_body() -> Css {
 }
 
 fn render_textarea(state: &AppEditcontent) -> VDomElement {
-    let content = &state.edit_content.get();
+    let content = state.content_view.get();
 
-    let on_input = bind(state).call_param(|state, new_value| {
-        state.on_input(new_value);
-    });
+    if let Some(EditContent { hash, content}) = content {
+        let on_input = bind(state)
+            .and(&hash)
+            .call_param(|state, hash, new_value| {
+                state.on_input(new_value, hash.clone());
+            });
 
-    html! {
-        <textarea css={css_body()} on_input={on_input} value={content} />
+        html! {
+            <textarea css={css_body()} on_input={on_input} value={content} />
+        }
+    } else {
+        html! {
+            <div>
+                "Ładowanie ..."
+            </div>
+        }
     }
 }
 
@@ -66,14 +77,17 @@ pub fn app_editcontent_render(app: &App, state: &AppEditcontent) -> VDomComponen
         let save_enable = state.save_enable.get();
 
         if save_enable {
-            let on_save = state.on_save(&app);
+            let on_save = state.on_save(&app, true);
             buttons.push(button("Zapisz", on_save));
+
+            let on_save = state.on_save(&app, false);
+            buttons.push(button("Zapisz i zostań", on_save));
         }
 
         html! {
             <div css={css_wrapper()}>
                 <div css={css_header()}>
-                    "edycja pliku => "
+                    "Edycja pliku => "
                     {path}
                 </div>
                 <div css={css_header()}>
