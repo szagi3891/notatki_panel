@@ -189,7 +189,7 @@ impl AppEditcontent {
                         }
                     },
                     Err(message) => {
-                        app.data.git.root.refresh();
+                        // app.data.git.root.refresh();
                         app.show_message_error(message, Some(2000));
                     }
                 }
