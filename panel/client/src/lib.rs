@@ -14,5 +14,5 @@ mod app;
 
 #[no_mangle]
 pub fn start_application() {
-    start_app(app::App::new().render());
+    start_app(|| app::App::new().render());
 }
