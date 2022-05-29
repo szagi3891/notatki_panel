@@ -1,7 +1,7 @@
 use common::{HandlerRenameItemBody};
-use vertigo::{Computed, Value, VDomComponent, get_driver};
+use vertigo::{Computed, Value, VDomComponent, get_driver, bind};
 
-use crate::{app::{App, response::check_request_response}, data::Data};
+use crate::{app::{App, response::check_request_response}, data::Data, components::ButtonState};
 
 use super::app_renameitem_render::app_renameitem_render;
 
@@ -15,7 +15,7 @@ pub struct AppRenameitem {
     pub new_name: Value<String>,
     pub action_save: Value<bool>,
 
-    pub save_enable: Computed<bool>,
+    save_enable: Computed<bool>,
 }
 
 impl AppRenameitem {
@@ -85,17 +85,7 @@ impl AppRenameitem {
         self.new_name.set(new_text);
     }
 
-
-    pub async fn on_save(self, app: App) {
-        let action_save = self.action_save.get();
-
-        if action_save {
-            log::error!("Trwa obecnie zapis");
-            return;
-        }
-
-        self.action_save.set(true);
-
+    async fn on_save(&self) -> Result<(), String> {
         let body: HandlerRenameItemBody = HandlerRenameItemBody {
             path: self.path.clone(),
             prev_name: self.prev_name.clone(),
@@ -109,20 +99,61 @@ impl AppRenameitem {
             .post()
             .await;
 
-        self.action_save.set(false);
-
-        match check_request_response(response) {
-            Ok(()) => {  
-                let redirect_path = self.path.clone();
-                let redirect_new_name = self.new_name.get();
-
-                log::info!("Zapis udany");
-
-                app.redirect_to_index_with_path(redirect_path, Some(redirect_new_name));
-            },
-            Err(message) => {
-                app.show_message_error(message, Some(10000));
-            }
-        }
+        check_request_response(response)
     }
+
+
+    pub fn button_on_save(&self, app: &App) -> Computed<ButtonState> {
+        Computed::from({
+            let state = self.clone();
+            let app = app.clone();
+
+            move || {
+                if state.action_save.get() {
+                    return ButtonState::Process { label: "Zapisywanie ...".into() };
+                }
+
+                match state.save_enable.get() {
+                    true => {
+                        let state = state.clone();
+
+                        let action = bind(&state)
+                            .and(&app)
+                            .spawn(|state, app| async move {
+                                let action_save = state.action_save.get();
+
+                                if action_save {
+                                    log::error!("Trwa obecnie zapis");
+                                    return;
+                                }
+
+                                state.action_save.set(true);
+
+                                let response = state.on_save().await;
+
+                                match response {
+                                    Ok(()) => {  
+                                        let redirect_path = state.path.clone();
+                                        let redirect_new_name = state.new_name.get();
+
+                                        log::info!("Zapis udany");
+
+                                        app.redirect_to_index_with_path(redirect_path, Some(redirect_new_name));
+                                    },
+                                    Err(message) => {
+                                        app.show_message_error(message, Some(10000));
+                                    }
+                                };
+                            });
+
+                        ButtonState::active("Zapisz zmianę nazwy", action)
+                    },
+                    false => {
+                        ButtonState::Disabled { label: "Zapisz zmianę nazwy".into() }
+                    }
+                }
+            }
+        })
+    }
+
 }

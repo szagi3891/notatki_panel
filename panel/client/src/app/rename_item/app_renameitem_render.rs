@@ -86,6 +86,7 @@ pub fn app_renameitem_render(state: &AppRenameitem, app: App) -> VDomComponent {
 
     let view_input = VDomComponent::from_ref(state, render_input);
     let view_textarea = VDomComponent::from_ref(state, render_textarea);
+    let button_save = state.button_on_save(&app);
 
     VDomComponent::from_ref(state, move |state: &AppRenameitem| {
         let path = state.get_full_path();
@@ -96,15 +97,9 @@ pub fn app_renameitem_render(state: &AppRenameitem, app: App) -> VDomComponent {
             }))
         ];
 
-        let save_enable = state.save_enable.get();
+        let button_save = button_save.get().render();
+        buttons.push(button_save);
 
-        if save_enable {
-            let on_save = bind(state).and(&app).spawn(move |state, app| {
-                state.on_save(app)
-            });
-
-            buttons.push(button("Zmień nazwę", on_save));
-        }
 
         html! {
             <div css={css_wrapper()}>

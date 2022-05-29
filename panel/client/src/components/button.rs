@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use vertigo::{
     VDomElement,
     Css,
@@ -5,8 +7,14 @@ use vertigo::{
 
 use vertigo::{html, css};
 
-fn css_item() -> Css {
-    css!("
+enum ButtonType {
+    Disabled,
+    Active,
+    Process,
+}
+
+fn css_item(button_type: ButtonType) -> Css {
+    let style = css!("
         display: inline-block;
         border: 1px solid #a0a0a0;
         margin: 5px;
@@ -17,16 +25,80 @@ fn css_item() -> Css {
         font-size: 14px;
         overflow: hidden;
 
-        :hover {
-            cursor: pointer;
+        :hover {            
             background-color: #00ff0060;
         }
-    ")
+    ");
+
+    match button_type {
+        ButtonType::Disabled => style.extend(css!("
+            opacity: 0.3;
+        ")),
+        ButtonType::Active => style.extend(css!("
+            cursor: pointer;
+        ")),
+        ButtonType::Process => style.extend(css!("
+            opacity: 0.3;
+            color: yellow;
+        ")),
+    }
 }
+
 
 pub fn button(label: &'static str, on_click: impl Fn() + 'static) -> VDomElement {
     html! {
-        <span css={css_item()} on_click={on_click}>{label}</span>
+        <span css={css_item(ButtonType::Active)} on_click={on_click}>{label}</span>
+    }
+}
+
+#[derive(Clone)]
+pub enum ButtonState {
+    #[allow(dead_code)]
+    None,
+    #[allow(dead_code)]
+    Disabled {
+        label: String,
+    },
+    #[allow(dead_code)]
+    Active {
+        label: String,
+        action: Rc<dyn Fn()>,
+    },
+    #[allow(dead_code)]
+    Process {
+        label: String,
+    }
+}
+
+impl ButtonState {
+    pub fn active<S: Into<String>, F: Fn() + 'static>(label: S, action: F) -> ButtonState {
+        ButtonState::Active {
+            label: label.into(),
+            action: Rc::new(action)
+        }
+    }
+
+    pub fn render(self: &ButtonState) -> VDomElement {
+        match self {
+            Self::None => html!{ <span></span> },
+            Self::Disabled { label } => html! {
+                <span css={css_item(ButtonType::Disabled)}>{label}</span>
+            },
+            Self::Active { label, action } => {
+                let action = action.clone();
+
+                let on_click = move || {
+                    action();
+                };
+
+                html!{
+                    <span css={css_item(ButtonType::Active)} on_click={on_click}>{label}</span>
+                }
+            },
+            Self::Process { label } => html!{
+                <span css={css_item(ButtonType::Process)}>{label}</span>
+            }
+        }
     }
 }
 
