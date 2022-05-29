@@ -102,7 +102,15 @@ impl AppRenameitem {
         check_request_response(response)
     }
 
+    pub fn button_on_back(&self, app: &App) -> Computed<ButtonState> {
+        Computed::from({
+            let app = app.clone();
 
+            move || ButtonState::active("Wróć", bind(&app).call(|app| {
+                app.redirect_to_index();
+            }))
+        })
+    }
     pub fn button_on_save(&self, app: &App) -> Computed<ButtonState> {
         Computed::from({
             let state = self.clone();

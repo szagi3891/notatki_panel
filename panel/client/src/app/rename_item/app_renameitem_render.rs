@@ -3,7 +3,6 @@ use vertigo::{css, html, bind};
 
 use super::AppRenameitem;
 use crate::app::App;
-use crate::components::button;
 use crate::data::ContentView;
 
 fn css_wrapper() -> Css {
@@ -86,20 +85,14 @@ pub fn app_renameitem_render(state: &AppRenameitem, app: App) -> VDomComponent {
 
     let view_input = VDomComponent::from_ref(state, render_input);
     let view_textarea = VDomComponent::from_ref(state, render_textarea);
+    let button_back = state.button_on_back(&app);
     let button_save = state.button_on_save(&app);
 
     VDomComponent::from_ref(state, move |state: &AppRenameitem| {
         let path = state.get_full_path();
 
-        let mut buttons = vec![
-            button("Wróć", bind(&app).call(|app| {
-                app.redirect_to_index();
-            }))
-        ];
-
+        let button_back = button_back.get().render();
         let button_save = button_save.get().render();
-        buttons.push(button_save);
-
 
         html! {
             <div css={css_wrapper()}>
@@ -108,7 +101,8 @@ pub fn app_renameitem_render(state: &AppRenameitem, app: App) -> VDomComponent {
                     {path}
                 </div>
                 <div css={css_header()}>
-                    { ..buttons }
+                    { button_back }
+                    { button_save }
                 </div>
                 { view_input.clone() }
                 { view_textarea.clone() }
