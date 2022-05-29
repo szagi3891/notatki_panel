@@ -1,7 +1,7 @@
 use common::{HandlerRenameItemBody};
 use vertigo::{Computed, Value, VDomComponent, get_driver, bind};
 
-use crate::{app::{App, response::check_request_response}, data::Data, components::ButtonState};
+use crate::{app::{App, response::check_request_response}, data::Data, components::{ButtonState, ButtonComponent}};
 
 use super::app_renameitem_render::app_renameitem_render;
 
@@ -102,8 +102,8 @@ impl AppRenameitem {
         check_request_response(response)
     }
 
-    pub fn button_on_back(&self, app: &App) -> Computed<ButtonState> {
-        Computed::from({
+    pub fn button_on_back(&self, app: &App) -> VDomComponent {
+        ButtonComponent::new({
             let app = app.clone();
 
             move || ButtonState::active("Wróć", bind(&app).call(|app| {
@@ -111,8 +111,8 @@ impl AppRenameitem {
             }))
         })
     }
-    pub fn button_on_save(&self, app: &App) -> Computed<ButtonState> {
-        Computed::from({
+    pub fn button_on_save(&self, app: &App) -> VDomComponent {
+        ButtonComponent::new({
             let state = self.clone();
             let app = app.clone();
 

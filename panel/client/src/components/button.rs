@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use vertigo::{
     VDomElement,
-    Css,
+    Css, Computed, VDomComponent,
 };
 
 use vertigo::{html, css};
@@ -78,7 +78,7 @@ impl ButtonState {
         }
     }
 
-    pub fn render(self: &ButtonState) -> VDomElement {
+    fn render(self: &ButtonState) -> VDomElement {
         match self {
             Self::None => html!{ <span></span> },
             Self::Disabled { label } => html! {
@@ -101,4 +101,26 @@ impl ButtonState {
         }
     }
 }
+
+pub struct ButtonComponent {
+    value: Computed<ButtonState>,
+}
+
+impl ButtonComponent {
+    pub fn new<F: Fn() -> ButtonState + 'static>(fun: F) -> VDomComponent {
+        let state = ButtonComponent {
+            value: Computed::from(fun)
+        };
+
+        state.component()
+    }
+
+    fn component(self) -> VDomComponent {
+        VDomComponent::from(self, |state| {
+            let state = state.value.get();
+            state.render()
+        })
+    }
+}
+
 

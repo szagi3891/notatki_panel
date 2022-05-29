@@ -81,28 +81,32 @@ fn render_textarea(state: &AppRenameitem) -> VDomElement {
     }
 }
 
+fn render_path(state: &AppRenameitem) -> VDomElement {
+    let path = state.get_full_path();
+
+    html! {
+        <div css={css_header()}>
+            "zmiana nazwy => "
+            {path}
+        </div>
+    }
+}
+
 pub fn app_renameitem_render(state: &AppRenameitem, app: App) -> VDomComponent {
 
+    let view_path = VDomComponent::from_ref(state, render_path);
     let view_input = VDomComponent::from_ref(state, render_input);
     let view_textarea = VDomComponent::from_ref(state, render_textarea);
     let button_back = state.button_on_back(&app);
     let button_save = state.button_on_save(&app);
 
-    VDomComponent::from_ref(state, move |state: &AppRenameitem| {
-        let path = state.get_full_path();
-
-        let button_back = button_back.get().render();
-        let button_save = button_save.get().render();
-
+    VDomComponent::from_ref(state, move |_: &AppRenameitem| {
         html! {
             <div css={css_wrapper()}>
+                { view_path.clone() }
                 <div css={css_header()}>
-                    "zmiana nazwy => "
-                    {path}
-                </div>
-                <div css={css_header()}>
-                    { button_back }
-                    { button_save }
+                    { button_back.clone() }
+                    { button_save.clone() }
                 </div>
                 { view_input.clone() }
                 { view_textarea.clone() }

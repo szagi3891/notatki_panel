@@ -6,7 +6,7 @@ mod list_items;
 mod message;
 mod stick_wrapper;
 
-pub use button::{button, ButtonState};
+pub use button::{button, ButtonState, ButtonComponent};
 pub use alert_box::AlertBox;
 pub use list_items::list_items;
 pub use message::{message_box, MessageBoxType};

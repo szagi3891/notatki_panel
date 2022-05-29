@@ -10,7 +10,7 @@ use vertigo::{
 use vertigo::{html, css};
 use super::AppIndex;
 use crate::app::App;
-use crate::components::{button, ButtonState};
+use crate::components::{button, ButtonState, ButtonComponent};
 use crate::data::ContentType;
 
 fn css_footer() -> Css {
@@ -26,8 +26,8 @@ pub struct MenuComponent {
     app: App,
     app_index: AppIndex,
 
-    on_delete: Computed<ButtonState>,
-    on_edit_file: Computed<ButtonState>,
+    on_delete: VDomComponent,
+    on_edit_file: VDomComponent,
 }
 
 impl MenuComponent {
@@ -47,7 +47,7 @@ impl MenuComponent {
             })
         };
 
-        let on_delete = Computed::from({
+        let on_delete = ButtonComponent::new({
             let app_index = app_index.clone();
             let is_current_content = is_current_content.clone();
 
@@ -71,7 +71,7 @@ impl MenuComponent {
             }
         });
 
-        let on_edit_file = Computed::from({
+        let on_edit_file = ButtonComponent::new({
             let app = app.clone();
             let is_current_content = is_current_content.clone();
 
@@ -126,9 +126,17 @@ fn render_menu(state: &MenuComponent) -> VDomElement {
 
     out.push(button("Utwórz plik", on_create));
     out.push(button("Zmień nazwę", on_rename));
-    out.push(state.on_edit_file.get().render());
+    out.push(html!{
+        <span>
+            {state.on_edit_file.clone()}
+        </span>
+    });
     out.push(button("Utwórz katalog", on_mkdir));    
-    out.push(state.on_delete.get().render());
+    out.push(html! {
+        <span>
+            {state.on_delete.clone()}
+        </span>
+    });
 
     out.push(button("Wyszukaj", bind(&app_index.alert).call(|alert| {
         alert.redirect_to_search();
