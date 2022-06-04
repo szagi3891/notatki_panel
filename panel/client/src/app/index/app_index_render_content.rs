@@ -3,7 +3,7 @@ use std::rc::Rc;
 use vertigo::{Css, VDomElement, css, html, bind, Resource};
 
 use super::AppIndex;
-use crate::components::list_items;
+use crate::components::list_items_from_dir;
 use crate::data::{Data, ContentType};
 use crate::{
     content::{
@@ -126,7 +126,7 @@ fn render_dir(data: &Data, dir: &Vec<String>) -> VDomElement {
     //     })
     // }
 
-    let result = list_items(data, dir, false);
+    let result = list_items_from_dir(data, dir, false);
 
     html! {
         <div css={css_content_dir()}>

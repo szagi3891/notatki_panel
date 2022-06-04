@@ -221,17 +221,14 @@ impl App {
         let view = self.render_view();
         let errors = self.render_errors();
 
-        VDomComponent::from_fn(move || {
-            let view = view.clone();
-            let errors = errors.clone();
-
+        VDomComponent::from_html(
             html! {
                 <div>
                     { view }
                     { errors }
                 </div>
             }
-        })
+        )
     }
 }
 

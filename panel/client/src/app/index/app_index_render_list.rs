@@ -4,7 +4,7 @@ use vertigo::{
     VDomElement,
 };
 use vertigo::{css, html};
-use crate::components::list_items;
+use crate::components::list_items_from_dir;
 
 use super::AppIndex;
 
@@ -61,7 +61,7 @@ fn dom_apply(node_refs: &NodeRefs) {
 pub fn render_list(state: &AppIndex) -> VDomElement {
     let dir = state.data.tab.dir_select.get();
 
-    let out = list_items(&state.data, dir.as_ref(), true);
+    let out = list_items_from_dir(&state.data, dir.as_ref(), true);
 
     html! {
         <div css={css_wrapper()} dom_ref="wrapper" dom_apply={dom_apply}>
