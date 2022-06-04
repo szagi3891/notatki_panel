@@ -201,7 +201,10 @@ impl TabPath {
     pub fn redirect_to_item(&self, item: ListItem) {
         if item.is_dir {
             get_driver().transaction(|| {
-                self.dir_select.set(item.get_base_dir());
+                let mut path = item.get_base_dir();
+                path.push(item.name.clone());
+
+                self.dir_select.set(path);
                 self.item_select.set(None);
             });
         } else {
@@ -312,7 +315,7 @@ impl TabPath {
                     current.push(current_item.clone());
                     self.set_path(current);
                 } else {
-                    self.item_select.set(Some(current_item.clone()));
+                    // self.item_select.set(Some(current_item.clone()));
                 }
             }
         }
