@@ -211,7 +211,6 @@ impl ListItem {
         get_list_item_prirority(&self.name)
     }
 
-    #[allow(dead_code)]
     pub fn full_path(&self) -> Vec<String> {
         let mut result = self.base_dir.as_ref().clone();
         result.push(self.name.clone());

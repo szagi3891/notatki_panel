@@ -56,7 +56,7 @@ fn push_list<F: Fn(&String) -> bool>(
 
     for item in list.get_list() {
         if item.is_dir {
-            push_list(data_state, result, &item.base_dir, test_name)?;
+            push_list(data_state, result, &item.full_path(), test_name)?;
         }
     }
 
