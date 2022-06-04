@@ -216,25 +216,6 @@ impl TabPath {
         }
     }
 
-    #[deprecated]
-    pub fn redirect_to_dir(&self, path: &Vec<String>) {
-        get_driver().transaction(|| {
-            self.dir_select.set(path.clone());
-            self.item_select.set(None);
-        });
-    }
-
-    #[deprecated]
-    pub fn redirect_to_file(&self, path: &Vec<String>) {
-        let mut path = path.clone();
-        let last = path.pop();
-
-        get_driver().transaction(|| {
-            self.dir_select.set(path);
-            self.item_select.set(last);
-        });
-    }
-
     pub fn redirect_to(&self, dir: Vec<String>, item: Option<String>) {
         get_driver().transaction(move || {
             self.dir_select.set(dir);

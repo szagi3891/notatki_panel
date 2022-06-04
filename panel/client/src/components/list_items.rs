@@ -97,16 +97,14 @@ fn label_css(prirority: u8) -> Css {
 struct ItemDefault {
     data: Data,
     item: ListItem,
-    dir: Vec<String>,
     mouse_over_enable: bool
 }
 
 impl ItemDefault {
-    pub fn component(data: &Data, item: &ListItem, dir: &Vec<String>, mouse_over_enable: bool) -> VDomComponent {
+    pub fn component(data: &Data, item: &ListItem, mouse_over_enable: bool) -> VDomComponent {
         let state = ItemDefault {
             data: data.clone(),
             item: item.clone(),
-            dir: dir.clone(),
             mouse_over_enable
         };
 
@@ -116,7 +114,6 @@ impl ItemDefault {
 
 fn item_default_render(state: &ItemDefault) -> VDomElement {
     let data = &state.data;
-    let dir = &state.dir;
     let item = &state.item;
     let mouse_over_enable = state.mouse_over_enable;
 
@@ -140,18 +137,10 @@ fn item_default_render(state: &ItemDefault) -> VDomElement {
     };
 
     let on_click = {
-        let mut path = dir.clone();
-        path.push(item.name.clone());
-
         bind(&data.tab)
-            .and(&item.is_dir)
-            .and(&path)
-            .call(|tab, is_dir, path| {
-                if *is_dir {
-                    tab.redirect_to_dir(&path);
-                } else {
-                    tab.redirect_to_file(&path);
-                } 
+            .and(item)
+            .call(|tab, item| {
+                tab.redirect_to_item(item.clone());
             })
     };
 
@@ -240,12 +229,10 @@ fn render_image_item(state: &ItemImage) -> VDomElement {
     let id = state.item.id.clone();
     let url = format!("/image/{id}/{ext}", ext = state.ext);
 
-    let full_path = state.item.full_path();
-
-    let on_click = bind(&full_path)
+    let on_click = bind(&state.item)
         .and(&state.data.tab)
-        .call(|full_path, tab| {
-            tab.redirect_to_file(full_path);
+        .call(|item, tab| {
+            tab.redirect_to_item(item.clone());
         });
 
     html!{
@@ -272,12 +259,12 @@ pub fn list_items(data: &Data, dir: &Vec<String>, mouse_over_enable: bool) -> Ve
 
     for item in list.iter() {
         if mouse_over_enable {
-            out.push(ItemDefault::component(data, item, dir, mouse_over_enable));
+            out.push(ItemDefault::component(data, item, mouse_over_enable));
         } else {
             if let Some(ext) = item.get_picture_ext() {
                 picture.push(ItemImage::component(data, item, ext));
             } else {
-                out.push(ItemDefault::component(data, item, dir, mouse_over_enable));
+                out.push(ItemDefault::component(data, item, mouse_over_enable));
             }
         }
     }

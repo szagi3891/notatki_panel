@@ -283,10 +283,7 @@ impl ListItem {
     }
 
     pub fn to_string(&self) -> String {
-        let mut path = self.get_base_dir();
-        path.push(self.name.clone());
-
-        path.join("/")
+        self.full_path().join("/")
     }
 
     pub fn get_base_dir(&self) -> Vec<String> {
