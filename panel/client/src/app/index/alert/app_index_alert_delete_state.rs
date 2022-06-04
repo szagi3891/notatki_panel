@@ -102,8 +102,9 @@ impl AppIndexAlertDelete {
 
     pub fn render(&self, app: &App) -> VDomComponent {                          //TODO - pozbyć się referencji do app
         let message = render_message(self);
-        let progress_computed = self.progress.to_computed();
-        AlertBox::new(message, progress_computed.clone())
+        let progress = self.progress.to_computed();
+        AlertBox::new(message)
+            .progress(progress)
             .button(self.bind_delete_no())
             .button(self.bind_delete_yes(app))
             .render()

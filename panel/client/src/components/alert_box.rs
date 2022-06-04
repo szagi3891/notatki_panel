@@ -65,39 +65,50 @@ fn css_progress() -> Css {
     ")
 }
 
-fn render_progress(progress: Computed<bool>) -> VDomComponent {
+fn render_progress(progress: Option<Computed<bool>>) -> VDomComponent {
     VDomComponent::from(progress, |progress| {
-        let progress = progress.get();
+        if let Some(progress) = progress {
+            let progress = progress.get();
 
-        if progress {
-            return html! {
-                <div css={css_progress()}>
-                    "Przetwarzanie ..."
-                </div>
+            if progress {
+                return html! {
+                    <div css={css_progress()}>
+                        "Przetwarzanie ..."
+                    </div>
+                }
             }
-        }
 
-        html! {
-            <div/>
+            html! {
+                <div/>
+            }
+        } else {
+            html! {
+                <div/>
+            }
         }
     })
 }
 
 pub struct AlertBox {
     message: VDomComponent,
-    progress: Computed<bool>,
+    progress: Option<Computed<bool>>,
     buttons: Vec<VDomComponent>,
     content: Option<VDomComponent>,
 }
 
 impl AlertBox {
-    pub fn new(message: VDomComponent, progress: Computed<bool>) -> AlertBox {
+    pub fn new(message: VDomComponent) -> AlertBox {
         AlertBox {
             message,
-            progress,
+            progress: None,
             buttons: Vec::new(),
             content: None,
         }
+    }
+
+    pub fn progress(mut self, progress: Computed<bool>) -> Self {
+        self.progress = Some(progress);
+        self
     }
 
     pub fn button(mut self, component: VDomComponent) -> Self {

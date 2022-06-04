@@ -114,7 +114,7 @@ fn render_button_yes(state: &AppIndexAlertMoveitem) -> VDomComponent {
     let state = state.clone();
 
     ButtonComponent::new(move || {
-        ButtonState::active("tak", {
+        ButtonState::active("Tak", {
             let state = state.clone();
             move || {
                 // state.delete_yes();
@@ -158,9 +158,10 @@ fn render(state: &AppIndexAlertMoveitem) -> VDomComponent {
 
     let progress = state.progress.to_computed();
 
-    AlertBox::new(message, progress)
-        .button(button_yes.clone())
+    AlertBox::new(message)
+        .progress(progress)
         .button(button_no)
+        .button(button_yes)
         .set_content(content)
         .render()
 }
