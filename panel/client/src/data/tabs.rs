@@ -202,6 +202,21 @@ impl TabPath {
         };
     }
 
+    pub fn redirect_to_item(&self, item: ListItem) {
+        if item.is_dir {
+            get_driver().transaction(|| {
+                self.dir_select.set(item.get_base_dir());
+                self.item_select.set(None);
+            });
+        } else {
+            get_driver().transaction(|| {
+                self.dir_select.set(item.get_base_dir());
+                self.item_select.set(Some(item.name.clone()));
+            });
+        }
+    }
+
+    #[deprecated]
     pub fn redirect_to_dir(&self, path: &Vec<String>) {
         get_driver().transaction(|| {
             self.dir_select.set(path.clone());
@@ -209,6 +224,7 @@ impl TabPath {
         });
     }
 
+    #[deprecated]
     pub fn redirect_to_file(&self, path: &Vec<String>) {
         let mut path = path.clone();
         let last = path.pop();

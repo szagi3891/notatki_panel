@@ -283,6 +283,6 @@ fn app_render(app: &App) -> VDomElement {
                     { view }
                 </div>
             }
-        }
+        },
     }
 }

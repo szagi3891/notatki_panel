@@ -156,6 +156,38 @@ pub struct ListItem {
     pub id: String,     //hash tego elementu
 }
 
+impl PartialEq for ListItem {
+    fn eq(&self, other: &Self) -> bool {
+        self.base_dir == other.base_dir && self.name == other.name
+    }
+}
+
+impl Eq for ListItem {}
+
+impl PartialOrd for ListItem {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        let result = self.base_dir.cmp(&other.base_dir);
+
+        if result != Ordering::Equal {
+            return Some(result);
+        }
+
+        Some(self.name.cmp(&other.name))
+    }
+}
+
+impl Ord for ListItem {
+    fn cmp(&self, other: &Self) -> Ordering {
+        let result = self.base_dir.cmp(&other.base_dir);
+
+        if result != Ordering::Equal {
+            return result;
+        }
+
+        self.name.cmp(&other.name)
+    }
+}
+
 impl ListItem {
     pub fn get_ext(&self) -> Option<String> {
         get_ext(&self.name)
@@ -249,6 +281,18 @@ impl ListItem {
 
         Resource::Ready(content)
     }
+
+    pub fn to_string(&self) -> String {
+        let mut path = self.get_base_dir();
+        path.push(self.name.clone());
+
+        path.join("/")
+    }
+
+    pub fn get_base_dir(&self) -> Vec<String> {
+        (&*(self.base_dir)).clone()
+    }
+
 }
 
 
