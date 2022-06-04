@@ -113,9 +113,6 @@ pub struct TabPath {
     ///Element nad którym znajduje się hover
     pub item_hover: Value<Option<String>>,
 
-    /// Zawartość bazowego katalogu w formie HashMap z wszystkimi elementami z tego katalogi
-    pub dir_hash_map: Computed<Resource<ViewDirList>>,
-
     /// Aktualnie wyliczona lista, która jest prezentowana w lewej kolumnie menu
     pub list: Computed<Vec<ListItem>>,
 
@@ -136,18 +133,18 @@ pub struct TabPath {
 
 impl TabPath {
     pub fn new(git: &Git) -> TabPath {
-        let dir: Value<Vec<String>> = Value::new(Vec::new());
-        let item: Value<Option<String>> = Value::new(None);
+        let dir_select: Value<Vec<String>> = Value::new(Vec::new());
+        let item_select: Value<Option<String>> = Value::new(None);
         let item_hover = Value::new(None);
 
-        let dir_hash_map = create_list_hash_map(git, &dir);
+        let dir_hash_map = create_list_hash_map(git, &dir_select);
         let list = create_list(&dir_hash_map);
 
 
-        let current_item = create_current_item_view(&item, &list);
+        let current_item = create_current_item_view(&item_select, &list);
 
         let full_path = create_current_full_path(
-            &dir,
+            &dir_select,
             &current_item,
             &item_hover,
         );
@@ -160,10 +157,9 @@ impl TabPath {
         let open_links = OpenLinks::new();
 
         TabPath {
-            dir_select: dir.clone(),
-            item_select: item,
+            dir_select: dir_select.clone(),
+            item_select,
             item_hover,
-            dir_hash_map,
             list,
             current_item,
             full_path,
@@ -239,23 +235,6 @@ impl TabPath {
         });
     }
 
-    fn click_list_item(&self, node: String) {
-        if let Resource::Ready(list) = self.dir_hash_map.get() {
-            if let Some(node_details) = list.get(&node) {
-                if node_details.dir {
-                    let mut current = self.dir_select.get();
-                    current.push(node.clone());
-                    self.set_path(current);
-                } else {
-                    self.item_select.set(Some(node.clone()));
-                }
-                return;
-            }
-        }
-
-        log::error!("push_path - ignore: {}", node);
-    }
-
     fn find(&self, item_finding: &String) -> Option<isize> {
         let list = self.list.get();
 
@@ -324,11 +303,17 @@ impl TabPath {
     }
 
     pub fn pointer_enter(&self) {
-        let list_pointer = self.current_item.get();
+        if let Some(current_item) = self.current_item.get().as_ref() {
+            let content = self.current_content.get();
 
-        if let Some(list_pointer) = list_pointer.as_ref() {
-            if self.find(list_pointer).is_some() {
-                self.click_list_item(list_pointer.clone());
+            if let Resource::Ready(content) = content {
+                if let ContentType::Dir { .. } = content {
+                    let mut current = self.dir_select.get();
+                    current.push(current_item.clone());
+                    self.set_path(current);
+                } else {
+                    self.item_select.set(Some(current_item.clone()));
+                }
             }
         }
     }
