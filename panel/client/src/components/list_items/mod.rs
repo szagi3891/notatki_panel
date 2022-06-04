@@ -95,25 +95,52 @@ fn label_css(prirority: u8) -> Css {
 }
 
 
+pub fn item_default(data: &Data, item: &ListItem, on_click: impl Fn() + 'static) -> VDomElement {
+    let current_item = data.tab.current_item.get();
+    let current_hover = data.tab.item_hover.get();
+
+    let is_select = {
+        if let Some(list_pointer) = &current_item {
+            item.name == *list_pointer
+        } else {
+            false
+        }
+    };
+
+    let is_hover = {
+        if let Some(hover) = &current_hover {
+            *hover == item.name
+        } else {
+            false
+        }
+    };
+
+    html!{
+        <div
+            on_click={on_click}
+            css={css_normal(is_select, is_hover)}
+        >
+            {icon_arrow(is_select)}
+            {icon::icon_render(item.is_dir)}
+            <span css={label_css(item.prirority())}>
+                {remove_prefix(&item.name)}
+            </span>
+        </div>
+    }
+}
+
+
 pub fn item_default_render(data: &Data, item: &ListItem, mouse_over_enable: bool) -> VDomComponent {
     let data = data.clone();
     let item = item.clone();
 
     VDomComponent::from_fn(move || {
         let current_item = data.tab.current_item.get();
-        let current_hover = data.tab.item_hover.get();
+        // let current_hover = data.tab.item_hover.get();
 
         let is_select = {
             if let Some(list_pointer) = &current_item {
                 item.name == *list_pointer
-            } else {
-                false
-            }
-        };
-
-        let is_hover = {
-            if let Some(hover) = &current_hover {
-                *hover == item.name
             } else {
                 false
             }
@@ -127,18 +154,7 @@ pub fn item_default_render(data: &Data, item: &ListItem, mouse_over_enable: bool
                 })
         };
 
-        let element = html!{
-            <div
-                on_click={on_click}
-                css={css_normal(is_select, is_hover)}
-            >
-                {icon_arrow(is_select)}
-                {icon::icon_render(item.is_dir)}
-                <span css={label_css(item.prirority())}>
-                    {remove_prefix(&item.name)}
-                </span>
-            </div>
-        };
+        let element = item_default(&data, &item, on_click);
 
         let element = if is_select {
             element.dom_ref("active")
@@ -216,7 +232,7 @@ pub fn list_items_from_vec(data: &Data, list: Vec<ListItem>, mouse_over_enable: 
             if let Some(ext) = item.get_picture_ext() {
                 picture.push(item_image_render(data, item, ext));
             } else {
-                out.push(item_default_render(data, item, mouse_over_enable));
+                out.push(item_default_render(data, item, false));
             }
         }
     }

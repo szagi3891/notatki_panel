@@ -2,9 +2,9 @@ use common::{HandlerDeleteItemBody};
 use vertigo::{
     VDomComponent,
     Value,
-    bind, get_driver,
+    bind, get_driver, html,
 };
-use crate::{components::AlertBox, data::ContentView, app::{response::check_request_response, App}};
+use crate::{components::{AlertBox, ButtonComponent, ButtonState}, data::ContentView, app::{response::check_request_response, App}};
 
 use super::AppIndexAlert;
 
@@ -69,41 +69,55 @@ impl AppIndexAlertDelete {
         }
     }
 
-    pub fn bind_delete_yes(&self, app: &App) -> impl Fn() {
-        bind(self)
-            .and(app)
-            .spawn(|state, app| {
-                state.delete_yes(app)
-            })
-    }
+    pub fn bind_delete_yes(&self, app: &App) -> VDomComponent {
+        let state = self.clone();
+        let app = app.clone();
 
-    pub fn delete_no(&self) {
-        if self.progress.get() {
-            return;
-        }
+        ButtonComponent::new(move || {
+            let action = bind(&state)
+                .and(&app)
+                .spawn(|state, app| {
+                    state.delete_yes(app)
+                });
 
-        self.alert.close_modal();
-    }
-
-    pub fn bind_delete_no(&self) -> impl Fn() {
-        bind(self).call(|state| {
-            state.delete_no();
+            ButtonState::active("Tak", action)
         })
     }
 
-    pub fn render(&self, app: &App) -> VDomComponent {
-        VDomComponent::from((self.clone(), app.clone()), |(state, app)| {
-            let full_path = state.full_path.clone();
-            let progress_computed = state.progress.to_computed();
+    pub fn bind_delete_no(&self) -> VDomComponent {
+        let state = self.clone();
 
-            let message = format!("Czy usunąć -> {} ?", full_path.join("/"));
-            let mut alert = AlertBox::new(message, progress_computed.clone());
+        ButtonComponent::new(move || {
+            let action = bind(&state).call(|state| {
+                if state.progress.get() {
+                    return;
+                }
+        
+                state.alert.close_modal();
+            });
 
-            alert.button("Tak", state.bind_delete_yes(app));
-            alert.button("Nie", state.bind_delete_no());
-
-            alert.render()
+            ButtonState::active("Nie", action)
         })
+    }
+
+    pub fn render(&self, app: &App) -> VDomComponent {                          //TODO - pozbyć się referencji do app
+        let message = render_message(self);
+        let progress_computed = self.progress.to_computed();
+        AlertBox::new(message, progress_computed.clone())
+            .button(self.bind_delete_no())
+            .button(self.bind_delete_yes(app))
+            .render()
     }
 }
 
+fn render_message(state: &AppIndexAlertDelete) -> VDomComponent {
+    VDomComponent::from_ref(state, |state| {
+        let full_path = state.full_path.clone();
+        let message = format!("Czy usunąć -> {} ?", full_path.join("/"));
+        html!{
+            <div>
+                { message }
+            </div>
+        }
+    })
+}

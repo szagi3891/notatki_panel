@@ -165,7 +165,7 @@ pub fn render(search: &AppIndexAlertSearch) -> VDomComponent {
 
     let results = VDomComponent::from_ref(search, render_results);
 
-    VDomComponent::from_ref(search, move |search: &AppIndexAlertSearch| {
+    let content = VDomComponent::from_ref(search, move |search: &AppIndexAlertSearch| {
         let current_value = search.phrase.get();
 
         let on_input = bind(search).call_param(|search, new_value| {
@@ -176,7 +176,7 @@ pub fn render(search: &AppIndexAlertSearch) -> VDomComponent {
             search.alert.close_modal();
         });
 
-        let content = html! {
+        html! {
             <div css={css_content()}>
                 <input autofocus="" value={current_value} on_input={on_input} />
                 <br/>
@@ -190,8 +190,8 @@ pub fn render(search: &AppIndexAlertSearch) -> VDomComponent {
 
                 { results.clone() }
             </div>
-        };
+        }
+    });
 
-        AlertBox::render_popup(content)
-    })
+    AlertBox::render_popup(content)
 }

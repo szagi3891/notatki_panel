@@ -1,13 +1,10 @@
-use vertigo::{VDomElement, VDomComponent};
+use vertigo::VDomComponent;
 
 use vertigo::{
     Css,
     Computed,
 };
 use vertigo::{html, css};
-
-use crate::components::button;
-
 
 fn css_bg() -> Css {
     css!("
@@ -68,29 +65,33 @@ fn css_progress() -> Css {
     ")
 }
 
-fn render_progress(progress: bool) -> VDomElement {
-    if progress {
-        return html! {
-            <div css={css_progress()}>
-                "Przetwarzanie ..."
-            </div>
-        }
-    }
+fn render_progress(progress: Computed<bool>) -> VDomComponent {
+    VDomComponent::from(progress, |progress| {
+        let progress = progress.get();
 
-    html! {
-        <div/>
-    }
+        if progress {
+            return html! {
+                <div css={css_progress()}>
+                    "Przetwarzanie ..."
+                </div>
+            }
+        }
+
+        html! {
+            <div/>
+        }
+    })
 }
 
 pub struct AlertBox {
-    message: String,
+    message: VDomComponent,
     progress: Computed<bool>,
-    buttons: Vec<VDomElement>,
+    buttons: Vec<VDomComponent>,
     content: Option<VDomComponent>,
 }
 
 impl AlertBox {
-    pub fn new(message: String, progress: Computed<bool>) -> AlertBox {
+    pub fn new(message: VDomComponent, progress: Computed<bool>) -> AlertBox {
         AlertBox {
             message,
             progress,
@@ -99,27 +100,31 @@ impl AlertBox {
         }
     }
 
-    pub fn button<F: Fn() + 'static>(&mut self, label: &'static str, on_click: F) {
-        self.buttons.push(button(label, on_click))
+    pub fn button(mut self, component: VDomComponent) -> Self {
+        self.buttons.push(component);
+        self
     }
 
-    pub fn set_content(&mut self, content: VDomComponent) {
+    pub fn set_content(mut self, content: VDomComponent) -> Self {
         self.content = Some(content);
+        self
     }
 
-    pub fn render_popup(content: VDomElement) -> VDomElement {
-        html! {
-            <div css={css_bg()}>
-                <div css={css_center()}>
-                    {content}
+    pub fn render_popup(content: VDomComponent) -> VDomComponent {
+        VDomComponent::from_html(
+            html! {
+                <div css={css_bg()}>
+                    <div css={css_center()}>
+                        {content}
+                    </div>
                 </div>
-            </div>
-        }
+            }
+        )
     }
 
-    pub fn render(self) -> VDomElement {
+    pub fn render(self) -> VDomComponent {
         let AlertBox { message, progress, buttons, content } = self;
-        let progress_value = progress.get();
+        let progress = render_progress(progress);
 
         let content = match content {
             Some(content) => {
@@ -134,13 +139,13 @@ impl AlertBox {
             }
         };
 
-        let content = html! {
+        let content = VDomComponent::from_html(html! {
             <div>
                 <div css={css_message()}>
                     { message }
                 </div>
 
-                { render_progress(progress_value) }
+                { progress }
 
                 <div css={css_buttons_wrapper()}>
                     { ..buttons }
@@ -148,7 +153,7 @@ impl AlertBox {
 
                 { content }
             </div>
-        };
+        });
 
         Self::render_popup(content)
     }

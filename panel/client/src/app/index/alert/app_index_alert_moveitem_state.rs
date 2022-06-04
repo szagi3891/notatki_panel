@@ -1,36 +1,14 @@
-use vertigo::{VDomComponent, Value, Resource, Computed, VDomElement, html};
+use vertigo::{VDomComponent, Value, Resource, Computed, html, bind, css, Css};
 
-use crate::{components::AlertBox, data::ListItem};
+use crate::{components::{AlertBox, item_default, ButtonComponent, ButtonState}, data::ListItem};
 
 use super::AppIndexAlert;
-
-fn list_calculate(alert: &AppIndexAlert,  target: &Value<Vec<String>>) -> Resource<Vec<ListItem>> {
-    let target = target.get();
-    let list = alert.data.git.dir_list(target.as_slice())?;
-
-    let mut out = Vec::new();
-
-    for item in list.get_list() {
-        if item.is_dir {
-            out.push(item);
-        }
-    }
-
-    Resource::Ready(out)
-}
-
-fn list_computed(alert: &AppIndexAlert,  target: &Value<Vec<String>>) -> Computed<Resource<Vec<ListItem>>> {
-    let alert = alert.clone();
-    let target = target.clone();
-    Computed::from(move || list_calculate(&alert, &target))
-}
 
 #[derive(Clone)]
 pub struct AppIndexAlertMoveitem {
     alert: AppIndexAlert,
     path: Vec<String>,
     target: Value<Vec<String>>,
-    list: Computed<Resource<Vec<ListItem>>>,
     progress: Value<bool>,
 }
 
@@ -41,14 +19,10 @@ impl AppIndexAlertMoveitem {
         target.pop();
 
         let target = Value::new(target);
-
-        let list = list_computed(alert, &target);
-
         AppIndexAlertMoveitem {
             alert: alert.clone(),
             path,
             target,
-            list,
             progress: Value::new(false),
         }
     }
@@ -66,41 +40,128 @@ impl AppIndexAlertMoveitem {
     }
 }
 
-fn render_list(state: &AppIndexAlertMoveitem) -> VDomElement {
-    
-    html! {
-        <div>
-            "lista rozwijanych elementów"
-        </div>
+fn render_list(state: &AppIndexAlertMoveitem) -> VDomComponent {
+    fn css_list() -> Css {
+        css!("
+            max-height: 70vh;
+            overflow-y: scroll;
+        ")
     }
+
+    fn list_calculate(alert: &AppIndexAlert,  target: &Value<Vec<String>>) -> Resource<Vec<ListItem>> {
+        let target = target.get();
+        let list = alert.data.git.dir_list(target.as_slice())?;
+
+        let mut out = Vec::new();
+
+        for item in list.get_list() {
+            if item.is_dir {
+                out.push(item);
+            }
+        }
+
+        Resource::Ready(out)
+    }
+
+    let data = state.alert.data.clone();
+    let alert = state.alert.clone();
+    let target = state.target.clone();
+    let list = Computed::from(move || list_calculate(&alert, &target));
+
+    VDomComponent::from_fn(move || {
+        let list = list.get();
+
+        match list {
+            Resource::Ready(list) => {
+                let mut out = Vec::new();
+
+                for item in list {
+                    let on_click = bind(&item)
+                        .call(|item| {
+                            log::info!("kliknięto w element {name}", name = item.name);
+                        });
+
+                    out.push(item_default(&data, &item, on_click));
+                }
+
+                html! {
+                    <div css={css_list()}>
+                        { ..out }
+                    </div>
+                }
+            },
+            Resource::Error(error) => {
+                let message = format!("error = {error}");
+
+                html! {
+                    <div>
+                        { message }
+                    </div>
+                }
+            },
+            Resource::Loading => {
+                html! {
+                    <div>
+                        "Loading ..."
+                    </div>
+                }
+            }
+        }
+    })
 }
 
-fn render(state: &AppIndexAlertMoveitem) -> VDomComponent {
-    let content = VDomComponent::from_ref(state, render_list);
+fn render_button_yes(state: &AppIndexAlertMoveitem) -> VDomComponent {
+    let state = state.clone();
 
-    VDomComponent::from_ref(state, move |state: &AppIndexAlertMoveitem| {
-        let progress = state.progress.to_computed();
-
-        let message = format!("Przenoszenie -> {} ?", state.path.join("/"));
-        let mut alert = AlertBox::new(message, progress);
-
-        alert.button("Tak", {
-            // let state = state.clone();
+    ButtonComponent::new(move || {
+        ButtonState::active("tak", {
+            let state = state.clone();
             move || {
                 // state.delete_yes();
+                log::info!("przenosimy ...");
             }
-        });
+        })
+    })
+}
 
-        alert.button("Nie", {
+fn render_button_no(state: &AppIndexAlertMoveitem) -> VDomComponent {
+    let state = state.clone();
+
+    ButtonComponent::new(move || {
+        ButtonState::active("Nie", {
             let state = state.clone();
             move || {
                 state.delete_no();
             }
-        });
-
-        alert.set_content(content.clone());
-
-        alert.render()
+        })
     })
+}
+
+fn render_message(state: &AppIndexAlertMoveitem) -> VDomComponent {
+    VDomComponent::from_ref(state, |state| {
+        let message = format!("Przenoszenie -> {} ?", state.path.join("/"));
+
+        html! {
+            <div>
+                { message }
+            </div>
+        }
+    })
+}
+
+fn render(state: &AppIndexAlertMoveitem) -> VDomComponent {
+    let content = render_list(state);
+    let button_yes = render_button_yes(state);
+    let button_no = render_button_no(state);
+
+    let message = render_message(state);
+
+    let progress = state.progress.to_computed();
+
+    AlertBox::new(message, progress)
+        .button(button_yes.clone())
+        .button(button_no)
+        .set_content(content)
+        .render()
 }
 
