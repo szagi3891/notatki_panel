@@ -30,14 +30,6 @@ impl AppIndexAlertMoveitem {
     pub fn render(&self) -> VDomComponent {
         render(self)
     }
-
-    pub fn delete_no(&self) {
-        if self.progress.get() {
-            return;
-        }
-
-        self.alert.close_modal();
-    }
 }
 
 fn render_list(state: &AppIndexAlertMoveitem) -> VDomComponent {
@@ -48,13 +40,14 @@ fn render_list(state: &AppIndexAlertMoveitem) -> VDomComponent {
         ")
     }
 
-    fn list_calculate(alert: &AppIndexAlert,  target: &Value<Vec<String>>) -> Resource<Vec<ListItem>> {
+    fn list_calculate(alert: &AppIndexAlert, target: &Value<Vec<String>>) -> Resource<Vec<ListItem>> {
         let target = target.get();
         let list = alert.data.git.dir_list(target.as_slice())?;
+        let list = list.get_list();
 
         let mut out = Vec::new();
 
-        for item in list.get_list() {
+        for item in list {
             if item.is_dir {
                 out.push(item);
             }
@@ -66,19 +59,35 @@ fn render_list(state: &AppIndexAlertMoveitem) -> VDomComponent {
     let data = state.alert.data.clone();
     let alert = state.alert.clone();
     let target = state.target.clone();
-    let list = Computed::from(move || list_calculate(&alert, &target));
+    let list = Computed::from({
+        let target = target.clone();
+        move || list_calculate(&alert, &target)
+    });
 
     VDomComponent::from_fn(move || {
+        let target_value = target.get().join("/");
+        let target_message = format!("Target ==> {target_value}");
         let list = list.get();
 
         match list {
             Resource::Ready(list) => {
                 let mut out = Vec::new();
 
+                out.push(html!{
+                    <div>
+                        { target_message }
+                    </div>
+                });
+
                 for item in list {
                     let on_click = bind(&item)
-                        .call(|item| {
+                        .and(&target)
+                        .call(|item, target| {
                             log::info!("kliknięto w element {name}", name = item.name);
+
+                            let mut target_value = target.get();
+                            target_value.push(item.name.clone());
+                            target.set(target_value);
                         });
 
                     out.push(item_default(&data, &item, on_click));
@@ -114,6 +123,9 @@ fn render_button_yes(state: &AppIndexAlertMoveitem) -> VDomComponent {
     let state = state.clone();
 
     ButtonComponent::new(move || {
+        
+        //Trzeba sprawdzić, jeśli da się przenieść element, to pkazuj przycisk tak, ze jest aktywny ...
+
         ButtonState::active("Tak", {
             let state = state.clone();
             move || {
@@ -131,7 +143,11 @@ fn render_button_no(state: &AppIndexAlertMoveitem) -> VDomComponent {
         ButtonState::active("Nie", {
             let state = state.clone();
             move || {
-                state.delete_no();
+                if state.progress.get() {
+                    return;
+                }
+
+                state.alert.close_modal();
             }
         })
     })

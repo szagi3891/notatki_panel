@@ -74,7 +74,7 @@ impl NodeDir {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Dir {
     data: AutoMap<String, NodeDir>,
 }

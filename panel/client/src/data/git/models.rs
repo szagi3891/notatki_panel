@@ -146,7 +146,7 @@ pub enum ContentType {
 }
 
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ListItem {
     pub content: Content,                   //TODO - scalić te dwa store
     pub dir: Dir,                           //TODO - scalić te dwa store

@@ -2,7 +2,7 @@ use std::rc::Rc;
 use common::{ HandlerFetchNodeBody, HandlerFetchNodeResponse };
 use vertigo::{ Resource, AutoMap, LazyCache, get_driver };
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct NodeContent {
     value: LazyCache<String>,
 }
@@ -44,7 +44,7 @@ impl NodeContent {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Content {
     data: AutoMap<String, NodeContent>,
 }
