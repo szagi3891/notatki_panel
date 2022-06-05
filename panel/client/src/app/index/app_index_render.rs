@@ -55,7 +55,6 @@ fn css_content_content() -> Css {
         display: flex;
         background-color: #e8e8e8;
     ")
-    //font-size: 20px;
 }
 
 pub fn app_index_render(app: &App) -> VDomComponent {
@@ -72,14 +71,14 @@ pub fn app_index_render(app: &App) -> VDomComponent {
     let view_list = VDomComponent::from_ref(app, render_list);
     let view_content = VDomComponent::from_ref(app, render_content);
 
-    VDomComponent::from_ref(app, move |app: &App| {
-        let hook_keydown = {
-            let state = app.clone();
-            move |event: vertigo::KeyDownEvent| {
-                state.keydown(event.code)
-            }
-        };
+    let hook_keydown = {
+        let state = app.clone();
+        move |event: vertigo::KeyDownEvent| {
+            state.keydown(event.code)
+        }
+    };
 
+    VDomComponent::from_html(
         html! {
             <div css={css_wrapper()} hook_key_down={hook_keydown}>
                 { view_menu.clone() }
@@ -95,5 +94,5 @@ pub fn app_index_render(app: &App) -> VDomComponent {
                 { view_alert.clone() }
             </div>
         }
-    })
+    )
 }

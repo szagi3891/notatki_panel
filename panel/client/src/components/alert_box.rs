@@ -25,7 +25,7 @@ fn css_center() -> Css {
     css!("
         position: relative;
         background: white;
-        width: 400px;
+        width: 600px;
 
         justify-content: center;
         padding-top: 20px;
