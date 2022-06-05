@@ -3,12 +3,12 @@ use vertigo::{
     VDomComponent,
 };
 
-use vertigo::{html, css};
+use vertigo::{html, css, bind};
 
 use crate::app::App;
+use crate::components::render_path;
 
 use super::app_index_render_list::render_list;
-use super::app_index_render_header::render_header;
 use super::app_index_render_content::render_content;
 use super::app_index_render_menu::MenuComponent;
 
@@ -62,7 +62,13 @@ pub fn app_index_render(app: &App) -> VDomComponent {
 
     let view_alert = app.alert.render();
     let view_menu = MenuComponent::component(app);
-    let view_header = VDomComponent::from_ref(app, render_header);
+
+    let on_click_path = bind(&app.data).call_param(|data, node_id: Vec<String>| {
+        data.tab.set_path(node_id.clone());
+    });
+    
+    let view_header = render_path(&app.data.tab.dir_select, on_click_path);
+
     let view_list = VDomComponent::from_ref(app, render_list);
     let view_content = VDomComponent::from_ref(app, render_content);
 
