@@ -10,19 +10,21 @@ use super::AppIndexAlert;
 
 #[derive(Clone)]
 pub struct AppIndexAlertDelete {
+    app: App,
+    pub alert: AppIndexAlert,
     full_path: Vec<String>,
     progress: Value<bool>,
-    pub alert: AppIndexAlert,
 }
 
 impl AppIndexAlertDelete {
-    pub fn new(alert: &AppIndexAlert, full_path: &Vec<String>) -> AppIndexAlertDelete {
+    pub fn new(app: App, alert: &AppIndexAlert, full_path: &Vec<String>) -> AppIndexAlertDelete {
         let progress: Value<bool> = Value::new(false);
 
         AppIndexAlertDelete {
+            app,
+            alert: alert.clone(),
             full_path: full_path.clone(),
             progress,
-            alert: alert.clone(),
         }
     }
 
@@ -69,9 +71,9 @@ impl AppIndexAlertDelete {
         }
     }
 
-    pub fn bind_delete_yes(&self, app: &App) -> VDomComponent {
+    pub fn bind_delete_yes(&self) -> VDomComponent {
         let state = self.clone();
-        let app = app.clone();
+        let app = self.app.clone();
 
         ButtonComponent::new(move || {
             let action = bind(&state)
@@ -100,13 +102,13 @@ impl AppIndexAlertDelete {
         })
     }
 
-    pub fn render(&self, app: &App) -> VDomComponent {                          //TODO - pozbyć się referencji do app
+    pub fn render(&self) -> VDomComponent {                          //TODO - pozbyć się referencji do app
         let message = render_message(self);
         let progress = self.progress.to_computed();
         AlertBox::new(message)
             .progress(progress)
             .button(self.bind_delete_no())
-            .button(self.bind_delete_yes(app))
+            .button(self.bind_delete_yes())
             .render()
     }
 }

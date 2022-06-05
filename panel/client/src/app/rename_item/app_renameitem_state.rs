@@ -1,13 +1,13 @@
 use common::{HandlerRenameItemBody};
 use vertigo::{Computed, Value, VDomComponent, get_driver, bind};
 
-use crate::{app::{App, response::check_request_response}, data::Data, components::{ButtonState, ButtonComponent}};
+use crate::{app::{App, response::check_request_response}, components::{ButtonState, ButtonComponent}};
 
 use super::app_renameitem_render::app_renameitem_render;
 
 #[derive(Clone)]
 pub struct AppRenameitem {
-    pub data: Data,
+    pub app: App,
     pub path: Vec<String>,          //edutowany element
     pub prev_name: String,
     pub prev_hash: String,               //hash poprzedniej zawartosci
@@ -20,7 +20,7 @@ pub struct AppRenameitem {
 
 impl AppRenameitem {
     pub fn new(
-        data: Data,
+        app: &App,
         path: Vec<String>,
         prev_name: String,
         prev_hash: String,
@@ -49,7 +49,7 @@ impl AppRenameitem {
         let action_save = Value::new(false);
 
         AppRenameitem {
-            data,
+            app: app.clone(),
             path,
             prev_name,
             prev_hash,
@@ -61,8 +61,8 @@ impl AppRenameitem {
         }
     }
 
-    pub fn render(&self, app: &App) -> VDomComponent {
-        app_renameitem_render(self, app.clone())
+    pub fn render(&self) -> VDomComponent {
+        app_renameitem_render(self)
     }
 
     pub fn get_full_path(&self) -> String {
@@ -102,19 +102,19 @@ impl AppRenameitem {
         check_request_response(response)
     }
 
-    pub fn button_on_back(&self, app: &App) -> VDomComponent {
+    pub fn button_on_back(&self) -> VDomComponent {
         ButtonComponent::new({
-            let app = app.clone();
+            let app = self.app.clone();
 
             move || ButtonState::active("Wróć", bind(&app).call(|app| {
                 app.redirect_to_index();
             }))
         })
     }
-    pub fn button_on_save(&self, app: &App) -> VDomComponent {
+    pub fn button_on_save(&self) -> VDomComponent {
         ButtonComponent::new({
             let state = self.clone();
-            let app = app.clone();
+            let app = self.app.clone();
 
             move || {
                 if state.action_save.get() {

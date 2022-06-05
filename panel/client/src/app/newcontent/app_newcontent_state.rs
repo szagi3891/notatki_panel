@@ -5,10 +5,10 @@ use crate::app::App;
 use crate::app::newcontent::app_newcontent_render::app_newcontent_render;
 use crate::app::response::check_request_response;
 use crate::components::new_name::NewName;
-use crate::data::Data;
 
 #[derive(Clone)]
 pub struct AppNewcontent {
+    app: App,
     pub action_save: Value<bool>,
 
     pub parent: Vec<String>,
@@ -19,12 +19,12 @@ pub struct AppNewcontent {
 }
 
 impl AppNewcontent {
-    pub fn new(data: &Data) -> AppNewcontent {
+    pub fn new(app: &App) -> AppNewcontent {
         log::info!("buduję stan dla new content");
         let action_save = Value::new(false);
 
-        let parent = data.tab.dir_select.get();
-        let list = data.tab.list.clone();
+        let parent = app.data.tab.dir_select.get();
+        let list = app.data.tab.list.clone();
 
         let new_name = NewName::new(list);
 
@@ -50,6 +50,7 @@ impl AppNewcontent {
         };
 
         AppNewcontent {
+            app: app.clone(),
             action_save,
             
             parent,
@@ -60,10 +61,10 @@ impl AppNewcontent {
         }
     }
 
-    pub fn render(&self, app: &App) -> VDomComponent {
+    pub fn render(&self) -> VDomComponent {
         app_newcontent_render(
+            self.app.clone(),
             &self,
-            app.clone()
         )
     }
 
@@ -78,9 +79,9 @@ impl AppNewcontent {
         self.content.set(new_value);
     }
 
-    pub fn on_save(&self, app: &App) -> impl Fn() {
+    pub fn on_save(&self) -> impl Fn() {
         bind(self)
-            .and(app)
+            .and(&self.app)
             .spawn(|state, app| async move {
                 let action_save = state.action_save.get();
 

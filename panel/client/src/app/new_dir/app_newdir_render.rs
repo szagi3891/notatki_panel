@@ -1,7 +1,7 @@
 use vertigo::{Css, VDomComponent, css, html, bind};
 
 use super::AppNewdir;
-use crate::{components::button, app::App};
+use crate::components::button;
 
 fn css_wrapper() -> Css {
     css!("
@@ -21,21 +21,21 @@ fn css_header() -> Css {
     ")
 }
 
-pub fn app_newdir_render(state: AppNewdir, app: App) -> VDomComponent {
+pub fn app_newdir_render(state: AppNewdir) -> VDomComponent {
 
     let view_new_name = state.new_name.render(true);
 
     VDomComponent::from_ref(&state, move |state| {
         let parent_path = state.parent.as_slice().join("/");
 
-        let mut buttons = vec!(button("Wróć", bind(&app).call(|app| {
+        let mut buttons = vec!(button("Wróć", bind(&state.app).call(|app| {
             app.redirect_to_index();
         })));
 
         let save_enable = state.save_enable.get();
 
         if save_enable {
-            buttons.push(button("Zapisz", state.bind_on_save(&app)));
+            buttons.push(button("Zapisz", state.bind_on_save(&state.app)));
         }
 
         html! {

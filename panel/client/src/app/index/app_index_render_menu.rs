@@ -46,18 +46,20 @@ impl MenuComponent {
         };
 
         let on_delete = ButtonComponent::new({
-            let app_index = app.clone();
+            let app = app.clone();
             let is_current_content = is_current_content.clone();
 
             move || {
                 let is_current_content = is_current_content.get();
 
                 if is_current_content {
-                    let alert = app_index.alert.clone();
-                    let on_delete = bind(&alert).call(|alert| {
-                        let path = alert.data.tab.full_path.get();
-                        alert.delete(path);
-                    });
+                    let alert = app.alert.clone();
+                    let on_delete = bind(&alert)
+                        .and(&app)
+                        .call(|alert, app| {
+                            let path = alert.data.tab.full_path.get();
+                            alert.delete(app.clone(), path);
+                        });
             
                     ButtonState::Active {
                         label: "Usuń".into(),

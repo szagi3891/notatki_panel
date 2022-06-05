@@ -2,7 +2,6 @@ use vertigo::{Css, VDomComponent};
 use vertigo::{css, html, bind};
 
 use super::AppRenameitem;
-use crate::app::App;
 use crate::data::ContentView;
 
 fn css_wrapper() -> Css {
@@ -67,7 +66,7 @@ fn render_textarea(state: &AppRenameitem) -> VDomComponent {
     VDomComponent::from_ref(state, |state| {
         let mut full_path = state.path.clone();
         full_path.push(state.prev_name.clone());
-        let content = state.data.git.get_content(&full_path);
+        let content = state.app.data.git.get_content(&full_path);
 
         match content {
             Some(ContentView { content, .. }) => {
@@ -98,13 +97,13 @@ fn render_path(state: &AppRenameitem) -> VDomComponent {
     })
 }
 
-pub fn app_renameitem_render(state: &AppRenameitem, app: App) -> VDomComponent {
+pub fn app_renameitem_render(state: &AppRenameitem) -> VDomComponent {
 
     let view_path = render_path(state);
     let view_input = render_input(state);
     let view_textarea = render_textarea(state);
-    let button_back = state.button_on_back(&app);
-    let button_save = state.button_on_save(&app);
+    let button_back = state.button_on_back();
+    let button_save = state.button_on_save();
 
     VDomComponent::from_html(
         html! {

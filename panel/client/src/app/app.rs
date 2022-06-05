@@ -62,8 +62,7 @@ impl App {
         let full_path = full_path.clone();
 
         let state = AppEditcontent::new(
-            self.clone(),
-            self.data.clone(),
+            self,
             full_path.clone(),
         );
 
@@ -82,7 +81,7 @@ impl App {
                 log::info!("redirect_to_rename_item {base_path:?} {select_item:?}");
 
                 let state = AppRenameitem::new(
-                    self.data.clone(),
+                    self,
                     base_path.clone(),
                     select_item,
                     list_item.id,
@@ -111,7 +110,7 @@ impl App {
     }
 
     pub fn redirect_to_mkdir(&self) {
-        let state = AppNewdir::new(&self.data);
+        let state = AppNewdir::new(self);
 
         self.view.set(View::Mkdir {
             state
@@ -124,7 +123,7 @@ impl App {
     }
 
     pub fn redirect_to_new_content(&self) {
-        let state = AppNewcontent::new(&self.data);
+        let state = AppNewcontent::new(self);
         self.view.set(View::NewContent { state });
     }
 
@@ -289,7 +288,7 @@ fn app_render(app: &App) -> VDomElement {
             }
         },
         View::NewContent { state } => {
-            let view = state.render(app);
+            let view = state.render();
 
             html! {
                 <div id="root">
@@ -298,7 +297,7 @@ fn app_render(app: &App) -> VDomElement {
             }
         },
         View::RenameItem {state } => {
-            let view = state.render(app);
+            let view = state.render();
 
             html! {
                 <div id="root">
@@ -307,7 +306,7 @@ fn app_render(app: &App) -> VDomElement {
             }
         },
         View::Mkdir { state } => {
-            let view = state.render(app.clone());
+            let view = state.render();
 
             html! {
                 <div id="root">

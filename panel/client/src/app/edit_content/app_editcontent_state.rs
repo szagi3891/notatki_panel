@@ -2,7 +2,7 @@
 use common::{HandlerSaveContentBody};
 use vertigo::{Computed, Value, VDomComponent, bind, get_driver};
 
-use crate::{app::{App, response::check_request_response}, data::{Data, ContentView}};
+use crate::{app::{App, response::check_request_response}, data::ContentView};
 use super::app_editcontent_render::app_editcontent_render;
 
 #[derive(Clone)]
@@ -15,7 +15,6 @@ pub struct EditContent {
 #[derive(Clone)]
 pub struct AppEditcontent {
     app: App,
-    pub data: Data,
     pub path: Vec<String>,          //edutowany element
 
     pub action_save: Value<bool>,
@@ -30,15 +29,14 @@ pub struct AppEditcontent {
 
 impl AppEditcontent {
     pub fn new(
-        app: App,
-        data: Data,
+        app: &App,
         path: Vec<String>,
     ) -> AppEditcontent {
         let edit_content = Value::<Option<String>>::new(None);
         let edit_hash = Value::<Option<String>>::new(None);
 
         let save_enable = {
-            let data = data.clone();
+            let data = app.data.clone();
             let path = path.clone();
 
             let edit_content = edit_content.to_computed();
@@ -56,7 +54,7 @@ impl AppEditcontent {
         };
 
         let content_view = {
-            let data = data.clone();
+            let data = app.data.clone();
             let path = path.clone();
             let edit_content = edit_content.to_computed();
             let edit_hash = edit_hash.to_computed();
@@ -95,8 +93,7 @@ impl AppEditcontent {
         };
 
         AppEditcontent {
-            app,
-            data,
+            app: app.clone(),
             path,
 
             action_save: Value::new(false),

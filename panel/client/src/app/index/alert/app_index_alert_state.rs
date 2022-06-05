@@ -31,8 +31,8 @@ impl AppIndexAlert {
         }
     }
 
-    pub fn render(&self, app: &App) -> VDomComponent {
-        VDomComponent::from((self.clone(), app.clone()), app_index_alert_render)
+    pub fn render(&self) -> VDomComponent {
+        VDomComponent::from(self.clone(), app_index_alert_render)
     }
 
     pub fn is_visible(&self) -> bool {
@@ -44,12 +44,12 @@ impl AppIndexAlert {
         // *view != AlertView::None
     }
 
-    pub fn delete(&self, path: Vec<String>) {
+    pub fn delete(&self, app: App, path: Vec<String>) {
         if self.is_visible() {
             return;
         }
 
-        let state = AppIndexAlertDelete::new(self, &path);
+        let state = AppIndexAlertDelete::new(app, self, &path);
 
         self.view.set(AlertView::DeleteFile { state });
     }
@@ -78,7 +78,7 @@ impl AppIndexAlert {
 }
 
 
-fn app_index_alert_render((alert, app): &(AppIndexAlert, App)) -> VDomElement {
+fn app_index_alert_render(alert: &AppIndexAlert) -> VDomElement {
     match alert.view.get() {
         AlertView::None => {
             html! {
@@ -86,7 +86,7 @@ fn app_index_alert_render((alert, app): &(AppIndexAlert, App)) -> VDomElement {
             }
         },
         AlertView::DeleteFile { state } => {
-            let view = state.render(&app);
+            let view = state.render();
 
             html! {
                 <div>

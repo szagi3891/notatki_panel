@@ -4,12 +4,12 @@ use vertigo::{Computed, Value, VDomComponent, bind, get_driver};
 use crate::app::App;
 use crate::app::response::check_request_response;
 use crate::components::new_name::{self, NewName};
-use crate::data::Data;
 
 use super::app_newdir_render::app_newdir_render;
 
 #[derive(Clone)]
 pub struct AppNewdir {
+    pub app: App,
     pub action_save: Value<bool>,
 
     pub parent: Vec<String>,
@@ -19,16 +19,17 @@ pub struct AppNewdir {
 }
 
 impl AppNewdir {
-    pub fn new(data: &Data) -> AppNewdir {
+    pub fn new(app: &App) -> AppNewdir {
         log::info!("buduję stan dla new dir");
         let action_save = Value::new(false);
-        let list = data.tab.list.clone();
-        let parent = data.tab.dir_select.clone().get();
+        let list = app.data.tab.list.clone();
+        let parent = app.data.tab.dir_select.clone().get();
 
         let new_name = new_name::NewName::new(list);
         let is_valid = new_name.is_valid.clone();
 
         AppNewdir {
+            app: app.clone(),
             action_save,
 
             parent,
@@ -37,8 +38,8 @@ impl AppNewdir {
         }
     }
 
-    pub fn render(&self, app: App) -> VDomComponent {
-        app_newdir_render(self.clone(), app)
+    pub fn render(&self) -> VDomComponent {
+        app_newdir_render(self.clone())
     }
 
     pub fn bind_on_save(&self, app: &App) -> impl Fn() {
