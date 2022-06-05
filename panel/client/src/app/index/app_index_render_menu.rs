@@ -8,7 +8,6 @@ use vertigo::{
 };
 
 use vertigo::{html, css};
-use super::AppIndex;
 use crate::app::App;
 use crate::components::{button, ButtonState, ButtonComponent};
 use crate::data::ContentType;
@@ -24,16 +23,15 @@ fn css_footer() -> Css {
 
 pub struct MenuComponent {
     app: App,
-    app_index: AppIndex,
 
     on_delete: VDomComponent,
     on_edit_file: VDomComponent,
 }
 
 impl MenuComponent {
-    pub fn component(app: &App, app_index: &AppIndex) -> VDomComponent {
+    pub fn component(app: &App) -> VDomComponent {
         let is_current_content= {
-            let current_content = app_index.data.tab.current_content.clone();
+            let current_content = app.data.tab.current_content.clone();
         
             Computed::from(move || -> bool {
                 if let Resource::Ready(content) = current_content.get() {
@@ -48,7 +46,7 @@ impl MenuComponent {
         };
 
         let on_delete = ButtonComponent::new({
-            let app_index = app_index.clone();
+            let app_index = app.clone();
             let is_current_content = is_current_content.clone();
 
             move || {
@@ -97,7 +95,6 @@ impl MenuComponent {
 
         let state = MenuComponent {
             app: app.clone(),
-            app_index: app_index.clone(),
             on_delete,
             on_edit_file,
         };
@@ -108,7 +105,6 @@ impl MenuComponent {
 
 fn render_menu(state: &MenuComponent) -> VDomElement {
     let app = state.app.clone();
-    let app_index = state.app_index.clone();
 
     let on_rename = bind(&app).call(|app| {
         app.current_rename();
@@ -138,13 +134,13 @@ fn render_menu(state: &MenuComponent) -> VDomElement {
         </span>
     });
 
-    out.push(button("Wyszukaj", bind(&app_index.alert).call(|alert| {
+    out.push(button("Wyszukaj", bind(&app.alert).call(|alert| {
         alert.redirect_to_search();
     })));
 
-    out.push(button("Przenieś", bind(&app_index).call(|app_index| {
-        let current_path = app_index.data.tab.full_path.get();
-        app_index.alert.move_current(current_path);
+    out.push(button("Przenieś", bind(&app).call(|app| {
+        let current_path = app.data.tab.full_path.get();
+        app.alert.move_current(current_path);
     })));
 
     html! {

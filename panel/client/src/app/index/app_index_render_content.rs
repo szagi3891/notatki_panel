@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use vertigo::{Css, VDomElement, css, html, bind, Resource};
 
-use super::AppIndex;
+use crate::app::App;
 use crate::components::list_items_from_dir;
 use crate::data::{Data, ContentType};
 use crate::{
@@ -57,7 +57,7 @@ fn open_css() -> Css {
     ")
 }
 
-fn render_content_text(state: &AppIndex, content: Rc<String>) -> Vec<VDomElement> {
+fn render_content_text(state: &App, content: Rc<String>) -> Vec<VDomElement> {
     let chunks = parse_text(content.as_str());
 
     let mut out: Vec<VDomElement> = Vec::new();
@@ -135,7 +135,7 @@ fn render_dir(data: &Data, dir: &Vec<String>) -> VDomElement {
     }
 }
 
-pub fn render_content(state: &AppIndex) -> VDomElement {
+pub fn render_content(state: &App) -> VDomElement {
     let current_content = state.data.tab.current_content.get();
 
     match current_content {

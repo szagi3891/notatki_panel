@@ -7,8 +7,6 @@ use vertigo::{html, css};
 
 use crate::app::App;
 
-use super::AppIndex;
-
 use super::app_index_render_list::render_list;
 use super::app_index_render_header::render_header;
 use super::app_index_render_content::render_content;
@@ -60,17 +58,17 @@ fn css_content_content() -> Css {
     //font-size: 20px;
 }
 
-pub fn app_index_render(state_value: &AppIndex, app: &App) -> VDomComponent {
+pub fn app_index_render(app: &App) -> VDomComponent {
 
-    let view_alert = state_value.alert.render(app);
-    let view_menu = MenuComponent::component(app, state_value);
-    let view_header = VDomComponent::from_ref(state_value, render_header);
-    let view_list = VDomComponent::from_ref(state_value, render_list);
-    let view_content = VDomComponent::from_ref(state_value, render_content);
+    let view_alert = app.alert.render(app);
+    let view_menu = MenuComponent::component(app);
+    let view_header = VDomComponent::from_ref(app, render_header);
+    let view_list = VDomComponent::from_ref(app, render_list);
+    let view_content = VDomComponent::from_ref(app, render_content);
 
-    VDomComponent::from_ref(state_value, move |state_value: &AppIndex| {
+    VDomComponent::from_ref(app, move |app: &App| {
         let hook_keydown = {
-            let state = state_value.clone();
+            let state = app.clone();
             move |event: vertigo::KeyDownEvent| {
                 state.keydown(event.code)
             }

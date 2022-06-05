@@ -14,6 +14,7 @@ pub struct EditContent {
 
 #[derive(Clone)]
 pub struct AppEditcontent {
+    app: App,
     pub data: Data,
     pub path: Vec<String>,          //edutowany element
 
@@ -29,6 +30,7 @@ pub struct AppEditcontent {
 
 impl AppEditcontent {
     pub fn new(
+        app: App,
         data: Data,
         path: Vec<String>,
     ) -> AppEditcontent {
@@ -93,6 +95,7 @@ impl AppEditcontent {
         };
 
         AppEditcontent {
+            app,
             data,
             path,
 
@@ -106,8 +109,8 @@ impl AppEditcontent {
         }
     }
 
-    pub fn render(&self, app: &App) -> VDomComponent {
-        app_editcontent_render(app, self)
+    pub fn render(&self) -> VDomComponent {
+        app_editcontent_render(&self.app, self)
     }
 
     pub fn on_input(&self, new_text: String, new_hash: String) {

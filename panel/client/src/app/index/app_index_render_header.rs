@@ -4,7 +4,7 @@ use vertigo::{
     bind,
 };
 use vertigo::{html, css};
-use super::AppIndex;
+use crate::app::App;
 
 fn css_header() -> Css {
     css!("
@@ -54,7 +54,7 @@ fn css_item(is_active: bool) -> Css {
     css
 }
 
-fn create_link(state: &AppIndex, title: String, node_id: Vec<String>, create_css: fn(bool) -> Css, is_active: bool) -> VDomElement {
+fn create_link(state: &App, title: String, node_id: Vec<String>, create_css: fn(bool) -> Css, is_active: bool) -> VDomElement {
     if is_active {
         let css = create_css(true);
 
@@ -80,8 +80,8 @@ fn create_link(state: &AppIndex, title: String, node_id: Vec<String>, create_css
     }
 }
 
-pub fn render_header(state: &AppIndex) -> VDomElement {
-    let current_path = state.current_path_dir();
+pub fn render_header(state: &App) -> VDomElement {
+    let current_path = state.data.tab.dir_select.get();
     let all_items = current_path.len();
 
     let mut out: Vec<VDomElement> = Vec::new();

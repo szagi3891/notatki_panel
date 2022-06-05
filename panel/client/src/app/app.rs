@@ -6,7 +6,7 @@ use crate::components::{message_box, MessageBoxType, stict_to_top};
 use crate::data::Data;
 
 use super::edit_content::AppEditcontent;
-use super::index::AppIndex;
+use super::index::{AppIndexAlert, app_index_render};
 use super::new_dir::AppNewdir;
 use super::newcontent::AppNewcontent;
 use super::rename_item::AppRenameitem;
@@ -22,7 +22,7 @@ struct Error {
 
 #[derive(Clone)]
 enum View {
-    Index { state: AppIndex },
+    Index,
     EditContent { state: AppEditcontent },
     RenameItem { state: AppRenameitem },
     NewContent { state: AppNewcontent },
@@ -32,6 +32,7 @@ enum View {
 #[derive(Clone)]
 pub struct App {
     pub data: Data,
+    pub alert: AppIndexAlert,
     view: Value<View>,
 
     next_id: Rc<CounterMut>,
@@ -42,14 +43,15 @@ impl App {
     pub fn new() -> App {
         let data = Data::new();
 
-        let view = Value::new(View::Index {
-            state: AppIndex::new(&data)
-        });
+        let view = Value::new(View::Index);
 
         let next_id = Rc::new(CounterMut::new(1));
 
+        let alert = AppIndexAlert::new(data.clone());
+
         App {
             data,
+            alert,
             view,
             next_id,
             errors: Value::new(Vec::new()),
@@ -60,6 +62,7 @@ impl App {
         let full_path = full_path.clone();
 
         let state = AppEditcontent::new(
+            self.clone(),
             self.data.clone(),
             full_path.clone(),
         );
@@ -97,9 +100,7 @@ impl App {
 
     pub fn redirect_to_index(&self) {
         log::info!("redirect_to_index");
-        self.view.set(View::Index {
-            state: AppIndex::new(&self.data)
-        });
+        self.view.set(View::Index);
     }
 
     pub fn redirect_to_index_with_path(&self, new_path: Vec<String>, new_item: Option<String>) {
@@ -188,6 +189,39 @@ impl App {
         self.errors.set(messages);
     }
 
+    pub fn keydown(&self, code: String) -> bool {
+        if self.alert.is_visible() {
+            if code == "Escape" {
+                self.alert.close_modal();
+                return true;
+            }
+
+            //TODO - dodać wskaźnik i nawigację klawiaturą po elemencie z listy wyników
+
+            return false;
+        }
+
+        if code == "ArrowUp" {
+            self.data.tab.pointer_up();
+            return true;
+        } else if code == "ArrowDown" {
+            self.data.tab.pointer_down();
+            return true;
+        } else if code == "Escape" {
+            self.data.tab.pointer_escape();
+            return true;
+        } else if code == "ArrowRight" || code == "Enter" {
+            self.data.tab.pointer_enter();
+            return true;
+        } else if code == "ArrowLeft" || code == "Backspace" || code == "Escape" {
+            self.data.tab.backspace();
+            return true;
+        }
+
+        log::info!("klawisz ... {:?} ", code);
+        false
+    }
+
     fn render_view(&self) -> VDomComponent {
         let app = VDomComponent::from_ref(self, app_render);
         let view = self.data.tab.open_links.render(app);
@@ -236,8 +270,8 @@ fn app_render(app: &App) -> VDomElement {
     let view = app.view.get();
 
     match view {
-        View::Index { state }=> {
-            let view = state.render(app);
+        View::Index => {
+            let view = app_index_render(app);
 
             html! {
                 <div id="root">
@@ -246,7 +280,7 @@ fn app_render(app: &App) -> VDomElement {
             }
         },
         View::EditContent { state } => {
-            let view = state.render(app);
+            let view = state.render();
 
             html! {
                 <div id="root">
