@@ -1,6 +1,6 @@
 use vertigo::{VDomComponent, Value, Resource, Computed, html, bind, css, Css};
 
-use crate::{components::{AlertBox, item_default, item_dot_html, ButtonComponent, ButtonState}, data::ListItem};
+use crate::{components::{AlertBox, item_default, item_dot_html, ButtonComponent, ButtonState, render_path}, data::ListItem};
 
 use super::AppIndexAlert;
 
@@ -37,22 +37,22 @@ fn render_target(state: &AppIndexAlertMoveitem) -> VDomComponent {
         css!("
             margin-top: 5px;
             border-top: 1px solid black;
-            border-bottom: 1px solid black;
             margin-bottom: 5px;
-            padding: 10px;
         ")
     }
-
-    VDomComponent::from_ref(state, |state| {
-        let target_value = state.target.get().join("/");
-        let target_message = format!("Target ==> {target_value}");
+    let on_click_path = bind(state).call_param(|data, node_id: Vec<String>| {
+        data.target.set(node_id);
+    });
     
+    let target_path = render_path(&state.target, on_click_path);
+
+    VDomComponent::from_html(
         html! {
             <div css={css_wrapper()}>
-                { target_message }
+                { target_path }
             </div>
         }
-    })
+    )
 }
 
 fn render_back(state: &AppIndexAlertMoveitem) -> VDomComponent {
