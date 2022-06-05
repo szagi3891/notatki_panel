@@ -94,6 +94,20 @@ fn label_css(prirority: u8) -> Css {
     ")
 }
 
+pub fn item_dot_html(on_click: impl Fn() + 'static) -> VDomElement {
+    html!{
+        <div
+            on_click={on_click}
+            css={css_normal(false, false)}
+        >
+            {icon_arrow(false)}
+            {icon::icon_render(true)}
+            <span css={label_css(1)}>
+                ".."
+            </span>
+        </div>
+    }
+}
 
 pub fn item_default(data: &Data, item: &ListItem, on_click: impl Fn() + 'static) -> VDomElement {
     let current_item = data.tab.current_item.get();

@@ -1,14 +1,14 @@
 use vertigo::{VDomComponent, Value, Resource, Computed, html, bind, css, Css};
 
-use crate::{components::{AlertBox, item_default, ButtonComponent, ButtonState}, data::ListItem};
+use crate::{components::{AlertBox, item_default, item_dot_html, ButtonComponent, ButtonState}, data::ListItem};
 
 use super::AppIndexAlert;
 
 #[derive(Clone)]
 pub struct AppIndexAlertMoveitem {
     alert: AppIndexAlert,
-    path: Vec<String>,
-    target: Value<Vec<String>>,
+    path: Vec<String>,                  //pełna ściezka do przenoszonego elementu
+    target: Value<Vec<String>>,         //nowy katalog do którego będziemy przenosić ten element
     progress: Value<bool>,
 }
 
@@ -30,6 +30,54 @@ impl AppIndexAlertMoveitem {
     pub fn render(&self) -> VDomComponent {
         render(self)
     }
+}
+
+fn render_target(state: &AppIndexAlertMoveitem) -> VDomComponent {
+    fn css_wrapper() -> Css {
+        css!("
+            margin-top: 5px;
+            border-top: 1px solid black;
+            border-bottom: 1px solid black;
+            margin-bottom: 5px;
+            padding: 10px;
+        ")
+    }
+
+    VDomComponent::from_ref(state, |state| {
+        let target_value = state.target.get().join("/");
+        let target_message = format!("Target ==> {target_value}");
+    
+        html! {
+            <div css={css_wrapper()}>
+                { target_message }
+            </div>
+        }
+    })
+}
+
+fn render_back(state: &AppIndexAlertMoveitem) -> VDomComponent {
+    VDomComponent::from_ref(state, |state| {
+        let target = state.target.clone().get();
+
+        if target.is_empty() {
+            html! {
+                <div/>
+            }
+        } else {
+            let on_click = bind(&state.target)
+                .call(|target| {
+                    let mut value = target.get();
+                    value.pop();
+                    target.set(value);
+                });
+    
+            html! {
+                <div>
+                    { item_dot_html(on_click) }
+                </div>
+            }
+        }
+    })
 }
 
 fn render_list(state: &AppIndexAlertMoveitem) -> VDomComponent {
@@ -64,20 +112,15 @@ fn render_list(state: &AppIndexAlertMoveitem) -> VDomComponent {
         move || list_calculate(&alert, &target)
     });
 
+    let target_view = render_target(state);
+    let back_view = render_back(state);
+
     VDomComponent::from_fn(move || {
-        let target_value = target.get().join("/");
-        let target_message = format!("Target ==> {target_value}");
         let list = list.get();
 
         match list {
             Resource::Ready(list) => {
                 let mut out = Vec::new();
-
-                out.push(html!{
-                    <div>
-                        { target_message }
-                    </div>
-                });
 
                 for item in list {
                     let on_click = bind(&item)
@@ -95,6 +138,8 @@ fn render_list(state: &AppIndexAlertMoveitem) -> VDomComponent {
 
                 html! {
                     <div css={css_list()}>
+                        { target_view.clone() }
+                        { back_view.clone() }
                         { ..out }
                     </div>
                 }
@@ -123,14 +168,22 @@ fn render_button_yes(state: &AppIndexAlertMoveitem) -> VDomComponent {
     let state = state.clone();
 
     ButtonComponent::new(move || {
-        
-        //Trzeba sprawdzić, jeśli da się przenieść element, to pkazuj przycisk tak, ze jest aktywny ...
+        let mut path = state.path.clone();
+        path.pop();
+
+        let target = state.target.get();
+
+        if path == target {
+            return ButtonState::Disabled { label: "Tak".into() };
+        }
+    
+        let target = target.join("/");
 
         ButtonState::active("Tak", {
             let state = state.clone();
             move || {
                 // state.delete_yes();
-                log::info!("przenosimy ...");
+                log::info!("przenosimy do ... {target}");
             }
         })
     })
