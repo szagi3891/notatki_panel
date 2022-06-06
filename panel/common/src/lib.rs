@@ -95,3 +95,9 @@ pub struct HandlerDeleteItemBody {
     pub hash: String,
 }
 
+#[derive(Serialize, Deserialize, Debug, PartialEq, SerdeRequest)]
+pub struct HandlerMoveItemBody {
+    pub path: Vec<String>,
+    pub hash: String,
+    pub new_path: Vec<String>,
+}

@@ -71,10 +71,16 @@ pub enum ButtonState {
 }
 
 impl ButtonState {
-    pub fn active<S: Into<String>, F: Fn() + 'static>(label: S, action: F) -> ButtonState {
+    pub fn active(label: impl Into<String>, action: impl Fn() + 'static) -> ButtonState {
         ButtonState::Active {
             label: label.into(),
             action: Rc::new(action)
+        }
+    }
+
+    pub fn disabled(label: impl Into<String>) -> ButtonState {
+        ButtonState::Disabled {
+            label: label.into(),
         }
     }
 
@@ -107,7 +113,7 @@ pub struct ButtonComponent {
 }
 
 impl ButtonComponent {
-    pub fn new<F: Fn() -> ButtonState + 'static>(fun: F) -> VDomComponent {
+    pub fn new(fun: impl Fn() -> ButtonState + 'static) -> VDomComponent {
         let state = ButtonComponent {
             value: Computed::from(fun)
         };

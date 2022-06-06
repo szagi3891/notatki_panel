@@ -1,7 +1,4 @@
-use std::rc::Rc;
-
 use vertigo::{
-    VDomElement,
     Css,
     Computed, VDomComponent,
     bind, Resource,
@@ -21,11 +18,10 @@ fn css_footer() -> Css {
     ")
 }
 
+#[derive(Clone)]
 pub struct MenuComponent {
     app: App,
-
-    on_delete: VDomComponent,
-    on_edit_file: VDomComponent,
+    is_current_content: Computed<bool>,
 }
 
 impl MenuComponent {
@@ -45,67 +41,21 @@ impl MenuComponent {
             })
         };
 
-        let on_delete = ButtonComponent::new({
-            let app = app.clone();
-            let is_current_content = is_current_content.clone();
-
-            move || {
-                let is_current_content = is_current_content.get();
-
-                if is_current_content {
-                    let alert = app.alert.clone();
-                    let on_delete = bind(&alert)
-                        .and(&app)
-                        .call(|alert, app| {
-                            let path = alert.data.tab.full_path.get();
-                            alert.delete(app.clone(), path);
-                        });
-            
-                    ButtonState::Active {
-                        label: "Usuń".into(),
-                        action: Rc::new(on_delete),
-                    }
-                } else {
-                    ButtonState::Disabled { label: "Usuń".into() }
-                }
-            }
-        });
-
-        let on_edit_file = ButtonComponent::new({
-            let app = app.clone();
-            let is_current_content = is_current_content.clone();
-
-            move || {
-                let is_current_content = is_current_content.get();
-
-                if is_current_content {
-                    let on_click = bind(&app).call(|app|{
-                        app.current_edit();
-                    });
-
-                    ButtonState::Active {
-                        label: "Edycja pliku".into(),
-                        action: Rc::new(on_click),
-                    }
-                } else {
-                    ButtonState::Disabled {
-                        label: "Edycja pliku".into(),
-                    }
-                }
-            }
-        });
-
         let state = MenuComponent {
             app: app.clone(),
-            on_delete,
-            on_edit_file,
+            is_current_content,
         };
 
-        VDomComponent::from(state, render_menu)
+        render_menu(&state)
     }
 }
 
-fn render_menu(state: &MenuComponent) -> VDomElement {
+fn render_menu(state: &MenuComponent) -> VDomComponent {
+    let button_delete = render_button_on_delete(state);
+    let button_edit_file = render_button_on_edit_file(state);
+
+    let button_move_item = render_button_move_item(state);
+    
     let app = state.app.clone();
 
     let on_rename = bind(&app).call(|app| {
@@ -126,13 +76,13 @@ fn render_menu(state: &MenuComponent) -> VDomElement {
     out.push(button("Zmień nazwę", on_rename));
     out.push(html!{
         <span>
-            {state.on_edit_file.clone()}
+            {button_edit_file}
         </span>
     });
     out.push(button("Utwórz katalog", on_mkdir));    
     out.push(html! {
         <span>
-            {state.on_delete.clone()}
+            {button_delete}
         </span>
     });
 
@@ -140,14 +90,87 @@ fn render_menu(state: &MenuComponent) -> VDomElement {
         alert.redirect_to_search();
     })));
 
-    out.push(button("Przenieś", bind(&app).call(|app| {
-        let current_path = app.data.tab.full_path.get();
-        app.alert.move_current(current_path);
-    })));
+    out.push(html! {
+        <span>
+            { button_move_item }
+        </span>
+    });
 
-    html! {
-        <div css={css_footer()}>
-            { ..out }
-        </div>
-    }
+    VDomComponent::from_html(
+        html! {
+            <div css={css_footer()}>
+                { ..out }
+            </div>
+        }
+    )
+}
+
+
+fn render_button_on_delete(state: &MenuComponent) -> VDomComponent {
+    ButtonComponent::new({
+        let app = state.app.clone();
+        let is_current_content = state.is_current_content.clone();
+
+        move || {
+            let is_current_content = is_current_content.get();
+
+            if is_current_content {
+                let alert = app.alert.clone();
+                let on_delete = bind(&alert)
+                    .and(&app)
+                    .call(|alert, app| {
+                        let path = alert.data.tab.full_path.get();
+                        alert.delete(app.clone(), path);
+                    });
+        
+                ButtonState::active("Usuń", on_delete)
+            } else {
+                ButtonState::disabled("Usuń")
+            }
+        }
+    })
+
+}
+
+
+fn render_button_on_edit_file(state: &MenuComponent) -> VDomComponent {
+    ButtonComponent::new({
+        let app = state.app.clone();
+        let is_current_content = state.is_current_content.clone();
+
+        move || {
+            let is_current_content = is_current_content.get();
+
+            if is_current_content {
+                let on_click = bind(&app).call(|app|{
+                    app.current_edit();
+                });
+
+                ButtonState::active("Edycja pliku", on_click)
+            } else {
+                ButtonState::disabled("Edycja pliku")
+            }
+        }
+    })
+}
+
+fn render_button_move_item(state: &MenuComponent) -> VDomComponent {
+    let state = state.clone();
+
+    ButtonComponent::new(move || {
+        let app = state.app.clone();
+        let current_path = app.data.tab.full_path.get();
+
+        let current_content = app.data.git.content_from_path(&current_path);
+
+        if let Resource::Ready(current_content) = current_content {
+            let hash = current_content.id;
+
+            return ButtonState::active("Przenieś", move || {
+                app.alert.move_current(&app, &current_path, &hash);
+            });
+        }
+
+        ButtonState::disabled("Przenieś")
+    })
 }

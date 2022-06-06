@@ -138,7 +138,7 @@ impl Git {
     pub async fn move_item(
         &self,
         path: Vec<String>,          //dir lub file
-        item_hash: String,
+        hash: String,
         new_path: Vec<String>,
     ) -> Result<String, ErrorProcess> {
         let (path_base, path_last) = split_last(&path)?;
@@ -147,7 +147,7 @@ impl Git {
         let session = self.session().await?;
         let (session, child) = session.extract_child(path_base, path_last).await?;
 
-        session.should_eq(&child, &item_hash)?;
+        session.should_eq(&child, &hash)?;
 
         let session = session.insert_child(new_path_base, new_path_last, child).await?;
         

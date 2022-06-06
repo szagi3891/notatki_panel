@@ -63,12 +63,12 @@ impl AppIndexAlert {
         self.view.set(AlertView::SearchInPath { state });
     }
 
-    pub fn move_current(&self,  path: Vec<String>) {
+    pub fn move_current(&self, app: &App, path: &Vec<String>, hash: &String) {
         if self.is_visible() {
             return;
         }
 
-        let state = AppIndexAlertMoveitem::new(&self, path);
+        let state = AppIndexAlertMoveitem::new(app, &self, path.clone(), hash.clone());
         self.view.set(AlertView::MoveItem { state });
     }
 

@@ -15,7 +15,7 @@ use models::{
     HandlerFetchNodeBody,
     HandlerFetchNodeResponse,
     HandlerRenameItemBody,
-    HandlerSaveContentBody,
+    HandlerSaveContentBody, HandlerMoveItemBody,
 };
 use poem::{
     Body,
@@ -217,6 +217,19 @@ impl App {
         let result = self.git.delete_item(
             body_request.path,
             body_request.hash,
+        ).await;
+
+        response_with_root(result)
+    }
+
+    #[oai(method = "post", path = "/move_item")]
+    async fn handler_move_item(&self, json: Json<HandlerMoveItemBody>) -> ApiResponseHttp<RootResponse> {
+        let Json(body_request) = json;
+        
+        let result = self.git.move_item(
+            body_request.path,
+            body_request.hash,
+            body_request.new_path,
         ).await;
 
         response_with_root(result)

@@ -136,8 +136,8 @@ impl AppRenameitem {
                                 }
 
                                 state.action_save.set(true);
-
                                 let response = state.on_save().await;
+                                state.action_save.set(false);
 
                                 match response {
                                     Ok(()) => {  

@@ -86,7 +86,7 @@ pub fn render_path(path: &Value<Vec<String>>, on_click: impl Fn(Vec<String>) + '
 
         let mut out: Vec<VDomElement> = Vec::new();
 
-        let home = '\u{1F3E0}';
+        let home = '\u{1F3E0}';         //ikonka domu
     
         let root_is_active = all_items == 0;
         out.push(create_link(format!("{home} root"), Vec::new(), css_item, root_is_active, on_click.clone()));

@@ -1,30 +1,74 @@
-use vertigo::{VDomComponent, Value, Resource, Computed, html, bind, css, Css};
+use common::HandlerMoveItemBody;
+use vertigo::{VDomComponent, Value, Resource, Computed, html, bind, css, Css, get_driver};
 
-use crate::{components::{AlertBox, item_default, item_dot_html, ButtonComponent, ButtonState, render_path}, data::ListItem};
+use crate::{components::{AlertBox, item_default, item_dot_html, ButtonComponent, ButtonState, render_path}, data::ListItem, app::{response::check_request_response, App}};
 
 use super::AppIndexAlert;
 
 #[derive(Clone)]
 pub struct AppIndexAlertMoveitem {
+    pub app: App,
     alert: AppIndexAlert,
     path: Vec<String>,                  //pełna ściezka do przenoszonego elementu
+    hash: String,                       //hash przenoszonego elementu
     target: Value<Vec<String>>,         //nowy katalog do którego będziemy przenosić ten element
     progress: Value<bool>,
 }
 
 
 impl AppIndexAlertMoveitem {
-    pub fn new(alert: &AppIndexAlert, path: Vec<String>) -> AppIndexAlertMoveitem {
+    pub fn new(app: &App, alert: &AppIndexAlert, path: Vec<String>, hash: String) -> AppIndexAlertMoveitem {
         let mut target = path.clone();
         target.pop();
 
         let target = Value::new(target);
         AppIndexAlertMoveitem {
+            app: app.clone(),
             alert: alert.clone(),
             path,
+            hash,
             target,
             progress: Value::new(false),
         }
+    }
+
+    fn prepare_new_path(&self) -> Option<Vec<String>> {
+        let mut path = self.path.clone();
+        let mut target = self.target.clone().get();
+
+        let last = match path.pop() {
+            Some(last) => last,
+            None => {
+                return None;
+            }
+        };
+
+        target.push(last);
+
+        Some(target)
+    }
+
+    async fn on_save(&self) -> Result<(), String> {
+        let new_path = match self.prepare_new_path() {
+            Some(new_path) => new_path,
+            None => {
+                return Err("Problem with computing a new path".into());
+            }
+        };
+
+        let body: HandlerMoveItemBody = HandlerMoveItemBody {
+            path: self.path.clone(),
+            hash: self.hash.clone(),
+            new_path: new_path,
+        };
+
+        let response = get_driver()
+            .request("/move_item")
+            .body_json(body)
+            .post()
+            .await;
+
+        check_request_response(response)
     }
 
     pub fn render(&self) -> VDomComponent {
@@ -176,16 +220,36 @@ fn render_button_yes(state: &AppIndexAlertMoveitem) -> VDomComponent {
         if path == target {
             return ButtonState::Disabled { label: "Tak".into() };
         }
-    
-        let target = target.join("/");
 
-        ButtonState::active("Tak", {
-            let state = state.clone();
-            move || {
-                // state.delete_yes();
-                log::info!("przenosimy do ... {target}");
-            }
-        })
+        let action = bind(&state)
+            .spawn(|state| async move {
+                let progress = state.progress.get();
+
+                if progress {
+                    log::error!("Trwa obecnie przenoszenie elementu");
+                    return;
+                }
+
+                state.progress.set(true);
+                let response = state.on_save().await;
+                state.progress.set(false);
+
+                match response {
+                    Ok(()) => {  
+                        log::info!("Przenoszenie udane");
+                        state.alert.data.git.root.refresh();
+                        state.alert.close_modal();
+                        state.app.show_message_info("Udane przenoszenie", Some(1000));
+                    },
+                    Err(message) => {
+                        let message = format!("nie udane przenoszenie {message}");
+                        state.app.show_message_error(message.clone(), Some(10000));
+                        log::error!("{message}");
+                    }
+                };
+            });
+        
+        ButtonState::active("Tak", action)
     })
 }
 
