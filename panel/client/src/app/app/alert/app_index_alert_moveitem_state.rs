@@ -240,6 +240,7 @@ fn render_button_yes(state: &AppIndexAlertMoveitem) -> VDomComponent {
                         state.alert.data.git.root.refresh();
                         state.alert.close_modal();
                         state.app.show_message_info("Udane przenoszenie", Some(1000));
+                        state.app.data.tab.redirect_item_select_after_delete();
                     },
                     Err(message) => {
                         let message = format!("nie udane przenoszenie {message}");

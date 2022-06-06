@@ -168,7 +168,7 @@ impl TabPath {
         }
     }
 
-    pub fn redirect_after_delete(&self) {
+    pub fn redirect_item_select_after_delete(&self) {
         let current_path_item = self.item_select.get();
         let list = self.list.get();
 

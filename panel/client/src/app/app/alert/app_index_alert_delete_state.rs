@@ -52,7 +52,7 @@ impl AppIndexAlertDelete {
 
         match check_request_response(response) {
             Ok(()) => {
-                self.alert.data.tab.redirect_after_delete();
+                self.alert.data.tab.redirect_item_select_after_delete();
                 self.alert.data.git.root.refresh();
                 self.alert.close_modal();
             },
