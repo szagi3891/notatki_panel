@@ -1,7 +1,6 @@
 use vertigo::dev::NodeRefs;
 use vertigo::{
-    Css,
-    VDomElement, VDomComponent,
+    Css, VDomComponent,
 };
 use vertigo::{css, html};
 use crate::app::App;

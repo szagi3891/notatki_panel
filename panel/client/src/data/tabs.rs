@@ -196,6 +196,8 @@ impl TabPath {
                 return;
             }
         };
+
+        self.item_select.set(None);
     }
 
     pub fn redirect_to_item(&self, item: ListItem) {
