@@ -1,8 +1,8 @@
 use vertigo::{Value, VDomElement, VDomComponent};
 use vertigo::{html};
 use crate::app::App;
-use crate::app::index::alert::app_index_alert_delete_state::AppIndexAlertDelete;
-use crate::app::index::alert::app_index_alert_search_state::AppIndexAlertSearch;
+use crate::app::app::alert::app_index_alert_delete_state::AppIndexAlertDelete;
+use crate::app::app::alert::app_index_alert_search_state::AppIndexAlertSearch;
 use crate::data::Data;
 
 use super::app_index_alert_moveitem_state::AppIndexAlertMoveitem;

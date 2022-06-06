@@ -5,11 +5,12 @@ use vertigo::Value;
 use crate::components::{message_box, MessageBoxType, stict_to_top};
 use crate::data::Data;
 
-use super::edit_content::AppEditcontent;
-use super::index::{AppIndexAlert, app_index_render};
-use super::new_dir::AppNewdir;
-use super::newcontent::AppNewcontent;
-use super::rename_item::AppRenameitem;
+use crate::app::edit_content::AppEditcontent;
+use super::alert::{AppIndexAlert};
+use super::app_index_render;
+use crate::app::new_dir::AppNewdir;
+use crate::app::newcontent::AppNewcontent;
+use crate::app::rename_item::AppRenameitem;
 use vertigo::struct_mut::CounterMut;
 
 #[derive(Clone)]

@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use vertigo::{Css, VDomElement, css, html, bind, Resource};
+use vertigo::{Css, VDomElement, css, html, bind, Resource, VDomComponent};
 
 use crate::app::App;
 use crate::components::list_items_from_dir;
@@ -135,47 +135,49 @@ fn render_dir(data: &Data, dir: &Vec<String>) -> VDomElement {
     }
 }
 
-pub fn render_content(state: &App) -> VDomElement {
-    let current_content = state.data.tab.current_content.get();
+pub fn render_content(state: &App) -> VDomComponent {
+    VDomComponent::from_ref(state, |state| {
+        let current_content = state.data.tab.current_content.get();
 
-    match current_content {
-        Resource::Loading => {
-            html! {
-                <div></div>
-            }
-        },
-        Resource::Error(message) => {
-            let message = format!("Error: {message}");
-            html! {
-                <div>
-                    { message }
-                </div>
-            }
-        },
-        Resource::Ready(content) => {
-            match content {
-                ContentType::Text { content } => {
-                    let out: Vec<VDomElement> = render_content_text(state, content);
+        match current_content {
+            Resource::Loading => {
+                html! {
+                    <div></div>
+                }
+            },
+            Resource::Error(message) => {
+                let message = format!("Error: {message}");
+                html! {
+                    <div>
+                        { message }
+                    </div>
+                }
+            },
+            Resource::Ready(content) => {
+                match content {
+                    ContentType::Text { content } => {
+                        let out: Vec<VDomElement> = render_content_text(state, content);
 
-                    html! {
-                        <div css={css_content_file()}>
-                            { ..out }
-                        </div>
-                    }
-                },
-                ContentType::Image { url } => {
-                    let url = url.as_str();
-                    html! {
-                        <div css={css_content_file()}>
-                            <img css={css_content_file_image()} src={url} />
-                        </div>
-                    }
-                },
-                ContentType::Dir { list } => {
-                    render_dir(&state.data, list.dir_path().as_ref())
-                },
-            }
-        },
-    }
+                        html! {
+                            <div css={css_content_file()}>
+                                { ..out }
+                            </div>
+                        }
+                    },
+                    ContentType::Image { url } => {
+                        let url = url.as_str();
+                        html! {
+                            <div css={css_content_file()}>
+                                <img css={css_content_file_image()} src={url} />
+                            </div>
+                        }
+                    },
+                    ContentType::Dir { list } => {
+                        render_dir(&state.data, list.dir_path().as_ref())
+                    },
+                }
+            },
+        }
+    })
 }
 
