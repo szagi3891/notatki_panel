@@ -141,8 +141,7 @@ pub enum ContentType {
     },
     Image {
         url: Rc<String>,
-    },
-    Unknown,
+    }
 }
 
 
@@ -274,7 +273,8 @@ impl ListItem {
                 ContentType::Image { url: Rc::new(url) }
             }
             FileType::Unknown => {
-                ContentType::Unknown
+                let content = self.content.get(&self.id)?;
+                ContentType::Text { content }
             }
         };
 

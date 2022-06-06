@@ -171,13 +171,6 @@ pub fn render_content(state: &App) -> VDomElement {
                         </div>
                     }
                 },
-                ContentType::Unknown => {
-                    html! {
-                        <div css={css_content_file()}>
-                            "ContentType::Unknown"
-                        </div>
-                    }
-                },
                 ContentType::Dir { list } => {
                     render_dir(&state.data, list.dir_path().as_ref())
                 },
