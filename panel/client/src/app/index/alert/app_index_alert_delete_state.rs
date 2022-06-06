@@ -2,9 +2,9 @@ use common::{HandlerDeleteItemBody};
 use vertigo::{
     VDomComponent,
     Value,
-    bind, get_driver, html,
+    bind, get_driver, html, Resource,
 };
-use crate::{components::{AlertBox, ButtonComponent, ButtonState}, data::ContentView, app::{response::check_request_response, App}};
+use crate::{components::{AlertBox, ButtonComponent, ButtonState}, app::{response::check_request_response, App}};
 
 use super::AppIndexAlert;
 
@@ -28,21 +28,12 @@ impl AppIndexAlertDelete {
         }
     }
 
-    pub async fn delete_yes(self, app: App) {
+    async fn delete_yes(self, app: App, current_hash: String) {
         if self.progress.get() {
             return;
         }
 
         let current_path = self.full_path;
-        let current_hash = self.alert.data.git.get_content(&current_path);
-
-        let current_hash = match current_hash {
-            Some(ContentView { id, .. }) => id,
-            None => {
-                log::error!("Problem z usunięciem ...");
-                return;
-            }
-        };
 
         log::info!("usuwamy ...");
         self.progress.set(true);
@@ -55,7 +46,7 @@ impl AppIndexAlertDelete {
                 
             })
             .post()
-            .await;    //::<RootResponse>();
+            .await;
 
         self.progress.set(false);
 
@@ -76,13 +67,21 @@ impl AppIndexAlertDelete {
         let app = self.app.clone();
 
         ButtonComponent::new(move || {
-            let action = bind(&state)
-                .and(&app)
-                .spawn(|state, app| {
-                    state.delete_yes(app)
-                });
+            let full_path = state.full_path.clone();
+            let item = state.alert.data.git.content_from_path(&full_path);
 
-            ButtonState::active("Tak", action)
+            if let Resource::Ready(item) = item {
+                let action = bind(&state)
+                    .and(&app)
+                    .and(&item.id)
+                    .spawn(|state, app, id| {
+                        state.delete_yes(app, id)
+                    });
+
+                return ButtonState::active("Tak", action);
+            }
+
+            ButtonState::disabled("Tak")
         })
     }
 
