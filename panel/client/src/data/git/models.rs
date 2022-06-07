@@ -90,18 +90,8 @@ impl ViewDirList {
         }
 
         list_out.sort_by(|a: &ListItem, b: &ListItem| -> Ordering {
-            let a_prirority = get_list_item_prirority(&a.name);
-            let b_prirority = get_list_item_prirority(&b.name);
-
-            if a_prirority == 2 && b_prirority == 2 {
-                if a.is_dir && !b.is_dir {
-                    return Ordering::Less;
-                }
-
-                if !a.is_dir && b.is_dir {
-                    return Ordering::Greater;
-                }
-            }
+            let a_prirority = a.prirority_for_sort();
+            let b_prirority = b.prirority_for_sort();
 
             if a_prirority > b_prirority {
                 return Ordering::Less;
@@ -289,12 +279,20 @@ impl ListItem {
         (&*(self.base_dir)).clone()
     }
 
+    fn prirority_for_sort(&self) -> u8 {
+        let mut prirority = 2 * get_list_item_prirority(&self.name);
+        if self.is_dir {
+            prirority += 1;
+        }
+
+        prirority
+    }
 }
 
 
 fn get_list_item_prirority(name: &String) -> u8 {
     if name.get(0..2) == Some("__") {
-        return 0
+        return 4
     }
 
     if name.get(0..1) == Some("_") {

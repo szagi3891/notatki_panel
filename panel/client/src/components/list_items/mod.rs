@@ -89,8 +89,7 @@ fn label_css(prirority: u8) -> Css {
 
     css!("
         padding-left: 3px;
-        opacity: 0.5;
-        text-decoration: line-through;
+        color: red;
     ")
 }
 
