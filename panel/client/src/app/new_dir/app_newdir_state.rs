@@ -23,7 +23,7 @@ impl AppNewdir {
         log::info!("buduję stan dla new dir");
         let action_save = Value::new(false);
         let list = app.data.tab.list.clone();
-        let parent = app.data.tab.dir_select.clone().get();
+        let parent = app.data.tab.router.get_dir();
 
         let new_name = new_name::NewName::new(list);
         let is_valid = new_name.is_valid.clone();

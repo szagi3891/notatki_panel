@@ -3,7 +3,7 @@ use std::rc::Rc;
 use vertigo::{
     VDomElement,
     Css,
-    bind, VDomComponent, Value,
+    bind, VDomComponent, Computed,
 };
 use vertigo::{html, css};
 
@@ -76,7 +76,7 @@ fn create_link(
     }
 }
 
-pub fn render_path(path: &Value<Vec<String>>, on_click: impl Fn(Vec<String>) + 'static) -> VDomComponent {
+pub fn render_path(path: &Computed<Vec<String>>, on_click: impl Fn(Vec<String>) + 'static) -> VDomComponent {
     let path = path.clone();
     let on_click = Rc::new(on_click);
 

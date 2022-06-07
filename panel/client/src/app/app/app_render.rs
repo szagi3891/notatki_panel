@@ -66,7 +66,7 @@ pub fn app_index_render(app: &App) -> VDomComponent {
         data.tab.set_path(node_id.clone());
     });
     
-    let view_header = render_path(&app.data.tab.dir_select, on_click_path);
+    let view_header = render_path(&app.data.tab.router.path, on_click_path);
 
     let view_list = render_list(app);
     let view_content = render_content(app);

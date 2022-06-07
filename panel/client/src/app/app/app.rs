@@ -134,7 +134,7 @@ impl App {
     }
 
     pub fn current_rename(&self) {
-        let path = self.data.tab.dir_select.get();
+        let path = self.data.tab.router.get_dir();
         let select_item = self.data.tab.current_item.get();
 
         if let Some(select_item) = select_item.as_ref() {

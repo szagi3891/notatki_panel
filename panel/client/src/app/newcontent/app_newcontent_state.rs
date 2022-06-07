@@ -23,7 +23,7 @@ impl AppNewcontent {
         log::info!("buduję stan dla new content");
         let action_save = Value::new(false);
 
-        let parent = app.data.tab.dir_select.get();
+        let parent = app.data.tab.router.get_dir();
         let list = app.data.tab.list.clone();
 
         let new_name = NewName::new(list);

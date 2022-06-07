@@ -58,7 +58,7 @@ fn dom_apply(node_refs: &NodeRefs) {
 
 pub fn render_list(state: &App) -> VDomComponent {
     VDomComponent::from_ref(state, |state| {
-        let dir = state.data.tab.dir_select.get();
+        let dir = state.data.tab.router.get_dir();
 
         let out = list_items_from_dir(&state.data, dir.as_ref(), true);
 

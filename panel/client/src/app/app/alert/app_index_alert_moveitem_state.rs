@@ -88,7 +88,7 @@ fn render_target(state: &AppIndexAlertMoveitem) -> VDomComponent {
         data.target.set(node_id);
     });
     
-    let target_path = render_path(&state.target, on_click_path);
+    let target_path = render_path(&state.target.to_computed(), on_click_path);
 
     VDomComponent::from_html(
         html! {

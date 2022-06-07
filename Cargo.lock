@@ -614,9 +614,9 @@ dependencies = [
 
 [[package]]
 name = "http"
-version = "0.2.7"
+version = "0.2.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ff8670570af52249509a86f5e3e18a08c60b177071826898fde8997cf5f6bfbb"
+checksum = "75f43d41e26995c17e71ee126451dd3941010b0514a81a9d11f3b341debc2399"
 dependencies = [
  "bytes",
  "fnv",
@@ -1558,9 +1558,9 @@ checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
 
 [[package]]
 name = "tokio"
-version = "1.19.1"
+version = "1.19.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "95eec79ea28c00a365f539f1961e9278fbcaf81c0ff6aaf0e93c181352446948"
+checksum = "c51a52ed6686dd62c320f9b89299e9dfb46f730c7a48e635c19f21d116cb1439"
 dependencies = [
  "bytes",
  "libc",
@@ -1744,7 +1744,7 @@ checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
 [[package]]
 name = "vertigo"
 version = "0.1.0-beta.4"
-source = "git+https://github.com/vertigo-web/vertigo?branch=builder#13357f358bdeab7ce2a0fc8b49d9110797f9b96e"
+source = "git+https://github.com/vertigo-web/vertigo?branch=builder#42728b853777200539e50fdb107d64185fa816b7"
 dependencies = [
  "log",
  "serde_json",
@@ -1754,7 +1754,7 @@ dependencies = [
 [[package]]
 name = "vertigo-macro"
 version = "0.1.0-beta.4"
-source = "git+https://github.com/vertigo-web/vertigo?branch=builder#13357f358bdeab7ce2a0fc8b49d9110797f9b96e"
+source = "git+https://github.com/vertigo-web/vertigo?branch=builder#42728b853777200539e50fdb107d64185fa816b7"
 dependencies = [
  "itertools",
  "pest",
