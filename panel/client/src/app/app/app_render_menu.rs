@@ -6,7 +6,7 @@ use vertigo::{
 
 use vertigo::{html, css};
 use crate::app::App;
-use crate::components::{button, ButtonState, ButtonComponent};
+use crate::components::{ButtonState, ButtonComponent};
 use crate::data::ContentType;
 
 fn css_footer() -> Css {
@@ -51,60 +51,30 @@ impl MenuComponent {
 }
 
 fn render_menu(state: &MenuComponent) -> VDomComponent {
+    let button_edit_file = render_button_edit_file(state);
+    let button_create_file = render_button_create_file(state);
+    let button_rename_name = render_button_rename_name(state);
+    let button_make_dir = render_button_make_dir(state);
     let button_delete = render_button_on_delete(state);
-    let button_edit_file = render_button_on_edit_file(state);
-
+    let button_search = render_button_search(state);
     let button_move_item = render_button_move_item(state);
-    
-    let app = state.app.clone();
-
-    let on_rename = bind(&app).call(|app| {
-        app.current_rename();
-    });
-
-    let on_create = bind(&app).call(|app| {
-        app.redirect_to_new_content();
-    });
-
-    let on_mkdir = bind(&app).call(|app| {
-        app.redirect_to_mkdir();
-    });
-
-    let mut out = Vec::new();
-
-    out.push(button("Utwórz plik", on_create));
-    out.push(button("Zmień nazwę", on_rename));
-    out.push(html!{
-        <span>
-            {button_edit_file}
-        </span>
-    });
-    out.push(button("Utwórz katalog", on_mkdir));    
-    out.push(html! {
-        <span>
-            {button_delete}
-        </span>
-    });
-
-    out.push(button("Wyszukaj", bind(&app.alert).call(|alert| {
-        alert.redirect_to_search();
-    })));
-
-    out.push(html! {
-        <span>
-            { button_move_item }
-        </span>
-    });
+    let button_todo = render_button_todo(state);
 
     VDomComponent::from_html(
         html! {
             <div css={css_footer()}>
-                { ..out }
+                { button_edit_file }
+                { button_create_file }
+                { button_rename_name }
+                { button_make_dir }
+                { button_delete }
+                { button_search }
+                { button_move_item }
+                { button_todo }
             </div>
         }
     )
 }
-
 
 fn render_button_on_delete(state: &MenuComponent) -> VDomComponent {
     ButtonComponent::new({
@@ -132,8 +102,7 @@ fn render_button_on_delete(state: &MenuComponent) -> VDomComponent {
 
 }
 
-
-fn render_button_on_edit_file(state: &MenuComponent) -> VDomComponent {
+fn render_button_edit_file(state: &MenuComponent) -> VDomComponent {
     ButtonComponent::new({
         let app = state.app.clone();
         let is_current_content = state.is_current_content.clone();
@@ -172,5 +141,78 @@ fn render_button_move_item(state: &MenuComponent) -> VDomComponent {
         }
 
         ButtonState::disabled("Przenieś")
+    })
+}
+    
+fn render_button_create_file(state: &MenuComponent) -> VDomComponent {
+    ButtonComponent::new({
+        let app = state.app.clone();
+
+        move || {
+            let on_click = bind(&app).call(|app| {
+                app.redirect_to_new_content();
+            });
+
+            ButtonState::active("Utwórz plik", on_click)
+        }
+    })
+}
+
+fn render_button_rename_name(state: &MenuComponent) -> VDomComponent {
+    ButtonComponent::new({
+        let app = state.app.clone();
+
+        move || {
+            let on_click = bind(&app).call(|app| {
+                app.current_rename();
+            });
+
+            ButtonState::active("Zmień nazwę", on_click)
+        }
+    })
+}
+
+fn render_button_make_dir(state: &MenuComponent) -> VDomComponent {
+    ButtonComponent::new({
+        let app = state.app.clone();
+
+        move || {
+            let on_click = bind(&app).call(|app| {
+                app.redirect_to_mkdir();
+            });
+
+            ButtonState::active("Utwórz katalog", on_click)
+        }
+    })
+}
+
+fn render_button_search(state: &MenuComponent) -> VDomComponent {
+    ButtonComponent::new({
+        let app = state.app.clone();
+
+        move || {
+            let on_click = bind(&app.alert).call(|alert| {
+                alert.redirect_to_search();
+            });
+
+            ButtonState::active("Wyszukaj", on_click)
+        }
+    })
+}
+
+fn render_button_todo(state: &MenuComponent) -> VDomComponent {
+    ButtonComponent::new({
+        // let app = state.app.clone();
+
+        move || {
+            let on_click = || {
+                log::info!("todo --- ....");
+            };
+            // let on_click = bind(&app.alert).call(|alert| {
+            //     alert.redirect_to_search();
+            // });
+
+            ButtonState::active("Todo", on_click)
+        }
     })
 }

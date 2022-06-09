@@ -9,8 +9,6 @@ struct RouterValue {
 
 impl From<String> for RouterValue {
     fn from(path: String) -> Self {
-        log::info!("from --- {path}");
-
         match serde_json::from_str(path.as_str()) {
             Ok(value) => value,
             Err(err) => {
