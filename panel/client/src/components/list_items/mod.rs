@@ -148,16 +148,16 @@ pub fn item_default_render(data: &Data, item: &ListItem, mouse_over_enable: bool
     let item = item.clone();
 
     VDomComponent::from_fn(move || {
-        let current_item = data.tab.current_item.get();
+        // let current_item = data.tab.current_item.get();
         // let current_hover = data.tab.item_hover.get();
 
-        let is_select = {
-            if let Some(list_pointer) = &current_item {
-                item.name == *list_pointer
-            } else {
-                false
-            }
-        };
+        // let is_select = {
+        //     if let Some(list_pointer) = &current_item {
+        //         item.name == *list_pointer
+        //     } else {
+        //         false
+        //     }
+        // };
 
         let on_click = {
             bind(&data.tab)
@@ -169,11 +169,11 @@ pub fn item_default_render(data: &Data, item: &ListItem, mouse_over_enable: bool
 
         let element = item_default(&data, &item, on_click);
 
-        let element = if is_select {
-            element.dom_ref("active")
-        } else {
-            element
-        };
+        // let element = if is_select {
+        //     element.dom_ref("active")
+        // } else {
+        //     element
+        // };
 
         let element = if mouse_over_enable {
 
