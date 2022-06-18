@@ -501,13 +501,13 @@ dependencies = [
 
 [[package]]
 name = "getrandom"
-version = "0.2.6"
+version = "0.2.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9be70c98951c83b8d2f8f60d7065fa6d5146873094452a1008da8c2f1e4205ad"
+checksum = "4eb1a864a501629691edf6c15a593b7a51eebaa1e8468e9ddc623de7c9b58ec6"
 dependencies = [
  "cfg-if",
  "libc",
- "wasi 0.10.0+wasi-snapshot-preview1",
+ "wasi 0.11.0+wasi-snapshot-preview1",
 ]
 
 [[package]]
@@ -556,9 +556,9 @@ dependencies = [
 
 [[package]]
 name = "hashbrown"
-version = "0.9.1"
+version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d7afe4a420e3fe79967a00898cc1f4db7c8a49a9333a29f8a4bd76a253d5cd04"
+checksum = "db0d4cf898abf0081f964436dc980e96670a0f36863e4b83aaacdb65c9d7ccc3"
 
 [[package]]
 name = "headers"
@@ -698,9 +698,9 @@ dependencies = [
 
 [[package]]
 name = "indexmap"
-version = "1.6.2"
+version = "1.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "824845a0bf897a9042383849b02c1bc219c2383772efcd5c6f9766fa4b81aef3"
+checksum = "6c6392766afd7964e2531940894cffe4bd8d7d17dbc3c1c4857040fd4b33bdb3"
 dependencies = [
  "autocfg",
  "hashbrown",
@@ -790,6 +790,12 @@ dependencies = [
  "pkg-config",
  "vcpkg",
 ]
+
+[[package]]
+name = "linked-hash-map"
+version = "0.5.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7fb9b38af92608140b86b693604b9ffcc5824240a484d1ecd4795bacb2fe88f3"
 
 [[package]]
 name = "lock_api"
@@ -1042,9 +1048,9 @@ checksum = "1df8c4ec4b0627e53bdf214615ad287367e482558cf84b109250b37464dc03ae"
 
 [[package]]
 name = "poem"
-version = "1.3.30"
+version = "1.3.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e4a37cf8dba4d40f07bc6274613dea21f38a91535e91ea1061f29533cf6522f8"
+checksum = "61fc6256b0e7050d11d3ac5d8109eb87c7939189ecc80228c92b6cb00f29dd87"
 dependencies = [
  "async-trait",
  "bytes",
@@ -1078,9 +1084,9 @@ dependencies = [
 
 [[package]]
 name = "poem-derive"
-version = "1.3.30"
+version = "1.3.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fed74e1ef749dc0f36addc543c66ae48beef59902c26222d82a1c7a7c1a2fb36"
+checksum = "cb23ee18a9b915a04d1ee2e7dc6aa77e1e50e067c0aba2b25b623af2b1f5cf2d"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
@@ -1090,9 +1096,9 @@ dependencies = [
 
 [[package]]
 name = "poem-openapi"
-version = "2.0.0"
+version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e53c868aebde3d120fe5a6d90928137e9c8581610d414a2c0ce9b11a0fdcad5e"
+checksum = "9763db3864695e75763cd4df7d91e6ece663e8cb6cd28466ed83f3bb2218503f"
 dependencies = [
  "base64",
  "bytes",
@@ -1106,15 +1112,16 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_urlencoded",
+ "serde_yaml",
  "thiserror",
  "tokio",
 ]
 
 [[package]]
 name = "poem-openapi-derive"
-version = "2.0.0"
+version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b6ea320c2b038eca5f5aa4a41e0ab03c62319a1a37173933a495cce79c972c78"
+checksum = "66c7322903b05cfa23434e8915a52f32f162d7d2b55b1282b392346854d0c19b"
 dependencies = [
  "Inflector",
  "darling",
@@ -1357,6 +1364,18 @@ dependencies = [
  "itoa",
  "ryu",
  "serde",
+]
+
+[[package]]
+name = "serde_yaml"
+version = "0.8.24"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "707d15895415db6628332b737c838b88c598522e4dc70647e59b72312924aebc"
+dependencies = [
+ "indexmap",
+ "ryu",
+ "serde",
+ "yaml-rust",
 ]
 
 [[package]]
@@ -1623,9 +1642,9 @@ dependencies = [
 
 [[package]]
 name = "tower-service"
-version = "0.3.1"
+version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "360dfd1d6d30e05fda32ace2c8c70e9c0a9da713275777f5a4dbb8a1893930c6"
+checksum = "b6bc1c9ce2b5135ac7f93c72918fc37feb872bdc6a5533a8b85eb4b86bfdae52"
 
 [[package]]
 name = "tracing"
@@ -1694,9 +1713,9 @@ checksum = "099b7128301d285f79ddd55b9a83d5e6b9e97c92e0ea0daebee7263e932de992"
 
 [[package]]
 name = "unicode-ident"
-version = "1.0.0"
+version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d22af068fba1eb5edcb4aea19d382b2a3deb4c8f9d475c589b6ada9e0fd493ee"
+checksum = "5bd2fe26506023ed7b5e1e315add59d6f584c621d037f9368fea9cfb988f368c"
 
 [[package]]
 name = "unicode-normalization"
@@ -1744,7 +1763,7 @@ checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
 [[package]]
 name = "vertigo"
 version = "0.1.0-beta.4"
-source = "git+https://github.com/vertigo-web/vertigo?branch=builder#6092e70c89424134a65f9e572986d4542095df93"
+source = "git+https://github.com/vertigo-web/vertigo?branch=builder#ab7fc03d49093630ad6f9cc260e2f8a3a7caa56a"
 dependencies = [
  "log",
  "serde_json",
@@ -1754,7 +1773,7 @@ dependencies = [
 [[package]]
 name = "vertigo-macro"
 version = "0.1.0-beta.4"
-source = "git+https://github.com/vertigo-web/vertigo?branch=builder#6092e70c89424134a65f9e572986d4542095df93"
+source = "git+https://github.com/vertigo-web/vertigo?branch=builder#ab7fc03d49093630ad6f9cc260e2f8a3a7caa56a"
 dependencies = [
  "itertools",
  "pest",
@@ -1859,3 +1878,12 @@ name = "windows_x86_64_msvc"
 version = "0.36.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c811ca4a8c853ef420abd8592ba53ddbbac90410fab6903b3e79972a631f7680"
+
+[[package]]
+name = "yaml-rust"
+version = "0.4.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "56c1936c4cc7a1c9ab21a1ebb602eb942ba868cbd44a99cb7cdc5892335e1c85"
+dependencies = [
+ "linked-hash-map",
+]
