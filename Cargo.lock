@@ -223,7 +223,7 @@ dependencies = [
  "rand",
  "sha2",
  "subtle",
- "time 0.3.9",
+ "time 0.3.10",
  "version_check",
 ]
 
@@ -1075,7 +1075,7 @@ dependencies = [
  "smallvec",
  "tempfile",
  "thiserror",
- "time 0.3.9",
+ "time 0.3.10",
  "tokio",
  "tokio-stream",
  "tokio-util",
@@ -1200,9 +1200,9 @@ dependencies = [
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.39"
+version = "1.0.40"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c54b25569025b7fc9651de43004ae593a75ad88543b17178aa5e1b9c4f15f56f"
+checksum = "dd96a1e8ed2596c337f8eae5f24924ec83f5ad5ab21ea8e455d3566c69fbcaf7"
 dependencies = [
  "unicode-ident",
 ]
@@ -1224,9 +1224,9 @@ checksum = "a1d01941d82fa2ab50be1e79e6714289dd7cde78eba4c074bc5a4374f650dfe0"
 
 [[package]]
 name = "quote"
-version = "1.0.19"
+version = "1.0.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f53dc8cf16a769a6f677e09e7ff2cd4be1ea0f48754aac39520536962011de0d"
+checksum = "3bcdf212e9776fbcb2d23ab029360416bb1706b1aea2d1a5ba002727cbcab804"
 dependencies = [
  "proc-macro2",
 ]
@@ -1544,9 +1544,9 @@ dependencies = [
 
 [[package]]
 name = "time"
-version = "0.3.9"
+version = "0.3.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c2702e08a7a860f005826c6815dcac101b19b5eb330c27fe4a5928fec1d20ddd"
+checksum = "82501a4c1c0330d640a6e176a3d6a204f5ec5237aca029029d21864a902e27b0"
 dependencies = [
  "itoa",
  "libc",
@@ -1763,7 +1763,7 @@ checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
 [[package]]
 name = "vertigo"
 version = "0.1.0-beta.4"
-source = "git+https://github.com/vertigo-web/vertigo?branch=builder#3f37ba6472d8029505759bed750d664b73ede101"
+source = "git+https://github.com/vertigo-web/vertigo?branch=builder#f156e1e3e043319ad6c25067303c41c397d92227"
 dependencies = [
  "log",
  "serde_json",
@@ -1773,7 +1773,7 @@ dependencies = [
 [[package]]
 name = "vertigo-macro"
 version = "0.1.0-beta.4"
-source = "git+https://github.com/vertigo-web/vertigo?branch=builder#3f37ba6472d8029505759bed750d664b73ede101"
+source = "git+https://github.com/vertigo-web/vertigo?branch=builder#f156e1e3e043319ad6c25067303c41c397d92227"
 dependencies = [
  "itertools",
  "pest",
