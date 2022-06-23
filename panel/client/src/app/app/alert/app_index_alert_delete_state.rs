@@ -2,9 +2,9 @@ use common::{HandlerDeleteItemBody};
 use vertigo::{
     VDomComponent,
     Value,
-    bind, get_driver, html, Resource,
+    bind, get_driver, html, Resource, Computed,
 };
-use crate::{components::{AlertBox, ButtonComponent, ButtonState}, app::{response::check_request_response, App}};
+use crate::{components::{AlertBox, ButtonState}, app::{response::check_request_response, App}};
 
 use super::AppIndexAlert;
 
@@ -66,7 +66,7 @@ impl AppIndexAlertDelete {
         let state = self.clone();
         let app = self.app.clone();
 
-        ButtonComponent::new(move || {
+        VDomComponent::dom(ButtonState::render(Computed::from(move || {
             let full_path = state.full_path.clone();
             let item = state.alert.data.git.content_from_path(&full_path);
 
@@ -82,13 +82,13 @@ impl AppIndexAlertDelete {
             }
 
             ButtonState::disabled("Tak")
-        })
+        })))
     }
 
     pub fn bind_delete_no(&self) -> VDomComponent {
         let state = self.clone();
 
-        ButtonComponent::new(move || {
+        VDomComponent::dom(ButtonState::render(Computed::from(move || {
             let action = bind(&state).call(|state| {
                 if state.progress.get() {
                     return;
@@ -98,7 +98,7 @@ impl AppIndexAlertDelete {
             });
 
             ButtonState::active("Nie", action)
-        })
+        })))
     }
 
     pub fn render(&self) -> VDomComponent {

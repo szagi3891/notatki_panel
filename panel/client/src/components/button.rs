@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use vertigo::{
     VDomElement,
-    Css, Computed, VDomComponent,
+    Css, Computed, DomElement, create_node,
 };
 
 use vertigo::{html, css};
@@ -70,6 +70,36 @@ pub enum ButtonState {
     }
 }
 
+impl PartialEq for ButtonState {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::None, Self::None) => true,
+            (
+                Self::Disabled { label: label1 },
+                Self::Disabled { label: label2 }
+            ) => {
+                label1.eq(label2)
+            },
+            (
+                Self::Active { label: label1, action: action1 },
+                Self::Active { label: label2, action: action2 },
+            ) => {
+                let compare1 = label1.eq(label2);
+                let compare2 = Rc::as_ptr(action1) == Rc::as_ptr(action2);
+
+                compare1 && compare2
+            },
+            (
+                Self::Process { label: label1 },
+                Self::Process { label: label2 }
+            ) => {
+                label1.eq(label2)
+            },
+            (_, _) => false,
+        }
+    }
+}
+
 impl ButtonState {
     pub fn active(label: impl Into<String>, action: impl Fn() + 'static) -> ButtonState {
         ButtonState::Active {
@@ -84,49 +114,83 @@ impl ButtonState {
         }
     }
 
-    fn render(self: &ButtonState) -> VDomElement {
-        match self {
-            Self::None => html!{ <span></span> },
-            Self::Disabled { label } => html! {
-                <span css={css_item(ButtonType::Disabled)}>{label}</span>
-            },
-            Self::Active { label, action } => {
-                let action = action.clone();
 
-                let on_click = move || {
-                    action();
-                };
+    pub fn render(value: Computed<ButtonState>) -> DomElement {
+        create_node("div")
+        .value(value, |value| {
+            match value {
+                ButtonState::None => {
+                    //html!{ <span></span> },
+                    create_node("span")
+                },
+                ButtonState::Disabled { label } => {
+                    create_node("span")
+                        .css(css_item(ButtonType::Disabled))
+                        .text(label)
+                //     html! {
+                //     <span css={css_item(ButtonType::Disabled)}>{label}</span>
+                // },
+                },
+                ButtonState::Active { label, action } => {
+                    let on_click = move || {
+                        action();
+                    };
 
-                html!{
-                    <span css={css_item(ButtonType::Active)} on_click={on_click}>{label}</span>
+                    create_node("span")
+                        .css(css_item(ButtonType::Active))
+                        .on_click(on_click)
+                        .text(label)
+                    
+                    // let action = action.clone();
+
+                    // let on_click = move || {
+                    //     action();
+                    // };
+
+                    // html!{
+                    //     <span css={css_item(ButtonType::Active)} on_click={on_click}>{label}</span>
+                    // }
+                },
+                ButtonState::Process { label } => {
+                    create_node("span")
+                        .css(css_item(ButtonType::Process))
+                        .text(label)
+                //     html!{
+                //     <span css={css_item(ButtonType::Process)}>{label}</span>
+                // }
                 }
-            },
-            Self::Process { label } => html!{
-                <span css={css_item(ButtonType::Process)}>{label}</span>
             }
-        }
-    }
-}
-
-pub struct ButtonComponent {
-    value: Computed<ButtonState>,
-}
-
-impl ButtonComponent {
-    pub fn new(fun: impl Fn() -> ButtonState + 'static) -> VDomComponent {
-        let state = ButtonComponent {
-            value: Computed::from(fun)
-        };
-
-        state.component()
-    }
-
-    fn component(self) -> VDomComponent {
-        VDomComponent::from(self, |state| {
-            let state = state.value.get();
-            state.render()
         })
+
+    // fn render(self: &ButtonState) -> VDomElement {
+    //     match self {
+    //         Self::None => html!{ <span></span> },
+    //         Self::Disabled { label } => html! {
+    //             <span css={css_item(ButtonType::Disabled)}>{label}</span>
+    //         },
+    //         Self::Active { label, action } => {
+    //             let action = action.clone();
+
+    //             let on_click = move || {
+    //                 action();
+    //             };
+
+    //             html!{
+    //                 <span css={css_item(ButtonType::Active)} on_click={on_click}>{label}</span>
+    //             }
+    //         },
+    //         Self::Process { label } => html!{
+    //             <span css={css_item(ButtonType::Process)}>{label}</span>
+    //         }
+    //     }
     }
 }
+
+// fn component(self) -> VDomComponent {
+//     VDomComponent::from(self, |state| {
+//         let state = state.value.get();
+//         state.render()
+//     })
+// }
 
 

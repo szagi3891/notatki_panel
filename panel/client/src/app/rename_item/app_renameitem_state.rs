@@ -1,7 +1,7 @@
 use common::{HandlerRenameItemBody};
-use vertigo::{Computed, Value, VDomComponent, get_driver, bind};
+use vertigo::{Computed, Value, VDomComponent, get_driver, bind, DomElement};
 
-use crate::{app::{App, response::check_request_response}, components::{ButtonState, ButtonComponent}};
+use crate::{app::{App, response::check_request_response}, components::ButtonState};
 
 use super::app_renameitem_render::app_renameitem_render;
 
@@ -102,21 +102,21 @@ impl AppRenameitem {
         check_request_response(response)
     }
 
-    pub fn button_on_back(&self) -> VDomComponent {
-        ButtonComponent::new({
+    pub fn button_on_back(&self) -> DomElement {
+        ButtonState::render({
             let app = self.app.clone();
 
-            move || ButtonState::active("Wróć", bind(&app).call(|app| {
+            Computed::from(move || ButtonState::active("Wróć", bind(&app).call(|app| {
                 app.redirect_to_index();
-            }))
+            })))
         })
     }
-    pub fn button_on_save(&self) -> VDomComponent {
-        ButtonComponent::new({
+    pub fn button_on_save(&self) -> DomElement {
+        ButtonState::render({
             let state = self.clone();
             let app = self.app.clone();
 
-            move || {
+            Computed::from(move || {
                 if state.action_save.get() {
                     return ButtonState::Process { label: "Zapisywanie ...".into() };
                 }
@@ -160,7 +160,7 @@ impl AppRenameitem {
                         ButtonState::Disabled { label: "Zapisz zmianę nazwy".into() }
                     }
                 }
-            }
+            })
         })
     }
 

@@ -1,7 +1,7 @@
 use common::HandlerMoveItemBody;
 use vertigo::{VDomComponent, Value, Resource, Computed, html, bind, css, Css, get_driver};
 
-use crate::{components::{AlertBox, item_default, item_dot_html, ButtonComponent, ButtonState, render_path}, data::ListItem, app::{response::check_request_response, App}};
+use crate::{components::{AlertBox, item_default, item_dot_html, ButtonState, render_path}, data::ListItem, app::{response::check_request_response, App}};
 
 use super::AppIndexAlert;
 
@@ -90,13 +90,13 @@ fn render_target(state: &AppIndexAlertMoveitem) -> VDomComponent {
     
     let target_path = render_path(&state.target.to_computed(), on_click_path);
 
-    VDomComponent::from_html(
+    VDomComponent::from_fn(move || {
         html! {
             <div css={css_wrapper()}>
-                { target_path }
+                { target_path.clone() }
             </div>
         }
-    )
+    })
 }
 
 fn render_back(state: &AppIndexAlertMoveitem) -> VDomComponent {
@@ -211,7 +211,7 @@ fn render_list(state: &AppIndexAlertMoveitem) -> VDomComponent {
 fn render_button_yes(state: &AppIndexAlertMoveitem) -> VDomComponent {
     let state = state.clone();
 
-    ButtonComponent::new(move || {
+    VDomComponent::dom(ButtonState::render(Computed::from(move || {
         let mut path = state.path.clone();
         path.pop();
 
@@ -251,13 +251,13 @@ fn render_button_yes(state: &AppIndexAlertMoveitem) -> VDomComponent {
             });
         
         ButtonState::active("Tak", action)
-    })
+    })))
 }
 
 fn render_button_no(state: &AppIndexAlertMoveitem) -> VDomComponent {
     let state = state.clone();
 
-    ButtonComponent::new(move || {
+    VDomComponent::dom(ButtonState::render(Computed::from(move || {
         ButtonState::active("Nie", {
             let state = state.clone();
             move || {
@@ -268,7 +268,7 @@ fn render_button_no(state: &AppIndexAlertMoveitem) -> VDomComponent {
                 state.alert.close_modal();
             }
         })
-    })
+    })))
 }
 
 fn render_message(state: &AppIndexAlertMoveitem) -> VDomComponent {

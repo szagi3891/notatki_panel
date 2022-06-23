@@ -255,14 +255,14 @@ impl App {
         let view = self.render_view();
         let errors = self.render_errors();
 
-        VDomComponent::from_html(
+        VDomComponent::from_fn(move || {
             html! {
                 <div>
-                    { view }
-                    { errors }
+                    { view.clone() }
+                    { errors.clone() }
                 </div>
             }
-        )
+        })
     }
 }
 

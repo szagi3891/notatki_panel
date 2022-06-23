@@ -78,9 +78,9 @@ pub fn app_index_render(app: &App) -> VDomComponent {
         }
     };
 
-    VDomComponent::from_html(
+    VDomComponent::from_fn(move || {
         html! {
-            <div css={css_wrapper()} hook_key_down={hook_keydown}>
+            <div css={css_wrapper()} hook_key_down={hook_keydown.clone()}>
                 { view_menu.clone() }
                 { view_header.clone() }
                 <div css={css_content()}>
@@ -94,5 +94,5 @@ pub fn app_index_render(app: &App) -> VDomComponent {
                 { view_alert.clone() }
             </div>
         }
-    )
+    })
 }

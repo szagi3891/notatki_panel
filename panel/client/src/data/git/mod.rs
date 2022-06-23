@@ -43,7 +43,7 @@ fn move_pointer(state_data: &Git, list: GitDirList, path_item: &String) -> Resou
     return Resource::Error(format!("dir expected {}", path_item));
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ContentView {
     pub id: String,
     pub content: Rc<String>,

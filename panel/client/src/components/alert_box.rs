@@ -122,15 +122,15 @@ impl AlertBox {
     }
 
     pub fn render_popup(content: VDomComponent) -> VDomComponent {
-        VDomComponent::from_html(
+        VDomComponent::from_fn(move || {
             html! {
                 <div css={css_bg()}>
                     <div css={css_center()}>
-                        {content}
+                        {content.clone()}
                     </div>
                 </div>
             }
-        )
+        })
     }
 
     pub fn render(self) -> VDomComponent {
@@ -150,20 +150,22 @@ impl AlertBox {
             }
         };
 
-        let content = VDomComponent::from_html(html! {
-            <div>
-                <div css={css_message()}>
-                    { message }
+        let content = VDomComponent::from_fn(move || {
+            html! {
+                <div>
+                    <div css={css_message()}>
+                        { message.clone() }
+                    </div>
+
+                    { progress.clone() }
+
+                    <div css={css_buttons_wrapper()}>
+                        { ..buttons.clone() }
+                    </div>
+
+                    { content.clone() }
                 </div>
-
-                { progress }
-
-                <div css={css_buttons_wrapper()}>
-                    { ..buttons }
-                </div>
-
-                { content }
-            </div>
+            }
         });
 
         Self::render_popup(content)

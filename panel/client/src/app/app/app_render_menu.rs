@@ -1,12 +1,12 @@
 use vertigo::{
     Css,
     Computed, VDomComponent,
-    bind, Resource,
+    bind, Resource, DomElement, create_node,
 };
 
-use vertigo::{html, css};
+use vertigo::{css};
 use crate::app::App;
-use crate::components::{ButtonState, ButtonComponent};
+use crate::components::{ButtonState};
 use crate::data::ContentType;
 
 fn css_footer() -> Css {
@@ -60,28 +60,26 @@ fn render_menu(state: &MenuComponent) -> VDomComponent {
     let button_move_item = render_button_move_item(state);
     let button_todo = render_button_todo(state);
 
-    VDomComponent::from_html(
-        html! {
-            <div css={css_footer()}>
-                { button_edit_file }
-                { button_create_file }
-                { button_rename_name }
-                { button_make_dir }
-                { button_delete }
-                { button_search }
-                { button_move_item }
-                { button_todo }
-            </div>
-        }
+    VDomComponent::dom(
+        create_node("div")
+            .css(css_footer())
+            .child(button_edit_file)
+            .child(button_create_file)
+            .child(button_rename_name)
+            .child(button_make_dir)
+            .child(button_delete)
+            .child(button_search)
+            .child(button_move_item)
+            .child(button_todo)
     )
 }
 
-fn render_button_on_delete(state: &MenuComponent) -> VDomComponent {
-    ButtonComponent::new({
+fn render_button_on_delete(state: &MenuComponent) -> DomElement {
+    ButtonState::render({
         let app = state.app.clone();
         let is_current_content = state.is_current_content.clone();
 
-        move || {
+        Computed::from(move || {
             let is_current_content = is_current_content.get();
 
             if is_current_content {
@@ -97,17 +95,17 @@ fn render_button_on_delete(state: &MenuComponent) -> VDomComponent {
             } else {
                 ButtonState::disabled("Usuń")
             }
-        }
+        })
     })
 
 }
 
-fn render_button_edit_file(state: &MenuComponent) -> VDomComponent {
-    ButtonComponent::new({
+fn render_button_edit_file(state: &MenuComponent) -> DomElement {
+    ButtonState::render({
         let app = state.app.clone();
         let is_current_content = state.is_current_content.clone();
 
-        move || {
+        Computed::from(move || {
             let is_current_content = is_current_content.get();
 
             if is_current_content {
@@ -119,15 +117,15 @@ fn render_button_edit_file(state: &MenuComponent) -> VDomComponent {
             } else {
                 ButtonState::disabled("Edycja pliku")
             }
-        }
+        })
     })
 }
 
-fn render_button_move_item(state: &MenuComponent) -> VDomComponent {
+fn render_button_move_item(state: &MenuComponent) -> DomElement {
     let state = state.clone();
+    let app = state.app.clone();
 
-    ButtonComponent::new(move || {
-        let app = state.app.clone();
+    ButtonState::render(Computed::from(move || {
         let current_path = app.data.tab.full_path.get();
 
         let current_content = app.data.git.content_from_path(&current_path);
@@ -135,76 +133,77 @@ fn render_button_move_item(state: &MenuComponent) -> VDomComponent {
         if let Resource::Ready(current_content) = current_content {
             let hash = current_content.id;
 
+            let app = app.clone();
             return ButtonState::active("Przenieś", move || {
                 app.alert.move_current(&app, &current_path, &hash);
             });
         }
 
         ButtonState::disabled("Przenieś")
-    })
+    }))
 }
     
-fn render_button_create_file(state: &MenuComponent) -> VDomComponent {
-    ButtonComponent::new({
+fn render_button_create_file(state: &MenuComponent) -> DomElement {
+    ButtonState::render({
         let app = state.app.clone();
 
-        move || {
+        Computed::from(move || {
             let on_click = bind(&app).call(|app| {
                 app.redirect_to_new_content();
             });
 
             ButtonState::active("Utwórz plik", on_click)
-        }
+        })
     })
 }
 
-fn render_button_rename_name(state: &MenuComponent) -> VDomComponent {
-    ButtonComponent::new({
+fn render_button_rename_name(state: &MenuComponent) -> DomElement {
+    ButtonState::render({
         let app = state.app.clone();
 
-        move || {
+        Computed::from(move || {
             let on_click = bind(&app).call(|app| {
                 app.current_rename();
             });
 
             ButtonState::active("Zmień nazwę", on_click)
-        }
+        })
     })
 }
 
-fn render_button_make_dir(state: &MenuComponent) -> VDomComponent {
-    ButtonComponent::new({
+fn render_button_make_dir(state: &MenuComponent) -> DomElement {
+    ButtonState::render({
         let app = state.app.clone();
 
-        move || {
+        Computed::from(move || {
             let on_click = bind(&app).call(|app| {
                 app.redirect_to_mkdir();
             });
 
             ButtonState::active("Utwórz katalog", on_click)
-        }
+        })
     })
 }
 
-fn render_button_search(state: &MenuComponent) -> VDomComponent {
-    ButtonComponent::new({
+fn render_button_search(state: &MenuComponent) -> DomElement {
+    ButtonState::render({
         let app = state.app.clone();
 
-        move || {
+        Computed::from(move || {
             let on_click = bind(&app.alert).call(|alert| {
                 alert.redirect_to_search();
             });
 
             ButtonState::active("Wyszukaj", on_click)
-        }
+        })
     })
 }
 
-fn render_button_todo(state: &MenuComponent) -> VDomComponent {
-    ButtonComponent::new({
+fn render_button_todo(state: &MenuComponent) -> DomElement {
+    ButtonState::render({
         // let app = state.app.clone();
 
-        move || {
+        Computed::from(move || {
             let on_click = || {
                 log::info!("todo --- ....");
             };
@@ -213,6 +212,6 @@ fn render_button_todo(state: &MenuComponent) -> VDomComponent {
             // });
 
             ButtonState::active("Todo", on_click)
-        }
+        })
     })
 }
