@@ -141,7 +141,7 @@ fn render_results(search: &AppIndexAlertSearch) -> VDomElement {
             })
         ;
 
-        let icon_el = icon::icon_render(item.is_dir);
+        let icon_el = VDomComponent::dom(icon::icon_render(item.is_dir));
         let path = item.to_string();
 
         list.push(html! {

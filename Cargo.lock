@@ -1671,9 +1671,9 @@ dependencies = [
 
 [[package]]
 name = "tracing-core"
-version = "0.1.27"
+version = "0.1.28"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7709595b8878a4965ce5e87ebf880a7d39c9afc6837721b21a5a816a8117d921"
+checksum = "7b7358be39f2f274f322d2aaed611acc57f382e8eb1e5b48cb9ae30933495ce7"
 dependencies = [
  "once_cell",
 ]
@@ -1763,7 +1763,7 @@ checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
 [[package]]
 name = "vertigo"
 version = "0.1.0-beta.4"
-source = "git+https://github.com/vertigo-web/vertigo?branch=builder#dd941b109389bba9835b3960dfa30be5052e6357"
+source = "git+https://github.com/vertigo-web/vertigo?branch=builder#279c371c9d68936268bf3fa492853a009ff4c728"
 dependencies = [
  "log",
  "serde_json",
@@ -1773,7 +1773,7 @@ dependencies = [
 [[package]]
 name = "vertigo-macro"
 version = "0.1.0-beta.4"
-source = "git+https://github.com/vertigo-web/vertigo?branch=builder#dd941b109389bba9835b3960dfa30be5052e6357"
+source = "git+https://github.com/vertigo-web/vertigo?branch=builder#279c371c9d68936268bf3fa492853a009ff4c728"
 dependencies = [
  "itertools",
  "pest",

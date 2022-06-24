@@ -1,7 +1,7 @@
 use vertigo::{
     html, css, Css,
     VDomElement, Resource,
-    bind, VDomComponent
+    bind, VDomComponent, DomElement, create_node
 };
 use crate::data::{Data, ListItem};
 use crate::components::icon;
@@ -50,26 +50,65 @@ fn icon_wrapper_svg() -> Css {
 
 //https://css.gg/play-button
 
-fn icon_arrow(show: bool) -> VDomElement {
+// fn icon_arrow(show: bool) -> VDomElement {
+//     if show {
+//         html! {
+//             <div css={icon_arrow_wrapper()}>
+//                 <svg
+//                     width="24"
+//                     height="24"
+//                     viewBox="0 0 24 24"
+//                     fill="none"
+//                     xmlns="http://www.w3.org/2000/svg"
+//                     css={icon_wrapper_svg()}
+//                 >
+//                     <path d="M15 12.3301L9 16.6603L9 8L15 12.3301Z" fill="currentColor" />
+//                 </svg>
+//             </div>
+//         }
+//     } else {
+//         html! {
+//             <div css={icon_arrow_wrapper()}></div>
+//         }
+//     }
+// }
+
+fn icon_arrow(show: bool) -> DomElement {
     if show {
-        html! {
-            <div css={icon_arrow_wrapper()}>
-                <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    css={icon_wrapper_svg()}
-                >
-                    <path d="M15 12.3301L9 16.6603L9 8L15 12.3301Z" fill="currentColor" />
-                </svg>
-            </div>
-        }
+        create_node("div")
+            .css(icon_arrow_wrapper())
+            .child(create_node("svg")
+                .attr("width", "24")
+                .attr("height", "24")
+                .attr("viewBox", "0 0 24 24")
+                .attr("fill", "none")
+                .attr("xmlns", "http://www.w3.org/2000/svg")
+                .css(icon_wrapper_svg())
+                .child(create_node("path")
+                    .attr("d", "M15 12.3301L9 16.6603L9 8L15 12.3301Z")
+                    .attr("fill", "currentColor")
+                )
+            )
+        // html! {
+        //     <div css={icon_arrow_wrapper()}>
+        //         <svg
+        //             width="24"
+        //             height="24"
+        //             viewBox="0 0 24 24"
+        //             fill="none"
+        //             xmlns="http://www.w3.org/2000/svg"
+        //             css={icon_wrapper_svg()}
+        //         >
+        //             <path d="M15 12.3301L9 16.6603L9 8L15 12.3301Z" fill="currentColor" />
+        //         </svg>
+        //     </div>
+        // }
     } else {
-        html! {
-            <div css={icon_arrow_wrapper()}></div>
-        }
+        create_node("div")
+            .css(icon_arrow_wrapper())
+        // html! {
+        //     <div css={icon_arrow_wrapper()}></div>
+        // }
     }
 }
 
@@ -93,19 +132,30 @@ fn label_css(prirority: u8) -> Css {
     ")
 }
 
-pub fn item_dot_html(on_click: impl Fn() + 'static) -> VDomElement {
-    html!{
-        <div
-            on_click={on_click}
-            css={css_normal(false, false)}
-        >
-            {icon_arrow(false)}
-            {icon::icon_render(true)}
-            <span css={label_css(1)}>
-                ".."
-            </span>
-        </div>
-    }
+pub fn item_dot_html(on_click: impl Fn() + 'static) -> DomElement {
+    create_node("div")
+        .on_click(on_click)
+        .css(css_normal(false, false))
+        .child(icon_arrow(false))
+        .child(icon::icon_render(true))
+        .child(create_node("span")
+            .css(label_css(1))
+            .text("..")
+    )
+
+    // todo!()
+    // html!{
+    //     <div
+    //         on_click={on_click}
+    //         css={css_normal(false, false)}
+    //     >
+    //         {icon_arrow(false)}
+    //         {icon::icon_render(true)}
+    //         <span css={label_css(1)}>
+    //             ".."
+    //         </span>
+    //     </div>
+    // }
 }
 
 pub fn item_default(data: &Data, item: &ListItem, on_click: impl Fn() + 'static) -> VDomElement {
@@ -133,8 +183,8 @@ pub fn item_default(data: &Data, item: &ListItem, on_click: impl Fn() + 'static)
             on_click={on_click}
             css={css_normal(is_select, is_hover)}
         >
-            {icon_arrow(is_select)}
-            {icon::icon_render(item.is_dir)}
+            {VDomComponent::dom(icon_arrow(is_select))}
+            {VDomComponent::dom(icon::icon_render(item.is_dir))}
             <span css={label_css(item.prirority())}>
                 {remove_prefix(&item.name)}
             </span>
