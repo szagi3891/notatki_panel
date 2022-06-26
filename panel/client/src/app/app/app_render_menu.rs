@@ -1,7 +1,7 @@
 use vertigo::{
     Css,
     Computed, VDomComponent,
-    bind, Resource, DomElement, create_node,
+    bind, Resource, DomElement, dom,
 };
 
 use vertigo::{css};
@@ -60,18 +60,18 @@ fn render_menu(state: &MenuComponent) -> VDomComponent {
     let button_move_item = render_button_move_item(state);
     let button_todo = render_button_todo(state);
 
-    VDomComponent::dom(
-        create_node("div")
-            .css(css_footer())
-            .child(button_edit_file)
-            .child(button_create_file)
-            .child(button_rename_name)
-            .child(button_make_dir)
-            .child(button_delete)
-            .child(button_search)
-            .child(button_move_item)
-            .child(button_todo)
-    )
+    VDomComponent::dom(dom! {
+        <div css={css_footer()}>
+            { button_edit_file }
+            { button_create_file }
+            { button_rename_name }
+            { button_make_dir }
+            { button_delete }
+            { button_search }
+            { button_move_item }
+            { button_todo}
+        </div>
+    })
 }
 
 fn render_button_on_delete(state: &MenuComponent) -> DomElement {

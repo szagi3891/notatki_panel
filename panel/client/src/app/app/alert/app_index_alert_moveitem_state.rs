@@ -1,5 +1,5 @@
 use common::HandlerMoveItemBody;
-use vertigo::{VDomComponent, Value, Resource, Computed, html, bind, css, Css, get_driver, create_node};
+use vertigo::{VDomComponent, Value, Resource, Computed, html, bind, css, Css, get_driver, dom, DomElement};
 
 use crate::{components::{AlertBox, item_default, item_dot_html, ButtonState, render_path}, data::ListItem, app::{response::check_request_response, App}};
 
@@ -105,22 +105,21 @@ fn render_back(state: &AppIndexAlertMoveitem) -> VDomComponent {
         target.get().is_empty()
     });
 
-    let dom = create_node("div")
-        .value(target_is_empty, move |is_empty| {
-            match is_empty {
-                true => create_node("span"),
-                false => {
-                    let on_click = bind(&state.target)
-                        .call(|target| {
-                            let mut value = target.get();
-                            value.pop();
-                            target.set(value);
-                        });
-                    
-                    item_dot_html(on_click)
-                }
-            }  
-        });
+    let dom = DomElement::value("div", target_is_empty, move |is_empty| {
+        match is_empty {
+            true => dom! { <span /> },
+            false => {
+                let on_click = bind(&state.target)
+                    .call(|target| {
+                        let mut value = target.get();
+                        value.pop();
+                        target.set(value);
+                    });
+                
+                item_dot_html(on_click)
+            }
+        }  
+    });
     
     VDomComponent::dom(dom)
     // VDomComponent::dom()

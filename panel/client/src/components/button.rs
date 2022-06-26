@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use vertigo::{
     VDomElement,
-    Css, Computed, DomElement, create_node,
+    Css, Computed, DomElement, dom,
 };
 
 use vertigo::{html, css};
@@ -116,81 +116,31 @@ impl ButtonState {
 
 
     pub fn render(value: Computed<ButtonState>) -> DomElement {
-        create_node("div")
-        .value(value, |value| {
+        DomElement::value("div", value, |value| {
             match value {
                 ButtonState::None => {
-                    //html!{ <span></span> },
-                    create_node("span")
+                    dom!{ <span></span> }
                 },
                 ButtonState::Disabled { label } => {
-                    create_node("span")
-                        .css(css_item(ButtonType::Disabled))
-                        .text(label)
-                //     html! {
-                //     <span css={css_item(ButtonType::Disabled)}>{label}</span>
-                // },
+                    dom! {
+                        <span css={css_item(ButtonType::Disabled)}>{label}</span>
+                    }
                 },
                 ButtonState::Active { label, action } => {
                     let on_click = move || {
                         action();
                     };
 
-                    create_node("span")
-                        .css(css_item(ButtonType::Active))
-                        .on_click(on_click)
-                        .text(label)
-                    
-                    // let action = action.clone();
-
-                    // let on_click = move || {
-                    //     action();
-                    // };
-
-                    // html!{
-                    //     <span css={css_item(ButtonType::Active)} on_click={on_click}>{label}</span>
-                    // }
+                    dom!{
+                        <span css={css_item(ButtonType::Active)} on_click={on_click}>{label}</span>
+                    }
                 },
                 ButtonState::Process { label } => {
-                    create_node("span")
-                        .css(css_item(ButtonType::Process))
-                        .text(label)
-                //     html!{
-                //     <span css={css_item(ButtonType::Process)}>{label}</span>
-                // }
+                    dom!{
+                        <span css={css_item(ButtonType::Process)}>{label}</span>
+                    }
                 }
             }
         })
-
-    // fn render(self: &ButtonState) -> VDomElement {
-    //     match self {
-    //         Self::None => html!{ <span></span> },
-    //         Self::Disabled { label } => html! {
-    //             <span css={css_item(ButtonType::Disabled)}>{label}</span>
-    //         },
-    //         Self::Active { label, action } => {
-    //             let action = action.clone();
-
-    //             let on_click = move || {
-    //                 action();
-    //             };
-
-    //             html!{
-    //                 <span css={css_item(ButtonType::Active)} on_click={on_click}>{label}</span>
-    //             }
-    //         },
-    //         Self::Process { label } => html!{
-    //             <span css={css_item(ButtonType::Process)}>{label}</span>
-    //         }
-    //     }
     }
 }
-
-// fn component(self) -> VDomComponent {
-//     VDomComponent::from(self, |state| {
-//         let state = state.value.get();
-//         state.render()
-//     })
-// }
-
-

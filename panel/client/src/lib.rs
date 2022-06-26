@@ -5,6 +5,7 @@
 #![allow(clippy::inherent_to_string)]
 #![allow(clippy::wrong_self_convention)]
 #![allow(clippy::module_inception)]
+#![allow(unused_braces)]
 use vertigo::start_app;
 
 mod content;

@@ -1,4 +1,4 @@
-use vertigo::{Css, VDomComponent, DomElement, create_node, Computed};
+use vertigo::{Css, VDomComponent, DomElement, Computed, dom};
 use vertigo::{css, bind};
 
 use super::AppRenameitem;
@@ -17,6 +17,7 @@ fn css_wrapper() -> Css {
 
 fn css_header() -> Css {
     css!("
+        display: flex;
         border-bottom: 1px solid black;
         padding: 5px;
     ")
@@ -60,23 +61,9 @@ fn render_input(state: &AppRenameitem) -> DomElement {
         state.on_input(new_value);
     });
 
-    create_node("input")
-        .css(css_input())
-        .on_input(on_input)
-        .attr_computed("value", content)
-        .attr("autofocus", "")
-    
-    // VDomComponent::from_ref(state, |state| {
-    //     let content = state.new_name.get();
-
-    //     let on_input = bind(state).call_param(|state, new_value: String| {
-    //         state.on_input(new_value);
-    //     });
-
-    //     html! {
-    //         <input css={css_input()} on_input={on_input} value={content} autofocus="" />
-    //     }
-    // })
+    dom! {
+        <input css={css_input()} on_input={on_input} value={content} autofocus="" />
+    }
 }
 
 fn render_textarea(state: &AppRenameitem) -> DomElement {
@@ -88,64 +75,34 @@ fn render_textarea(state: &AppRenameitem) -> DomElement {
         state.app.data.git.get_content(&full_path)
     });
 
-    create_node("div")
-        .value(content_computed, |content_inner| {
-            match content_inner {
-                Some(ContentView { content, .. }) => {
-                    let text = (*content).clone();
+    DomElement::value("div", content_computed, |content_inner| {
+        match content_inner {
+            Some(ContentView { content, .. }) => {
+                let text = (*content).clone();
 
-                    create_node("textarea")
-                        .css(css_textarea())
-                        .attr("readonly", "readonly")
-                        .attr("value", text)
-                    // html! {
-                    //     <textarea css={css_textarea()} readonly="readonly" value={text} />
-                    // }
-                },
-                None => {
-                    create_node("div")
-                    // html!{
-                    //     <div/>
-                    // }
+                dom! {
+                    <textarea css={css_textarea()} readonly="readonly" value={text} />
+                }
+            },
+            None => {
+                dom!{
+                    <div/>
                 }
             }
-        })
-
-    // VDomComponent::from_ref(state, |state| {
-    //     let mut full_path = state.path.clone();
-    //     full_path.push(state.prev_name.clone());
-    //     let content = state.app.data.git.get_content(&full_path);
-
-    //     match content {
-    //         Some(ContentView { content, .. }) => {
-    //             let text = content.as_str();
-    //             html! {
-    //                 <textarea css={css_textarea()} readonly="readonly" value={text} />
-    //             }
-    //         },
-    //         None => {
-    //             html!{
-    //                 <div/>
-    //             }
-    //         }
-    //     }
-    // })
+        }
+    })
 }
 
 fn render_path(state: &AppRenameitem) -> DomElement {
     let state = state.clone();
     let path = Computed::from(move || state.get_full_path());
 
-    create_node("div")
-        .css(css_header())
-        .text("zmiana nazwy => ")
-        .text_computed(path)
-    // html! {
-    //     <div css={css_header()}>
-    //         "zmiana nazwy => "
-    //         {path}
-    //     </div>
-    // }
+    dom! {
+        <div css={css_header()}>
+            "zmiana nazwy => "
+            <text computed={path} />
+        </div>
+    }
 }
 
 pub fn app_renameitem_render(state: &AppRenameitem) -> VDomComponent {
@@ -156,17 +113,17 @@ pub fn app_renameitem_render(state: &AppRenameitem) -> VDomComponent {
     let button_back = state.button_on_back();
     let button_save = state.button_on_save();
 
-    VDomComponent::dom(
-        create_node("div")
-            .css(css_wrapper())
-            .child(view_path)
-            .child(
-                create_node("div")
-                .css(css_header())
-                .child(button_back)
-                .child(button_save)
-            )
-            .child(view_input)
-            .child(view_textarea)
-    )
+    let dom = dom! {
+        <div css={css_wrapper()}>
+            { view_path }
+            <div css={css_header()}>
+                { button_back }
+                { button_save }
+            </div>
+            { view_input }
+            { view_textarea }
+        </div>
+    };
+
+    VDomComponent::dom(dom)
 }
