@@ -35,6 +35,13 @@ fn css_input() -> Css {
     ")
 }
 
+fn css_textarea_wrapper() -> Css {
+    css!("
+        display: flex;
+        flex-grow: 1;
+    ")
+}
+
 fn css_textarea() -> Css {
     css!("
         flex-grow: 1;
@@ -75,7 +82,7 @@ fn render_textarea(state: &AppRenameitem) -> DomElement {
         state.app.data.git.get_content(&full_path)
     });
 
-    DomElement::value("div", content_computed, |content_inner| {
+    let dom = DomElement::value("div", content_computed, |content_inner| {
         match content_inner {
             Some(ContentView { content, .. }) => {
                 let text = (*content).clone();
@@ -90,7 +97,9 @@ fn render_textarea(state: &AppRenameitem) -> DomElement {
                 }
             }
         }
-    })
+    });
+
+    dom.css(css_textarea_wrapper().into())
 }
 
 fn render_path(state: &AppRenameitem) -> DomElement {
