@@ -116,29 +116,29 @@ impl ButtonState {
 
 
     pub fn render(value: Computed<ButtonState>) -> DomElement {
-        DomElement::value("div", value, |value| {
+        DomElement::new("div").value(value, |value| {
             match value {
                 ButtonState::None => {
-                    dom!{ <span></span> }
+                    None
                 },
                 ButtonState::Disabled { label } => {
-                    dom! {
+                    Some(dom! {
                         <span css={css_item(ButtonType::Disabled)}>{label}</span>
-                    }
+                    })
                 },
                 ButtonState::Active { label, action } => {
                     let on_click = move || {
                         action();
                     };
 
-                    dom!{
+                    Some(dom!{
                         <span css={css_item(ButtonType::Active)} on_click={on_click}>{label}</span>
-                    }
+                    })
                 },
                 ButtonState::Process { label } => {
-                    dom!{
+                    Some(dom!{
                         <span css={css_item(ButtonType::Process)}>{label}</span>
-                    }
+                    })
                 }
             }
         })

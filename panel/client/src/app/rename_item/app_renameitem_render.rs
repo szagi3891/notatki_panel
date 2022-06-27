@@ -82,8 +82,8 @@ fn render_textarea(state: &AppRenameitem) -> DomElement {
         state.app.data.git.get_content(&full_path)
     });
 
-    let dom = DomElement::value("div", content_computed, |content_inner| {
-        match content_inner {
+    let dom = DomElement::new("div").value(content_computed, |content_inner| {
+        Some(match content_inner {
             Some(ContentView { content, .. }) => {
                 let text = (*content).clone();
 
@@ -96,7 +96,7 @@ fn render_textarea(state: &AppRenameitem) -> DomElement {
                     <div/>
                 }
             }
-        }
+        })
     });
 
     dom.css(css_textarea_wrapper().into())
