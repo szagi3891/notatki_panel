@@ -1048,9 +1048,9 @@ checksum = "1df8c4ec4b0627e53bdf214615ad287367e482558cf84b109250b37464dc03ae"
 
 [[package]]
 name = "poem"
-version = "1.3.31"
+version = "1.3.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "61fc6256b0e7050d11d3ac5d8109eb87c7939189ecc80228c92b6cb00f29dd87"
+checksum = "d91bcdeed420bd5427f6e0a5dd58d6c4c7b106e688a82874c6468c71b71a06b5"
 dependencies = [
  "async-trait",
  "bytes",
@@ -1069,6 +1069,7 @@ dependencies = [
  "pin-project-lite",
  "poem-derive",
  "regex",
+ "rfc7239",
  "serde",
  "serde_json",
  "serde_urlencoded",
@@ -1084,9 +1085,9 @@ dependencies = [
 
 [[package]]
 name = "poem-derive"
-version = "1.3.31"
+version = "1.3.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cb23ee18a9b915a04d1ee2e7dc6aa77e1e50e067c0aba2b25b623af2b1f5cf2d"
+checksum = "9c436f8cd7ab49c3af193fdd437e66d4c5376f5dac5383792397446df1f748c1"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
@@ -1096,9 +1097,9 @@ dependencies = [
 
 [[package]]
 name = "poem-openapi"
-version = "2.0.1"
+version = "2.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9763db3864695e75763cd4df7d91e6ece663e8cb6cd28466ed83f3bb2218503f"
+checksum = "562918011994abe685b7a3f0e11116147349f7fd0d9691e4664ca929a54a8c00"
 dependencies = [
  "base64",
  "bytes",
@@ -1119,9 +1120,9 @@ dependencies = [
 
 [[package]]
 name = "poem-openapi-derive"
-version = "2.0.1"
+version = "2.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "66c7322903b05cfa23434e8915a52f32f162d7d2b55b1282b392346854d0c19b"
+checksum = "6645c0c4dd3949fc259142413b5fbca83652bbc04840e5c4d5c47506949c0a6f"
 dependencies = [
  "Inflector",
  "darling",
@@ -1294,6 +1295,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3acd125665422973a33ac9d3dd2df85edad0f4ae9b00dafb1a05e43a9f5ef8e7"
 dependencies = [
  "winapi",
+]
+
+[[package]]
+name = "rfc7239"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "087317b3cf7eb481f13bd9025d729324b7cd068d6f470e2d76d049e191f5ba47"
+dependencies = [
+ "uncased",
 ]
 
 [[package]]
@@ -1708,6 +1718,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "56dee185309b50d1f11bfedef0fe6d036842e3fb77413abef29f8f8d1c5d4c1c"
 
 [[package]]
+name = "uncased"
+version = "0.9.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "09b01702b0fd0b3fadcf98e098780badda8742d4f4a7676615cad90e8ac73622"
+dependencies = [
+ "version_check",
+]
+
+[[package]]
 name = "unicase"
 version = "2.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1774,7 +1793,7 @@ checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
 [[package]]
 name = "vertigo"
 version = "0.1.0-beta.4"
-source = "git+https://github.com/vertigo-web/vertigo?branch=builder#ae6c89a45940e58c5b35c9f5d631daf9be20a5ea"
+source = "git+https://github.com/vertigo-web/vertigo?branch=builder#2852bec261effaf8e7afb41ea37d029d3e94fc63"
 dependencies = [
  "log",
  "serde_json",
@@ -1784,7 +1803,7 @@ dependencies = [
 [[package]]
 name = "vertigo-macro"
 version = "0.1.0-beta.4"
-source = "git+https://github.com/vertigo-web/vertigo?branch=builder#ae6c89a45940e58c5b35c9f5d631daf9be20a5ea"
+source = "git+https://github.com/vertigo-web/vertigo?branch=builder#2852bec261effaf8e7afb41ea37d029d3e94fc63"
 dependencies = [
  "itertools",
  "pest",
