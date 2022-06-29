@@ -1,5 +1,5 @@
 use common::HandlerMoveItemBody;
-use vertigo::{VDomComponent, Value, Resource, Computed, html, bind, css, Css, get_driver, RenderValue, dom};
+use vertigo::{VDomComponent, Value, Resource, Computed, html, bind, css, Css, get_driver, render_value, dom};
 
 use crate::{components::{AlertBox, item_default, item_dot_html, ButtonState, render_path}, data::ListItem, app::{response::check_request_response, App}};
 
@@ -105,7 +105,7 @@ fn render_back(state: &AppIndexAlertMoveitem) -> VDomComponent {
         target.get().is_empty()
     });
 
-    let component = RenderValue::new(target_is_empty, move |is_empty| {
+    let component = render_value(target_is_empty, move |is_empty| {
         match is_empty {
             true => None,
             false => {
@@ -123,7 +123,7 @@ fn render_back(state: &AppIndexAlertMoveitem) -> VDomComponent {
 
     let dom = dom! {
         <div>
-            <component render={component} />
+            {component}
         </div>
     };
 

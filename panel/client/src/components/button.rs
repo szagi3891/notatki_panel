@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use vertigo::{
     VDomElement,
-    Css, Computed, DomElement, dom, RenderValue,
+    Css, Computed, DomElement, dom, render_value,
 };
 
 use vertigo::{html, css};
@@ -116,7 +116,7 @@ impl ButtonState {
 
 
     pub fn render(value: Computed<ButtonState>) -> DomElement {
-        let render = RenderValue::new(value, |value| {
+        let render = render_value(value, |value| {
             match value {
                 ButtonState::None => {
                     None
@@ -145,7 +145,7 @@ impl ButtonState {
 
         dom! {
             <div>
-                <component render={render} />
+                {render}
             </div>
         }
     }
