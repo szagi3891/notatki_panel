@@ -102,7 +102,7 @@ fn render_target(state: &AppIndexAlertMoveitem) -> VDomComponent {
 fn render_back(state: &AppIndexAlertMoveitem) -> VDomComponent {
     let state = state.clone();
     let target_is_empty = state.target.to_computed().map(|target| {
-        target.get().is_empty()
+        target.is_empty()
     });
 
     let component = render_value(target_is_empty, move |is_empty| {
