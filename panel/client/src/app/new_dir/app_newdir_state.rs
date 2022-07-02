@@ -20,7 +20,6 @@ pub struct AppNewdir {
 
 impl AppNewdir {
     pub fn new(context: &Context, app: &App) -> AppNewdir {
-        log::info!("buduję stan dla new dir");
         let action_save = Value::new(false);
         let list = app.data.tab.list.clone();
         let parent = app.data.tab.router.get_dir(context);

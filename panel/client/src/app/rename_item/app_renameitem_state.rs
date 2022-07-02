@@ -1,5 +1,5 @@
 use common::{HandlerRenameItemBody};
-use vertigo::{Computed, Value, VDomComponent, get_driver, bind, DomElement, transaction, Context};
+use vertigo::{Computed, Value, get_driver, bind, DomElement, transaction, Context};
 
 use crate::{app::{App, response::check_request_response}, components::ButtonState};
 
@@ -61,7 +61,7 @@ impl AppRenameitem {
         }
     }
 
-    pub fn render(&self) -> VDomComponent {
+    pub fn render(&self) -> DomElement {
         app_renameitem_render(self)
     }
 

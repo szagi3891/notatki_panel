@@ -1,4 +1,4 @@
-use vertigo::{Css, VDomComponent, DomElement, Computed, dom, render_value};
+use vertigo::{Css, DomElement, Computed, dom, render_value};
 use vertigo::{css, bind};
 
 use super::AppRenameitem;
@@ -114,7 +114,7 @@ fn render_path(state: &AppRenameitem) -> DomElement {
     }
 }
 
-pub fn app_renameitem_render(state: &AppRenameitem) -> VDomComponent {
+pub fn app_renameitem_render(state: &AppRenameitem) -> DomElement {
 
     let view_path = render_path(state);
     let view_input = render_input(state);
@@ -122,7 +122,7 @@ pub fn app_renameitem_render(state: &AppRenameitem) -> VDomComponent {
     let button_back = state.button_on_back();
     let button_save = state.button_on_save();
 
-    let dom = dom! {
+    dom! {
         <div css={css_wrapper()}>
             { view_path }
             <div css={css_header()}>
@@ -132,7 +132,5 @@ pub fn app_renameitem_render(state: &AppRenameitem) -> VDomComponent {
             { view_input }
             { view_textarea }
         </div>
-    };
-
-    VDomComponent::dom(dom)
+    }
 }

@@ -287,7 +287,7 @@ fn app_render(app: &App) -> VDomComponent {
                 }
             },
             View::EditContent { state } => {
-                let view = state.render();
+                let view = VDomComponent::dom(state.render());
 
                 html! {
                     <div id="root">
@@ -305,7 +305,7 @@ fn app_render(app: &App) -> VDomComponent {
                 }
             },
             View::RenameItem {state } => {
-                let view = state.render();
+                let view = VDomComponent::dom(state.render());
 
                 html! {
                     <div id="root">
