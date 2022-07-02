@@ -62,8 +62,8 @@ pub fn app_index_render(app: &App) -> VDomComponent {
     let view_alert = app.alert.render();
     let view_menu = MenuComponent::component(app);
 
-    let on_click_path = bind(&app.data).call_param(|data, node_id: Vec<String>| {
-        data.tab.set_path(node_id.clone());
+    let on_click_path = bind(&app.data).call_param(|context, data, node_id: Vec<String>| {
+        data.tab.set_path(context, node_id.clone());
     });
     
     let view_header = render_path(&app.data.tab.router.path, on_click_path);
@@ -71,16 +71,17 @@ pub fn app_index_render(app: &App) -> VDomComponent {
     let view_list = render_list(app);
     let view_content = render_content(app);
 
-    let hook_keydown = {
-        let state = app.clone();
-        move |event: vertigo::KeyDownEvent| {
-            state.keydown(event.code)
-        }
-    };
+    let app = app.clone();
 
-    VDomComponent::from_fn(move || {
+    VDomComponent::from_fn(move |_| {
+        let hook_keydown = bind(&app).call_param(
+            |context, state, event: vertigo::KeyDownEvent| {
+                state.keydown(context, event.code)
+            }
+        );
+
         html! {
-            <div css={css_wrapper()} hook_key_down={hook_keydown.clone()}>
+            <div css={css_wrapper()} hook_key_down={hook_keydown}>
                 { view_menu.clone() }
                 { view_header.clone() }
                 <div css={css_content()}>

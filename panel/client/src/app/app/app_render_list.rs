@@ -58,10 +58,10 @@ fn css_wrapper() -> Css {
 // }
 
 pub fn render_list(state: &App) -> VDomComponent {
-    VDomComponent::from_ref(state, |state| {
-        let dir = state.data.tab.router.get_dir();
+    VDomComponent::from_ref(state, |context, state| {
+        let dir = state.data.tab.router.get_dir(context);
 
-        let out = list_items_from_dir(&state.data, dir.as_ref(), true);
+        let out = list_items_from_dir(context, &state.data, dir.as_ref(), true);
 
         //dom_ref="wrapper" dom_apply={dom_apply}
 

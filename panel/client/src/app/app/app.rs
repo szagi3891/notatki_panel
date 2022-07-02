@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use vertigo::{VDomComponent, VDomElement, html, Resource, get_driver};
+use vertigo::{VDomComponent, VDomElement, html, Resource, get_driver, Context, bind, transaction};
 use vertigo::Value;
 use crate::components::{message_box, MessageBoxType, stict_to_top};
 use crate::data::Data;
@@ -72,10 +72,10 @@ impl App {
         });
     }
 
-    pub fn redirect_to_rename_item(&self, base_path: &Vec<String>, select_item: &String) {
+    pub fn redirect_to_rename_item(&self, context: &Context, base_path: &Vec<String>, select_item: &String) {
         let select_item = select_item.clone();
-        let full_path = self.data.tab.full_path.clone().get();
-        let content = self.data.git.content_from_path(&full_path);
+        let full_path = self.data.tab.full_path.clone().get(context);
+        let content = self.data.git.content_from_path(context, &full_path);
 
         match content {
             Resource::Ready(list_item) => {
@@ -110,8 +110,8 @@ impl App {
         self.data.git.root.refresh();
     }
 
-    pub fn redirect_to_mkdir(&self) {
-        let state = AppNewdir::new(self);
+    pub fn redirect_to_mkdir(&self, context: &Context) {
+        let state = AppNewdir::new(context, self);
 
         self.view.set(View::Mkdir {
             state
@@ -123,28 +123,28 @@ impl App {
         self.redirect_to_index();
     }
 
-    pub fn redirect_to_new_content(&self) {
-        let state = AppNewcontent::new(self);
+    pub fn redirect_to_new_content(&self, context: &Context) {
+        let state = AppNewcontent::new(self, context);
         self.view.set(View::NewContent { state });
     }
 
-    pub fn current_edit(&self) {
-        let full_path = self.data.tab.full_path.get();
+    pub fn current_edit(&self, context: &Context) {
+        let full_path = self.data.tab.full_path.get(context);
         self.redirect_to_edit_content(&full_path);
     }
 
-    pub fn current_rename(&self) {
-        let path = self.data.tab.router.get_dir();
-        let select_item = self.data.tab.current_item.get();
+    pub fn current_rename(&self, context: &Context) {
+        let path = self.data.tab.router.get_dir(context);
+        let select_item = self.data.tab.current_item.get(context);
 
         if let Some(select_item) = select_item.as_ref() {
-            self.redirect_to_rename_item(&path, select_item);
+            self.redirect_to_rename_item(context, &path, select_item);
         } else {
             log::error!("current_rename fail");
         }
     }
 
-    fn message_add(&self, info: MessageBoxType, message: String) -> u32 {
+    fn message_add(&self, context: &Context, info: MessageBoxType, message: String) -> u32 {
         let message_id = self.next_id.get_next();
 
         let error = Error {
@@ -153,7 +153,7 @@ impl App {
             message,
         };
 
-        let mut messages = self.errors.get();
+        let mut messages = self.errors.get(context);
         messages.push(error);
         self.errors.set(messages);
 
@@ -165,32 +165,34 @@ impl App {
 
         get_driver().spawn(async move {
             get_driver().sleep(timeout).await;
-            self_copy.remove_message(message_id);
+            transaction(|context| {
+                self_copy.remove_message(context, message_id);
+            });
         });
     }
 
-    pub fn show_message_error(&self, message: impl Into<String>, timeout: Option<u32>) {
-        let message_id = self.message_add(MessageBoxType::Error, message.into());
+    pub fn show_message_error(&self, context: &Context, message: impl Into<String>, timeout: Option<u32>) {
+        let message_id = self.message_add(context, MessageBoxType::Error, message.into());
         if let Some(timeout) = timeout {
             self.message_off_with_timeout(message_id, timeout);
         }
     }
 
-    pub fn show_message_info(&self, message: impl Into<String>, timeout: Option<u32>) {
-        let message_id = self.message_add(MessageBoxType::Info, message.into());
+    pub fn show_message_info(&self, context: &Context, message: impl Into<String>, timeout: Option<u32>) {
+        let message_id = self.message_add(context, MessageBoxType::Info, message.into());
         if let Some(timeout) = timeout {
             self.message_off_with_timeout(message_id, timeout);
         }
     }
 
-    pub fn remove_message(&self, message_id: u32) {
-        let mut messages = self.errors.get();
+    pub fn remove_message(&self, context: &Context, message_id: u32) {
+        let mut messages = self.errors.get(context);
         messages.retain(|item| item.id != message_id);
         self.errors.set(messages);
     }
 
-    pub fn keydown(&self, code: String) -> bool {
-        if self.alert.is_visible() {
+    pub fn keydown(&self, context: &Context, code: String) -> bool {
+        if self.alert.is_visible(context) {
             if code == "Escape" {
                 self.alert.close_modal();
                 return true;
@@ -202,19 +204,19 @@ impl App {
         }
 
         if code == "ArrowUp" {
-            self.data.tab.pointer_up();
+            self.data.tab.pointer_up(context);
             return true;
         } else if code == "ArrowDown" {
-            self.data.tab.pointer_down();
+            self.data.tab.pointer_down(context);
             return true;
         } else if code == "Escape" {
-            self.data.tab.pointer_escape();
+            self.data.tab.pointer_escape(context);
             return true;
         } else if code == "ArrowRight" || code == "Enter" {
-            self.data.tab.pointer_enter();
+            self.data.tab.pointer_enter(context);
             return true;
         } else if code == "ArrowLeft" || code == "Backspace" || code == "Escape" {
-            self.data.tab.backspace();
+            self.data.tab.backspace(context);
             return true;
         }
 
@@ -229,8 +231,8 @@ impl App {
     }
 
     fn render_errors(&self) -> VDomComponent {
-        VDomComponent::from_ref(self, |state| {
-            let errors = state.errors.get();
+        VDomComponent::from_ref(self, |context, state| {
+            let errors = state.errors.get(context);
 
             let mut list = Vec::new();
 
@@ -238,9 +240,13 @@ impl App {
                 let Error { id, info, message } = error;
                 let state = state.clone();
 
-                list.push(message_box(info, message, move || {
-                    state.remove_message(id);
-                }));
+                let on_remove = bind(&state)
+                    .and(&id)
+                    .call(|context, state, id| {
+                        state.remove_message(context, *id);
+                    });
+
+                list.push(message_box(info, message, on_remove));
             }
 
             stict_to_top(html! {
@@ -255,7 +261,7 @@ impl App {
         let view = self.render_view();
         let errors = self.render_errors();
 
-        VDomComponent::from_fn(move || {
+        VDomComponent::from_fn(move |_| {
             html! {
                 <div>
                     { view.clone() }
@@ -266,8 +272,8 @@ impl App {
     }
 }
 
-fn app_render(app: &App) -> VDomElement {
-    let view = app.view.get();
+fn app_render(context: &Context, app: &App) -> VDomElement {
+    let view = app.view.get(context);
 
     match view {
         View::Index => {

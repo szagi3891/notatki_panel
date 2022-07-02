@@ -1,6 +1,6 @@
 
 use common::{HandlerSaveContentBody};
-use vertigo::{Computed, Value, VDomComponent, bind, get_driver};
+use vertigo::{Computed, Value, VDomComponent, bind, get_driver, Context};
 
 use crate::{app::{App, response::check_request_response}, data::ContentView};
 use super::app_editcontent_render::app_editcontent_render;
@@ -41,10 +41,10 @@ impl AppEditcontent {
 
             let edit_content = edit_content.to_computed();
 
-            Computed::from(move || -> bool {
-                let edit_content = edit_content.get();
+            Computed::from(move |context| -> bool {
+                let edit_content = edit_content.get(context);
                 if let Some(edit_content) = edit_content {
-                    if let Some(ContentView { id: _, content }) = data.git.get_content(&path) {
+                    if let Some(ContentView { id: _, content }) = data.git.get_content(context, &path) {
                         return edit_content != *content;
                     }
                 }
@@ -59,9 +59,9 @@ impl AppEditcontent {
             let edit_content = edit_content.to_computed();
             let edit_hash = edit_hash.to_computed();
 
-            Computed::from(move || -> Option<EditContent> {
-                let edit_content = edit_content.get();
-                let edit_hash = edit_hash.get();
+            Computed::from(move |context| -> Option<EditContent> {
+                let edit_content = edit_content.get(context);
+                let edit_hash = edit_hash.get(context);
 
                 if let (Some(content_edit), Some(edit_hash)) = (&edit_content, edit_hash) {
                     return Some(EditContent {
@@ -72,7 +72,7 @@ impl AppEditcontent {
 
                 println!("ładowanie danych {path:?}");
 
-                if let Some(ContentView { id, content }) = data.git.get_content(&path) {
+                if let Some(ContentView { id, content }) = data.git.get_content(context, &path) {
                     let content = (*content).clone();
 
                     return Some(EditContent {
@@ -110,8 +110,8 @@ impl AppEditcontent {
         app_editcontent_render(&self.app, self)
     }
 
-    pub fn on_input(&self, new_text: String, new_hash: String) {
-        let action_save = self.action_save.get();
+    pub fn on_input(&self, context: &Context, new_text: String, new_hash: String) {
+        let action_save = self.action_save.get(context);
 
         if action_save {
             log::error!("Trwa obecnie zapis");
@@ -124,7 +124,7 @@ impl AppEditcontent {
 
     pub fn on_reset(&self) -> impl Fn() {
         bind(self)
-            .spawn(|state| async move {
+            .call(|_, state| {
                 state.edit_content.set(None);
                 state.edit_hash.set(None);
             })
@@ -134,28 +134,28 @@ impl AppEditcontent {
         bind(self)
             .and(app)
             .and(&and_back_to_view)
-            .spawn(|state, app, and_back_to_view| async move {
+            .spawn(|context, state, app, and_back_to_view| async move {
                         
-                let action_save = state.action_save.get();
+                let action_save = state.action_save.get(&context);
 
                 if action_save {
                     log::error!("Trwa obecnie zapis");
-                    return;
+                    return context;
                 }
 
-                let content_edit = match state.edit_content.get() {
+                let content_edit = match state.edit_content.get(&context) {
                     Some(content_edit) => content_edit,
                     None => {
                         log::error!("Brak danych do zapisania");
-                        return;
+                        return context;
                     }
                 };
 
-                let content_edit_hash = match state.edit_hash.get() {
+                let content_edit_hash = match state.edit_hash.get(&context) {
                     Some(content_edit_hash) => content_edit_hash,
                     None => {
                         log::error!("Brak hasha danych");
-                        return;
+                        return context;
                     }
                 };
 
@@ -184,15 +184,17 @@ impl AppEditcontent {
                         if and_back_to_view {
                             app.redirect_to_index_with_root_refresh();        
                         } else {
-                            app.show_message_info("Zapis udany", Some(5000));
+                            app.show_message_info(&context, "Zapis udany", Some(5000));
                             app.data.git.root.refresh();
                         }
                     },
                     Err(message) => {
                         // app.data.git.root.refresh();
-                        app.show_message_error(message, Some(2000));
+                        app.show_message_error(&context, message, Some(2000));
                     }
-                }
+                };
+
+                context
             })
     }
 }

@@ -1,4 +1,4 @@
-use vertigo::{Css, VDomElement, VDomComponent, bind};
+use vertigo::{Css, VDomElement, VDomComponent, bind, Context};
 use vertigo::{css, html};
 
 use crate::app::App;
@@ -37,8 +37,8 @@ fn css_input_content() -> Css {
     ")
 }
 
-fn render_input_content(state: &AppNewcontent) -> VDomElement {
-    let content = &state.content.get();
+fn render_input_content(context: &Context, state: &AppNewcontent) -> VDomElement {
+    let content = &state.content.get(context);
 
     let on_input = {
         let state = state.clone();
@@ -56,8 +56,8 @@ pub fn app_newcontent_render(app: App, state: &AppNewcontent) -> VDomComponent {
     let view_input = VDomComponent::from_ref(state, render_input_content);
     let view_new_name = state.new_name.clone().render(true);
 
-    VDomComponent::from_ref(state, move |state: &AppNewcontent| -> VDomElement {
-        let on_click = bind(&app).call(|app| {
+    VDomComponent::from_ref(state, move |context, state: &AppNewcontent| -> VDomElement {
+        let on_click = bind(&app).call(|_, app| {
             app.redirect_to_index();
         });
 
@@ -65,7 +65,7 @@ pub fn app_newcontent_render(app: App, state: &AppNewcontent) -> VDomComponent {
 
         let mut buttons = vec!(button("Wróć", on_click));
 
-        let save_enable = state.save_enable.get();
+        let save_enable = state.save_enable.get(context);
 
         if save_enable {
             buttons.push(button("Zapisz", state.on_save()));

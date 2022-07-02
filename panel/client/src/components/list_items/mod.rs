@@ -1,7 +1,7 @@
 use vertigo::{
     html, css, Css,
     VDomElement, Resource,
-    bind, VDomComponent, DomElement, dom
+    bind, VDomComponent, DomElement, dom, Context
 };
 use crate::data::{Data, ListItem};
 use crate::components::icon;
@@ -120,9 +120,9 @@ pub fn item_dot_html(on_click: impl Fn() + 'static) -> DomElement {
     }
 }
 
-pub fn item_default(data: &Data, item: &ListItem, on_click: impl Fn() + 'static) -> VDomElement {
-    let current_item = data.tab.current_item.get();
-    let current_hover = data.tab.item_hover.get();
+pub fn item_default(data: &Data, context: &Context, item: &ListItem, on_click: impl Fn() + 'static) -> VDomElement {
+    let current_item = data.tab.current_item.get(context);
+    let current_hover = data.tab.item_hover.get(context);
 
     let is_select = {
         if let Some(list_pointer) = &current_item {
@@ -159,7 +159,7 @@ pub fn item_default_render(data: &Data, item: &ListItem, mouse_over_enable: bool
     let data = data.clone();
     let item = item.clone();
 
-    VDomComponent::from_fn(move || {
+    VDomComponent::from_fn(move |context| {
         // let current_item = data.tab.current_item.get();
         // let current_hover = data.tab.item_hover.get();
 
@@ -174,12 +174,12 @@ pub fn item_default_render(data: &Data, item: &ListItem, mouse_over_enable: bool
         let on_click = {
             bind(&data.tab)
                 .and(&item)
-                .call(|tab, item| {
+                .call(|_, tab, item| {
                     tab.redirect_to_item(item.clone());
                 })
         };
 
-        let element = item_default(&data, &item, on_click);
+        let element = item_default(&data, context, &item, on_click);
 
         // let element = if is_select {
         //     element.dom_ref("active")
@@ -191,14 +191,14 @@ pub fn item_default_render(data: &Data, item: &ListItem, mouse_over_enable: bool
 
             let mouse_over_enter = bind(&item)
                 .and(&data.tab)
-                .call(|item, tab| {
+                .call(|_, item, tab| {
                     tab.hover_on(item.name.as_str());
                 });
 
             let mouse_over_leave = bind(&item)
                 .and(&data.tab)
-                .call(|item, tab| {
-                    tab.hover_off(item.name.as_str());
+                .call(|context, item, tab| {
+                    tab.hover_off(context, item.name.as_str());
                 });
 
             element
@@ -226,13 +226,13 @@ fn item_image_render(data: &Data, item: &ListItem, ext: String) -> VDomComponent
     let data = data.clone();
     let item = item.clone();
 
-    VDomComponent::from_fn(move || {
+    VDomComponent::from_fn(move |_| {
         let id = item.id.clone();
         let url = format!("/image/{id}/{ext}");
 
         let on_click = bind(&item)
             .and(&data.tab)
-            .call(|item, tab| {
+            .call(|_, item, tab| {
                 tab.redirect_to_item(item.clone());
             });
 
@@ -267,8 +267,8 @@ pub fn list_items_from_vec(data: &Data, list: Vec<ListItem>, mouse_over_enable: 
     out
 }
 
-pub fn list_items_from_dir(data: &Data, dir: &Vec<String>, mouse_over_enable: bool) -> Vec<VDomComponent> {
-    let current = data.git.dir_list(dir);
+pub fn list_items_from_dir(context: &Context, data: &Data, dir: &Vec<String>, mouse_over_enable: bool) -> Vec<VDomComponent> {
+    let current = data.git.dir_list(context, dir);
 
     let list = match current {
         Resource::Ready(list) => list.get_list(),

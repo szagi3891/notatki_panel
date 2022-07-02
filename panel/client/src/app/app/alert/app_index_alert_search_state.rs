@@ -1,4 +1,4 @@
-use vertigo::{Css, Resource, VDomElement, Computed, Value, VDomComponent, bind};
+use vertigo::{Css, Resource, VDomElement, Computed, Value, VDomComponent, bind, Context};
 use vertigo::{css, html};
 use crate::data::ListItem;
 use crate::{components::AlertBox, data::{Data}};
@@ -41,12 +41,13 @@ fn css_result_icon() -> Css {
 }
 
 fn push_list<F: Fn(&String) -> bool>(
+    context: &Context,
     data_state: &Data,
     result: &mut Vec<ListItem>,
     base: &Vec<String>,
     test_name: &F
 ) -> Resource<()> {
-    let list = data_state.git.dir_list(base.as_slice())?;
+    let list = data_state.git.dir_list(context, base.as_slice())?;
 
     for item in list.get_list() {
         if test_name(&item.name) {
@@ -56,7 +57,7 @@ fn push_list<F: Fn(&String) -> bool>(
 
     for item in list.get_list() {
         if item.is_dir {
-            push_list(data_state, result, &item.full_path(), test_name)?;
+            push_list(context, data_state, result, &item.full_path(), test_name)?;
         }
     }
 
@@ -66,10 +67,10 @@ fn push_list<F: Fn(&String) -> bool>(
 fn new_results(data_state: &Data, phrase: Computed<String>) -> Computed<Vec<ListItem>> {
     let data_state = data_state.clone();
 
-    Computed::from(move || {
+    Computed::from(move |context| {
         let mut result = Vec::<ListItem>::new();
 
-        let phrase_value = phrase.get().to_lowercase();
+        let phrase_value = phrase.get(context).to_lowercase();
 
         if phrase_value.len() < 2 {
             return result;
@@ -79,7 +80,7 @@ fn new_results(data_state: &Data, phrase: Computed<String>) -> Computed<Vec<List
             name.to_lowercase().contains(phrase_value.as_str())
         };
 
-        let result_push = push_list(&data_state, &mut result, &Vec::new(), &test_name);
+        let result_push = push_list(context, &data_state, &mut result, &Vec::new(), &test_name);
 
         match result_push {
             Resource::Ready(()) => {},
@@ -127,15 +128,15 @@ impl AppIndexAlertSearch {
 }
 
 
-fn render_results(search: &AppIndexAlertSearch) -> VDomElement {
-    let results = search.results.get();
+fn render_results(context: &Context, search: &AppIndexAlertSearch) -> VDomElement {
+    let results = search.results.get(context);
 
     let mut list = Vec::<VDomElement>::new();
 
     for item in results.iter() {
         let on_click = bind(search)
             .and(item)
-            .call(|search, item| {
+            .call(|_, search, item| {
                 search.alert.close_modal();
                 search.alert.data.tab.redirect_to_item(item.clone());
             })
@@ -165,14 +166,14 @@ pub fn render(search: &AppIndexAlertSearch) -> VDomComponent {
 
     let results = VDomComponent::from_ref(search, render_results);
 
-    let content = VDomComponent::from_ref(search, move |search: &AppIndexAlertSearch| {
-        let current_value = search.phrase.get();
+    let content = VDomComponent::from_ref(search, move |context, search: &AppIndexAlertSearch| {
+        let current_value = search.phrase.get(context);
 
-        let on_input = bind(search).call_param(|search, new_value| {
+        let on_input = bind(search).call_param(|_, search, new_value| {
             search.phrase.set(new_value);
         });
 
-        let on_close = bind(search).call(|search| {
+        let on_close = bind(search).call(|_, search| {
             search.alert.close_modal();
         });
 

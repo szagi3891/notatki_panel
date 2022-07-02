@@ -1,5 +1,5 @@
 use common::{HandlerCreateDirBody};
-use vertigo::{Computed, Value, VDomComponent, bind, get_driver};
+use vertigo::{Computed, Value, VDomComponent, bind, get_driver, Context};
 
 use crate::app::App;
 use crate::app::response::check_request_response;
@@ -19,11 +19,11 @@ pub struct AppNewdir {
 }
 
 impl AppNewdir {
-    pub fn new(app: &App) -> AppNewdir {
+    pub fn new(context: &Context, app: &App) -> AppNewdir {
         log::info!("buduję stan dla new dir");
         let action_save = Value::new(false);
         let list = app.data.tab.list.clone();
-        let parent = app.data.tab.router.get_dir();
+        let parent = app.data.tab.router.get_dir(context);
 
         let new_name = new_name::NewName::new(list);
         let is_valid = new_name.is_valid.clone();
@@ -45,17 +45,17 @@ impl AppNewdir {
     pub fn bind_on_save(&self, app: &App) -> impl Fn() {
         bind(self)
             .and(app)
-            .spawn(|state, app| async move {
-                let action_save = state.action_save.get();
+            .spawn(|context, state, app| async move {
+                let action_save = state.action_save.get(&context);
 
                 if action_save {
                     log::error!("Trwa obecnie zapis");
-                    return;
+                    return context;
                 }
 
                 state.action_save.set(true);
             
-                let new_dir_name = state.new_name.name.get();
+                let new_dir_name = state.new_name.name.get(&context);
 
                 let body = HandlerCreateDirBody {
                     path: state.parent.clone(),
@@ -77,9 +77,11 @@ impl AppNewdir {
                         app.redirect_to_index_with_path(state.parent.clone(), Some(new_dir_name));
                     },
                     Err(message) => {
-                        app.show_message_error(message, Some(10000));
+                        app.show_message_error(&context, message, Some(10000));
                     }
-                }
+                };
+
+                context
             })
     }
 }

@@ -1,5 +1,5 @@
 use std::{rc::Rc};
-use vertigo::Resource;
+use vertigo::{Resource, Context};
 mod node_dir;
 mod node_content;
 mod root;
@@ -30,12 +30,12 @@ fn get_item_from_map<'a>(current_wsk: &'a GitDirList, path_item: &String) -> Res
     Resource::Ready(wsk_child)
 }
 
-fn move_pointer(state_data: &Git, list: GitDirList, path_item: &String) -> Resource<GitDirList> {
+fn move_pointer(context: &Context, state_data: &Git, list: GitDirList, path_item: &String) -> Resource<GitDirList> {
 
     let child = get_item_from_map(&list, path_item)?;
 
     if child.dir {
-        let child_list = state_data.dir.get_list(&child.id)?;
+        let child_list = state_data.dir.get_list(context, &child.id)?;
 
         return Resource::Ready(child_list);
     }
@@ -69,21 +69,21 @@ impl Git {
         }
     }
 
-    pub fn dir_list(&self, path: &[String]) -> Resource<ViewDirList> {
-        let root_wsk = self.root.get_current_root()?;
+    pub fn dir_list(&self, context: &Context, path: &[String]) -> Resource<ViewDirList> {
+        let root_wsk = self.root.get_current_root(context)?;
 
-        let mut result = self.dir.get_list(&root_wsk)?;
+        let mut result = self.dir.get_list(context, &root_wsk)?;
 
         for path_item in path {
-            result = move_pointer(self, result, path_item)?;
+            result = move_pointer(context, self, result, path_item)?;
         }
 
         let base_dir = Rc::new(Vec::from(path));
         Resource::Ready(ViewDirList::new(&self.dir, &self.content, base_dir, result))
     }
 
-    fn node_content(&self, base_dir: &[String], current_item: &String) -> Resource<ListItem> {
-        let list = self.dir_list(base_dir)?;
+    fn node_content(&self, context: &Context, base_dir: &[String], current_item: &String) -> Resource<ListItem> {
+        let list = self.dir_list(context, base_dir)?;
         let current_value = list.get(current_item);
 
         if let Some(current_value) = current_value {
@@ -117,7 +117,7 @@ impl Git {
         }
     }
 
-    pub fn content_from_path(&self, path: &[String]) -> Resource<ListItem> {
+    pub fn content_from_path(&self, context: &Context, path: &[String]) -> Resource<ListItem> {
         let mut path: Vec<String> = Vec::from(path);
         let last = path.pop();
 
@@ -125,7 +125,7 @@ impl Git {
             Some(last) => last,
             None => {
 
-                let id = self.root.get_current_root()?;
+                let id = self.root.get_current_root(context)?;
 
                 let dir = ListItem {
                     dir: self.dir.clone(),
@@ -140,14 +140,14 @@ impl Git {
             }
         };
 
-        self.node_content(path.as_slice(), &last)
+        self.node_content(context, path.as_slice(), &last)
     }
 
-    pub fn get_content(&self, path: &[String]) -> Option<ContentView> {
-        let result = self.content_from_path(path);
+    pub fn get_content(&self, context: &Context, path: &[String]) -> Option<ContentView> {
+        let result = self.content_from_path(context, path);
 
         if let Resource::Ready(item) = result {
-            let content_type = item.get_content_type();
+            let content_type = item.get_content_type(context);
 
             if let Resource::Ready(ContentType::Text { content }) = content_type {
                 // return Some(content.as_ref().clone());

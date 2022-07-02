@@ -2,7 +2,7 @@ use common::{HandlerDeleteItemBody};
 use vertigo::{
     VDomComponent,
     Value,
-    bind, get_driver, html, Resource, Computed,
+    bind, get_driver, html, Resource, Computed, Context,
 };
 use crate::{components::{AlertBox, ButtonState}, app::{response::check_request_response, App}};
 
@@ -28,9 +28,9 @@ impl AppIndexAlertDelete {
         }
     }
 
-    async fn delete_yes(self, app: App, current_hash: String) {
-        if self.progress.get() {
-            return;
+    async fn delete_yes(self, context: Context, app: App, current_hash: String) -> Context {
+        if self.progress.get(&context) {
+            return context;
         }
 
         let current_path = self.full_path;
@@ -52,30 +52,33 @@ impl AppIndexAlertDelete {
 
         match check_request_response(response) {
             Ok(()) => {
-                self.alert.data.tab.redirect_item_select_after_delete();
+                self.alert.data.tab.redirect_item_select_after_delete(&context);
                 self.alert.data.git.root.refresh();
                 self.alert.close_modal();
             },
             Err(message) => {
-                app.show_message_error(message, Some(10000));
+                app.show_message_error(&context, message, Some(10000));
             }
-        }
+        };
+
+        context
     }
 
     pub fn bind_delete_yes(&self) -> VDomComponent {
         let state = self.clone();
         let app = self.app.clone();
 
-        VDomComponent::dom(ButtonState::render(Computed::from(move || {
+        VDomComponent::dom(ButtonState::render(Computed::from(move |context| {
             let full_path = state.full_path.clone();
-            let item = state.alert.data.git.content_from_path(&full_path);
+            let item = state.alert.data.git.content_from_path(context, &full_path);
 
             if let Resource::Ready(item) = item {
                 let action = bind(&state)
                     .and(&app)
                     .and(&item.id)
-                    .spawn(|state, app, id| {
-                        state.delete_yes(app, id)
+                    .spawn(|context, state, app, id| async move {
+                        let context = state.delete_yes(context, app, id).await;
+                        context
                     });
 
                 return ButtonState::active("Tak", action);
@@ -88,9 +91,9 @@ impl AppIndexAlertDelete {
     pub fn bind_delete_no(&self) -> VDomComponent {
         let state = self.clone();
 
-        VDomComponent::dom(ButtonState::render(Computed::from(move || {
-            let action = bind(&state).call(|state| {
-                if state.progress.get() {
+        VDomComponent::dom(ButtonState::render(Computed::from(move |_| {
+            let action = bind(&state).call(|context, state| {
+                if state.progress.get(context) {
                     return;
                 }
         
@@ -113,7 +116,7 @@ impl AppIndexAlertDelete {
 }
 
 fn render_message(state: &AppIndexAlertDelete) -> VDomComponent {
-    VDomComponent::from_ref(state, |state| {
+    VDomComponent::from_ref(state, |_, state| {
         let full_path = state.full_path.clone();
         let message = format!("Czy usunąć -> {} ?", full_path.join("/"));
         html!{

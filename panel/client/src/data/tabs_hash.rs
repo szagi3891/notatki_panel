@@ -1,5 +1,5 @@
 use serde::{Serialize, Deserialize};
-use vertigo::{router::HashRouter, Computed};
+use vertigo::{router::HashRouter, Computed, Context};
 
 #[derive(Serialize, Deserialize, Clone, PartialEq)]
 struct RouterValue {
@@ -42,8 +42,8 @@ impl Router {
         let path = {
             let route = route.clone();
 
-            Computed::from(move || {
-                route.get().dir.clone()
+            Computed::from(move |context| {
+                route.get(context).dir.clone()
             })
         };
 
@@ -53,22 +53,22 @@ impl Router {
         }
     }
 
-    pub fn get_dir(&self) -> Vec<String> {
-        self.route.get().dir
+    pub fn get_dir(&self, context: &Context) -> Vec<String> {
+        self.route.get(context).dir
     }
 
-    pub fn set_dir(&self, dir: Vec<String>) {
-        let mut route = self.route.get();
+    pub fn set_dir(&self, dir: Vec<String>, context: &Context) {
+        let mut route = self.route.get(context);
         route.dir = dir;
         self.route.set(route);
     }
 
-    pub fn get_item(&self) -> Option<String> {
-        self.route.get().item
+    pub fn get_item(&self, context: &Context) -> Option<String> {
+        self.route.get(context).item
     }
 
-    pub fn set_item(&self, item: Option<String>) {
-        let mut route = self.route.get();
+    pub fn set_item(&self, item: Option<String>, context: &Context) {
+        let mut route = self.route.get(context);
         route.item = item;
         self.route.set(route);
     }

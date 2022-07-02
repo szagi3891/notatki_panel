@@ -1,6 +1,6 @@
 use std::rc::Rc;
 use common::{ HandlerFetchNodeBody, HandlerFetchNodeResponse };
-use vertigo::{ Resource, AutoMap, LazyCache, get_driver };
+use vertigo::{ Resource, AutoMap, LazyCache, get_driver, Context };
 
 #[derive(Clone, Debug)]
 pub struct NodeContent {
@@ -39,8 +39,8 @@ impl NodeContent {
         }
     }
 
-    fn get(&self) -> Resource<Rc<String>> {
-        self.value.get()
+    fn get(&self, context: &Context) -> Resource<Rc<String>> {
+        self.value.get(context)
     }
 }
 
@@ -60,7 +60,7 @@ impl Content {
         }
     }
 
-    pub fn get(&self, id: &String) -> Resource<Rc<String>> {
-        self.data.get(id).get()
+    pub fn get(&self, context: &Context, id: &String) -> Resource<Rc<String>> {
+        self.data.get(id).get(context)
     }
 }

@@ -2,7 +2,7 @@ use common::RootResponse;
 use vertigo::{
     Resource,
     Value,
-    LazyCache, get_driver,
+    LazyCache, get_driver, Context,
 };
 
 #[derive(Clone)]
@@ -31,8 +31,8 @@ impl RootNode {
         }
     }
 
-    pub fn get(&self) -> Resource<String> {
-        let handler_root = self.root.get();
+    pub fn get(&self, context: &Context) -> Resource<String> {
+        let handler_root = self.root.get(context);
         handler_root.ref_map(|item| item.root.clone())
     }
 }
@@ -53,9 +53,9 @@ impl Root {
         }
     }
 
-    pub fn get_current_root(&self) -> Resource<String> {
-        let current = self.current.get();
-        current.get()
+    pub fn get_current_root(&self, context: &Context) -> Resource<String> {
+        let current = self.current.get(context);
+        current.get(context)
     }
 
     pub fn refresh(&self) {

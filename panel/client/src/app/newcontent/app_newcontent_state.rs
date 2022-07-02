@@ -1,5 +1,5 @@
 use common::{HandlerCreateFileBody};
-use vertigo::{Computed, Value, VDomComponent, bind, get_driver};
+use vertigo::{Computed, Value, VDomComponent, bind, get_driver, transaction, Context};
 
 use crate::app::App;
 use crate::app::newcontent::app_newcontent_render::app_newcontent_render;
@@ -19,11 +19,11 @@ pub struct AppNewcontent {
 }
 
 impl AppNewcontent {
-    pub fn new(app: &App) -> AppNewcontent {
+    pub fn new(app: &App, context: &Context) -> AppNewcontent {
         log::info!("buduję stan dla new content");
         let action_save = Value::new(false);
 
-        let parent = app.data.tab.router.get_dir();
+        let parent = app.data.tab.router.get_dir(context);
         let list = app.data.tab.list.clone();
 
         let new_name = NewName::new(list);
@@ -35,12 +35,12 @@ impl AppNewcontent {
             let content = content.to_computed();
             let is_valid = new_name.is_valid.clone();
 
-            Computed::from(move || -> bool {
-                if !is_valid.get()  {
+            Computed::from(move |context| -> bool {
+                if !is_valid.get(context)  {
                     return false;
                 }
 
-                let content = content.get();
+                let content = content.get(context);
                 if content.is_empty() {
                     return false;
                 }
@@ -69,35 +69,37 @@ impl AppNewcontent {
     }
 
     pub fn on_input_content(&self, new_value: String) {
-        let action_save = self.action_save.get();
+        transaction(|context| {
+            let action_save = self.action_save.get(context);
 
-        if action_save {
-            log::error!("Trwa obecnie zapis");
-            return;
-        }
+            if action_save {
+                log::error!("Trwa obecnie zapis");
+                return;
+            }
 
-        self.content.set(new_value);
+            self.content.set(new_value);
+        });
     }
 
     pub fn on_save(&self) -> impl Fn() {
         bind(self)
             .and(&self.app)
-            .spawn(|state, app| async move {
-                let action_save = state.action_save.get();
+            .spawn(|context, state, app| async move {
+                let action_save = state.action_save.get(&context);
 
                 if action_save {
                     log::error!("Trwa obecnie zapis");
-                    return;
+                    return context;
                 }
 
                 state.action_save.set(true);
 
-                let new_name = state.new_name.name.get();
+                let new_name = state.new_name.name.get(&context);
 
                 let body: HandlerCreateFileBody = HandlerCreateFileBody {
                     path: state.parent.clone(),
                     new_name: new_name.clone(),
-                    new_content: state.content.get(),
+                    new_content: state.content.get(&context),
                 };
 
                 let response = get_driver()
@@ -115,9 +117,11 @@ impl AppNewcontent {
                         app.redirect_to_index_with_path(path_redirect, Some(new_name));
                     },
                     Err(message) => {
-                        app.show_message_error(message, Some(10000));
+                        app.show_message_error(&context, message, Some(10000));
                     }
-                }
+                };
+
+                context
             })
     }
 }

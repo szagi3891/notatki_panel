@@ -61,10 +61,10 @@ fn render_input(state: &AppRenameitem) -> DomElement {
 
     let content = Computed::from({
         let state = state.clone();
-        move || state.new_name.get()
+        move |context| state.new_name.get(context)
     });
 
-    let on_input = bind(&state).call_param(|state, new_value: String| {
+    let on_input = bind(&state).call_param(|_, state, new_value: String| {
         state.on_input(new_value);
     });
 
@@ -76,10 +76,10 @@ fn render_input(state: &AppRenameitem) -> DomElement {
 fn render_textarea(state: &AppRenameitem) -> DomElement {
     let state = state.clone();
 
-    let content_computed = Computed::from(move || {
+    let content_computed = Computed::from(move |contetx| {
         let mut full_path = state.path.clone();
         full_path.push(state.prev_name.clone());
-        state.app.data.git.get_content(&full_path)
+        state.app.data.git.get_content(contetx, &full_path)
     });
 
     let render = render_value(content_computed, |content_inner| {
@@ -104,7 +104,7 @@ fn render_textarea(state: &AppRenameitem) -> DomElement {
 
 fn render_path(state: &AppRenameitem) -> DomElement {
     let state = state.clone();
-    let path = Computed::from(move || state.get_full_path());
+    let path = Computed::from(move |_| state.get_full_path());
 
     dom! {
         <div css={css_header()}>

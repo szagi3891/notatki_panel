@@ -66,9 +66,9 @@ fn css_progress() -> Css {
 }
 
 fn render_progress(progress: Option<Computed<bool>>) -> VDomComponent {
-    VDomComponent::from(progress, |progress| {
+    VDomComponent::from(progress, |context, progress| {
         if let Some(progress) = progress {
-            let progress = progress.get();
+            let progress = progress.get(context);
 
             if progress {
                 return html! {
@@ -122,7 +122,7 @@ impl AlertBox {
     }
 
     pub fn render_popup(content: VDomComponent) -> VDomComponent {
-        VDomComponent::from_fn(move || {
+        VDomComponent::from_fn(move |_| {
             html! {
                 <div css={css_bg()}>
                     <div css={css_center()}>
@@ -150,7 +150,7 @@ impl AlertBox {
             }
         };
 
-        let content = VDomComponent::from_fn(move || {
+        let content = VDomComponent::from_fn(move |_| {
             html! {
                 <div>
                     <div css={css_message()}>

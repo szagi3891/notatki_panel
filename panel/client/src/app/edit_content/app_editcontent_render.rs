@@ -1,4 +1,4 @@
-use vertigo::{Css, VDomElement, VDomComponent, bind};
+use vertigo::{Css, VDomElement, VDomComponent, bind, Context};
 use vertigo::{css, html};
 
 use super::AppEditcontent;
@@ -37,15 +37,15 @@ fn css_body() -> Css {
     ")
 }
 
-fn render_textarea(state: &AppEditcontent) -> VDomElement {
-    let content = state.content_view.get();
+fn render_textarea(context: &Context, state: &AppEditcontent) -> VDomElement {
+    let content = state.content_view.get(context);
 
     if let Some(EditContent { hash, content}) = content {
         if let Some(hash) = hash {
             let on_input = bind(state)
                 .and(&hash)
-                .call_param(|state, hash, new_value| {
-                    state.on_input(new_value, hash.clone());
+                .call_param(|context, state, hash, new_value| {
+                    state.on_input(context, new_value, hash.clone());
                 });
 
             html! {
@@ -70,8 +70,8 @@ pub fn app_editcontent_render(app: &App, state: &AppEditcontent) -> VDomComponen
     let view_textares = VDomComponent::from_ref(state, render_textarea);
     let app = app.clone();
 
-    VDomComponent::from_ref(state, move |state: &AppEditcontent| {
-        let on_click = bind(&app).call(|app| {
+    VDomComponent::from_ref(state, move |context, state: &AppEditcontent| {
+        let on_click = bind(&app).call(|_, app| {
             app.redirect_to_index();
         });
 
@@ -81,7 +81,7 @@ pub fn app_editcontent_render(app: &App, state: &AppEditcontent) -> VDomComponen
 
         buttons.push(button("Wróć", on_click));
 
-        let save_enable = state.save_enable.get();
+        let save_enable = state.save_enable.get(context);
 
         if save_enable {
             let on_save = state.on_save(&app, true);

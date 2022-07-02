@@ -1,5 +1,5 @@
 use vertigo::{
-    Value, VDomComponent, html, css, VDomElement, Css, bind,
+    Value, VDomComponent, html, css, VDomElement, Css, bind, Context,
 };
 
 #[derive(Clone)]
@@ -19,14 +19,14 @@ impl OpenLinks {
         }
     }
 
-    pub fn tabs_has(&self, url: &String) -> bool {
-        let tabs_url = self.tabs_url.get();
+    pub fn tabs_has(&self, context: &Context, url: &String) -> bool {
+        let tabs_url = self.tabs_url.get(context);
         tabs_url.contains(url)
     }
 
-    pub fn tabs_add(&self, url: String) {
+    pub fn tabs_add(&self, context: &Context, url: String) {
         log::info!("add ... {}", &url);
-        let tabs_url = self.tabs_url.get();
+        let tabs_url = self.tabs_url.get(context);
 
         if tabs_url.contains(&url) {
             log::error!("is contain {}", url);
@@ -38,18 +38,18 @@ impl OpenLinks {
         self.tabs_url.set(tabs_url);
     }
 
-    pub fn tabs_toogle(&self, url: String) {
-        let has_open = self.tabs_has(&url);
+    pub fn tabs_toogle(&self, context: &Context, url: String) {
+        let has_open = self.tabs_has(context, &url);
 
         if has_open {
-            self.tabs_remove(url);
+            self.tabs_remove(context, url);
         } else {
-            self.tabs_add(url);
+            self.tabs_add(context, url);
         }
     }
 
-    pub fn tabs_remove(&self, url: String) {
-        let tabs_url = self.tabs_url.get();
+    pub fn tabs_remove(&self, context: &Context, url: String) {
+        let tabs_url = self.tabs_url.get(context);
 
         if !tabs_url.contains(&url) {
             log::error!("not contain {}", url);
@@ -66,14 +66,14 @@ impl OpenLinks {
 
         self.tabs_url.set(new_tabs);
 
-        let tabs_active = self.tabs_active.get();
+        let tabs_active = self.tabs_active.get(context);
         if tabs_active == Some(url) {
             self.tabs_default();
         }
     }
 
-    pub fn tabs_set(&self, url: String) {
-        let tabs_url = self.tabs_url.get();
+    pub fn tabs_set(&self, context: &Context, url: String) {
+        let tabs_url = self.tabs_url.get(context);
 
         if !tabs_url.contains(&url) {
             log::error!("not contain {}", url);
@@ -191,9 +191,9 @@ fn button(
 
 fn open_links_render(open_links: &OpenLinks, default_view: VDomComponent) -> VDomComponent {
 
-    VDomComponent::from_ref(open_links, move |open_links: &OpenLinks| {
-        let active = open_links.tabs_active.get();
-        let tabs = open_links.tabs_url.get();
+    VDomComponent::from_ref(open_links, move |context, open_links: &OpenLinks| {
+        let active = open_links.tabs_active.get(context);
+        let tabs = open_links.tabs_url.get(context);
 
         let style_css = html! {
             <style>
@@ -217,7 +217,7 @@ fn open_links_render(open_links: &OpenLinks, default_view: VDomComponent) -> VDo
             let is_select_default = active.is_none();
 
             tabs_menu.push({
-                let on_click = bind(open_links).call(|open_links| {
+                let on_click = bind(open_links).call(|_, open_links| {
                     open_links.tabs_default();
                 });
 
@@ -246,14 +246,14 @@ fn open_links_render(open_links: &OpenLinks, default_view: VDomComponent) -> VDo
 
                 let on_click = bind(open_links)
                     .and(&tab_item)
-                    .call(|open_links, tab_item| {
-                        open_links.tabs_set(tab_item.clone());
+                    .call(|context, open_links, tab_item| {
+                        open_links.tabs_set(context, tab_item.clone());
                     });
 
                 let on_close = bind(open_links)
                     .and(&tab_item)
-                    .call(|open_links, tab_item| {
-                        open_links.tabs_remove(tab_item.clone());
+                    .call(|context, open_links, tab_item| {
+                        open_links.tabs_remove(context, tab_item.clone());
                     });
         
                 tabs_menu.push(button(tab_item, on_click, Some(on_close), is_select));

@@ -1,4 +1,4 @@
-use vertigo::{Value, VDomElement, VDomComponent};
+use vertigo::{Value, VDomElement, VDomComponent, Context};
 use vertigo::{html};
 use crate::app::App;
 use crate::app::app::alert::app_index_alert_delete_state::AppIndexAlertDelete;
@@ -35,8 +35,8 @@ impl AppIndexAlert {
         VDomComponent::from(self.clone(), app_index_alert_render)
     }
 
-    pub fn is_visible(&self) -> bool {
-        let view = self.view.get();
+    pub fn is_visible(&self, context: &Context) -> bool {
+        let view = self.view.get(context);
         match view {
             AlertView::None => false,
             _ => true
@@ -44,8 +44,8 @@ impl AppIndexAlert {
         // *view != AlertView::None
     }
 
-    pub fn delete(&self, app: App, path: Vec<String>) {
-        if self.is_visible() {
+    pub fn delete(&self, context: &Context, app: App, path: Vec<String>) {
+        if self.is_visible(context) {
             return;
         }
 
@@ -54,8 +54,8 @@ impl AppIndexAlert {
         self.view.set(AlertView::DeleteFile { state });
     }
 
-    pub fn redirect_to_search(&self) {
-        if self.is_visible() {
+    pub fn redirect_to_search(&self, context: &Context) {
+        if self.is_visible(context) {
             return;
         }
 
@@ -63,8 +63,8 @@ impl AppIndexAlert {
         self.view.set(AlertView::SearchInPath { state });
     }
 
-    pub fn move_current(&self, app: &App, path: &Vec<String>, hash: &String) {
-        if self.is_visible() {
+    pub fn move_current(&self, context: &Context, app: &App, path: &Vec<String>, hash: &String) {
+        if self.is_visible(context) {
             return;
         }
 
@@ -78,8 +78,8 @@ impl AppIndexAlert {
 }
 
 
-fn app_index_alert_render(alert: &AppIndexAlert) -> VDomElement {
-    match alert.view.get() {
+fn app_index_alert_render(context: &Context, alert: &AppIndexAlert) -> VDomElement {
+    match alert.view.get(context) {
         AlertView::None => {
             html! {
                 <div />

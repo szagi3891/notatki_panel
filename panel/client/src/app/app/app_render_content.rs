@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use vertigo::{Css, VDomElement, css, html, bind, Resource, VDomComponent};
+use vertigo::{Css, VDomElement, css, html, bind, Resource, VDomComponent, Context};
 
 use crate::app::App;
 use crate::components::list_items_from_dir;
@@ -57,7 +57,7 @@ fn open_css() -> Css {
     ")
 }
 
-fn render_content_text(state: &App, content: Rc<String>) -> Vec<VDomElement> {
+fn render_content_text(context: &Context, state: &App, content: Rc<String>) -> Vec<VDomElement> {
     let chunks = parse_text(content.as_str());
 
     let mut out: Vec<VDomElement> = Vec::new();
@@ -67,7 +67,7 @@ fn render_content_text(state: &App, content: Rc<String>) -> Vec<VDomElement> {
             ParseTextItem::Link { url } => {
                 let url = url.to_string();
 
-                let has_open = state.data.tab.open_links.tabs_has(&url);
+                let has_open = state.data.tab.open_links.tabs_has(context, &url);
                 let link_label = match has_open {
                     true => "(zamknij)",
                     false => "(otwórz)"
@@ -75,8 +75,8 @@ fn render_content_text(state: &App, content: Rc<String>) -> Vec<VDomElement> {
 
                 let on_click = bind(state)
                     .and(&url)
-                    .call(|state, url| {
-                        state.data.tab.open_links.tabs_toogle(url.clone());
+                    .call(|context, state, url| {
+                        state.data.tab.open_links.tabs_toogle(context, url.clone());
                     });
 
                 let img = if let Some(thumb) = get_thumbnail(url.as_str()) {
@@ -115,7 +115,7 @@ fn render_content_text(state: &App, content: Rc<String>) -> Vec<VDomElement> {
     out
 }
 
-fn render_dir(data: &Data, dir: &Vec<String>) -> VDomElement {
+fn render_dir(context: &Context, data: &Data, dir: &Vec<String>) -> VDomElement {
     // let mut result = Vec::new();
 
     // for item in list.get_list() {
@@ -126,7 +126,7 @@ fn render_dir(data: &Data, dir: &Vec<String>) -> VDomElement {
     //     })
     // }
 
-    let result = list_items_from_dir(data, dir, false);
+    let result = list_items_from_dir(context, data, dir, false);
 
     html! {
         <div css={css_content_dir()}>
@@ -136,8 +136,8 @@ fn render_dir(data: &Data, dir: &Vec<String>) -> VDomElement {
 }
 
 pub fn render_content(state: &App) -> VDomComponent {
-    VDomComponent::from_ref(state, |state| {
-        let current_content = state.data.tab.current_content.get();
+    VDomComponent::from_ref(state, |context, state| {
+        let current_content = state.data.tab.current_content.get(context);
 
         match current_content {
             Resource::Loading => {
@@ -156,7 +156,7 @@ pub fn render_content(state: &App) -> VDomComponent {
             Resource::Ready(content) => {
                 match content {
                     ContentType::Text { content } => {
-                        let out: Vec<VDomElement> = render_content_text(state, content);
+                        let out: Vec<VDomElement> = render_content_text(context, state, content);
 
                         html! {
                             <div css={css_content_file()}>
@@ -173,7 +173,7 @@ pub fn render_content(state: &App) -> VDomComponent {
                         }
                     },
                     ContentType::Dir { list } => {
-                        render_dir(&state.data, list.dir_path().as_ref())
+                        render_dir(context, &state.data, list.dir_path().as_ref())
                     },
                 }
             },

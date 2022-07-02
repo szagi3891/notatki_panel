@@ -1,4 +1,4 @@
-use vertigo::{Computed, Value, VDomComponent};
+use vertigo::{Computed, Value, VDomComponent, Context};
 
 use vertigo::{Css, VDomElement};
 use vertigo::{css, html};
@@ -29,10 +29,10 @@ impl NewName {
         let name_exists = {
             let name = name.clone();
 
-            Computed::from(move || -> bool {
-                let list = list.get();
+            Computed::from(move |context| -> bool {
+                let list = list.get(context);
 
-                let name = name.get();
+                let name = name.get(context);
                 is_exist_in_list(name, list)
             })
         };
@@ -40,14 +40,14 @@ impl NewName {
         let is_valid = {
             let name = name.clone();
 
-            Computed::from(move || -> bool {
-                let name_exists = name_exists.get();
+            Computed::from(move |context| -> bool {
+                let name_exists = name_exists.get(context);
 
                 if name_exists {
                     return false;
                 }
 
-                if name.get().is_empty() {
+                if name.get(context).is_empty() {
                     return false;
                 }
 
@@ -62,8 +62,8 @@ impl NewName {
     }
 
     pub fn render(&self, autofocus: bool) -> VDomComponent {
-        VDomComponent::from_ref(self, move |state: &NewName| {
-            render(state, autofocus)
+        VDomComponent::from_ref(self, move |context, state: &NewName| {
+            render(context, state, autofocus)
         })
     }
 
@@ -103,8 +103,8 @@ fn css_input_name() -> Css {
     ")
 }
 
-pub fn render(state: &NewName, autofocus: bool) -> VDomElement {
-    let content = state.name.get();
+pub fn render(context: &Context, state: &NewName, autofocus: bool) -> VDomElement {
+    let content = state.name.get(context);
 
     let on_input = {
         let state = state.clone();

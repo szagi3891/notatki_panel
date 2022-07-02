@@ -1,4 +1,4 @@
-use vertigo::{Resource, Value, Computed, get_driver};
+use vertigo::{Resource, Value, Computed, Context, transaction};
 use super::{
     git::{Git, ListItem},
     open_links::OpenLinks,
@@ -10,11 +10,11 @@ fn create_list_hash_map(git: &Git, router: &Router) -> Computed<Resource<ViewDir
     let git = git.clone();
     let router = router.clone();
 
-    Computed::from(move || -> Resource<ViewDirList> {
-        let current_path_rc = router.get_dir();
+    Computed::from(move |context| -> Resource<ViewDirList> {
+        let current_path_rc = router.get_dir(context);
         let current_path = current_path_rc.as_ref();
 
-        git.dir_list(current_path)
+        git.dir_list(context, current_path)
     })
 }
 
@@ -22,8 +22,8 @@ fn create_list_hash_map(git: &Git, router: &Router) -> Computed<Resource<ViewDir
 fn create_list(list: &Computed<Resource<ViewDirList>>) -> Computed<Vec<ListItem>> {
     let list = list.clone();
 
-    Computed::from(move || -> Vec<ListItem> {
-        match list.get() {
+    Computed::from(move |context| -> Vec<ListItem> {
+        match list.get(context) {
             Resource::Ready(current_view) => {
                 current_view.get_list()
             },
@@ -47,14 +47,14 @@ fn create_current_item_view(
     let router = router.clone();
     let list = list.clone();
 
-    Computed::from(move || -> Option<String> {
-        let current_item = router.get_item();
+    Computed::from(move |context| -> Option<String> {
+        let current_item = router.get_item(context);
 
         if let Some(current_item) = current_item.as_ref() {
             return Some(current_item.clone());
         }
 
-        let list = list.get();
+        let list = list.get(context);
         if let Some(first) = list.first() {
             return Some(first.name.clone());
         }
@@ -72,12 +72,12 @@ fn create_current_full_path(
     let list_current_item = list_current_item.clone();
     let item_hover = item_hover.clone();
 
-    Computed::from(move || -> Vec<String> {
-        let mut current_path_dir = router.get_dir();
+    Computed::from(move |context| -> Vec<String> {
+        let mut current_path_dir = router.get_dir(context);
 
-        if let Some(item_hover) = item_hover.get().as_ref() {
+        if let Some(item_hover) = item_hover.get(context).as_ref() {
             current_path_dir.push(item_hover.clone());
-        } else if let Some(list_current_item) = list_current_item.get().as_ref() {
+        } else if let Some(list_current_item) = list_current_item.get(context).as_ref() {
             current_path_dir.push(list_current_item.clone());
         }
 
@@ -93,10 +93,10 @@ fn create_current_content(
     let state_data_git = state_data_git.clone();
     let full_path = full_path.clone();
 
-    Computed::from(move || -> Resource<ContentType> {
-        let list_item = state_data_git.content_from_path(full_path.get().as_ref())?;
+    Computed::from(move |context| -> Resource<ContentType> {
+        let list_item = state_data_git.content_from_path(context, full_path.get(context).as_ref())?;
 
-        list_item.get_content_type()
+        list_item.get_content_type(context)
     })
 }
 
@@ -172,9 +172,9 @@ impl TabPath {
         }
     }
 
-    pub fn redirect_item_select_after_delete(&self) {
-        let current_path_item = self.router.get_item();
-        let list = self.list.get();
+    pub fn redirect_item_select_after_delete(&self, context: &Context) {
+        let current_path_item = self.router.get_item(context);
+        let list = self.list.get(context);
 
         fn find_index(list: &Vec<ListItem>, value: Option<String>) -> Option<usize> {
             if let Some(value) = value {
@@ -190,46 +190,46 @@ impl TabPath {
         if let Some(current_index) = find_index(list.as_ref(), current_path_item) {
             if current_index > 0 {
                 if let Some(prev) = list.get(current_index - 1) {
-                    self.router.set_item(Some(prev.name.clone()));
+                    self.router.set_item(Some(prev.name.clone()), context);
                     return;
                 }
             }
 
             if let Some(prev) = list.get(current_index + 1) {
-                self.router.set_item(Some(prev.name.clone()));
+                self.router.set_item(Some(prev.name.clone()), context);
                 return;
             }
         };
 
-        self.router.set_item(None);
+        self.router.set_item(None, context);
     }
 
     pub fn redirect_to_item(&self, item: ListItem) {
         if item.is_dir {
-            get_driver().transaction(|| {
+            transaction(|context| {
                 let mut path = item.get_base_dir();
                 path.push(item.name.clone());
 
-                self.router.set_dir(path);
-                self.router.set_item(None);
+                self.router.set_dir(path, context);
+                self.router.set_item(None, context);
             });
         } else {
-            get_driver().transaction(|| {
-                self.router.set_dir(item.get_base_dir());
-                self.router.set_item(Some(item.name.clone()));
+            transaction(|context| {
+                self.router.set_dir(item.get_base_dir(), context);
+                self.router.set_item(Some(item.name.clone()), context);
             });
         }
     }
 
     pub fn redirect_to(&self, dir: Vec<String>, item: Option<String>) {
-        get_driver().transaction(move || {
-            self.router.set_dir(dir);
-            self.router.set_item(item);
+        transaction(move |context| {
+            self.router.set_dir(dir, context);
+            self.router.set_item(item, context);
         });
     }
 
-    pub fn set_path(&self, path: Vec<String>) {
-        let current_path = self.router.get_dir();
+    pub fn set_path(&self, context: &Context, path: Vec<String>) {
+        let current_path = self.router.get_dir(context);
 
         if current_path == path.as_slice() {
             log::info!("path are equal");
@@ -238,14 +238,14 @@ impl TabPath {
     
         let (new_current_path, new_current_item_value) = calculate_next_path(current_path.as_ref(), path);
 
-        get_driver().transaction(||{
-            self.router.set_dir(new_current_path);
-            self.router.set_item(new_current_item_value);
+        transaction(|context|{
+            self.router.set_dir(new_current_path, context);
+            self.router.set_item(new_current_item_value, context);
         });
     }
 
-    fn find(&self, item_finding: &String) -> Option<isize> {
-        let list = self.list.get();
+    fn find(&self, context: &Context, item_finding: &String) -> Option<isize> {
+        let list = self.list.get(context);
 
         for (index, item) in list.iter().enumerate() {
             if item.name == *item_finding {
@@ -257,69 +257,69 @@ impl TabPath {
     }
 
 
-    fn try_set_pointer_to(&self, index: isize) -> bool {
+    fn try_set_pointer_to(&self, context: &Context, index: isize) -> bool {
         if index < 0 {
             return false;
         }
 
         let index = index as usize;
 
-        let list = self.list.get();
+        let list = self.list.get(context);
 
         if let Some(first) = list.get(index) {
-            self.router.set_item(Some(first.name.clone()));
+            self.router.set_item(Some(first.name.clone()), context);
             return true;
         }
 
         false
     }
 
-    fn try_set_pointer_to_end(&self) {
-        let len = self.list.get().len() as isize;
-        self.try_set_pointer_to(len - 1);
+    fn try_set_pointer_to_end(&self, context: &Context) {
+        let len = self.list.get(context).len() as isize;
+        self.try_set_pointer_to(context, len - 1);
     }
 
-    pub fn pointer_up(&self) {
-        let list_pointer_rc = self.current_item.get();
+    pub fn pointer_up(&self, context: &Context) {
+        let list_pointer_rc = self.current_item.get(context);
 
         if let Some(list_pointer) = list_pointer_rc.as_ref() {
-            if let Some(index) = self.find(list_pointer) {
-                if !self.try_set_pointer_to(index - 1) {
-                    self.try_set_pointer_to_end();
+            if let Some(index) = self.find(context, list_pointer) {
+                if !self.try_set_pointer_to(context, index - 1) {
+                    self.try_set_pointer_to_end(context);
                 }
             }
         } else {
-            self.try_set_pointer_to(0);
+            self.try_set_pointer_to(context, 0);
         }
     }
 
-    pub fn pointer_down(&self) {
-        let list_pointer_rc = self.current_item.get();
+    pub fn pointer_down(&self, context: &Context) {
+        let list_pointer_rc = self.current_item.get(context);
 
         if let Some(list_pointer) = list_pointer_rc.as_ref() {
-            if let Some(index) = self.find(list_pointer) {
-                if !self.try_set_pointer_to(index + 1) {
-                    self.try_set_pointer_to(0);
+            if let Some(index) = self.find(context, list_pointer) {
+                if !self.try_set_pointer_to(context, index + 1) {
+                    self.try_set_pointer_to(context, 0);
                 }
             }
         } else {
-            self.try_set_pointer_to(0);
+            self.try_set_pointer_to(context, 0);
         }
     }
 
-    pub fn pointer_escape(&self) {
-        self.router.set_item(None);
+    pub fn pointer_escape(&self, context: &Context) {
+        self.router.set_item(None, context);
     }
 
-    pub fn pointer_enter(&self) {
-        if let Some(current_item) = self.current_item.get().as_ref() {
-            let content = self.current_content.get();
+    pub fn pointer_enter(&self, context: &Context) {
+        if let Some(current_item) = self.current_item.get(context).as_ref() {
+            let content = self.current_content.get(context);
 
             if let Resource::Ready(content) = content {
                 if let ContentType::Dir { .. } = content {
-                    let mut current = self.router.get_dir();
+                    let mut current = self.router.get_dir(context);
                     current.push(current_item.clone());
-                    self.set_path(current);
+                    self.set_path(context, current);
                 } else {
                     // self.item_select.set(Some(current_item.clone()));
                 }
@@ -327,18 +327,18 @@ impl TabPath {
         }
     }
 
-    pub fn backspace(&self) {
-        let mut current_path = self.router.get_dir();
+    pub fn backspace(&self, context: &Context) {
+        let mut current_path = self.router.get_dir(context);
         current_path.pop();
-        self.set_path(current_path);
+        self.set_path(context, current_path);
     }
 
     pub fn hover_on(&self, name: &str) {
         self.item_hover.set(Some(name.to_string()));
     }
 
-    pub fn hover_off(&self, name: &str) {
-        let item_hover = self.item_hover.get();
+    pub fn hover_off(&self, context: &Context, name: &str) {
+        let item_hover = self.item_hover.get(context);
 
         if let Some(item_hover) = item_hover.as_ref() {
             if item_hover == name {

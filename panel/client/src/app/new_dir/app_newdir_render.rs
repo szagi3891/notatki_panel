@@ -25,14 +25,14 @@ pub fn app_newdir_render(state: AppNewdir) -> VDomComponent {
 
     let view_new_name = state.new_name.render(true);
 
-    VDomComponent::from_ref(&state, move |state| {
+    VDomComponent::from_ref(&state, move |context, state| {
         let parent_path = state.parent.as_slice().join("/");
 
-        let mut buttons = vec!(button("Wróć", bind(&state.app).call(|app| {
+        let mut buttons = vec!(button("Wróć", bind(&state.app).call(|_, app| {
             app.redirect_to_index();
         })));
 
-        let save_enable = state.save_enable.get();
+        let save_enable = state.save_enable.get(context);
 
         if save_enable {
             buttons.push(button("Zapisz", state.bind_on_save(&state.app)));

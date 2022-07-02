@@ -1,7 +1,7 @@
 use std::{collections::HashMap, rc::Rc};
 use std::cmp::Ordering;
 
-use vertigo::Resource;
+use vertigo::{Resource, Context};
 
 use super::{Content, Dir};
 
@@ -206,9 +206,9 @@ impl ListItem {
         result
     }
 
-    pub fn get_content_type(&self) -> Resource<ContentType> {
+    pub fn get_content_type(&self, context: &Context) -> Resource<ContentType> {
         if self.is_dir {
-            let list = self.dir.get_list(&self.id)?;
+            let list = self.dir.get_list(context, &self.id)?;
 
             let mut full_path = self.base_dir.as_ref().clone();
             full_path.push(self.name.clone());
@@ -254,7 +254,7 @@ impl ListItem {
 
         let content = match file_type {
             FileType::Txt => {
-                let content = self.content.get(&self.id)?;
+                let content = self.content.get(context, &self.id)?;
                 ContentType::Text { content }
             },
             FileType::Image { ext } => {
@@ -263,7 +263,7 @@ impl ListItem {
                 ContentType::Image { url: Rc::new(url) }
             }
             FileType::Unknown => {
-                let content = self.content.get(&self.id)?;
+                let content = self.content.get(context, &self.id)?;
                 ContentType::Text { content }
             }
         };

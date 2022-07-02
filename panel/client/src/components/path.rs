@@ -63,7 +63,7 @@ fn create_link(
 
     let on_click = bind(&on_click)
         .and(&node_id)
-        .call(|on_click, node_id| {
+        .call(|_, on_click, node_id| {
             on_click(node_id.clone());
         });
 
@@ -80,8 +80,8 @@ pub fn render_path(path: &Computed<Vec<String>>, on_click: impl Fn(Vec<String>) 
     let path = path.clone();
     let on_click = Rc::new(on_click);
 
-    VDomComponent::from_fn(move || {
-        let current_path = path.get();
+    VDomComponent::from_fn(move |context| {
+        let current_path = path.get(context);
         let all_items = current_path.len();
 
         let mut out: Vec<VDomElement> = Vec::new();

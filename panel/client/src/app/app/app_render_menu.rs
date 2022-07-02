@@ -29,8 +29,8 @@ impl MenuComponent {
         let is_current_content= {
             let current_content = app.data.tab.current_content.clone();
         
-            Computed::from(move || -> bool {
-                if let Resource::Ready(content) = current_content.get() {
+            Computed::from(move |context| -> bool {
+                if let Resource::Ready(content) = current_content.get(context) {
                     match content {
                         ContentType::Dir { list } => list.len() == 0,
                         _ => true
@@ -79,16 +79,16 @@ fn render_button_on_delete(state: &MenuComponent) -> DomElement {
         let app = state.app.clone();
         let is_current_content = state.is_current_content.clone();
 
-        Computed::from(move || {
-            let is_current_content = is_current_content.get();
+        Computed::from(move |context| {
+            let is_current_content = is_current_content.get(context);
 
             if is_current_content {
                 let alert = app.alert.clone();
                 let on_delete = bind(&alert)
                     .and(&app)
-                    .call(|alert, app| {
-                        let path = alert.data.tab.full_path.get();
-                        alert.delete(app.clone(), path);
+                    .call(|context, alert, app| {
+                        let path = alert.data.tab.full_path.get(context);
+                        alert.delete(context, app.clone(), path);
                     });
         
                 ButtonState::active("Usuń", on_delete)
@@ -105,12 +105,12 @@ fn render_button_edit_file(state: &MenuComponent) -> DomElement {
         let app = state.app.clone();
         let is_current_content = state.is_current_content.clone();
 
-        Computed::from(move || {
-            let is_current_content = is_current_content.get();
+        Computed::from(move |context| {
+            let is_current_content = is_current_content.get(context);
 
             if is_current_content {
-                let on_click = bind(&app).call(|app|{
-                    app.current_edit();
+                let on_click = bind(&app).call(|context, app|{
+                    app.current_edit(context);
                 });
 
                 ButtonState::active("Edycja pliku", on_click)
@@ -125,18 +125,22 @@ fn render_button_move_item(state: &MenuComponent) -> DomElement {
     let state = state.clone();
     let app = state.app.clone();
 
-    ButtonState::render(Computed::from(move || {
-        let current_path = app.data.tab.full_path.get();
+    ButtonState::render(Computed::from(move |context| {
+        let current_path = app.data.tab.full_path.get(context);
 
-        let current_content = app.data.git.content_from_path(&current_path);
+        let current_content = app.data.git.content_from_path(context, &current_path);
 
         if let Resource::Ready(current_content) = current_content {
             let hash = current_content.id;
 
-            let app = app.clone();
-            return ButtonState::active("Przenieś", move || {
-                app.alert.move_current(&app, &current_path, &hash);
-            });
+            let on_click = bind(&app)
+                .and(&current_path)
+                .and(&hash)
+                .call(|context, app, current_path, hash| {
+                    app.alert.move_current(context, &app, &current_path, &hash);
+                });
+
+            return ButtonState::active("Przenieś", on_click);
         }
 
         ButtonState::disabled("Przenieś")
@@ -147,9 +151,9 @@ fn render_button_create_file(state: &MenuComponent) -> DomElement {
     ButtonState::render({
         let app = state.app.clone();
 
-        Computed::from(move || {
-            let on_click = bind(&app).call(|app| {
-                app.redirect_to_new_content();
+        Computed::from(move |_| {
+            let on_click = bind(&app).call(|context, app| {
+                app.redirect_to_new_content(context);
             });
 
             ButtonState::active("Utwórz plik", on_click)
@@ -161,9 +165,9 @@ fn render_button_rename_name(state: &MenuComponent) -> DomElement {
     ButtonState::render({
         let app = state.app.clone();
 
-        Computed::from(move || {
-            let on_click = bind(&app).call(|app| {
-                app.current_rename();
+        Computed::from(move |_| {
+            let on_click = bind(&app).call(|context, app| {
+                app.current_rename(context);
             });
 
             ButtonState::active("Zmień nazwę", on_click)
@@ -175,9 +179,9 @@ fn render_button_make_dir(state: &MenuComponent) -> DomElement {
     ButtonState::render({
         let app = state.app.clone();
 
-        Computed::from(move || {
-            let on_click = bind(&app).call(|app| {
-                app.redirect_to_mkdir();
+        Computed::from(move |_| {
+            let on_click = bind(&app).call(|context, app| {
+                app.redirect_to_mkdir(context);
             });
 
             ButtonState::active("Utwórz katalog", on_click)
@@ -189,9 +193,9 @@ fn render_button_search(state: &MenuComponent) -> DomElement {
     ButtonState::render({
         let app = state.app.clone();
 
-        Computed::from(move || {
-            let on_click = bind(&app.alert).call(|alert| {
-                alert.redirect_to_search();
+        Computed::from(move |_| {
+            let on_click = bind(&app.alert).call(|context, alert| {
+                alert.redirect_to_search(context);
             });
 
             ButtonState::active("Wyszukaj", on_click)
@@ -203,7 +207,7 @@ fn render_button_todo(state: &MenuComponent) -> DomElement {
     ButtonState::render({
         // let app = state.app.clone();
 
-        Computed::from(move || {
+        Computed::from(move |_| {
             let on_click = || {
                 log::info!("todo --- ....");
             };

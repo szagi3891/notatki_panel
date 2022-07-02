@@ -3,7 +3,7 @@ use common::{GitTreeItem, HandlerFetchDirBody, HandlerFetchDirResponse};
 use vertigo::{
     Resource,
     Computed,
-    AutoMap, LazyCache, get_driver,
+    AutoMap, LazyCache, get_driver, Context,
 };
 
 use super::models::{GitDirList, TreeItem};
@@ -54,8 +54,8 @@ impl NodeDir {
 
         let response2 = response.clone();
 
-        let list  = Computed::from(move || {
-            let resource = response2.get();
+        let list  = Computed::from(move |context| {
+            let resource = response2.get(context);
             resource.map(convert)
         });
 
@@ -65,12 +65,12 @@ impl NodeDir {
         }
     }
 
-    pub fn get(&self) -> Resource<GitDirList> {
-        self.list.get()
+    pub fn get(&self, context: &Context) -> Resource<GitDirList> {
+        self.list.get(context)
     }
 
-    pub fn get_list(&self) -> Resource<GitDirList> {
-        self.get().ref_clone()
+    pub fn get_list(&self, context: &Context) -> Resource<GitDirList> {
+        self.get(context).ref_clone()
     }
 }
 
@@ -88,7 +88,7 @@ impl Dir {
         }
     }
 
-    pub fn get_list(&self, id: &String) -> Resource<GitDirList> {
-        self.data.get(id).get_list()
+    pub fn get_list(&self, context: &Context, id: &String) -> Resource<GitDirList> {
+        self.data.get(id).get_list(context)
     }
 }
