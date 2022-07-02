@@ -23,19 +23,19 @@ fn css_header() -> Css {
 
 pub fn app_newdir_render(state: AppNewdir) -> VDomComponent {
 
-    let view_new_name = state.new_name.render(true);
+    let view_new_name = VDomComponent::dom(state.new_name.render(true));
 
     VDomComponent::from_ref(&state, move |context, state| {
         let parent_path = state.parent.as_slice().join("/");
 
-        let mut buttons = vec!(button("Wróć", bind(&state.app).call(|_, app| {
+        let mut buttons = vec!(VDomComponent::dom(button("Wróć", bind(&state.app).call(|_, app| {
             app.redirect_to_index();
-        })));
-
+        }))));
+    
         let save_enable = state.save_enable.get(context);
 
         if save_enable {
-            buttons.push(button("Zapisz", state.bind_on_save(&state.app)));
+            buttons.push(VDomComponent::dom(button("Zapisz", state.bind_on_save(&state.app))));
         }
 
         html! {

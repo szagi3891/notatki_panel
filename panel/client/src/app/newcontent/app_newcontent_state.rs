@@ -1,5 +1,5 @@
 use common::{HandlerCreateFileBody};
-use vertigo::{Computed, Value, VDomComponent, bind, get_driver, transaction, Context};
+use vertigo::{Computed, Value, VDomComponent, bind, get_driver, transaction, Context, DomElement};
 
 use crate::app::App;
 use crate::app::newcontent::app_newcontent_render::app_newcontent_render;
@@ -61,7 +61,7 @@ impl AppNewcontent {
         }
     }
 
-    pub fn render(&self) -> VDomComponent {
+    pub fn render(&self) -> DomElement {
         app_newcontent_render(
             self.app.clone(),
             &self,

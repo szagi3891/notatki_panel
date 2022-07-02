@@ -79,19 +79,19 @@ pub fn app_editcontent_render(app: &App, state: &AppEditcontent) -> VDomComponen
 
         let mut buttons = Vec::new();
 
-        buttons.push(button("Wróć", on_click));
+        buttons.push(VDomComponent::dom(button("Wróć", on_click)));
 
         let save_enable = state.save_enable.get(context);
 
         if save_enable {
             let on_save = state.on_save(&app, true);
-            buttons.push(button("Zapisz", on_save));
+            buttons.push(VDomComponent::dom(button("Zapisz", on_save)));
 
             let on_save = state.on_save(&app, false);
-            buttons.push(button("Zapisz i zostań", on_save));
+            buttons.push(VDomComponent::dom(button("Zapisz i zostań", on_save)));
 
             let on_reset = state.on_reset();
-            buttons.push(button("Usuń naniesione zmiany", on_reset));
+            buttons.push(VDomComponent::dom(button("Usuń naniesione zmiany", on_reset)));
         }
 
         html! {

@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use vertigo::{VDomComponent, VDomElement, html, Resource, get_driver, Context, bind, transaction};
+use vertigo::{VDomComponent, VDomElement, html, Resource, get_driver, Context, bind, transaction, dom};
 use vertigo::Value;
 use crate::components::{message_box, MessageBoxType, stict_to_top};
 use crate::data::Data;
@@ -225,7 +225,7 @@ impl App {
     }
 
     fn render_view(&self) -> VDomComponent {
-        let app = VDomComponent::from_ref(self, app_render);
+        let app = app_render(self);
         let view = self.data.tab.open_links.render(app);
         view
     }
@@ -272,54 +272,63 @@ impl App {
     }
 }
 
-fn app_render(context: &Context, app: &App) -> VDomElement {
-    let view = app.view.get(context);
+fn app_render(app: &App) -> VDomComponent {
+    VDomComponent::from_ref(app, |context, app| {
+        let view = app.view.get(context);
 
-    match view {
-        View::Index => {
-            let view = app_index_render(app);
+        match view {
+            View::Index => {
+                let view = app_index_render(app);
 
-            html! {
-                <div id="root">
-                    { view }
-                </div>
-            }
-        },
-        View::EditContent { state } => {
-            let view = state.render();
+                html! {
+                    <div id="root">
+                        { view }
+                    </div>
+                }
+            },
+            View::EditContent { state } => {
+                let view = state.render();
 
-            html! {
-                <div id="root">
-                    { view }
-                </div>
-            }
-        },
-        View::NewContent { state } => {
-            let view = state.render();
+                html! {
+                    <div id="root">
+                        { view }
+                    </div>
+                }
+            },
+            View::NewContent { state } => {
+                let view = state.render();
 
-            html! {
-                <div id="root">
-                    { view }
-                </div>
-            }
-        },
-        View::RenameItem {state } => {
-            let view = state.render();
+                let aaa = VDomComponent::dom(dom! {
+                    <div id="root">
+                        { view }
+                    </div>
+                });
 
-            html! {
-                <div id="root">
-                    {view}
-                </div>
-            }
-        },
-        View::Mkdir { state } => {
-            let view = state.render();
+                                                                                    //TODO - usunąć nadmiarowy div
+                html! {
+                    <div>
+                        { aaa }
+                    </div>
+                }
+            },
+            View::RenameItem {state } => {
+                let view = state.render();
 
-            html! {
-                <div id="root">
-                    { view }
-                </div>
-            }
-        },
-    }
+                html! {
+                    <div id="root">
+                        {view}
+                    </div>
+                }
+            },
+            View::Mkdir { state } => {
+                let view = state.render();
+
+                html! {
+                    <div id="root">
+                        { view }
+                    </div>
+                }
+            },
+        }
+    })
 }

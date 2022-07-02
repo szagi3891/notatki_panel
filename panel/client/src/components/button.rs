@@ -1,11 +1,10 @@
 use std::rc::Rc;
 
 use vertigo::{
-    VDomElement,
     Css, Computed, DomElement, dom, render_value,
 };
 
-use vertigo::{html, css};
+use vertigo::{css};
 
 enum ButtonType {
     Disabled,
@@ -45,8 +44,8 @@ fn css_item(button_type: ButtonType) -> Css {
 }
 
 
-pub fn button(label: &'static str, on_click: impl Fn() + 'static) -> VDomElement {
-    html! {
+pub fn button(label: &'static str, on_click: impl Fn() + 'static) -> DomElement {
+    dom! {
         <span css={css_item(ButtonType::Active)} on_click={on_click}>{label}</span>
     }
 }

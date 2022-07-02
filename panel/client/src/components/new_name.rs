@@ -1,4 +1,4 @@
-use vertigo::{Computed, Value, VDomComponent, dom, DomElement};
+use vertigo::{Computed, Value, dom, DomElement};
 
 use vertigo::{Css, css};
 
@@ -60,8 +60,8 @@ impl NewName {
         }
     }
 
-    pub fn render(&self, autofocus: bool) -> VDomComponent {
-        VDomComponent::dom(render(&self, autofocus,))
+    pub fn render(&self, autofocus: bool) -> DomElement {
+        render(&self, autofocus)
     }
 
     pub fn on_input_name(&self, new_value: String) {
