@@ -1,7 +1,6 @@
-use vertigo::{Computed, Value, VDomComponent, Context};
+use vertigo::{Computed, Value, VDomComponent, dom, DomElement};
 
-use vertigo::{Css, VDomElement};
-use vertigo::{css, html};
+use vertigo::{Css, css};
 
 use crate::data::ListItem;
 
@@ -62,9 +61,7 @@ impl NewName {
     }
 
     pub fn render(&self, autofocus: bool) -> VDomComponent {
-        VDomComponent::from_ref(self, move |context, state: &NewName| {
-            render(context, state, autofocus)
-        })
+        VDomComponent::dom(render(&self, autofocus,))
     }
 
     pub fn on_input_name(&self, new_value: String) {
@@ -103,8 +100,8 @@ fn css_input_name() -> Css {
     ")
 }
 
-pub fn render(context: &Context, state: &NewName, autofocus: bool) -> VDomElement {
-    let content = state.name.get(context);
+pub fn render(state: &NewName, autofocus: bool) -> DomElement {
+    let content = state.name.to_computed();
 
     let on_input = {
         let state = state.clone();
@@ -114,26 +111,22 @@ pub fn render(context: &Context, state: &NewName, autofocus: bool) -> VDomElemen
         }
     };
 
-    let input = if autofocus {
-        html! {
-            <input
-                css={css_input_name()}
-                on_input={on_input}
-                value={content}
-                autofocus=""
-            />
-        }
-    } else {
-        html! {
-            <input
-                css={css_input_name()}
-                on_input={on_input}
-                value={content}
-            />
-        }
+    let input = dom! {
+        <input
+            css={css_input_name()}
+            on_input={on_input}
+            value={content}
+            autofocus=""
+        />
     };
 
-    html! {
+    let input = if autofocus {
+        input.attr("autofocus", "".into())
+    } else {
+        input
+    };
+
+    dom! {
         <div css={css_wrapper()}>
             <div css={css_input_wrapper()}>
                 { input }
