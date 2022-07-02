@@ -1,4 +1,4 @@
-use vertigo::{Css, VDomComponent, css, html, bind};
+use vertigo::{Css, css, bind, render_value, dom, DomElement};
 
 use super::AppNewdir;
 use crate::components::button;
@@ -21,37 +21,45 @@ fn css_header() -> Css {
     ")
 }
 
-pub fn app_newdir_render(state: AppNewdir) -> VDomComponent {
+pub fn app_newdir_render(state: AppNewdir) -> DomElement {
+    let view_new_name = state.new_name.render(true);
 
-    let view_new_name = VDomComponent::dom(state.new_name.render(true));
+    let parent_path = state.parent.as_slice().join("/");
 
-    VDomComponent::from_ref(&state, move |context, state| {
-        let parent_path = state.parent.as_slice().join("/");
+    let button_back = button("Wróć", bind(&state.app).call(|_, app| {
+        app.redirect_to_index();
+    }));
 
-        let mut buttons = vec!(VDomComponent::dom(button("Wróć", bind(&state.app).call(|_, app| {
-            app.redirect_to_index();
-        }))));
-    
-        let save_enable = state.save_enable.get(context);
+    let button_save = {
+        let state = state.clone();
 
-        if save_enable {
-            buttons.push(VDomComponent::dom(button("Zapisz", state.bind_on_save(&state.app))));
-        }
+        render_value(
+            state.save_enable.clone(),
+            {                
+                move |save_enable| {
+                    match save_enable {
+                        true => Some(button("Zapisz", state.bind_on_save(&state.app))),
+                        false => None
+                    }
+                }
+            }
+        )
+    };
 
-        html! {
-            <div css={css_wrapper()}>
-                <div css={css_header()}>
-                    "tworzenie katalogu => "
-                    {parent_path}
-                </div>
-                <div css={css_header()}>
-                    { ..buttons }
-                </div>
-                { view_new_name.clone() }
-
-                <div data-run-module="funkcjaJs">
-                </div>
+    dom! {
+        <div css={css_wrapper()}>
+            <div css={css_header()}>
+                "tworzenie katalogu => "
+                {parent_path.clone()}
             </div>
-        }
-    })
+            <div css={css_header()}>
+                { button_back }
+                { button_save }
+            </div>
+            { view_new_name }
+
+            <div data-run-module="funkcjaJs">
+            </div>
+        </div>
+    }
 }

@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use vertigo::{VDomComponent, VDomElement, html, Resource, get_driver, Context, bind, transaction, dom};
+use vertigo::{VDomComponent, html, Resource, get_driver, Context, bind, transaction};
 use vertigo::Value;
 use crate::components::{message_box, MessageBoxType, stict_to_top};
 use crate::data::Data;
@@ -296,18 +296,11 @@ fn app_render(app: &App) -> VDomComponent {
                 }
             },
             View::NewContent { state } => {
-                let view = state.render();
+                let view = VDomComponent::dom(state.render());
 
-                let aaa = VDomComponent::dom(dom! {
+                html! {
                     <div id="root">
                         { view }
-                    </div>
-                });
-
-                                                                                    //TODO - usunąć nadmiarowy div
-                html! {
-                    <div>
-                        { aaa }
                     </div>
                 }
             },
@@ -321,7 +314,7 @@ fn app_render(app: &App) -> VDomComponent {
                 }
             },
             View::Mkdir { state } => {
-                let view = state.render();
+                let view = VDomComponent::dom(state.render());
 
                 html! {
                     <div id="root">

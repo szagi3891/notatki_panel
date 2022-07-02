@@ -1,5 +1,5 @@
 use common::{HandlerCreateDirBody};
-use vertigo::{Computed, Value, VDomComponent, bind, get_driver, Context};
+use vertigo::{Computed, Value, bind, get_driver, Context, DomElement};
 
 use crate::app::App;
 use crate::app::response::check_request_response;
@@ -38,7 +38,7 @@ impl AppNewdir {
         }
     }
 
-    pub fn render(&self) -> VDomComponent {
+    pub fn render(&self) -> DomElement {
         app_newdir_render(self.clone())
     }
 
