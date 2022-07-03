@@ -5,7 +5,7 @@ use crate::{app::{App, response::check_request_response}, components::ButtonStat
 
 use super::app_renameitem_render::app_renameitem_render;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct AppRenameitem {
     pub app: App,
     pub path: Vec<String>,          //edutowany element

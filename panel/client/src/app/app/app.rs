@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use vertigo::{VDomComponent, html, Resource, get_driver, Context, bind, transaction};
+use vertigo::{VDomComponent, html, Resource, get_driver, Context, bind, transaction, render_value, DomComment, dom, DomElement};
 use vertigo::Value;
 use crate::components::{message_box, MessageBoxType, stict_to_top};
 use crate::data::Data;
@@ -21,7 +21,7 @@ struct Error {
 }
 
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 enum View {
     Index,
     EditContent { state: AppEditcontent },
@@ -230,7 +230,7 @@ impl App {
         false
     }
 
-    fn render_view(&self) -> VDomComponent {
+    fn render_view(&self) -> DomElement {
         let app = app_render(self);
         let view = self.data.tab.open_links.render(app);
         view
@@ -264,7 +264,7 @@ impl App {
     }
 
     pub fn render(&self) -> VDomComponent {
-        let view = self.render_view();
+        let view = VDomComponent::dom(self.render_view());
         let errors = self.render_errors();
 
         VDomComponent::from_fn(move |_| {
@@ -278,56 +278,51 @@ impl App {
     }
 }
 
-fn app_render(app: &App) -> VDomComponent {
-    VDomComponent::from_ref(app, |context, app| {
-        let view = app.view.get(context);
+fn app_render(app: &App) -> DomComment {
+    render_value(app.view.to_computed(), {
+        let app = app.clone();
+        move |view| {
+            // let view = app.view.get(context);
 
-        match view {
-            View::Index => {
-                let view = VDomComponent::dom(app_index_render(app));
+            let result = match view {
+                View::Index => {
+                    dom! {
+                        <div id="root">
+                            { app_index_render(&app) }
+                        </div>
+                    }
+                },
+                View::EditContent { state } => {
+                    dom! {
+                        <div id="root">
+                            { state.render() }
+                        </div>
+                    }
+                },
+                View::NewContent { state } => {
+                    dom! {
+                        <div id="root">
+                            { state.render() }
+                        </div>
+                    }
+                },
+                View::RenameItem {state } => {
+                    dom! {
+                        <div id="root">
+                            { state.render() }
+                        </div>
+                    }
+                },
+                View::Mkdir { state } => {
+                    dom! {
+                        <div id="root">
+                            { state.render() }
+                        </div>
+                    }
+                },
+            };
 
-                html! {
-                    <div id="root">
-                        { view }
-                    </div>
-                }
-            },
-            View::EditContent { state } => {
-                let view = VDomComponent::dom(state.render());
-
-                html! {
-                    <div id="root">
-                        { view }
-                    </div>
-                }
-            },
-            View::NewContent { state } => {
-                let view = VDomComponent::dom(state.render());
-
-                html! {
-                    <div id="root">
-                        { view }
-                    </div>
-                }
-            },
-            View::RenameItem {state } => {
-                let view = VDomComponent::dom(state.render());
-
-                html! {
-                    <div id="root">
-                        {view}
-                    </div>
-                }
-            },
-            View::Mkdir { state } => {
-                let view = VDomComponent::dom(state.render());
-
-                html! {
-                    <div id="root">
-                        { view }
-                    </div>
-                }
-            },
+            Some(result)
         }
     })
 }

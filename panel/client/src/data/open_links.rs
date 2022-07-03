@@ -1,5 +1,5 @@
 use vertigo::{
-    Value, VDomComponent, html, css, VDomElement, Css, bind, Context,
+    Value, css, Css, bind, Context, DomNode, DomElement, Computed, dom, DomComment, render_list,
 };
 
 #[derive(Clone, PartialEq)]
@@ -87,8 +87,8 @@ impl OpenLinks {
         self.tabs_active.set(None);
     }
 
-    pub fn render(&self, default_view: VDomComponent) -> VDomComponent {
-        open_links_render(self, default_view)
+    pub fn render(&self, default_view: impl Into<DomNode>) -> DomElement {
+        open_links_render(self, default_view.into())
     }
 }
 
@@ -116,71 +116,81 @@ fn css_left() -> Css {
     ")
 }
 
-fn css_iframe(active: bool) -> Css {
-    let style = css!("
-        overflow-y: scroll;
+fn css_iframe(active: Computed<bool>) -> Computed<Css>  {
+    active.map(|active| {
+        let style = css!("
+            overflow-y: scroll;
 
-        width: 100%;
-        height: 100%;
-        padding: 0;
-        margin: 0;
-        border: 0;
-    ");
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+            border: 0;
+        ");
 
-    if active {
-        style
+        if active {
+            style
+        } else {
+            style.push_str("visibility: hidden; width: 0;")
+        }
+    })
+}
+
+fn css_right(show_column: bool) -> Css {
+    if show_column {
+        css!("
+            width: 200px;
+            flex-shrink: 0;
+            border-left: 1px solid black;
+        ")
     } else {
-        style.push_str("visibility: hidden; width: 0;")
+        css! {"
+            display: none;
+        "}
     }
 }
 
-fn css_right() -> Css {
-    css!("
-        width: 200px;
-        flex-shrink: 0;
-        border-left: 1px solid black;
-    ")
-}
+fn css_button(active: &Computed<bool>) -> Computed<Css> {
+    active.clone().map(move |active| {
+        let css = css!("
+            line-height: 30px;
+            padding: 0 5px;
+            cursor: pointer;
+            word-break: break-word;
+        ");
 
-fn css_button(active: bool) -> Css {
-    let css = css!("
-        line-height: 30px;
-        padding: 0 5px;
-        cursor: pointer;
-        word-break: break-word;
-    ");
-
-    if active {
-        css.push_str("
-            background: red;
-            color: white;
-        ")
-    } else {
-        css.push_str("
-            background: #e0e0e0;
-            color: black;
-        ")
-    }
+        if active {
+            css.push_str("
+                background: red;
+                color: white;
+            ")
+        } else {
+            css.push_str("
+                background: #e0e0e0;
+                color: black;
+            ")
+        }
+    })
 }
 
 fn button(
     label: impl Into<String>,
     on_click: impl Fn() + 'static,
     on_close: Option<impl Fn() + 'static>,
-    active: bool
-) -> VDomElement {
+    active: &Computed<bool>
+) -> DomElement {
     let label: String = label.into();
 
     let close = match on_close {
-        Some(on_close) => html! {
+        Some(on_close) => dom! {
             <div on_click={on_close}>
                 "x"
             </div>
         },
-        None => html! { <div/> }
+        None => dom! { <div/> }
     };
 
-    html!{
+    dom!{
         <div on_click={on_click} css={css_button(active)}>
             { label }
             { close }
@@ -188,97 +198,145 @@ fn button(
     }
 }
 
+fn render_main_content(active_default: &Computed<bool>, default_view: impl Into<DomNode>) -> DomElement {
+    let css_wrapper = active_default.clone().map(|active| {
+        match active {
+            true => css! {"
+                display: block;
+            "},
+            false => css! {"
+                display: none;
+            "}
+        }
+    });
 
-fn open_links_render(open_links: &OpenLinks, default_view: VDomComponent) -> VDomComponent {
+    dom! {
+        <div css={css_wrapper}>
+            { default_view.into() }
+        </div>
+    }
+}
 
-    VDomComponent::from_ref(open_links, move |context, open_links: &OpenLinks| {
-        let active = open_links.tabs_active.get(context);
-        let tabs = open_links.tabs_url.get(context);
-
-        let style_css = html! {
-            <style>
-                "
-                html, body {
-                    width: 100%;
-                    height: 100%;
-                    margin: 0;
-                    padding: 0;
-                    border: 0;
+fn render_tab_list(open_links: &OpenLinks, tabs: &Computed<Vec<String>>) -> DomComment {
+    render_list(tabs.clone(), |item| item.clone(), {
+        let open_links = open_links.clone();
+        move |url| {
+            let is_select = Computed::from({
+                let url = url.clone();
+                let open_links = open_links.clone();
+                move |context| {
+                    let active = open_links.tabs_active.get(context);
+                    if let Some(active) = active {
+                        url == active
+                    } else {
+                        false
+                    }
                 }
-                "
-            </style>
-        };
-
-        if tabs.len() > 0 {
-            let mut tabs_iframe = Vec::new();
-            let mut tabs_menu = Vec::new();
-
-        
-            let is_select_default = active.is_none();
-
-            tabs_menu.push({
-                let on_click = bind(open_links).call(|_, open_links| {
-                    open_links.tabs_default();
-                });
-
-                button("default", on_click, None::<fn()>, is_select_default)
             });
 
-            if is_select_default {
-                tabs_iframe.push(html! {
-                    <div css={css_iframe(true)}>
-                        { default_view.clone() }
-                    </div>
-                });
+            dom! {
+                <iframe src={url.clone()} css={css_iframe(is_select)} />
             }
-
-            for tab_item in tabs.iter() {
-                let tab_item = tab_item.clone();
-
-                let is_select = match active.as_ref() {
-                    Some(active) => *active == *tab_item,
-                    None => false,
-                };
-
-                tabs_iframe.push(html! {
-                    <iframe src={tab_item.clone()} css={css_iframe(is_select)} />
-                });
-
-                let on_click = bind(open_links)
-                    .and(&tab_item)
-                    .call(|context, open_links, tab_item| {
-                        open_links.tabs_set(context, tab_item.clone());
-                    });
-
-                let on_close = bind(open_links)
-                    .and(&tab_item)
-                    .call(|context, open_links, tab_item| {
-                        open_links.tabs_remove(context, tab_item.clone());
-                    });
-        
-                tabs_menu.push(button(tab_item, on_click, Some(on_close), is_select));
-            }
-
-            return html! {
-                <div css={css_iframe_bg()}>
-                    { style_css }
-                    <div css={css_left()}>
-                        { ..tabs_iframe }
-                    </div>
-                    <div css={css_right()}>
-                        { ..tabs_menu }
-                    </div>
-                </div>
-            };
-        }
-
-        html! {
-            <div css={css_iframe_bg()}>
-                { style_css }
-                <div css={css_left()}>
-                    { default_view.clone() }
-                </div>
-            </div>
         }
     })
 }
+
+fn render_tab_buttons(open_links: &OpenLinks, tabs: &Computed<Vec<String>>) -> DomComment {
+    render_list(tabs.clone(), |item| item.clone(), {
+        let open_links = open_links.clone();
+        move |url| {
+            let on_click = bind(&open_links)
+                .and(url)
+                .call(|context, open_links, tab_item| {
+                    open_links.tabs_set(context, (*tab_item).clone());
+                });
+
+            let on_close = bind(&open_links)
+                .and(url)
+                .call(|context, open_links, tab_item| {
+                    open_links.tabs_remove(context, (*tab_item).clone());
+                });
+
+            let is_select = Computed::from({
+                let open_links = open_links.clone();
+                let url = url.clone();
+                move |context| {
+                    let active = open_links.tabs_active.get(context);
+                    if let Some(active) = active {
+                        url == active
+                    } else {
+                        false
+                    }
+                }
+            });
+
+            let url = url.clone();
+            button(
+                url,
+                on_click,
+                Some(on_close),
+                &is_select
+            )
+        }
+    })
+}
+
+fn open_links_render(open_links: &OpenLinks, default_view: DomNode) -> DomElement {
+    let active_default = Computed::from({
+        let open_links = open_links.clone();
+        move |context| {
+            let active = open_links.tabs_active.get(context);
+            active.is_none()
+        }
+    });
+
+    let tabs = Computed::from({
+        let open_links = open_links.clone();
+        move |context| {
+            open_links.tabs_url.get(context)
+        }
+    });
+
+    let style_css = dom! {
+        <style>
+            "
+            html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+                border: 0;
+            }
+            "
+        </style>
+    };
+
+    let default_tab_button = {
+        let on_click = bind(open_links).call(|_, open_links| {
+            open_links.tabs_default();
+        });
+
+        button("default", on_click, None::<fn()>, &active_default)
+    };
+
+    let css_right_column = tabs.clone().map(|tabs| {
+        css_right(tabs.len() > 0)
+    });
+
+    dom! {
+        <div css={css_iframe_bg()}>
+            { style_css }
+            <div css={css_left()}>
+                { render_main_content(&active_default, default_view) }
+                { render_tab_list(&open_links, &tabs) }
+            </div>
+            <div css={css_right_column}>
+                { default_tab_button }
+                { render_tab_buttons(&open_links, &tabs)}
+            </div>
+        </div>
+    }
+}
+
+/*
+*/

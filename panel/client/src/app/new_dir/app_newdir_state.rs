@@ -7,7 +7,7 @@ use crate::components::new_name::{self, NewName};
 
 use super::app_newdir_render::app_newdir_render;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct AppNewdir {
     pub app: App,
     pub action_save: Value<bool>,

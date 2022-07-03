@@ -6,7 +6,7 @@ use crate::app::newcontent::app_newcontent_render::app_newcontent_render;
 use crate::app::response::check_request_response;
 use crate::components::new_name::NewName;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct AppNewcontent {
     app: App,
     pub action_save: Value<bool>,

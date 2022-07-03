@@ -13,7 +13,7 @@ fn is_exist_in_list(name: String, list: Vec<ListItem>) -> bool {
     false
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct NewName {
     pub name: Value<String>,
     pub is_valid: Computed<bool>,

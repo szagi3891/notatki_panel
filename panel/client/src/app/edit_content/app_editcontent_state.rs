@@ -12,7 +12,7 @@ pub struct EditContent {
 }
 
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct AppEditcontent {
     app: App,
     pub path: Vec<String>,          //edutowany element
