@@ -11,7 +11,7 @@ enum AlertView {
     None,
     DeleteFile { state: AppIndexAlertDelete },
     SearchInPath { state: AppIndexAlertSearch },
-    MoveItem { state: AppIndexAlertMoveitem },                       //TODO - zaimplementować
+    MoveItem { state: AppIndexAlertMoveitem },
 }
 
 #[derive(Clone, PartialEq)]

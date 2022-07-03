@@ -284,7 +284,7 @@ fn app_render(app: &App) -> VDomComponent {
 
         match view {
             View::Index => {
-                let view = app_index_render(app);
+                let view = VDomComponent::dom(app_index_render(app));
 
                 html! {
                     <div id="root">

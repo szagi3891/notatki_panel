@@ -1,9 +1,5 @@
-use vertigo::{
-    Css,
-    VDomComponent, dom,
-};
-
-use vertigo::{html, css, bind};
+use vertigo::{Css, dom, DomElement};
+use vertigo::{css, bind};
 
 use crate::app::App;
 use crate::components::render_path;
@@ -57,51 +53,41 @@ fn css_content_content() -> Css {
     ")
 }
 
-pub fn app_index_render(app: &App) -> VDomComponent {
-    let view_alert = VDomComponent::dom(dom! {                     //TODO - usunąć nadmiarowego diva
-        <div>
-            {app.alert.render()}
-        </div>
-    });
+pub fn app_index_render(app: &App) -> DomElement {
+    let view_alert = app.alert.render();
 
-    let view_menu = VDomComponent::dom(MenuComponent::component(app));
+    let view_menu = MenuComponent::component(app);
 
     let on_click_path = bind(&app.data).call_param(|context, data, node_id: Vec<String>| {
         data.tab.set_path(context, node_id.clone());
     });
     
-    let view_header = VDomComponent::dom(dom! {                     //TODO - usunąć nadmiarowego diva
-        <div>
-            {render_path(&app.data.tab.router.path, on_click_path)}
-        </div>
-    });
+    let view_header = render_path(&app.data.tab.router.path, on_click_path);
 
-    let view_list = VDomComponent::dom(render_list(app));
+    let view_list = render_list(app);
     let view_content = render_content(app);
 
     let app = app.clone();
 
-    VDomComponent::from_fn(move |_| {
-        let hook_keydown = bind(&app).call_param(
-            |context, state, event: vertigo::KeyDownEvent| {
-                state.keydown(context, event.code)
-            }
-        );
-
-        html! {
-            <div css={css_wrapper()} hook_key_down={hook_keydown}>
-                { view_menu.clone() }
-                { view_header.clone() }
-                <div css={css_content()}>
-                    <div css={css_content_list()}>
-                        { view_list.clone() }
-                    </div>
-                    <div css={css_content_content()}>
-                        { view_content.clone() }
-                    </div>
-                </div>
-                { view_alert.clone() }
-            </div>
+    let hook_keydown = bind(&app).call_param(
+        |context, state, event: vertigo::KeyDownEvent| {
+            state.keydown(context, event.code)
         }
-    })
+    );
+
+    dom! {
+        <div css={css_wrapper()} hook_key_down={hook_keydown}>
+            { view_menu }
+            { view_header }
+            <div css={css_content()}>
+                <div css={css_content_list()}>
+                    { view_list }
+                </div>
+                <div css={css_content_content()}>
+                    { view_content }
+                </div>
+            </div>
+            { view_alert }
+        </div>
+    }
 }

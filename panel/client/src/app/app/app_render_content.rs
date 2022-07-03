@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use vertigo::{Css, css, html, bind, Resource, VDomComponent, dom, DomElement, Computed, render_list, DomComment};
+use vertigo::{Css, css, bind, Resource, dom, DomElement, Computed, render_list, DomComment, render_value};
 
 use crate::app::App;
 use crate::components::list_items_from_dir;
@@ -138,65 +138,61 @@ fn render_dir(data: &Data, dir: &Computed<Vec<String>>) -> DomElement {
     }
 }
 
-pub fn render_content(state: &App) -> VDomComponent {
-    VDomComponent::from_ref(state, |context, state| {
-        let current_content = state.data.tab.current_content.get(context);
+pub fn render_content(state: &App) -> DomComment {
+    render_value(
+        state.data.tab.current_content.clone(),
+        {
+            let state = state.clone();
+            move |current_content| {
 
-        match current_content {
-            Resource::Loading => {
-                html! {
-                    <div></div>
-                }
-            },
-            Resource::Error(message) => {
-                let message = format!("Error: {message}");
-                html! {
-                    <div>
-                        { message }
-                    </div>
-                }
-            },
-            Resource::Ready(content) => {
-                match content {
-                    ContentType::Text { content } => {
-                        let out = render_content_text(state, content);
-                        let out = VDomComponent::dom(dom! {         //TODO do usunięcia ten nadmiarowy div
+                match current_content {
+                    Resource::Loading => {
+                        Some(dom! {
+                            <div></div>
+                        })
+                    },
+                    Resource::Error(message) => {
+                        let message = format!("Error: {message}");
+                        Some(dom! {
                             <div>
-                                { out }
+                                { message }
                             </div>
-                        });
-
-                        html! {
-                            <div css={css_content_file()}>
-                                { out }
-                            </div>
-                        }
+                        })
                     },
-                    ContentType::Image { url } => {
-                        let url = url.as_str();
-                        html! {
-                            <div css={css_content_file()}>
-                                <img css={css_content_file_image()} src={url} />
-                            </div>
-                        }
-                    },
-                    ContentType::Dir { list } => {
-                        let list = Computed::from(move |_| {
-                            list.dir_path().as_ref().clone()
-                        });
+                    Resource::Ready(content) => {
+                        match content {
+                            ContentType::Text { content } => {
+                                let out = render_content_text(&state, content);
 
-                        let out = VDomComponent::dom(render_dir(&state.data, &list));
+                                Some(dom! {
+                                    <div css={css_content_file()}>
+                                        { out }
+                                    </div>
+                                })
+                            },
+                            ContentType::Image { url } => {
+                                let url = url.as_ref().clone();
+                                Some(dom! {
+                                    <div css={css_content_file()}>
+                                        <img css={css_content_file_image()} src={url} />
+                                    </div>
+                                })
+                            },
+                            ContentType::Dir { list } => {
+                                let list = Computed::from(move |_| {
+                                    list.dir_path().as_ref().clone()
+                                });
 
-                                            //TODO - usunąć tego nadmiarowego diva
-                        html! {
-                            <div>
-                                { out }
-                            </div>
+                                let out = render_dir(&state.data, &list);
+
+                                Some(out)
+                            },
                         }
                     },
                 }
-            },
+
+            }
         }
-    })
+    )
 }
 
