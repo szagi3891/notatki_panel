@@ -11,7 +11,7 @@ pub use git::ListItem;
 pub use open_links::OpenLinks;
 pub use tabs_hash::Router;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct Data {
     pub git: Git,
     pub tab: TabPath,

@@ -128,7 +128,7 @@ fn render_content_text(state: &App, content: Rc<String>) -> DomComment {
     )
 }
 
-fn render_dir(data: &Data, dir: &Vec<String>) -> DomElement {
+fn render_dir(data: &Data, dir: &Computed<Vec<String>>) -> DomElement {
     let result = list_items_from_dir(data, dir, false);
 
     dom! {
@@ -181,7 +181,11 @@ pub fn render_content(state: &App) -> VDomComponent {
                         }
                     },
                     ContentType::Dir { list } => {
-                        let out = VDomComponent::dom(render_dir(&state.data, list.dir_path().as_ref()));
+                        let list = Computed::from(move |_| {
+                            list.dir_path().as_ref().clone()
+                        });
+
+                        let out = VDomComponent::dom(render_dir(&state.data, &list));
 
                                             //TODO - usunąć tego nadmiarowego diva
                         html! {

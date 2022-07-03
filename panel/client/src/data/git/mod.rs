@@ -49,7 +49,7 @@ pub struct ContentView {
     pub content: Rc<String>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct Git {
     pub dir: Dir,
     pub content: Content,

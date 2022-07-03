@@ -285,11 +285,12 @@ pub fn list_items_from_vec(data: &Data, list: Computed<Vec<ListItem>>, mouse_ove
     )
 }
 
-pub fn list_items_from_dir(data: &Data, dir: &Vec<String>, mouse_over_enable: bool) -> DomComment {
+pub fn list_items_from_dir(data: &Data, dir: &Computed<Vec<String>>, mouse_over_enable: bool) -> DomComment {
     let list = Computed::from({
         let data = data.clone();
         let dir = dir.clone();
         move |context| {
+            let dir = dir.get(context);
             let current = data.git.dir_list(context, &dir);
 
             match current {

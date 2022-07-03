@@ -7,7 +7,7 @@ use crate::{components::{AlertBox, ButtonState}, app::{response::check_request_r
 
 use super::AppIndexAlert;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct AppIndexAlertDelete {
     app: App,
     pub alert: AppIndexAlert,

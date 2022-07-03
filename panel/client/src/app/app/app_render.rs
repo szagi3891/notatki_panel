@@ -76,7 +76,7 @@ pub fn app_index_render(app: &App) -> VDomComponent {
         </div>
     });
 
-    let view_list = render_list(app);
+    let view_list = VDomComponent::dom(render_list(app));
     let view_content = render_content(app);
 
     let app = app.clone();

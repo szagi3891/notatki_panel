@@ -40,6 +40,12 @@ pub struct App {
     errors: Value<Vec<Error>>,
 }
 
+impl PartialEq for App {
+    fn eq(&self, other: &Self) -> bool {
+        self.view.id() == other.view.id()
+    }
+}
+
 impl App {
     pub fn new() -> App {
         let data = Data::new();

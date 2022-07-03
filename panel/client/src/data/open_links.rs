@@ -2,7 +2,7 @@ use vertigo::{
     Value, VDomComponent, html, css, VDomElement, Css, bind, Context,
 };
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct OpenLinks {
     pub tabs_url: Value<Vec<String>>,
     pub tabs_active: Value<Option<String>>,

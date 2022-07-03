@@ -28,6 +28,12 @@ struct NodeDir {
     list: Computed<Resource<GitDirList>>,
 }
 
+impl PartialEq for NodeDir {
+    fn eq(&self, other: &Self) -> bool {
+        self.list.eq(&other.list)
+    }
+}
+
 impl NodeDir {
     pub fn new(id: &String) -> NodeDir {
         let id = id.clone();
@@ -74,7 +80,7 @@ impl NodeDir {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Dir {
     data: AutoMap<String, NodeDir>,
 }

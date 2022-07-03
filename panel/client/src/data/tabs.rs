@@ -101,7 +101,7 @@ fn create_current_content(
 }
 
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct TabPath {
 
     /// Bazowy katalog który został wybrany

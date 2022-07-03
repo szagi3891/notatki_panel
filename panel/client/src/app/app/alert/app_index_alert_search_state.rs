@@ -96,7 +96,7 @@ fn new_results(data_state: &Data, phrase: Computed<String>) -> Computed<Vec<List
     })
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct AppIndexAlertSearch {
     alert: AppIndexAlert,
 

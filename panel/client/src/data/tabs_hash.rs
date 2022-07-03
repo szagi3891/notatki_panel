@@ -29,7 +29,7 @@ impl ToString for RouterValue {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct Router {
     route: HashRouter<RouterValue>,
     pub path: Computed<Vec<String>>,

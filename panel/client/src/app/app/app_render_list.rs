@@ -1,8 +1,8 @@
 // use vertigo::dev::NodeRefs;
 use vertigo::{
-    Css, VDomComponent, dom,
+    Css, dom, Computed, DomElement,
 };
-use vertigo::{css, html};
+use vertigo::{css};
 use crate::app::App;
 use crate::components::list_items_from_dir;
 
@@ -57,30 +57,23 @@ fn css_wrapper() -> Css {
 //     }
 // }
 
-pub fn render_list(state: &App) -> VDomComponent {
-    VDomComponent::from_ref(state, |context, state| {
-        let dir = state.data.tab.router.get_dir(context);
-
-        let list_view = list_items_from_dir(&state.data, dir.as_ref(), true);
-
-        //dom_ref="wrapper" dom_apply={dom_apply}
-
-        let container = dom! {
-            <div css={css_wrapper()}>
-                { list_view }
-            </div>
-        };
-
-        let container = VDomComponent::dom(container);
-
-
-                        //TODO - usunąć nadmiarowy wrapper
-        html! {
-            <div css={css_wrapper()}>
-                { container }
-            </div>
+pub fn render_list(state: &App) -> DomElement {
+    let dir = Computed::from({
+        let state = state.clone();
+        move |context| {
+            state.data.tab.router.get_dir(context)
         }
-    })
+    });
+
+    let list_view = list_items_from_dir(&state.data, &dir, true);
+
+    //dom_ref="wrapper" dom_apply={dom_apply}
+
+    dom! {
+        <div css={css_wrapper()}>
+            { list_view }
+        </div>
+    }
 }
 
 //Centrowanie na środku zawsze

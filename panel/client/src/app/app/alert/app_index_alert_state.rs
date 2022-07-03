@@ -6,7 +6,7 @@ use crate::data::Data;
 
 use super::app_index_alert_moveitem_state::AppIndexAlertMoveitem;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 enum AlertView {
     None,
     DeleteFile { state: AppIndexAlertDelete },
@@ -14,19 +14,7 @@ enum AlertView {
     MoveItem { state: AppIndexAlertMoveitem },                       //TODO - zaimplementować
 }
 
-impl PartialEq for AlertView {
-    fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (Self::None, Self::None) => true,
-            (Self::DeleteFile { .. }, Self::DeleteFile { .. }) => true,
-            (Self::SearchInPath { .. }, Self::SearchInPath { .. }) => true,
-            (Self::MoveItem { .. }, Self::MoveItem { .. }) => true,
-            _ => false,
-        }
-    }
-}
-
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct AppIndexAlert {
     pub data: Data,
     view: Value<AlertView>,

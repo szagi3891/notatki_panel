@@ -5,7 +5,7 @@ use crate::{components::{AlertBox, item_default, item_dot_html, ButtonState, ren
 
 use super::AppIndexAlert;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct AppIndexAlertMoveitem {
     pub app: App,
     alert: AppIndexAlert,
