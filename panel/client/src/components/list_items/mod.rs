@@ -1,7 +1,7 @@
 use vertigo::{
     css, Css,
     Resource,
-    bind, DomElement, dom, Context, Computed, render_value, DomComment
+    bind, DomElement, dom, Computed, render_value, DomComment, render_list
 };
 use crate::data::{Data, ListItem};
 use crate::components::icon;
@@ -172,17 +172,6 @@ pub fn item_default_render(data: &Data, item: &ListItem, mouse_over_enable: bool
     let data = data.clone();
     let item = item.clone();
 
-    // let current_item = data.tab.current_item.get();
-    // let current_hover = data.tab.item_hover.get();
-
-    // let is_select = {
-    //     if let Some(list_pointer) = &current_item {
-    //         item.name == *list_pointer
-    //     } else {
-    //         false
-    //     }
-    // };
-
     let on_click = {
         bind(&data.tab)
             .and(&item)
@@ -192,12 +181,6 @@ pub fn item_default_render(data: &Data, item: &ListItem, mouse_over_enable: bool
     };
 
     let element = item_default(&data, &item, on_click);
-
-    // let element = if is_select {
-    //     element.dom_ref("active")
-    // } else {
-    //     element
-    // };
 
     let element = if mouse_over_enable {
 
@@ -233,7 +216,7 @@ fn css_image() -> Css {
     ")
 }
 
-fn item_image_render(data: &Data, item: &ListItem, ext: String) -> DomElement {
+fn item_image_render(data: &Data, item: &ListItem, ext: &String) -> DomElement {
     let data = data.clone();
     let item = item.clone();
 
@@ -255,36 +238,68 @@ fn item_image_render(data: &Data, item: &ListItem, ext: String) -> DomElement {
     }
 }
 
-pub fn list_items_from_vec(data: &Data, list: Vec<ListItem>, mouse_over_enable: bool) -> Vec<DomElement> {
-    let mut out: Vec<DomElement> = Vec::new();
-    let mut picture: Vec<DomElement> = Vec::new();
+pub fn list_items_from_vec(data: &Data, list: Computed<Vec<ListItem>>, mouse_over_enable: bool) -> DomComment {
+    let list_sorted = Computed::from({
+        move |context| {
+            let list = list.get(context);
 
-    for item in list.iter() {
-        if mouse_over_enable {
-            out.push(item_default_render(data, item, mouse_over_enable));
-        } else {
-            if let Some(ext) = item.get_picture_ext() {
-                picture.push(item_image_render(data, item, ext));
-            } else {
-                out.push(item_default_render(data, item, false));
+            let mut out: Vec<(Option<String>, ListItem)> = Vec::new();
+            let mut picture: Vec<(Option<String>, ListItem)> = Vec::new();
+        
+            for item in list.into_iter() {
+                if mouse_over_enable {
+                    out.push((None, item));
+                } else {
+                    if let Some(ext) = item.get_picture_ext() {
+                        picture.push((Some(ext), item));
+                    } else {
+                        out.push((None, item));
+                    }
+                }
+            }
+        
+            out.extend(picture.into_iter());
+
+            out
+        }
+    });
+
+    render_list(
+        list_sorted,
+        |(_, item)| item.get_id(),
+        {
+            let data = data.clone();
+            move |(picture, item)| {
+
+                if mouse_over_enable {
+                    item_default_render(&data, item, mouse_over_enable)
+                } else {
+                    if let Some(ext) = picture {
+                        item_image_render(&data, item, ext)
+                    } else {
+                        item_default_render(&data, item, mouse_over_enable)
+                    }
+                }
             }
         }
-    }
-
-    out.extend(picture.into_iter());
-
-    out
+    )
 }
 
-pub fn list_items_from_dir(context: &Context, data: &Data, dir: &Vec<String>, mouse_over_enable: bool) -> Vec<DomElement> {
-    let current = data.git.dir_list(context, dir);
+pub fn list_items_from_dir(data: &Data, dir: &Vec<String>, mouse_over_enable: bool) -> DomComment {
+    let list = Computed::from({
+        let data = data.clone();
+        let dir = dir.clone();
+        move |context| {
+            let current = data.git.dir_list(context, &dir);
 
-    let list = match current {
-        Resource::Ready(list) => list.get_list(),
-        _ => {
-            return Vec::new();
+            match current {
+                Resource::Ready(list) => list.get_list(),
+                _ => {
+                    return Vec::new();
+                }
+            }
         }
-    };
+    });
 
     list_items_from_vec(data, list, mouse_over_enable)
 }

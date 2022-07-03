@@ -61,17 +61,15 @@ pub fn render_list(state: &App) -> VDomComponent {
     VDomComponent::from_ref(state, |context, state| {
         let dir = state.data.tab.router.get_dir(context);
 
-        let out = list_items_from_dir(context, &state.data, dir.as_ref(), true);
+        let list_view = list_items_from_dir(&state.data, dir.as_ref(), true);
 
         //dom_ref="wrapper" dom_apply={dom_apply}
 
         let container = dom! {
-            <div css={css_wrapper()} />
+            <div css={css_wrapper()}>
+                { list_view }
+            </div>
         };
-
-        for child in out.into_iter() {
-            container.add_child(child);
-        }
 
         let container = VDomComponent::dom(container);
 

@@ -292,6 +292,10 @@ impl ListItem {
 
         prirority
     }
+
+    pub fn get_id(&self) -> (String, bool) {
+        (self.name.clone(), self.is_dir.clone())
+    }
 }
 
 

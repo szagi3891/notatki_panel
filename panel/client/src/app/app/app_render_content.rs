@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use vertigo::{Css, css, html, bind, Resource, VDomComponent, Context, dom, DomElement, Computed, render_list, DomComment};
+use vertigo::{Css, css, html, bind, Resource, VDomComponent, dom, DomElement, Computed, render_list, DomComment};
 
 use crate::app::App;
 use crate::components::list_items_from_dir;
@@ -128,18 +128,14 @@ fn render_content_text(state: &App, content: Rc<String>) -> DomComment {
     )
 }
 
-fn render_dir(context: &Context, data: &Data, dir: &Vec<String>) -> DomElement {
-    let result = list_items_from_dir(context, data, dir, false);
+fn render_dir(data: &Data, dir: &Vec<String>) -> DomElement {
+    let result = list_items_from_dir(data, dir, false);
 
-    let out = dom! {
-        <div css={css_content_dir()} />
-    };
-
-    for child in result.into_iter() {
-        out.add_child(child);
+    dom! {
+        <div css={css_content_dir()}>
+            { result }
+        </div>
     }
-
-    out
 }
 
 pub fn render_content(state: &App) -> VDomComponent {
@@ -185,7 +181,7 @@ pub fn render_content(state: &App) -> VDomComponent {
                         }
                     },
                     ContentType::Dir { list } => {
-                        let out = VDomComponent::dom(render_dir(context, &state.data, list.dir_path().as_ref()));
+                        let out = VDomComponent::dom(render_dir(&state.data, list.dir_path().as_ref()));
 
                                             //TODO - usunąć tego nadmiarowego diva
                         html! {
