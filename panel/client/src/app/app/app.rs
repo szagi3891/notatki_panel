@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use vertigo::{VDomComponent, html, Resource, get_driver, Context, bind, transaction, DomComment, dom, DomElement};
+use vertigo::{VDomComponent, Resource, get_driver, Context, bind, transaction, DomComment, dom, DomElement};
 use vertigo::Value;
 use crate::components::{message_box, MessageBoxType, stict_to_top};
 use crate::data::Data;
@@ -231,17 +231,17 @@ impl App {
     }
 
     pub fn render(&self) -> VDomComponent {
-        let view = VDomComponent::dom(render_view(self));
-        let errors = VDomComponent::dom(render_errors(&self));
+        let view = render_view(self);
+        let errors = render_errors(self);
 
-        VDomComponent::from_fn(move |_| {
-            html! {
+        VDomComponent::dom(
+            dom! {
                 <div>
                     { view.clone() }
                     { errors.clone() }
                 </div>
             }
-        })
+        )
     }
 }
 
