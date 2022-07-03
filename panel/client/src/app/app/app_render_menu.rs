@@ -1,6 +1,6 @@
 use vertigo::{
     Css,
-    Computed, VDomComponent,
+    Computed,
     bind, Resource, DomElement, dom,
 };
 
@@ -25,11 +25,10 @@ pub struct MenuComponent {
 }
 
 impl MenuComponent {
-    pub fn component(app: &App) -> VDomComponent {
-        let is_current_content= {
+    pub fn component(app: &App) -> DomElement {
+        let is_current_content= Computed::from({
             let current_content = app.data.tab.current_content.clone();
-        
-            Computed::from(move |context| -> bool {
+            move |context| -> bool {
                 if let Resource::Ready(content) = current_content.get(context) {
                     match content {
                         ContentType::Dir { list } => list.len() == 0,
@@ -38,8 +37,8 @@ impl MenuComponent {
                 } else {
                     false
                 }
-            })
-        };
+            }
+        });
 
         let state = MenuComponent {
             app: app.clone(),
@@ -50,7 +49,7 @@ impl MenuComponent {
     }
 }
 
-fn render_menu(state: &MenuComponent) -> VDomComponent {
+fn render_menu(state: &MenuComponent) -> DomElement {
     let button_edit_file = render_button_edit_file(state);
     let button_create_file = render_button_create_file(state);
     let button_rename_name = render_button_rename_name(state);
@@ -60,7 +59,7 @@ fn render_menu(state: &MenuComponent) -> VDomComponent {
     let button_move_item = render_button_move_item(state);
     let button_todo = render_button_todo(state);
 
-    VDomComponent::dom(dom! {
+    dom! {
         <div css={css_footer()}>
             { button_edit_file }
             { button_create_file }
@@ -71,7 +70,7 @@ fn render_menu(state: &MenuComponent) -> VDomComponent {
             { button_move_item }
             { button_todo}
         </div>
-    })
+    }
 }
 
 fn render_button_on_delete(state: &MenuComponent) -> DomElement {

@@ -64,7 +64,7 @@ pub fn app_index_render(app: &App) -> VDomComponent {
         </div>
     });
 
-    let view_menu = MenuComponent::component(app);
+    let view_menu = VDomComponent::dom(MenuComponent::component(app));
 
     let on_click_path = bind(&app.data).call_param(|context, data, node_id: Vec<String>| {
         data.tab.set_path(context, node_id.clone());

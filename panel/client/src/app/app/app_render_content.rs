@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use vertigo::{Css, VDomElement, css, html, bind, Resource, VDomComponent, Context, dom, DomElement};
+use vertigo::{Css, css, html, bind, Resource, VDomComponent, Context, dom, DomElement, Computed, render_list, DomComment};
 
 use crate::app::App;
 use crate::components::list_items_from_dir;
@@ -57,75 +57,78 @@ fn open_css() -> Css {
     ")
 }
 
-fn render_content_text(context: &Context, state: &App, content: Rc<String>) -> Vec<VDomElement> {
-    let chunks = parse_text(content.as_str());
+fn render_content_chunk(state: &App, item: &ParseTextItem) -> DomElement {
+    match item {
+        ParseTextItem::Link { url, has_open } => {
+            let url = url.to_string();
 
-    let mut out: Vec<VDomElement> = Vec::new();
+            let link_label = match has_open {
+                true => "(zamknij)",
+                false => "(otwórz)"
+            };
 
-    for item in chunks {
-        match item {
-            ParseTextItem::Link { url } => {
-                let url = url.to_string();
+            let on_click = bind(state)
+                .and(&url)
+                .call(|context, state, url| {
+                    state.data.tab.open_links.tabs_toogle(context, url.clone());
+                });
 
-                let has_open = state.data.tab.open_links.tabs_has(context, &url);
-                let link_label = match has_open {
-                    true => "(zamknij)",
-                    false => "(otwórz)"
-                };
+            let img = if let Some(thumb) = get_thumbnail(url.as_str()) {
+                dom! {
+                    <img css={youtube_css()} src={thumb} />
+                }
+            } else {
+                dom! {
+                    <span></span>
+                }
+            };
 
-                let on_click = bind(state)
-                    .and(&url)
-                    .call(|context, state, url| {
-                        state.data.tab.open_links.tabs_toogle(context, url.clone());
-                    });
-
-                let img = if let Some(thumb) = get_thumbnail(url.as_str()) {
-                    html! {
-                        <img css={youtube_css()} src={thumb} />
-                    }
-                } else {
-                    html! {
-                        <span></span>
-                    }
-                };
-
-                out.push(html!{
-                    <span>
-                        <a href={url.clone()} target="_blank" css={link_css()}>
-                            <span>{url}</span>
-                            { img }
-                        </a>
-                        " "
-                        <span on_click={on_click} css={open_css()}>
-                            { link_label }
-                        </span>
+            dom!{
+                <span>
+                    <a href={url.clone()} target="_blank" css={link_css()}>
+                        <span>{url}</span>
+                        { img }
+                    </a>
+                    " "
+                    <span on_click={on_click} css={open_css()}>
+                        { link_label }
                     </span>
-                });
-            },
-            ParseTextItem::Text { text } => {
-                let text = text.to_string();
+                </span>
+            }
+        },
+        ParseTextItem::Text { text } => {
+            let text = text.to_string();
 
-                out.push(html!{
-                    <span>{ text }</span>
-                });
+            dom!{
+                <span>{ text }</span>
             }
         }
     }
+}
 
-    out
+fn render_content_text(state: &App, content: Rc<String>) -> DomComment {
+    let chunks = Computed::from({
+        let state = state.clone();
+        move |context| {
+            parse_text(content.as_str(), |url| {
+                state.data.tab.open_links.tabs_has(context, url)
+            })
+        }
+    });
+
+    render_list(
+        chunks,
+        |link| link.clone(),
+        {
+            let state = state.clone();
+            move |link| {
+                render_content_chunk(&state, link)
+            }
+        }
+    )
 }
 
 fn render_dir(context: &Context, data: &Data, dir: &Vec<String>) -> DomElement {
-    // let mut result = Vec::new();
-
-    // for item in list.get_list() {
-    //     result.push(html! {
-    //         <div>
-    //             { item.name }
-    //         </div>
-    //     })
-    // }
-
     let result = list_items_from_dir(context, data, dir, false);
 
     let out = dom! {
@@ -160,11 +163,16 @@ pub fn render_content(state: &App) -> VDomComponent {
             Resource::Ready(content) => {
                 match content {
                     ContentType::Text { content } => {
-                        let out: Vec<VDomElement> = render_content_text(context, state, content);
+                        let out = render_content_text(state, content);
+                        let out = VDomComponent::dom(dom! {         //TODO do usunięcia ten nadmiarowy div
+                            <div>
+                                { out }
+                            </div>
+                        });
 
                         html! {
                             <div css={css_content_file()}>
-                                { ..out }
+                                { out }
                             </div>
                         }
                     },

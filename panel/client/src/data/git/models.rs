@@ -64,6 +64,11 @@ pub struct ViewDirList {
     list: Rc<HashMap<String, TreeItem>>,
 }
 
+impl PartialEq for ViewDirList {
+    fn eq(&self, other: &Self) -> bool {
+        self.dir_path == other.dir_path && self.list == other.list
+    }
+}
 
 impl ViewDirList {
     pub fn new(dir: &Dir, content: &Content, base_dir: Rc<Vec<String>>, list: GitDirList) -> ViewDirList {
@@ -121,7 +126,7 @@ impl ViewDirList {
 }
 
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum ContentType {
     Dir {
         list: ViewDirList
