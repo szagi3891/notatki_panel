@@ -1,7 +1,7 @@
 use vertigo::{
-    html, css, Css,
-    VDomElement, Resource,
-    bind, VDomComponent, DomElement, dom, Context
+    css, Css,
+    Resource,
+    bind, DomElement, dom, Context, Computed, render_value, DomComment
 };
 use crate::data::{Data, ListItem};
 use crate::components::icon;
@@ -50,7 +50,7 @@ fn icon_wrapper_svg() -> Css {
 
 //https://css.gg/play-button
 
-fn icon_arrow(show: bool) -> DomElement {
+fn icon_arrow_render(show: bool) -> DomElement {
     if show {
         dom! {
             <div css={icon_arrow_wrapper()}>
@@ -75,6 +75,12 @@ fn icon_arrow(show: bool) -> DomElement {
     }
 }
 
+fn icon_arrow(show: Computed<bool>) -> DomComment {
+    render_value(show, |show| {
+        Some(icon_arrow_render(show))
+    })
+}
+
 fn label_css(prirority: u8) -> Css {
     if prirority == 2 {
         return css!("
@@ -96,22 +102,12 @@ fn label_css(prirority: u8) -> Css {
 }
 
 pub fn item_dot_html(on_click: impl Fn() + 'static) -> DomElement {
-    // create_node("div")
-    //     .on_click(on_click)
-    //     .css(css_normal(false, false))
-    //     .child(icon_arrow(false))
-    //     .child(icon::icon_render(true))
-    //     .child(create_node("span")
-    //         .css(label_css(1))
-    //         .text("..")
-    // )
-
     dom!{
         <div
             on_click={on_click}
             css={css_normal(false, false)}
         >
-            {icon_arrow(false)}
+            {icon_arrow_render(false)}
             {icon::icon_render(true)}
             <span css={label_css(1)}>
                 ".."
@@ -120,33 +116,50 @@ pub fn item_dot_html(on_click: impl Fn() + 'static) -> DomElement {
     }
 }
 
-pub fn item_default(data: &Data, context: &Context, item: &ListItem, on_click: impl Fn() + 'static) -> VDomElement {
-    let current_item = data.tab.current_item.get(context);
-    let current_hover = data.tab.item_hover.get(context);
+pub fn item_default(data: &Data, item: &ListItem, on_click: impl Fn() + 'static) -> DomElement {
+    let css_wrapper = Computed::from({
+        let data = data.clone();
+        let item = item.clone();
+        move |context| {
+            let current_item = data.tab.current_item.get(context);
+            let current_hover = data.tab.item_hover.get(context);
 
-    let is_select = {
-        if let Some(list_pointer) = &current_item {
-            item.name == *list_pointer
-        } else {
-            false
+            let is_select = if let Some(list_pointer) = &current_item {
+                item.name == *list_pointer
+            } else {
+                false
+            };
+
+            let is_hover = if let Some(hover) = &current_hover {
+                hover == &(item.name)
+            } else {
+                false
+            };
+
+            css_normal(is_select, is_hover)
         }
-    };
+    });
 
-    let is_hover = {
-        if let Some(hover) = &current_hover {
-            *hover == item.name
-        } else {
-            false
+    let is_select = Computed::from({
+        let data = data.clone();
+        let item = item.clone();
+        move |context| {
+            let current_item = data.tab.current_item.get(context);
+            if let Some(list_pointer) = &current_item {
+                item.name == *list_pointer
+            } else {
+                false
+            }
         }
-    };
+    });
 
-    html!{
+    dom!{
         <div
             on_click={on_click}
-            css={css_normal(is_select, is_hover)}
+            css={css_wrapper}
         >
-            {VDomComponent::dom(icon_arrow(is_select))}
-            {VDomComponent::dom(icon::icon_render(item.is_dir))}
+            {icon_arrow(is_select)}
+            {icon::icon_render(item.is_dir)}
             <span css={label_css(item.prirority())}>
                 {remove_prefix(&item.name)}
             </span>
@@ -155,61 +168,59 @@ pub fn item_default(data: &Data, context: &Context, item: &ListItem, on_click: i
 }
 
 
-pub fn item_default_render(data: &Data, item: &ListItem, mouse_over_enable: bool) -> VDomComponent {
+pub fn item_default_render(data: &Data, item: &ListItem, mouse_over_enable: bool) -> DomElement {
     let data = data.clone();
     let item = item.clone();
 
-    VDomComponent::from_fn(move |context| {
-        // let current_item = data.tab.current_item.get();
-        // let current_hover = data.tab.item_hover.get();
+    // let current_item = data.tab.current_item.get();
+    // let current_hover = data.tab.item_hover.get();
 
-        // let is_select = {
-        //     if let Some(list_pointer) = &current_item {
-        //         item.name == *list_pointer
-        //     } else {
-        //         false
-        //     }
-        // };
+    // let is_select = {
+    //     if let Some(list_pointer) = &current_item {
+    //         item.name == *list_pointer
+    //     } else {
+    //         false
+    //     }
+    // };
 
-        let on_click = {
-            bind(&data.tab)
-                .and(&item)
-                .call(|_, tab, item| {
-                    tab.redirect_to_item(item.clone());
-                })
-        };
+    let on_click = {
+        bind(&data.tab)
+            .and(&item)
+            .call(|_, tab, item| {
+                tab.redirect_to_item(item.clone());
+            })
+    };
 
-        let element = item_default(&data, context, &item, on_click);
+    let element = item_default(&data, &item, on_click);
 
-        // let element = if is_select {
-        //     element.dom_ref("active")
-        // } else {
-        //     element
-        // };
+    // let element = if is_select {
+    //     element.dom_ref("active")
+    // } else {
+    //     element
+    // };
 
-        let element = if mouse_over_enable {
+    let element = if mouse_over_enable {
 
-            let mouse_over_enter = bind(&item)
-                .and(&data.tab)
-                .call(|_, item, tab| {
-                    tab.hover_on(item.name.as_str());
-                });
+        let mouse_over_enter = bind(&item)
+            .and(&data.tab)
+            .call(|_, item, tab| {
+                tab.hover_on(item.name.as_str());
+            });
 
-            let mouse_over_leave = bind(&item)
-                .and(&data.tab)
-                .call(|context, item, tab| {
-                    tab.hover_off(context, item.name.as_str());
-                });
-
-            element
-                .on_mouse_enter(mouse_over_enter)
-                .on_mouse_leave(mouse_over_leave)
-        } else {
-            element
-        };
+        let mouse_over_leave = bind(&item)
+            .and(&data.tab)
+            .call(|context, item, tab| {
+                tab.hover_off(context, item.name.as_str());
+            });
 
         element
-    })
+            .on_mouse_enter(mouse_over_enter)
+            .on_mouse_leave(mouse_over_leave)
+    } else {
+        element
+    };
+
+    element
 }
 
 fn css_image() -> Css {
@@ -222,33 +233,31 @@ fn css_image() -> Css {
     ")
 }
 
-fn item_image_render(data: &Data, item: &ListItem, ext: String) -> VDomComponent {
+fn item_image_render(data: &Data, item: &ListItem, ext: String) -> DomElement {
     let data = data.clone();
     let item = item.clone();
 
-    VDomComponent::from_fn(move |_| {
-        let id = item.id.clone();
-        let url = format!("/image/{id}/{ext}");
+    let id = item.id.clone();
+    let url = format!("/image/{id}/{ext}");
 
-        let on_click = bind(&item)
-            .and(&data.tab)
-            .call(|_, item, tab| {
-                tab.redirect_to_item(item.clone());
-            });
+    let on_click = bind(&item)
+        .and(&data.tab)
+        .call(|_, item, tab| {
+            tab.redirect_to_item(item.clone());
+        });
 
-        html!{
-            <img
-                css={css_image()}
-                src={&url}
-                on_click={on_click}
-            />
-        }
-    })
+    dom!{
+        <img
+            css={css_image()}
+            src={url}
+            on_click={on_click}
+        />
+    }
 }
 
-pub fn list_items_from_vec(data: &Data, list: Vec<ListItem>, mouse_over_enable: bool) -> Vec<VDomComponent> {
-    let mut out: Vec<VDomComponent> = Vec::new();
-    let mut picture: Vec<VDomComponent> = Vec::new();
+pub fn list_items_from_vec(data: &Data, list: Vec<ListItem>, mouse_over_enable: bool) -> Vec<DomElement> {
+    let mut out: Vec<DomElement> = Vec::new();
+    let mut picture: Vec<DomElement> = Vec::new();
 
     for item in list.iter() {
         if mouse_over_enable {
@@ -267,7 +276,7 @@ pub fn list_items_from_vec(data: &Data, list: Vec<ListItem>, mouse_over_enable: 
     out
 }
 
-pub fn list_items_from_dir(context: &Context, data: &Data, dir: &Vec<String>, mouse_over_enable: bool) -> Vec<VDomComponent> {
+pub fn list_items_from_dir(context: &Context, data: &Data, dir: &Vec<String>, mouse_over_enable: bool) -> Vec<DomElement> {
     let current = data.git.dir_list(context, dir);
 
     let list = match current {

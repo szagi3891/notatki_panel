@@ -1,6 +1,6 @@
 use vertigo::{
     Css,
-    VDomComponent,
+    VDomComponent, dom,
 };
 
 use vertigo::{html, css, bind};
@@ -58,15 +58,23 @@ fn css_content_content() -> Css {
 }
 
 pub fn app_index_render(app: &App) -> VDomComponent {
+    let view_alert = VDomComponent::dom(dom! {                     //TODO - usunąć nadmiarowego diva
+        <div>
+            {app.alert.render()}
+        </div>
+    });
 
-    let view_alert = app.alert.render();
     let view_menu = MenuComponent::component(app);
 
     let on_click_path = bind(&app.data).call_param(|context, data, node_id: Vec<String>| {
         data.tab.set_path(context, node_id.clone());
     });
     
-    let view_header = render_path(&app.data.tab.router.path, on_click_path);
+    let view_header = VDomComponent::dom(dom! {                     //TODO - usunąć nadmiarowego diva
+        <div>
+            {render_path(&app.data.tab.router.path, on_click_path)}
+        </div>
+    });
 
     let view_list = render_list(app);
     let view_content = render_content(app);

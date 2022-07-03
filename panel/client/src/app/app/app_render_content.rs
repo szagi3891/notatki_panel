@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use vertigo::{Css, VDomElement, css, html, bind, Resource, VDomComponent, Context};
+use vertigo::{Css, VDomElement, css, html, bind, Resource, VDomComponent, Context, dom, DomElement};
 
 use crate::app::App;
 use crate::components::list_items_from_dir;
@@ -115,7 +115,7 @@ fn render_content_text(context: &Context, state: &App, content: Rc<String>) -> V
     out
 }
 
-fn render_dir(context: &Context, data: &Data, dir: &Vec<String>) -> VDomElement {
+fn render_dir(context: &Context, data: &Data, dir: &Vec<String>) -> DomElement {
     // let mut result = Vec::new();
 
     // for item in list.get_list() {
@@ -128,11 +128,15 @@ fn render_dir(context: &Context, data: &Data, dir: &Vec<String>) -> VDomElement 
 
     let result = list_items_from_dir(context, data, dir, false);
 
-    html! {
-        <div css={css_content_dir()}>
-            { ..result }
-        </div>
+    let out = dom! {
+        <div css={css_content_dir()} />
+    };
+
+    for child in result.into_iter() {
+        out.add_child(child);
     }
+
+    out
 }
 
 pub fn render_content(state: &App) -> VDomComponent {
@@ -173,7 +177,14 @@ pub fn render_content(state: &App) -> VDomComponent {
                         }
                     },
                     ContentType::Dir { list } => {
-                        render_dir(context, &state.data, list.dir_path().as_ref())
+                        let out = VDomComponent::dom(render_dir(context, &state.data, list.dir_path().as_ref()));
+
+                                            //TODO - usunąć tego nadmiarowego diva
+                        html! {
+                            <div>
+                                { out }
+                            </div>
+                        }
                     },
                 }
             },

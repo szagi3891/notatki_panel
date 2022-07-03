@@ -1,5 +1,4 @@
-use vertigo::{Value, VDomElement, VDomComponent, Context};
-use vertigo::{html};
+use vertigo::{Value, Context, render_value, DomComment, dom};
 use crate::app::App;
 use crate::app::app::alert::app_index_alert_delete_state::AppIndexAlertDelete;
 use crate::app::app::alert::app_index_alert_search_state::AppIndexAlertSearch;
@@ -13,6 +12,18 @@ enum AlertView {
     DeleteFile { state: AppIndexAlertDelete },
     SearchInPath { state: AppIndexAlertSearch },
     MoveItem { state: AppIndexAlertMoveitem },                       //TODO - zaimplementować
+}
+
+impl PartialEq for AlertView {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::None, Self::None) => true,
+            (Self::DeleteFile { .. }, Self::DeleteFile { .. }) => true,
+            (Self::SearchInPath { .. }, Self::SearchInPath { .. }) => true,
+            (Self::MoveItem { .. }, Self::MoveItem { .. }) => true,
+            _ => false,
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -31,8 +42,8 @@ impl AppIndexAlert {
         }
     }
 
-    pub fn render(&self) -> VDomComponent {
-        VDomComponent::from(self.clone(), app_index_alert_render)
+    pub fn render(&self) -> DomComment {
+        app_index_alert_render(self)
     }
 
     pub fn is_visible(&self, context: &Context) -> bool {
@@ -41,7 +52,6 @@ impl AppIndexAlert {
             AlertView::None => false,
             _ => true
         }
-        // *view != AlertView::None
     }
 
     pub fn delete(&self, context: &Context, app: App, path: Vec<String>) {
@@ -78,40 +88,34 @@ impl AppIndexAlert {
 }
 
 
-fn app_index_alert_render(context: &Context, alert: &AppIndexAlert) -> VDomElement {
-    match alert.view.get(context) {
-        AlertView::None => {
-            html! {
-                <div />
-            }
-        },
-        AlertView::DeleteFile { state } => {
-            let view = state.render();
-
-            html! {
-                <div>
-                    { view }
-                </div>
-            }
-        },
-        AlertView::SearchInPath { state } => {
-            let view = state.render();
-
-            html! {
-                <div>
-                    { view }
-                </div>
-            }
-        },
-        AlertView::MoveItem { state } => {
-            let view = state.render();
-
-            html! {
-                <div>
-                    { view }
-                </div>
+fn app_index_alert_render(alert: &AppIndexAlert) -> DomComment {
+    render_value(alert.view.to_computed(), |view| {
+        match view {
+            AlertView::None => {
+                None
+            },
+            AlertView::DeleteFile { state } => {
+                Some(dom! {
+                    <div>
+                        { state.render() }
+                    </div>
+                })
+            },
+            AlertView::SearchInPath { state } => {
+                Some(dom! {
+                    <div>
+                        { state.render() }
+                    </div>
+                })
+            },
+            AlertView::MoveItem { state } => {
+                Some(dom! {
+                    <div>
+                        { state.render() }
+                    </div>
+                })
             }
         }
-    }
+    })
 }
 

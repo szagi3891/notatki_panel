@@ -238,9 +238,9 @@ dependencies = [
 
 [[package]]
 name = "crypto-common"
-version = "0.1.3"
+version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "57952ca27b5e3606ff4dd79b0020231aaf9d6aa76dc05fd30137538c50bd3ce8"
+checksum = "5999502d32b9c48d492abe66392408144895020ec4709e549e840799f3bb74c0"
 dependencies = [
  "generic-array 0.14.5",
  "typenum",
@@ -1793,7 +1793,7 @@ checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
 [[package]]
 name = "vertigo"
 version = "0.1.0-beta.4"
-source = "git+https://github.com/vertigo-web/vertigo?branch=builder#69cb68bdaa41ba8a4be46d4f9a4c1b423965e900"
+source = "git+https://github.com/vertigo-web/vertigo?branch=builder#99da8ec48a33858acf3a91de2818ce6c6af6e5a9"
 dependencies = [
  "log",
  "serde_json",
@@ -1803,7 +1803,7 @@ dependencies = [
 [[package]]
 name = "vertigo-macro"
 version = "0.1.0-beta.4"
-source = "git+https://github.com/vertigo-web/vertigo?branch=builder#69cb68bdaa41ba8a4be46d4f9a4c1b423965e900"
+source = "git+https://github.com/vertigo-web/vertigo?branch=builder#99da8ec48a33858acf3a91de2818ce6c6af6e5a9"
 dependencies = [
  "itertools",
  "pest",

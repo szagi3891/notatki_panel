@@ -1,8 +1,7 @@
 use common::{HandlerDeleteItemBody};
 use vertigo::{
-    VDomComponent,
     Value,
-    bind, get_driver, html, Resource, Computed, Context,
+    bind, get_driver, Resource, Computed, Context, DomElement, dom,
 };
 use crate::{components::{AlertBox, ButtonState}, app::{response::check_request_response, App}};
 
@@ -64,11 +63,11 @@ impl AppIndexAlertDelete {
         context
     }
 
-    pub fn bind_delete_yes(&self) -> VDomComponent {
+    pub fn bind_delete_yes(&self) -> DomElement {
         let state = self.clone();
         let app = self.app.clone();
 
-        VDomComponent::dom(ButtonState::render(Computed::from(move |context| {
+        ButtonState::render(Computed::from(move |context| {
             let full_path = state.full_path.clone();
             let item = state.alert.data.git.content_from_path(context, &full_path);
 
@@ -85,13 +84,13 @@ impl AppIndexAlertDelete {
             }
 
             ButtonState::disabled("Tak")
-        })))
+        }))
     }
 
-    pub fn bind_delete_no(&self) -> VDomComponent {
+    pub fn bind_delete_no(&self) -> DomElement {
         let state = self.clone();
 
-        VDomComponent::dom(ButtonState::render(Computed::from(move |_| {
+        ButtonState::render(Computed::from(move |_| {
             let action = bind(&state).call(|context, state| {
                 if state.progress.get(context) {
                     return;
@@ -101,10 +100,10 @@ impl AppIndexAlertDelete {
             });
 
             ButtonState::active("Nie", action)
-        })))
+        }))
     }
 
-    pub fn render(&self) -> VDomComponent {
+    pub fn render(&self) -> DomElement {
         let message = render_message(self);
         let progress = self.progress.to_computed();
         AlertBox::new(message)
@@ -115,14 +114,12 @@ impl AppIndexAlertDelete {
     }
 }
 
-fn render_message(state: &AppIndexAlertDelete) -> VDomComponent {
-    VDomComponent::from_ref(state, |_, state| {
-        let full_path = state.full_path.clone();
-        let message = format!("Czy usunąć -> {} ?", full_path.join("/"));
-        html!{
-            <div>
-                { message }
-            </div>
-        }
-    })
+fn render_message(state: &AppIndexAlertDelete) -> DomElement {
+    let full_path = state.full_path.clone();
+    let message = format!("Czy usunąć -> {} ?", full_path.join("/"));
+    dom!{
+        <div>
+            { message }
+        </div>
+    }
 }

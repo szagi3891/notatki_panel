@@ -1,10 +1,10 @@
-use vertigo::VDomComponent;
+use vertigo::{DomElement, dom, render_value, DomComment, DomNode};
 
 use vertigo::{
     Css,
     Computed,
 };
-use vertigo::{html, css};
+use vertigo::{css};
 
 fn css_bg() -> Css {
     css!("
@@ -65,39 +65,29 @@ fn css_progress() -> Css {
     ")
 }
 
-fn render_progress(progress: Option<Computed<bool>>) -> VDomComponent {
-    VDomComponent::from(progress, |context, progress| {
-        if let Some(progress) = progress {
-            let progress = progress.get(context);
-
-            if progress {
-                return html! {
-                    <div css={css_progress()}>
-                        "Przetwarzanie ..."
-                    </div>
-                }
-            }
-
-            html! {
-                <div/>
-            }
+fn render_progress(progress: Computed<bool>) -> DomComment {
+    render_value(progress, |progress| {
+        if progress {
+            Some(dom! {
+                <div css={css_progress()}>
+                    "Przetwarzanie ..."
+                </div>
+            })
         } else {
-            html! {
-                <div/>
-            }
+            None
         }
     })
 }
 
 pub struct AlertBox {
-    message: VDomComponent,
+    message: DomElement,
     progress: Option<Computed<bool>>,
-    buttons: Vec<VDomComponent>,
-    content: Option<VDomComponent>,
+    buttons: Vec<DomElement>,
+    content: Option<DomNode>,
 }
 
 impl AlertBox {
-    pub fn new(message: VDomComponent) -> AlertBox {
+    pub fn new(message: DomElement) -> AlertBox {
         AlertBox {
             message,
             progress: None,
@@ -111,63 +101,59 @@ impl AlertBox {
         self
     }
 
-    pub fn button(mut self, component: VDomComponent) -> Self {
+    pub fn button(mut self, component: DomElement) -> Self {
         self.buttons.push(component);
         self
     }
 
-    pub fn set_content(mut self, content: VDomComponent) -> Self {
-        self.content = Some(content);
+    pub fn set_content(mut self, content: impl Into<DomNode>) -> Self {
+        self.content = Some(content.into());
         self
     }
 
-    pub fn render_popup(content: VDomComponent) -> VDomComponent {
-        VDomComponent::from_fn(move |_| {
-            html! {
-                <div css={css_bg()}>
-                    <div css={css_center()}>
-                        {content.clone()}
-                    </div>
+    pub fn render_popup(content: DomElement) -> DomElement {
+        dom! {
+            <div css={css_bg()}>
+                <div css={css_center()}>
+                    {content}
                 </div>
-            }
-        })
+            </div>
+        }
     }
 
-    pub fn render(self) -> VDomComponent {
+    pub fn render(self) -> DomElement {
         let AlertBox { message, progress, buttons, content } = self;
-        let progress = render_progress(progress);
 
-        let content = match content {
-            Some(content) => {
-                html! {
-                    <div>
-                        { content }
-                    </div>
-                }
-            },
-            None => html! {
-                <div />
-            }
-        };
-
-        let content = VDomComponent::from_fn(move |_| {
-            html! {
-                <div>
-                    <div css={css_message()}>
-                        { message.clone() }
-                    </div>
-
-                    { progress.clone() }
-
-                    <div css={css_buttons_wrapper()}>
-                        { ..buttons.clone() }
-                    </div>
-
-                    { content.clone() }
+        let result = dom! {
+            <div>
+                <div css={css_message()}>
+                    { message.clone() }
                 </div>
-            }
-        });
+            </div>
+        };
+    
+        if let Some(progress) = progress {
+            result.add_child(render_progress(progress));
+        }
 
-        Self::render_popup(content)
+        if buttons.len() > 0 {
+            let buttons_wrapper = dom! { <div css={css_buttons_wrapper()}/> };
+
+            for button in buttons.into_iter() {
+                buttons_wrapper.add_child(button);
+            }
+
+            result.add_child(buttons_wrapper);
+        }
+
+        if let Some(content) = content {
+            result.add_child(dom! {
+                <div>
+                    { content }
+                </div>
+            });
+        }
+    
+        Self::render_popup(result)
     }
 }

@@ -1,11 +1,10 @@
 use std::rc::Rc;
 
 use vertigo::{
-    VDomElement,
     Css,
-    bind, VDomComponent, Computed,
+    bind, Computed, render_value, DomComment, dom, DomElement,
 };
-use vertigo::{html, css};
+use vertigo::{css};
 
 fn css_header() -> Css {
     css!("
@@ -50,11 +49,11 @@ fn create_link(
     create_css: fn(bool) -> Css,
     is_active: bool,
     on_click: Rc<dyn Fn(Vec<String>) + 'static>,
-) -> VDomElement {
+) -> DomElement {
     if is_active {
         let css = create_css(true);
 
-        return html! {
+        return dom! {
             <div css={css}>
                 { title }
             </div>
@@ -69,41 +68,42 @@ fn create_link(
 
     let css = create_css(false);
 
-    html! {
+    dom! {
         <div css={css} on_click={on_click}>
             { title }
         </div>
     }
 }
 
-pub fn render_path(path: &Computed<Vec<String>>, on_click: impl Fn(Vec<String>) + 'static) -> VDomComponent {
+pub fn render_path(path: &Computed<Vec<String>>, on_click: impl Fn(Vec<String>) + 'static) -> DomComment {
     let path = path.clone();
     let on_click = Rc::new(on_click);
 
-    VDomComponent::from_fn(move |context| {
-        let current_path = path.get(context);
-        let all_items = current_path.len();
+    let current_path = path.clone();
 
-        let mut out: Vec<VDomElement> = Vec::new();
+    render_value(current_path, {
+        move |current_path| {
+            let all_items = current_path.len();
 
-        let home = '\u{1F3E0}';         //ikonka domu
-    
-        let root_is_active = all_items == 0;
-        out.push(create_link(format!("{home} root"), Vec::new(), css_item, root_is_active, on_click.clone()));
+            let result = dom! {
+                <div css={css_header()} />
+            };
 
-        let mut wsk_current_path = Vec::<String>::new();
+            let home = '\u{1F3E0}';         //ikonka domu
 
-        for (index, item) in current_path.iter().enumerate() {
-            wsk_current_path.push(item.clone());
+            let root_is_active = all_items == 0;
+            result.add_child(create_link(format!("{home} root"), Vec::new(), css_item, root_is_active, on_click.clone()));
 
-            let is_active = index == all_items - 1;
-            out.push(create_link(item.clone(), wsk_current_path.clone(), css_item, is_active, on_click.clone()));
-        }
+            let mut wsk_current_path = Vec::<String>::new();
 
-        html! {
-            <div css={css_header()}>
-                { ..out }
-            </div>
+            for (index, item) in current_path.iter().enumerate() {
+                wsk_current_path.push(item.clone());
+
+                let is_active = index == all_items - 1;
+                result.add_child(create_link(item.clone(), wsk_current_path.clone(), css_item, is_active, on_click.clone()));
+            }
+
+            Some(result)
         }
     })
 }

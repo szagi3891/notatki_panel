@@ -1,6 +1,6 @@
 // use vertigo::dev::NodeRefs;
 use vertigo::{
-    Css, VDomComponent,
+    Css, VDomComponent, dom,
 };
 use vertigo::{css, html};
 use crate::app::App;
@@ -65,9 +65,21 @@ pub fn render_list(state: &App) -> VDomComponent {
 
         //dom_ref="wrapper" dom_apply={dom_apply}
 
+        let container = dom! {
+            <div css={css_wrapper()} />
+        };
+
+        for child in out.into_iter() {
+            container.add_child(child);
+        }
+
+        let container = VDomComponent::dom(container);
+
+
+                        //TODO - usunąć nadmiarowy wrapper
         html! {
             <div css={css_wrapper()}>
-                { ..out }
+                { container }
             </div>
         }
     })

@@ -1,5 +1,5 @@
-use vertigo::{Css, Resource, VDomElement, Computed, Value, VDomComponent, bind, Context};
-use vertigo::{css, html};
+use vertigo::{Css, Resource, Computed, Value, bind, Context, DomElement, dom, render_list};
+use vertigo::{css};
 use crate::data::ListItem;
 use crate::{components::AlertBox, data::{Data}};
 use crate::components::icon;
@@ -122,77 +122,91 @@ impl AppIndexAlertSearch {
         }
     }
 
-    pub fn render(&self) -> VDomComponent {
+    pub fn render(&self) -> DomElement {
         render(self)
     }
 }
 
 
-fn render_results(context: &Context, search: &AppIndexAlertSearch) -> VDomElement {
-    let results = search.results.get(context);
+fn render_results(search: &AppIndexAlertSearch) -> DomElement {
+    let search = search.clone();
 
-    let mut list = Vec::<VDomElement>::new();
+    let list = render_list(
+        search.results.clone(),
+        |item| item.to_string(),
+        move |item| {
+            let on_click = bind(&search)
+                .and(item)
+                .call(|_, search, item| {
+                    search.alert.close_modal();
+                    search.alert.data.tab.redirect_to_item(item.clone());
+                })
+            ;
 
-    for item in results.iter() {
-        let on_click = bind(search)
-            .and(item)
-            .call(|_, search, item| {
-                search.alert.close_modal();
-                search.alert.data.tab.redirect_to_item(item.clone());
-            })
-        ;
+            let icon_el = icon::icon_render(item.is_dir);
+            let path = item.to_string();
 
-        let icon_el = VDomComponent::dom(icon::icon_render(item.is_dir));
-        let path = item.to_string();
-
-        list.push(html! {
-            <div css={css_result_row()} on_click={on_click}>
-                <div css={css_result_icon()}>
-                    {icon_el}
+            dom! {
+                <div css={css_result_row()} on_click={on_click}>
+                    <div css={css_result_icon()}>
+                        {icon_el}
+                    </div>
+                    {path}
                 </div>
-                {path}
-            </div>
-        });
-    }
+            }
+        }
+    );
 
-    html! {
+    dom! {
         <div css={css_result()}>
-            {..list}
+            {list}
         </div>
     }
 }
 
-pub fn render(search: &AppIndexAlertSearch) -> VDomComponent {
+fn render_input(search: &AppIndexAlertSearch) -> DomElement {
+    let current_value = search.phrase.to_computed();
 
-    let results = VDomComponent::from_ref(search, render_results);
-
-    let content = VDomComponent::from_ref(search, move |context, search: &AppIndexAlertSearch| {
-        let current_value = search.phrase.get(context);
-
-        let on_input = bind(search).call_param(|_, search, new_value| {
-            search.phrase.set(new_value);
-        });
-
-        let on_close = bind(search).call(|_, search| {
-            search.alert.close_modal();
-        });
-
-        html! {
-            <div css={css_content()}>
-                <input autofocus="" value={current_value} on_input={on_input} />
-                <br/>
-                
-                <div css={css_close()} on_click={on_close}>
-                    "zamknij"
-                </div>
-
-                <br/>
-                <br/>
-
-                { results.clone() }
-            </div>
-        }
+    let on_input = bind(search).call_param(|_, search, new_value| {
+        search.phrase.set(new_value);
     });
+
+    dom! {
+        <input autofocus="" value={current_value} on_input={on_input} />
+    }
+}
+
+fn render_close(search: &AppIndexAlertSearch) -> DomElement {
+    let on_close = bind(search).call(|_, search| {
+        search.alert.close_modal();
+    });
+
+    dom! {
+        <div css={css_close()} on_click={on_close}>
+            "zamknij"
+        </div>
+    }
+}
+pub fn render(search: &AppIndexAlertSearch) -> DomElement {
+
+    let results = render_results(search);
+
+    let input_view = render_input(search);
+    let close_view = render_close(search);
+
+    let content = dom! {
+        <div css={css_content()}>
+            { input_view }
+            <br/>
+            
+            { close_view }
+
+            <br/>
+            <br/>
+
+            { results }
+        </div>
+    };
 
     AlertBox::render_popup(content)
 }

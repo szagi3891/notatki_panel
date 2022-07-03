@@ -1,5 +1,5 @@
 use common::HandlerMoveItemBody;
-use vertigo::{VDomComponent, Value, Resource, Computed, html, bind, css, Css, get_driver, render_value, dom, transaction, Context};
+use vertigo::{Value, Resource, Computed, bind, css, Css, get_driver, render_value, dom, transaction, Context, DomElement, DomComment};
 
 use crate::{components::{AlertBox, item_default, item_dot_html, ButtonState, render_path}, data::ListItem, app::{response::check_request_response, App}};
 
@@ -71,12 +71,12 @@ impl AppIndexAlertMoveitem {
         (check_request_response(response), context)
     }
 
-    pub fn render(&self) -> VDomComponent {
+    pub fn render(&self) -> DomElement {
         render(self)
     }
 }
 
-fn render_target(state: &AppIndexAlertMoveitem) -> VDomComponent {
+fn render_target(state: &AppIndexAlertMoveitem) -> DomElement {
     fn css_wrapper() -> Css {
         css!("
             margin-top: 5px;
@@ -90,22 +90,20 @@ fn render_target(state: &AppIndexAlertMoveitem) -> VDomComponent {
     
     let target_path = render_path(&state.target.to_computed(), on_click_path);
 
-    VDomComponent::from_fn(move |_| {
-        html! {
-            <div css={css_wrapper()}>
-                { target_path.clone() }
-            </div>
-        }
-    })
+    dom! {
+        <div css={css_wrapper()}>
+            { target_path }
+        </div>
+    }
 }
 
-fn render_back(state: &AppIndexAlertMoveitem) -> VDomComponent {
+fn render_back(state: &AppIndexAlertMoveitem) -> DomComment {
     let state = state.clone();
     let target_is_empty = state.target.to_computed().map(|target| {
         target.is_empty()
     });
 
-    let component = render_value(target_is_empty, move |is_empty| {
+    render_value(target_is_empty, move |is_empty| {
         match is_empty {
             true => None,
             false => {
@@ -119,19 +117,10 @@ fn render_back(state: &AppIndexAlertMoveitem) -> VDomComponent {
                 Some(item_dot_html(on_click))
             }
         }  
-    });
-
-    let dom = dom! {
-        <div>
-            {component}
-        </div>
-    };
-
-    
-    VDomComponent::dom(dom)
+    })
 }
 
-fn render_list(state: &AppIndexAlertMoveitem) -> VDomComponent {
+fn render_list(state: &AppIndexAlertMoveitem) -> DomComment  {
     fn css_list() -> Css {
         css!("
             max-height: 70vh;
@@ -163,62 +152,64 @@ fn render_list(state: &AppIndexAlertMoveitem) -> VDomComponent {
         move |context| list_calculate(context, &alert, &target)
     });
 
-    let target_view = render_target(state);
-    let back_view = render_back(state);
 
-    VDomComponent::from_fn(move |context| {
-        let list = list.get(context);
+    render_value(list, {
+        let state = state.clone();
 
-        match list {
-            Resource::Ready(list) => {
-                let mut out = Vec::new();
+        move |list| {
+            match list {
+                Resource::Ready(list) => {
+                    let target_view = render_target(&state);
+                    let back_view = render_back(&state);
+                
+                    let out = dom! {
+                        <div css={css_list()}>
+                            { target_view }
+                            { back_view }
+                        </div>
+                    };
 
-                for item in list {
-                    let on_click = bind(&item)
-                        .and(&target)
-                        .call(|context, item, target| {
-                            log::info!("kliknięto w element {name}", name = item.name);
+                    for item in list {
+                        let on_click = bind(&item)
+                            .and(&target)
+                            .call(|context, item, target| {
+                                log::info!("kliknięto w element {name}", name = item.name);
 
-                            let mut target_value = target.get(context);
-                            target_value.push(item.name.clone());
-                            target.set(target_value);
-                        });
+                                let mut target_value = target.get(context);
+                                target_value.push(item.name.clone());
+                                target.set(target_value);
+                            });
 
-                    out.push(item_default(&data, context, &item, on_click));
-                }
+                        out.add_child(item_default(&data, &item, on_click));
+                    }
 
-                html! {
-                    <div css={css_list()}>
-                        { target_view.clone() }
-                        { back_view.clone() }
-                        { ..out }
-                    </div>
-                }
-            },
-            Resource::Error(error) => {
-                let message = format!("error = {error}");
+                    Some(out)
+                },
+                Resource::Error(error) => {
+                    let message = format!("error = {error}");
 
-                html! {
-                    <div>
-                        { message }
-                    </div>
-                }
-            },
-            Resource::Loading => {
-                html! {
-                    <div>
-                        "Loading ..."
-                    </div>
+                    Some(dom! {
+                        <div>
+                            { message }
+                        </div>
+                    })
+                },
+                Resource::Loading => {
+                    Some(dom! {
+                        <div>
+                            "Loading ..."
+                        </div>
+                    })
                 }
             }
         }
     })
 }
 
-fn render_button_yes(state: &AppIndexAlertMoveitem) -> VDomComponent {
+fn render_button_yes(state: &AppIndexAlertMoveitem) -> DomElement {
     let state = state.clone();
 
-    VDomComponent::dom(ButtonState::render(Computed::from(move |context| {
+    ButtonState::render(Computed::from(move |context| {
         let mut path = state.path.clone();
         path.pop();
 
@@ -260,13 +251,13 @@ fn render_button_yes(state: &AppIndexAlertMoveitem) -> VDomComponent {
             });
         
         ButtonState::active("Tak", action)
-    })))
+    }))
 }
 
-fn render_button_no(state: &AppIndexAlertMoveitem) -> VDomComponent {
+fn render_button_no(state: &AppIndexAlertMoveitem) -> DomElement {
     let state = state.clone();
 
-    VDomComponent::dom(ButtonState::render(Computed::from(move |_| {
+    ButtonState::render(Computed::from(move |_| {
         ButtonState::active("Nie", {
             let state = state.clone();
             move || {
@@ -277,22 +268,20 @@ fn render_button_no(state: &AppIndexAlertMoveitem) -> VDomComponent {
                 });
             }
         })
-    })))
+    }))
 }
 
-fn render_message(state: &AppIndexAlertMoveitem) -> VDomComponent {
-    VDomComponent::from_ref(state, |_, state| {
-        let message = format!("Przenoszenie -> {} ?", state.path.join("/"));
+fn render_message(state: &AppIndexAlertMoveitem) -> DomElement {
+    let message = format!("Przenoszenie -> {} ?", state.path.join("/"));
 
-        html! {
-            <div>
-                { message }
-            </div>
-        }
-    })
+    dom! {
+        <div>
+            { message }
+        </div>
+    }
 }
 
-fn render(state: &AppIndexAlertMoveitem) -> VDomComponent {
+fn render(state: &AppIndexAlertMoveitem) -> DomElement {
     let content = render_list(state);
     let button_yes = render_button_yes(state);
     let button_no = render_button_no(state);
