@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use vertigo::{
-    Css, Computed, DomElement, dom, render_value,
+    Css, Computed, DomElement, dom,
 };
 
 use vertigo::{css};
@@ -115,7 +115,7 @@ impl ButtonState {
 
 
     pub fn render(value: Computed<ButtonState>) -> DomElement {
-        let render = render_value(value, |value| {
+        let render = value.render_value_option(|value| {
             match value {
                 ButtonState::None => {
                     None

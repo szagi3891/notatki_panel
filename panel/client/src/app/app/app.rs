@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use vertigo::{VDomComponent, html, Resource, get_driver, Context, bind, transaction, render_value, DomComment, dom, DomElement};
+use vertigo::{VDomComponent, html, Resource, get_driver, Context, bind, transaction, DomComment, dom, DomElement};
 use vertigo::Value;
 use crate::components::{message_box, MessageBoxType, stict_to_top};
 use crate::data::Data;
@@ -13,7 +13,7 @@ use crate::app::newcontent::AppNewcontent;
 use crate::app::rename_item::AppRenameitem;
 use vertigo::struct_mut::CounterMut;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 struct Error {
     id: u32,
     info: MessageBoxType,
@@ -230,42 +230,9 @@ impl App {
         false
     }
 
-    fn render_view(&self) -> DomElement {
-        let app = app_render(self);
-        let view = self.data.tab.open_links.render(app);
-        view
-    }
-
-    fn render_errors(&self) -> VDomComponent {
-        VDomComponent::from_ref(self, |context, state| {
-            let errors = state.errors.get(context);
-
-            let mut list = Vec::new();
-
-            for error in errors {
-                let Error { id, info, message } = error;
-                let state = state.clone();
-
-                let on_remove = bind(&state)
-                    .and(&id)
-                    .call(|context, state, id| {
-                        state.remove_message(context, *id);
-                    });
-
-                list.push(message_box(info, message, on_remove));
-            }
-
-            stict_to_top(html! {
-                <div>
-                    {..list}
-                </div>
-            })
-        })
-    }
-
     pub fn render(&self) -> VDomComponent {
-        let view = VDomComponent::dom(self.render_view());
-        let errors = self.render_errors();
+        let view = VDomComponent::dom(render_view(self));
+        let errors = VDomComponent::dom(render_errors(&self));
 
         VDomComponent::from_fn(move |_| {
             html! {
@@ -278,13 +245,47 @@ impl App {
     }
 }
 
+
+fn render_view(state: &App) -> DomElement {
+    let app = app_render(state);
+    let view = state.data.tab.open_links.render(app);
+    view
+}
+
+fn render_error_one(state: &App, error: Error) -> DomElement {
+    let Error { id, info, message } = error;
+    let state = state.clone();
+
+    let on_remove = bind(&state)
+        .and(&id)
+        .call(|context, state, id| {
+            state.remove_message(context, *id);
+        });
+
+    message_box(info, message, on_remove)
+}
+
+fn render_errors(state: &App) -> DomElement {
+    let errors_view = state.errors.render_list(|error| error.id, {
+        let state = state.clone();
+        move |error| {
+            render_error_one(&state, error.clone())
+        }
+    });
+
+    stict_to_top(dom! {
+        <div>
+            { errors_view }
+        </div>
+    })
+}
+
+
 fn app_render(app: &App) -> DomComment {
-    render_value(app.view.to_computed(), {
+    app.view.render_value({
         let app = app.clone();
         move |view| {
-            // let view = app.view.get(context);
-
-            let result = match view {
+            match view {
                 View::Index => {
                     dom! {
                         <div id="root">
@@ -320,9 +321,7 @@ fn app_render(app: &App) -> DomComment {
                         </div>
                     }
                 },
-            };
-
-            Some(result)
+            }
         }
     })
 }

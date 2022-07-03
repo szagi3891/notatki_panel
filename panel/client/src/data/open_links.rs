@@ -1,5 +1,5 @@
 use vertigo::{
-    Value, css, Css, bind, Context, DomNode, DomElement, Computed, dom, DomComment, render_list,
+    Value, css, Css, bind, Context, DomNode, DomElement, Computed, dom, DomComment,
 };
 
 #[derive(Clone, PartialEq)]
@@ -218,7 +218,7 @@ fn render_main_content(active_default: &Computed<bool>, default_view: impl Into<
 }
 
 fn render_tab_list(open_links: &OpenLinks, tabs: &Computed<Vec<String>>) -> DomComment {
-    render_list(tabs.clone(), |item| item.clone(), {
+    tabs.render_list(|item| item.clone(), {
         let open_links = open_links.clone();
         move |url| {
             let is_select = Computed::from({
@@ -242,7 +242,7 @@ fn render_tab_list(open_links: &OpenLinks, tabs: &Computed<Vec<String>>) -> DomC
 }
 
 fn render_tab_buttons(open_links: &OpenLinks, tabs: &Computed<Vec<String>>) -> DomComment {
-    render_list(tabs.clone(), |item| item.clone(), {
+    tabs.render_list(|item| item.clone(), {
         let open_links = open_links.clone();
         move |url| {
             let on_click = bind(&open_links)

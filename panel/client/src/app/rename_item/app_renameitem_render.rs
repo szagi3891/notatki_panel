@@ -1,4 +1,4 @@
-use vertigo::{Css, DomElement, Computed, dom, render_value};
+use vertigo::{Css, DomElement, Computed, dom};
 use vertigo::{css, bind};
 
 use super::AppRenameitem;
@@ -82,7 +82,7 @@ fn render_textarea(state: &AppRenameitem) -> DomElement {
         state.app.data.git.get_content(contetx, &full_path)
     });
 
-    let render = render_value(content_computed, |content_inner| {
+    let render = content_computed.render_value_option(|content_inner| {
         match content_inner {
             Some(ContentView { content, .. }) => {
                 let text = (*content).clone();

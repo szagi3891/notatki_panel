@@ -1,4 +1,4 @@
-use vertigo::{Css, bind, DomComment, render_value, dom, DomElement};
+use vertigo::{Css, bind, DomComment, dom, DomElement};
 use vertigo::{css};
 
 use super::AppEditcontent;
@@ -54,40 +54,37 @@ fn render_textarea(state: &AppEditcontent) -> DomComment {
         }
     });
 
-    render_value(
-        show_textarea,
-        {
-            let state = state.clone();
-            let content = content.clone();
+    show_textarea.render_value({
+        let state = state.clone();
+        let content = content.clone();
 
-            move |show| {
-                match show {
-                    true => {
-                        let on_input = bind(&state)
-                            .call_param(|context, state, new_value| {
-                    
-                                if let Some(EditContent { hash: Some(hash), content: _}) = state.content_view.get(context) {
-                                    state.on_input(context, new_value, hash.clone());
-                                } else {
-                                    log::warn!("Ignore on_input");
-                                }
-                            });
+        move |show| {
+            match show {
+                true => {
+                    let on_input = bind(&state)
+                        .call_param(|context, state, new_value| {
                 
-                        Some(dom! {
-                            <textarea css={css_body()} on_input={on_input} value={content.clone()} />
-                        })
-                    },
-                    false => {
-                        Some(dom! {
-                            <div>
-                                "Ładowanie ..."
-                            </div>
-                        })
+                            if let Some(EditContent { hash: Some(hash), content: _}) = state.content_view.get(context) {
+                                state.on_input(context, new_value, hash.clone());
+                            } else {
+                                log::warn!("Ignore on_input");
+                            }
+                        });
+            
+                    dom! {
+                        <textarea css={css_body()} on_input={on_input} value={content.clone()} />
+                    }
+                },
+                false => {
+                    dom! {
+                        <div>
+                            "Ładowanie ..."
+                        </div>
                     }
                 }
             }
         }
-    )
+    })
 }
 
 pub fn app_editcontent_render(app: &App, state: &AppEditcontent) -> DomElement {
@@ -106,62 +103,52 @@ pub fn app_editcontent_render(app: &App, state: &AppEditcontent) -> DomElement {
     };
 
 
-    let button_save = render_value(
-        state.save_enable.clone(),
-        {
-            let app = app.clone();
-            let state = state.clone();
-            move |save_enabled| {
-                match save_enabled {
-                    true => {
-                        let on_save = state.on_save(&app, true);
-                        Some(button("Zapisz", on_save))
-                    },
-                    false => {
-                        None
-                    }
+    let button_save = state.save_enable.render_value_option({
+        let app = app.clone();
+        let state = state.clone();
+        move |save_enabled| {
+            match save_enabled {
+                true => {
+                    let on_save = state.on_save(&app, true);
+                    Some(button("Zapisz", on_save))
+                },
+                false => {
+                    None
                 }
             }
         }
-    );
+    });
 
-
-    let button_save_and_stay = render_value(
-        state.save_enable.clone(),
-        {
-            let app = app.clone();
-            let state = state.clone();
-            move |save_enabled| {
-                match save_enabled {
-                    true => {
-                        let on_save = state.on_save(&app, false);
-                        Some(button("Zapisz i zostań", on_save))
-                    },
-                    false => {
-                        None
-                    }
+    let button_save_and_stay = state.save_enable.render_value_option({
+        let app = app.clone();
+        let state = state.clone();
+        move |save_enabled| {
+            match save_enabled {
+                true => {
+                    let on_save = state.on_save(&app, false);
+                    Some(button("Zapisz i zostań", on_save))
+                },
+                false => {
+                    None
                 }
             }
         }
-    );
+    });
 
-    let button_reset = render_value(
-        state.save_enable.clone(),
-        {
-            let state = state.clone();
-            move |save_enabled| {
-                match save_enabled {
-                    true => {
-                        let on_reset = state.on_reset();
-                        Some(button("Usuń naniesione zmiany", on_reset))
-                    },
-                    false => {
-                        None
-                    }
+    let button_reset = state.save_enable.render_value_option({
+        let state = state.clone();
+        move |save_enabled| {
+            match save_enabled {
+                true => {
+                    let on_reset = state.on_reset();
+                    Some(button("Usuń naniesione zmiany", on_reset))
+                },
+                false => {
+                    None
                 }
             }
         }
-    );
+    });
 
     let app = app.clone();
 

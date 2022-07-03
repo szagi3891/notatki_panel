@@ -1,6 +1,6 @@
-use vertigo::{VDomElement, html, css, Css};
+use vertigo::{css, Css, DomElement, dom};
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum MessageBoxType {
     Info,
     Error,
@@ -44,10 +44,10 @@ fn css_error_close() -> Css {
     "}
 }
 
-pub fn message_box(message_type: MessageBoxType, message: impl Into<String>, on_close: impl Fn() + 'static) -> VDomElement {
+pub fn message_box(message_type: MessageBoxType, message: impl Into<String>, on_close: impl Fn() + 'static) -> DomElement {
     let message: String = message.into();
 
-    html! {
+    dom! {
         <div css={css_error_line(message_type)}>
             <div css={css_error_message()}>
                 { message }

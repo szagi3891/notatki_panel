@@ -1,7 +1,7 @@
 use vertigo::{
     css, Css,
     Resource,
-    bind, DomElement, dom, Computed, render_value, DomComment, render_list
+    bind, DomElement, dom, Computed, DomComment
 };
 use crate::data::{Data, ListItem};
 use crate::components::icon;
@@ -76,8 +76,8 @@ fn icon_arrow_render(show: bool) -> DomElement {
 }
 
 fn icon_arrow(show: Computed<bool>) -> DomComment {
-    render_value(show, |show| {
-        Some(icon_arrow_render(show))
+    show.render_value(|show| {
+        icon_arrow_render(show)
     })
 }
 
@@ -264,8 +264,7 @@ pub fn list_items_from_vec(data: &Data, list: Computed<Vec<ListItem>>, mouse_ove
         }
     });
 
-    render_list(
-        list_sorted,
+    list_sorted.render_list(
         |(_, item)| item.get_id(),
         {
             let data = data.clone();

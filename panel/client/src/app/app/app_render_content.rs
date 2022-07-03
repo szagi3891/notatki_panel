@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use vertigo::{Css, css, bind, Resource, dom, DomElement, Computed, render_list, DomComment, render_value};
+use vertigo::{Css, css, bind, Resource, dom, DomElement, Computed, DomComment};
 
 use crate::app::App;
 use crate::components::list_items_from_dir;
@@ -116,8 +116,7 @@ fn render_content_text(state: &App, content: Rc<String>) -> DomComment {
         }
     });
 
-    render_list(
-        chunks,
+    chunks.render_list(
         |link| link.clone(),
         {
             let state = state.clone();
@@ -139,60 +138,55 @@ fn render_dir(data: &Data, dir: &Computed<Vec<String>>) -> DomElement {
 }
 
 pub fn render_content(state: &App) -> DomComment {
-    render_value(
-        state.data.tab.current_content.clone(),
-        {
-            let state = state.clone();
-            move |current_content| {
+    state.data.tab.current_content.render_value({
+        let state = state.clone();
+        move |current_content| {
 
-                match current_content {
-                    Resource::Loading => {
-                        Some(dom! {
-                            <div></div>
-                        })
-                    },
-                    Resource::Error(message) => {
-                        let message = format!("Error: {message}");
-                        Some(dom! {
-                            <div>
-                                { message }
-                            </div>
-                        })
-                    },
-                    Resource::Ready(content) => {
-                        match content {
-                            ContentType::Text { content } => {
-                                let out = render_content_text(&state, content);
+            match current_content {
+                Resource::Loading => {
+                    dom! {
+                        <div></div>
+                    }
+                },
+                Resource::Error(message) => {
+                    let message = format!("Error: {message}");
+                    dom! {
+                        <div>
+                            { message }
+                        </div>
+                    }
+                },
+                Resource::Ready(content) => {
+                    match content {
+                        ContentType::Text { content } => {
+                            let out = render_content_text(&state, content);
 
-                                Some(dom! {
-                                    <div css={css_content_file()}>
-                                        { out }
-                                    </div>
-                                })
-                            },
-                            ContentType::Image { url } => {
-                                let url = url.as_ref().clone();
-                                Some(dom! {
-                                    <div css={css_content_file()}>
-                                        <img css={css_content_file_image()} src={url} />
-                                    </div>
-                                })
-                            },
-                            ContentType::Dir { list } => {
-                                let list = Computed::from(move |_| {
-                                    list.dir_path().as_ref().clone()
-                                });
+                            dom! {
+                                <div css={css_content_file()}>
+                                    { out }
+                                </div>
+                            }
+                        },
+                        ContentType::Image { url } => {
+                            let url = url.as_ref().clone();
+                            dom! {
+                                <div css={css_content_file()}>
+                                    <img css={css_content_file_image()} src={url} />
+                                </div>
+                            }
+                        },
+                        ContentType::Dir { list } => {
+                            let list = Computed::from(move |_| {
+                                list.dir_path().as_ref().clone()
+                            });
 
-                                let out = render_dir(&state.data, &list);
-
-                                Some(out)
-                            },
-                        }
-                    },
-                }
-
+                            render_dir(&state.data, &list)
+                        },
+                    }
+                },
             }
+
         }
-    )
+    })
 }
 

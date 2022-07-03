@@ -1,4 +1,4 @@
-use vertigo::{VDomElement, html, css, Css};
+use vertigo::{css, Css, DomElement, dom};
 
 fn css_wrapper() -> Css {
     css!{"
@@ -9,9 +9,9 @@ fn css_wrapper() -> Css {
     "}
 }
 
-pub fn stict_to_top(content: VDomElement) -> VDomElement{
+pub fn stict_to_top(content: DomElement) -> DomElement {
 
-    html! {
+    dom! {
         <div css={css_wrapper()}>
             { content }
         </div>

@@ -1,4 +1,4 @@
-use vertigo::{Css, bind, dom, DomElement, render_value, css};
+use vertigo::{Css, bind, dom, DomElement, css};
 
 use crate::app::App;
 use crate::components::{button};
@@ -66,21 +66,18 @@ pub fn app_newcontent_render(app: App, state: &AppNewcontent) -> DomElement {
         }
     };
 
-    let button_save = render_value(
-        state.save_enable.clone(),
-        {
-            let state = state.clone();
+    let button_save = state.save_enable.render_value_option({
+        let state = state.clone();
 
-            move |show| {
-                match show {
-                    true => {
-                        Some(button("Zapisz", state.on_save()))
-                    },
-                    false => None
-                }
+        move |show| {
+            match show {
+                true => {
+                    Some(button("Zapisz", state.on_save()))
+                },
+                false => None
             }
         }
-    );
+    });
 
     let on_click = bind(&app).call(|_, app| {
         app.redirect_to_index();

@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use vertigo::{
     Css,
-    bind, Computed, render_value, DomComment, dom, DomElement,
+    bind, Computed, DomComment, dom, DomElement,
 };
 use vertigo::{css};
 
@@ -79,9 +79,7 @@ pub fn render_path(path: &Computed<Vec<String>>, on_click: impl Fn(Vec<String>) 
     let path = path.clone();
     let on_click = Rc::new(on_click);
 
-    let current_path = path.clone();
-
-    render_value(current_path, {
+    path.render_value({
         move |current_path| {
             let all_items = current_path.len();
 
@@ -103,7 +101,7 @@ pub fn render_path(path: &Computed<Vec<String>>, on_click: impl Fn(Vec<String>) 
                 result.add_child(create_link(item.clone(), wsk_current_path.clone(), css_item, is_active, on_click.clone()));
             }
 
-            Some(result)
+            result
         }
     })
 }

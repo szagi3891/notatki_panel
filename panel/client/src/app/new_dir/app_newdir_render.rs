@@ -1,4 +1,4 @@
-use vertigo::{Css, css, bind, render_value, dom, DomElement};
+use vertigo::{Css, css, bind, dom, DomElement};
 
 use super::AppNewdir;
 use crate::components::button;
@@ -30,21 +30,15 @@ pub fn app_newdir_render(state: AppNewdir) -> DomElement {
         app.redirect_to_index();
     }));
 
-    let button_save = {
+    let button_save = state.save_enable.render_value_option({
         let state = state.clone();
-
-        render_value(
-            state.save_enable.clone(),
-            {                
-                move |save_enable| {
-                    match save_enable {
-                        true => Some(button("Zapisz", state.bind_on_save(&state.app))),
-                        false => None
-                    }
-                }
+        move |save_enable| {
+            match save_enable {
+                true => Some(button("Zapisz", state.bind_on_save(&state.app))),
+                false => None
             }
-        )
-    };
+        }
+    });
 
     dom! {
         <div css={css_wrapper()}>

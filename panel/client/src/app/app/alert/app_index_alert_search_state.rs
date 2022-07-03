@@ -1,4 +1,4 @@
-use vertigo::{Css, Resource, Computed, Value, bind, Context, DomElement, dom, render_list};
+use vertigo::{Css, Resource, Computed, Value, bind, Context, DomElement, dom};
 use vertigo::{css};
 use crate::data::ListItem;
 use crate::{components::AlertBox, data::{Data}};
@@ -131,9 +131,8 @@ impl AppIndexAlertSearch {
 fn render_results(search: &AppIndexAlertSearch) -> DomElement {
     let search = search.clone();
 
-    let list = render_list(
-        search.results.clone(),
-        |item| item.to_string(),
+    let list = search.results.render_list(|item| item.to_string(), {
+        let search = search.clone();
         move |item| {
             let on_click = bind(&search)
                 .and(item)
@@ -155,7 +154,7 @@ fn render_results(search: &AppIndexAlertSearch) -> DomElement {
                 </div>
             }
         }
-    );
+    });
 
     dom! {
         <div css={css_result()}>

@@ -1,5 +1,5 @@
 use common::HandlerMoveItemBody;
-use vertigo::{Value, Resource, Computed, bind, css, Css, get_driver, render_value, dom, transaction, Context, DomElement, DomComment};
+use vertigo::{Value, Resource, Computed, bind, css, Css, get_driver, dom, transaction, Context, DomElement, DomComment};
 
 use crate::{components::{AlertBox, item_default, item_dot_html, ButtonState, render_path}, data::ListItem, app::{response::check_request_response, App}};
 
@@ -103,7 +103,7 @@ fn render_back(state: &AppIndexAlertMoveitem) -> DomComment {
         target.is_empty()
     });
 
-    render_value(target_is_empty, move |is_empty| {
+    target_is_empty.render_value_option(move |is_empty| {
         match is_empty {
             true => None,
             false => {
@@ -153,7 +153,7 @@ fn render_list(state: &AppIndexAlertMoveitem) -> DomComment  {
     });
 
 
-    render_value(list, {
+    list.render_value({
         let state = state.clone();
 
         move |list| {
@@ -183,23 +183,23 @@ fn render_list(state: &AppIndexAlertMoveitem) -> DomComment  {
                         out.add_child(item_default(&data, &item, on_click));
                     }
 
-                    Some(out)
+                    out
                 },
                 Resource::Error(error) => {
                     let message = format!("error = {error}");
 
-                    Some(dom! {
+                    dom! {
                         <div>
                             { message }
                         </div>
-                    })
+                    }
                 },
                 Resource::Loading => {
-                    Some(dom! {
+                    dom! {
                         <div>
                             "Loading ..."
                         </div>
-                    })
+                    }
                 }
             }
         }

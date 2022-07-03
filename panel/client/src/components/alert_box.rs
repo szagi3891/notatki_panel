@@ -1,4 +1,4 @@
-use vertigo::{DomElement, dom, render_value, DomComment, DomNode};
+use vertigo::{DomElement, dom, DomComment, DomNode};
 
 use vertigo::{
     Css,
@@ -66,7 +66,7 @@ fn css_progress() -> Css {
 }
 
 fn render_progress(progress: Computed<bool>) -> DomComment {
-    render_value(progress, |progress| {
+    progress.render_value_option(|progress| {
         if progress {
             Some(dom! {
                 <div css={css_progress()}>
