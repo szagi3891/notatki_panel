@@ -28,7 +28,7 @@ impl ParseTextItem {
     }
 }
 
-pub fn parse_text<'a>(text: &'a str, check_has_open: impl Fn(&String) -> bool) -> Vec<ParseTextItem> {
+pub fn parse_text(text: &str, check_has_open: impl Fn(&String) -> bool) -> Vec<ParseTextItem> {
     let iter = WordIter::new(text)
         .map(|item: Result<String, String>| -> Result<String, String> {
 

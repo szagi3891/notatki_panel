@@ -1,6 +1,6 @@
 use vertigo::{css, Css, DomElement, dom};
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Eq)]
 pub enum MessageBoxType {
     Info,
     Error,

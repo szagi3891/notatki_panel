@@ -44,7 +44,7 @@ pub fn app_newdir_render(state: AppNewdir) -> DomElement {
         <div css={css_wrapper()}>
             <div css={css_header()}>
                 "tworzenie katalogu => "
-                {parent_path.clone()}
+                {parent_path}
             </div>
             <div css={css_header()}>
                 { button_back }

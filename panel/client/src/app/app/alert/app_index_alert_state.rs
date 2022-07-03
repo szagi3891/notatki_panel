@@ -25,7 +25,7 @@ impl AppIndexAlert {
         let view = Value::new(AlertView::None);
 
         AppIndexAlert {
-            data: data.clone(),
+            data,
             view,
         }
     }
@@ -57,7 +57,7 @@ impl AppIndexAlert {
             return;
         }
 
-        let state = AppIndexAlertSearch::new(&self);
+        let state = AppIndexAlertSearch::new(self);
         self.view.set(AlertView::SearchInPath { state });
     }
 
@@ -66,7 +66,7 @@ impl AppIndexAlert {
             return;
         }
 
-        let state = AppIndexAlertMoveitem::new(app, &self, path.clone(), hash.clone());
+        let state = AppIndexAlertMoveitem::new(app, self, path.clone(), hash.clone());
         self.view.set(AlertView::MoveItem { state });
     }
 

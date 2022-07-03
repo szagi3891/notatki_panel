@@ -122,7 +122,7 @@ fn render_button_edit_file(state: &MenuComponent) -> DomElement {
 
 fn render_button_move_item(state: &MenuComponent) -> DomElement {
     let state = state.clone();
-    let app = state.app.clone();
+    let app = state.app;
 
     ButtonState::render(Computed::from(move |context| {
         let current_path = app.data.tab.full_path.get(context);
@@ -136,7 +136,7 @@ fn render_button_move_item(state: &MenuComponent) -> DomElement {
                 .and(&current_path)
                 .and(&hash)
                 .call(|context, app, current_path, hash| {
-                    app.alert.move_current(context, &app, &current_path, &hash);
+                    app.alert.move_current(context, app, current_path, hash);
                 });
 
             return ButtonState::active("Przenieś", on_click);

@@ -64,7 +64,7 @@ impl AppNewcontent {
     pub fn render(&self) -> DomElement {
         app_newcontent_render(
             self.app.clone(),
-            &self,
+            self,
         )
     }
 

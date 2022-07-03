@@ -406,9 +406,9 @@ impl<'repo> GitSession<'repo> {
                     return ErrorProcess::user_result(format!("this element already exists - {}", new_child_item));
                 }
 
-                let tree_builder = tree_builder.insert(new_child_item, new_content_id)?;
+                tree_builder.insert(new_child_item, new_content_id)?;
 
-                Ok(tree_builder)
+                Ok(())
             })?;
 
             self.root = new_root;

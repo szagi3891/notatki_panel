@@ -56,12 +56,12 @@ impl NewName {
 
         NewName {
             name,
-            is_valid: is_valid.clone(),
+            is_valid,
         }
     }
 
     pub fn render(&self, autofocus: bool) -> DomElement {
-        render(&self, autofocus)
+        render(self, autofocus)
     }
 
     pub fn on_input_name(&self, new_value: String) {

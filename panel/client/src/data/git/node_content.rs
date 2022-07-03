@@ -51,9 +51,7 @@ pub struct Content {
 
 impl Content {
     pub fn new() -> Content {
-        let data = {
-            AutoMap::new(move |id: &String| NodeContent::new(id))
-        };
+        let data = AutoMap::new(NodeContent::new);
 
         Content {
             data

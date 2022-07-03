@@ -14,7 +14,7 @@ fn convert(list: Rc<HandlerFetchDirResponse>) -> GitDirList {
     for item in list.list.iter() {
         let GitTreeItem {id, dir, name} = item;
         out.insert(name.clone(), TreeItem {
-            dir: dir.clone(),
+            dir: *dir,
             id: id.clone(),
         });
     }
@@ -87,7 +87,7 @@ pub struct Dir {
 
 impl Dir {
     pub fn new() -> Dir {
-        let data = AutoMap::new(move |id: &String| NodeDir::new(id));
+        let data = AutoMap::new(NodeDir::new);
 
         Dir {
             data

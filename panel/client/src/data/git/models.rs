@@ -5,14 +5,14 @@ use vertigo::{Resource, Context};
 
 use super::{Content, Dir};
 
-#[derive(PartialEq, Clone, Debug)]
+#[derive(PartialEq, Eq, Clone, Debug)]
 pub struct TreeItem {
     pub dir: bool,
     pub id: String,
 }
 
 
-#[derive(PartialEq, Clone, Debug)]
+#[derive(PartialEq, Eq, Clone, Debug)]
 pub struct GitDirList {
     list: Rc<HashMap<String, TreeItem>>,
 }
@@ -294,7 +294,7 @@ impl ListItem {
     }
 
     pub fn get_id(&self) -> (String, bool) {
-        (self.name.clone(), self.is_dir.clone())
+        (self.name.clone(), self.is_dir)
     }
 }
 

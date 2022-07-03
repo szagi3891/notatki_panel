@@ -13,7 +13,7 @@ use crate::app::newcontent::AppNewcontent;
 use crate::app::rename_item::AppRenameitem;
 use vertigo::struct_mut::CounterMut;
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Eq)]
 struct Error {
     id: u32,
     info: MessageBoxType,
@@ -70,7 +70,7 @@ impl App {
 
         let state = AppEditcontent::new(
             self,
-            full_path.clone(),
+            full_path,
         );
 
         self.view.set(View::EditContent {
@@ -237,8 +237,8 @@ impl App {
         VDomComponent::dom(
             dom! {
                 <div>
-                    { view.clone() }
-                    { errors.clone() }
+                    { view }
+                    { errors }
                 </div>
             }
         )
@@ -248,8 +248,7 @@ impl App {
 
 fn render_view(state: &App) -> DomElement {
     let app = app_render(state);
-    let view = state.data.tab.open_links.render(app);
-    view
+    state.data.tab.open_links.render(app)
 }
 
 fn render_error_one(state: &App, error: Error) -> DomElement {

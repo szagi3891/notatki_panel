@@ -45,11 +45,15 @@ dependencies = [
 run_task = "app-serve"
 
 
+[tasks.clippy]
+    command = "cargo"
+    args = [ "clippy"]
 
 [tasks.app-my-start]
-    run_task = "app-start"
+dependencies = ["clippy"]
+run_task = "app-start"
 [tasks.app-my-start.env]
-    "GIT_REPO" = "../notatki_dane"
+"GIT_REPO" = "../notatki_dane"
 
 
 [tasks.app-my-start-watch]

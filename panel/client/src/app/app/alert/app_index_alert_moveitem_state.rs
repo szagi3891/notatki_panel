@@ -59,7 +59,7 @@ impl AppIndexAlertMoveitem {
         let body: HandlerMoveItemBody = HandlerMoveItemBody {
             path: self.path.clone(),
             hash: self.hash.clone(),
-            new_path: new_path,
+            new_path,
         };
 
         let response = get_driver()

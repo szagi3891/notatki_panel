@@ -5,6 +5,9 @@
 #![allow(clippy::inherent_to_string)]
 #![allow(clippy::wrong_self_convention)]
 #![allow(clippy::module_inception)]
+#![allow(clippy::match_like_matches_macro)]
+#![allow(clippy::let_and_return)]
+#![allow(clippy::vtable_address_comparisons)]               //TODO - do sprawdzenia, podobno bywa niebezpieczne
 use vertigo::start_app;
 
 mod content;

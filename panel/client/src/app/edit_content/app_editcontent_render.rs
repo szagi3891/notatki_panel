@@ -56,7 +56,7 @@ fn render_textarea(state: &AppEditcontent) -> DomComment {
 
     show_textarea.render_value({
         let state = state.clone();
-        let content = content.clone();
+        let content = content;
 
         move |show| {
             match show {
@@ -65,7 +65,7 @@ fn render_textarea(state: &AppEditcontent) -> DomComment {
                         .call_param(|context, state, new_value| {
                 
                             if let Some(EditContent { hash: Some(hash), content: _}) = state.content_view.get(context) {
-                                state.on_input(context, new_value, hash.clone());
+                                state.on_input(context, new_value, hash);
                             } else {
                                 log::warn!("Ignore on_input");
                             }

@@ -1,7 +1,7 @@
 use serde::{Serialize, Deserialize};
 use vertigo::{router::HashRouter, Computed, Context};
 
-#[derive(Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
 struct RouterValue {
     dir: Vec<String>,
     item: Option<String>,
@@ -43,7 +43,7 @@ impl Router {
             let route = route.clone();
 
             Computed::from(move |context| {
-                route.get(context).dir.clone()
+                route.get(context).dir
             })
         };
 

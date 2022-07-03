@@ -84,7 +84,8 @@ impl PartialEq for ButtonState {
                 Self::Active { label: label2, action: action2 },
             ) => {
                 let compare1 = label1.eq(label2);
-                let compare2 = Rc::as_ptr(action1) == Rc::as_ptr(action2);
+                let compare2 = Rc::ptr_eq(action1, action2);
+                // let compare2 = Rc::as_ptr(action1) == Rc::as_ptr(action2);
 
                 compare1 && compare2
             },

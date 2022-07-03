@@ -315,14 +315,10 @@ impl TabPath {
         if let Some(current_item) = self.current_item.get(context).as_ref() {
             let content = self.current_content.get(context);
 
-            if let Resource::Ready(content) = content {
-                if let ContentType::Dir { .. } = content {
-                    let mut current = self.router.get_dir(context);
-                    current.push(current_item.clone());
-                    self.set_path(context, current);
-                } else {
-                    // self.item_select.set(Some(current_item.clone()));
-                }
+            if let Resource::Ready(ContentType::Dir { .. }) = content {
+                let mut current = self.router.get_dir(context);
+                current.push(current_item.clone());
+                self.set_path(context, current);
             }
         }
     }

@@ -59,7 +59,7 @@ pub fn app_index_render(app: &App) -> DomElement {
     let view_menu = MenuComponent::component(app);
 
     let on_click_path = bind(&app.data).call_param(|context, data, node_id: Vec<String>| {
-        data.tab.set_path(context, node_id.clone());
+        data.tab.set_path(context, node_id);
     });
     
     let view_header = render_path(&app.data.tab.router.path, on_click_path);

@@ -43,7 +43,7 @@ fn move_pointer(context: &Context, state_data: &Git, list: GitDirList, path_item
     return Resource::Error(format!("dir expected {}", path_item));
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ContentView {
     pub id: String,
     pub content: Rc<String>,
@@ -93,7 +93,7 @@ impl Git {
                 let dir = ListItem {
                     dir: self.dir.clone(),
                     content: self.content.clone(),
-                    base_dir: base_dir.clone(),
+                    base_dir,
                     name: current_item.clone(),
                     is_dir: true,
                     id: current_value.id.clone()
@@ -133,7 +133,7 @@ impl Git {
                     base_dir: Rc::new(Vec::new()),
                     name: "root".into(),
                     is_dir: true,
-                    id: id
+                    id
                 };
 
                 return Resource::Ready(dir);
@@ -152,8 +152,8 @@ impl Git {
             if let Resource::Ready(ContentType::Text { content }) = content_type {
                 // return Some(content.as_ref().clone());
                 return Some(ContentView {
-                    id: item.id.clone(),
-                    content: content.clone(),
+                    id: item.id,
+                    content,
                 })
             }
         }

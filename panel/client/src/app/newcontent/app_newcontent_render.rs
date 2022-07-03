@@ -85,13 +85,13 @@ pub fn app_newcontent_render(app: App, state: &AppNewcontent) -> DomElement {
 
     dom! {
         <div css={css_wrapper()}>
-            { view_path.clone() }
+            { view_path }
             <div css={css_header()}>
                 { button("Wróć", on_click) }
                 { button_save }
             </div>
-            { view_new_name.clone() }
-            { view_input.clone() }
+            { view_new_name }
+            { view_input }
         </div>
     }
 }

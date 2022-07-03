@@ -127,7 +127,7 @@ impl AlertBox {
         let result = dom! {
             <div>
                 <div css={css_message()}>
-                    { message.clone() }
+                    { message }
                 </div>
             </div>
         };

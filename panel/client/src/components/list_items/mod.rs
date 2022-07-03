@@ -249,12 +249,10 @@ pub fn list_items_from_vec(data: &Data, list: Computed<Vec<ListItem>>, mouse_ove
             for item in list.into_iter() {
                 if mouse_over_enable {
                     out.push((None, item));
+                } else if let Some(ext) = item.get_picture_ext() {
+                    picture.push((Some(ext), item));
                 } else {
-                    if let Some(ext) = item.get_picture_ext() {
-                        picture.push((Some(ext), item));
-                    } else {
-                        out.push((None, item));
-                    }
+                    out.push((None, item));
                 }
             }
         
@@ -272,12 +270,10 @@ pub fn list_items_from_vec(data: &Data, list: Computed<Vec<ListItem>>, mouse_ove
 
                 if mouse_over_enable {
                     item_default_render(&data, item, mouse_over_enable)
+                } else if let Some(ext) = picture {
+                    item_image_render(&data, item, ext)
                 } else {
-                    if let Some(ext) = picture {
-                        item_image_render(&data, item, ext)
-                    } else {
-                        item_default_render(&data, item, mouse_over_enable)
-                    }
+                    item_default_render(&data, item, mouse_over_enable)
                 }
             }
         }

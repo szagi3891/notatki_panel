@@ -319,7 +319,7 @@ fn open_links_render(open_links: &OpenLinks, default_view: DomNode) -> DomElemen
         button("default", on_click, None::<fn()>, &active_default)
     };
 
-    let css_right_column = tabs.clone().map(|tabs| {
+    let css_right_column = tabs.map(|tabs| {
         css_right(tabs.len() > 0)
     });
 
@@ -328,11 +328,11 @@ fn open_links_render(open_links: &OpenLinks, default_view: DomNode) -> DomElemen
             { style_css }
             <div css={css_left()}>
                 { render_main_content(&active_default, default_view) }
-                { render_tab_list(&open_links, &tabs) }
+                { render_tab_list(open_links, &tabs) }
             </div>
             <div css={css_right_column}>
                 { default_tab_button }
-                { render_tab_buttons(&open_links, &tabs)}
+                { render_tab_buttons(open_links, &tabs)}
             </div>
         </div>
     }

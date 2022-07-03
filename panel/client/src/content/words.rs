@@ -13,7 +13,7 @@ impl AccData {
         }
     }
 
-    fn push<'a>(&mut self, char: char) -> Option<Result<String, String>> {
+    fn push(&mut self, char: char) -> Option<Result<String, String>> {
         let char_is_whitespace = char.is_whitespace();
         let space_mode = self.space_mode;
 
@@ -28,7 +28,7 @@ impl AccData {
         }
     }
 
-    fn get_current<'a>(&mut self) -> Option<Result<String, String>> {
+    fn get_current(&mut self) -> Option<Result<String, String>> {
         if self.chars.len() == 0 {
             return None;
         }
