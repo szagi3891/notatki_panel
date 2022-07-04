@@ -281,7 +281,7 @@ impl ListItem {
     }
 
     pub fn get_base_dir(&self) -> Vec<String> {
-        (&*(self.base_dir)).clone()
+        (*(self.base_dir)).clone()
     }
 
     fn prirority_for_sort(&self) -> u8 {
