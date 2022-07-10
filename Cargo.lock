@@ -238,9 +238,9 @@ dependencies = [
 
 [[package]]
 name = "crypto-common"
-version = "0.1.4"
+version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5999502d32b9c48d492abe66392408144895020ec4709e549e840799f3bb74c0"
+checksum = "2ccfd8c0ee4cce11e45b3fd6f9d5e69e0cc62912aa6a0cb1bf4617b0eba5a12f"
 dependencies = [
  "generic-array 0.14.5",
  "typenum",
@@ -556,9 +556,9 @@ dependencies = [
 
 [[package]]
 name = "hashbrown"
-version = "0.12.1"
+version = "0.12.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "db0d4cf898abf0081f964436dc980e96670a0f36863e4b83aaacdb65c9d7ccc3"
+checksum = "607c8a29735385251a339424dd462993c0fed8fa09d378f259377df08c126022"
 
 [[package]]
 name = "headers"
@@ -657,9 +657,9 @@ dependencies = [
 
 [[package]]
 name = "hyper"
-version = "0.14.19"
+version = "0.14.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "42dc3c131584288d375f2d07f822b0cb012d8c6fb899a5b9fdb3cb7eb9b6004f"
+checksum = "02c929dc5c39e335a03c405292728118860721b10190d98c2a0f0efd5baafbac"
 dependencies = [
  "bytes",
  "futures-channel",
@@ -945,9 +945,9 @@ checksum = "ff011a302c396a5197692431fc1948019154afc178baf7d8e37367442a4601cf"
 
 [[package]]
 name = "openssl-sys"
-version = "0.9.74"
+version = "0.9.75"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "835363342df5fba8354c5b453325b110ffd54044e588c539cf2f20a8014e4cb1"
+checksum = "e5f9bd0c2710541a3cda73d6f9ac4f1b240de4ae261065d309dbe73d9dceb42f"
 dependencies = [
  "autocfg",
  "cc",
@@ -1048,9 +1048,9 @@ checksum = "1df8c4ec4b0627e53bdf214615ad287367e482558cf84b109250b37464dc03ae"
 
 [[package]]
 name = "poem"
-version = "1.3.32"
+version = "1.3.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d91bcdeed420bd5427f6e0a5dd58d6c4c7b106e688a82874c6468c71b71a06b5"
+checksum = "0852cb7cb86883d1cf228dc8c8e747235ae55090d71321046c4d7597f42a6819"
 dependencies = [
  "async-trait",
  "bytes",
@@ -1085,9 +1085,9 @@ dependencies = [
 
 [[package]]
 name = "poem-derive"
-version = "1.3.32"
+version = "1.3.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9c436f8cd7ab49c3af193fdd437e66d4c5376f5dac5383792397446df1f748c1"
+checksum = "35ee8ad61be88a0446707897d3983771f7d2e5bd785a18411e6185f569429b2b"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
@@ -1097,9 +1097,9 @@ dependencies = [
 
 [[package]]
 name = "poem-openapi"
-version = "2.0.2"
+version = "2.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "562918011994abe685b7a3f0e11116147349f7fd0d9691e4664ca929a54a8c00"
+checksum = "19dbfc00495c47a1ee5f43a92a0716149174bfc3ba94b4d43a3c6dbd7305ced0"
 dependencies = [
  "base64",
  "bytes",
@@ -1120,9 +1120,9 @@ dependencies = [
 
 [[package]]
 name = "poem-openapi-derive"
-version = "2.0.2"
+version = "2.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6645c0c4dd3949fc259142413b5fbca83652bbc04840e5c4d5c47506949c0a6f"
+checksum = "a331e8b8a7fcf6a3b758b5b382add72df82a4b1cb053f738961ed8dd87f031ec"
 dependencies = [
  "Inflector",
  "darling",
@@ -1378,9 +1378,9 @@ dependencies = [
 
 [[package]]
 name = "serde_yaml"
-version = "0.8.24"
+version = "0.8.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "707d15895415db6628332b737c838b88c598522e4dc70647e59b72312924aebc"
+checksum = "1ec0091e1f5aa338283ce049bd9dfefd55e1f168ac233e85c1ffe0038fb48cbe"
 dependencies = [
  "indexmap",
  "ryu",
@@ -1793,7 +1793,7 @@ checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
 [[package]]
 name = "vertigo"
 version = "0.1.0-beta.4"
-source = "git+https://github.com/vertigo-web/vertigo?branch=builder#8bcb877af0c084c398462b63d308f90a3ff9c7de"
+source = "git+https://github.com/vertigo-web/vertigo?branch=vdom_removed#2a2d463f5f872a80a4028a735d93a4ac4d823e5b"
 dependencies = [
  "log",
  "serde_json",
@@ -1803,7 +1803,7 @@ dependencies = [
 [[package]]
 name = "vertigo-macro"
 version = "0.1.0-beta.4"
-source = "git+https://github.com/vertigo-web/vertigo?branch=builder#8bcb877af0c084c398462b63d308f90a3ff9c7de"
+source = "git+https://github.com/vertigo-web/vertigo?branch=vdom_removed#2a2d463f5f872a80a4028a735d93a4ac4d823e5b"
 dependencies = [
  "itertools",
  "pest",
