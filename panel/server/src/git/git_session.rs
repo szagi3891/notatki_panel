@@ -117,7 +117,7 @@ fn find_id<'repo>(session: &GitSession<'repo>, id: Oid) -> Result<GitId, ErrorPr
 }
 
 fn find_tree<'repo>(session: &'repo GitSession<'repo>, id: Oid) -> Result<Tree<'repo>, ErrorProcess> {
-    let result = (&(session.repo)).find_object(id, None);
+    let result = session.repo.find_object(id, None);
     let result = match result {
         Ok(result) => result,
         Err(_) => {
@@ -138,7 +138,7 @@ fn get_child_tree<'repo>(
     
     for item in tree {
         if item.name() == Some(name.as_str()) {
-            let tree = find_tree(&session, item.id())?;
+            let tree = find_tree(session, item.id())?;
             return Ok(tree);
         }
     }
@@ -218,7 +218,7 @@ fn find_and_change_path<
     modify: M
 ) -> Result<(Oid, R), ErrorProcess> {
 
-    let result = session.repo.find_object(session.root.clone(), None)?;
+    let result = session.repo.find_object(session.root, None)?;
     let tree = result.peel_to_tree()?;
 
     find_and_change_path_small(session, &tree, path, modify)
@@ -296,8 +296,7 @@ fn command_find_blob<'repo>(
 pub fn commit<'repo>(
     session: GitSession<'repo>,
 ) -> Result<String, ErrorProcess> {
-    let root = session.root.clone();
-    let new_tree = find_tree(&session, root)?;
+    let new_tree = find_tree(&session, session.root)?;
 
     let branch = session.repo.find_branch(session.branch_name.as_str(), BranchType::Local)?;
     let reference = branch.get();
