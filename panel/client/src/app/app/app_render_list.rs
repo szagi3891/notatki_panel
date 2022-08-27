@@ -13,6 +13,26 @@ fn css_wrapper() -> Css {
     ")
 }
 
+//  444 .get_bounding_client_rect_y () .height
+/*
+    444
+    .get_bounding_client_rect_y()
+    .height
+
+    window
+    .localStorage
+    .getItem("dsdadsa")
+
+    window
+    .localStorage
+    .setItem("dsadsa", "dsadsadas")
+    
+    potencjalnie kolejne wywołania łańcuchowe mona by doczepić
+
+
+    
+*/
+
 //TODO - trzeba przywrócić tą funkcjonalność
 
 //Koryguj tylko wtedy gdy element aktywny nie jest widoczny
@@ -65,15 +85,24 @@ pub fn render_list(state: &App) -> DomElement {
         }
     });
 
-    let list_view = list_items_from_dir(&state.data, &dir, true);
-
     //dom_ref="wrapper" dom_apply={dom_apply}
 
-    dom! {
-        <div css={css_wrapper()}>
-            { list_view }
-        </div>
-    }
+    let wrapper = dom! {
+        <div css={css_wrapper()} />
+    };
+
+    //TODO - ref do wrappera będzie przekazywany do funkcji list_items_from_dir
+
+    let list_view = list_items_from_dir(&state.data, &dir, true);
+
+    wrapper.add_child(list_view);
+
+    wrapper
+    // dom! {
+    //     <div css={css_wrapper()}>
+    //         { list_view }
+    //     </div>
+    // }
 }
 
 //Centrowanie na środku zawsze

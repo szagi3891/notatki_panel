@@ -1,7 +1,7 @@
 use vertigo::{
     Css,
     Computed,
-    bind, Resource, DomElement, dom,
+    bind, Resource, DomElement, dom, bind3, bind2,
 };
 
 use vertigo::{css};
@@ -83,12 +83,10 @@ fn render_button_on_delete(state: &MenuComponent) -> DomElement {
 
             if is_current_content {
                 let alert = app.alert.clone();
-                let on_delete = bind(&alert)
-                    .and(&app)
-                    .call(|context, alert, app| {
-                        let path = alert.data.tab.full_path.get(context);
-                        alert.delete(context, app.clone(), path);
-                    });
+                let on_delete = bind2(&alert, &app).call(|context, alert, app| {
+                    let path = alert.data.tab.full_path.get(context);
+                    alert.delete(context, app.clone(), path);
+                });
         
                 ButtonState::active("Usuń", on_delete)
             } else {
@@ -132,12 +130,9 @@ fn render_button_move_item(state: &MenuComponent) -> DomElement {
         if let Resource::Ready(current_content) = current_content {
             let hash = current_content.id;
 
-            let on_click = bind(&app)
-                .and(&current_path)
-                .and(&hash)
-                .call(|context, app, current_path, hash| {
-                    app.alert.move_current(context, app, current_path, hash);
-                });
+            let on_click = bind3(&app, &current_path, &hash).call(|context, app, current_path, hash| {
+                app.alert.move_current(context, app, current_path, hash);
+            });
 
             return ButtonState::active("Przenieś", on_click);
         }

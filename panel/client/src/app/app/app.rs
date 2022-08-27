@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use vertigo::{Resource, get_driver, Context, bind, transaction, DomComment, dom, DomElement};
+use vertigo::{Resource, get_driver, Context, transaction, DomComment, dom, DomElement, bind2};
 use vertigo::Value;
 use crate::components::{message_box, MessageBoxType, stict_to_top};
 use crate::data::Data;
@@ -253,11 +253,9 @@ fn render_error_one(state: &App, error: Error) -> DomElement {
     let Error { id, info, message } = error;
     let state = state.clone();
 
-    let on_remove = bind(&state)
-        .and(&id)
-        .call(|context, state, id| {
-            state.remove_message(context, *id);
-        });
+    let on_remove = bind2(&state, &id).call(|context, state, id| {
+        state.remove_message(context, *id);
+    });
 
     message_box(info, message, on_remove)
 }

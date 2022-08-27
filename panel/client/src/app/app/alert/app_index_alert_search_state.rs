@@ -1,4 +1,4 @@
-use vertigo::{Css, Resource, Computed, Value, bind, Context, DomElement, dom};
+use vertigo::{Css, Resource, Computed, Value, bind, Context, DomElement, dom, bind2};
 use vertigo::{css};
 use crate::data::ListItem;
 use crate::{components::AlertBox, data::{Data}};
@@ -134,13 +134,10 @@ fn render_results(search: &AppIndexAlertSearch) -> DomElement {
     let list = search.results.render_list(|item| item.to_string(), {
         let search = search.clone();
         move |item| {
-            let on_click = bind(&search)
-                .and(item)
-                .call(|_, search, item| {
-                    search.alert.close_modal();
-                    search.alert.data.tab.redirect_to_item(item.clone());
-                })
-            ;
+            let on_click = bind2(&search, item).call(|_, search, item| {
+                search.alert.close_modal();
+                search.alert.data.tab.redirect_to_item(item.clone());
+            });
 
             let icon_el = icon::icon_render(item.is_dir);
             let path = item.to_string();

@@ -1,5 +1,5 @@
 use common::HandlerMoveItemBody;
-use vertigo::{Value, Resource, Computed, bind, css, Css, get_driver, dom, transaction, Context, DomElement, DomComment};
+use vertigo::{Value, Resource, Computed, bind, css, Css, get_driver, dom, transaction, Context, DomElement, DomComment, bind2};
 
 use crate::{components::{AlertBox, item_default, item_dot_html, ButtonState, render_path}, data::ListItem, app::{response::check_request_response, App}};
 
@@ -170,15 +170,13 @@ fn render_list(state: &AppIndexAlertMoveitem) -> DomComment  {
                     };
 
                     for item in list {
-                        let on_click = bind(&item)
-                            .and(&target)
-                            .call(|context, item, target| {
-                                log::info!("kliknięto w element {name}", name = item.name);
+                        let on_click = bind2(&item, &target).call(|context, item, target| {
+                            log::info!("kliknięto w element {name}", name = item.name);
 
-                                let mut target_value = target.get(context);
-                                target_value.push(item.name.clone());
-                                target.set(target_value);
-                            });
+                            let mut target_value = target.get(context);
+                            target_value.push(item.name.clone());
+                            target.set(target_value);
+                        });
 
                         out.add_child(item_default(&data, &item, on_click));
                     }

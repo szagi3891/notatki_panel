@@ -1,7 +1,7 @@
 use vertigo::{
     css, Css,
     Resource,
-    bind, DomElement, dom, Computed, DomComment
+    bind2, DomElement, dom, Computed, DomComment
 };
 use crate::data::{Data, ListItem};
 use crate::components::icon;
@@ -172,29 +172,21 @@ pub fn item_default_render(data: &Data, item: &ListItem, mouse_over_enable: bool
     let data = data.clone();
     let item = item.clone();
 
-    let on_click = {
-        bind(&data.tab)
-            .and(&item)
-            .call(|_, tab, item| {
-                tab.redirect_to_item(item.clone());
-            })
-    };
+    let on_click = bind2(&data.tab, &item).call(|_, tab, item| {
+        tab.redirect_to_item(item.clone());
+    });
 
     let element = item_default(&data, &item, on_click);
 
     let element = if mouse_over_enable {
 
-        let mouse_over_enter = bind(&item)
-            .and(&data.tab)
-            .call(|_, item, tab| {
-                tab.hover_on(item.name.as_str());
-            });
+        let mouse_over_enter = bind2(&item, &data.tab).call(|_, item, tab| {
+            tab.hover_on(item.name.as_str());
+        });
 
-        let mouse_over_leave = bind(&item)
-            .and(&data.tab)
-            .call(|context, item, tab| {
-                tab.hover_off(context, item.name.as_str());
-            });
+        let mouse_over_leave = bind2(&item, &data.tab).call(|context, item, tab| {
+            tab.hover_off(context, item.name.as_str());
+        });
 
         element
             .on_mouse_enter(mouse_over_enter)
@@ -223,11 +215,9 @@ fn item_image_render(data: &Data, item: &ListItem, ext: &String) -> DomElement {
     let id = item.id.clone();
     let url = format!("/image/{id}/{ext}");
 
-    let on_click = bind(&item)
-        .and(&data.tab)
-        .call(|_, item, tab| {
-            tab.redirect_to_item(item.clone());
-        });
+    let on_click = bind2(&item, &data.tab).call(|_, item, tab| {
+        tab.redirect_to_item(item.clone());
+    });
 
     dom!{
         <img
