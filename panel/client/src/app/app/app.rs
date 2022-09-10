@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use vertigo::{Resource, get_driver, Context, transaction, DomComment, dom, DomElement, bind2};
+use vertigo::{Resource, get_driver, Context, transaction, dom, DomElement, bind2, DomCommentCreate};
 use vertigo::Value;
 use crate::components::{message_box, MessageBoxType, stict_to_top};
 use crate::data::Data;
@@ -276,7 +276,7 @@ fn render_errors(state: &App) -> DomElement {
 }
 
 
-fn app_render(app: &App) -> DomComment {
+fn app_render(app: &App) -> DomCommentCreate {
     app.view.render_value({
         let app = app.clone();
         move |view| {

@@ -1,7 +1,7 @@
 use vertigo::{
     css, Css,
     Resource,
-    bind2, DomElement, dom, Computed, DomComment
+    bind2, DomElement, dom, Computed, ListRendered, DomCommentCreate
 };
 use crate::data::{Data, ListItem};
 use crate::components::icon;
@@ -75,7 +75,7 @@ fn icon_arrow_render(show: bool) -> DomElement {
     }
 }
 
-fn icon_arrow(show: Computed<bool>) -> DomComment {
+fn icon_arrow(show: Computed<bool>) -> DomCommentCreate {
     show.render_value(|show| {
         icon_arrow_render(show)
     })
@@ -228,7 +228,7 @@ fn item_image_render(data: &Data, item: &ListItem, ext: &String) -> DomElement {
     }
 }
 
-pub fn list_items_from_vec(data: &Data, list: Computed<Vec<ListItem>>, mouse_over_enable: bool) -> DomComment {
+pub fn list_items_from_vec(data: &Data, list: Computed<Vec<ListItem>>, mouse_over_enable: bool) -> ListRendered<(Option<String>, ListItem)> {
     let list_sorted = Computed::from({
         move |context| {
             let list = list.get(context);
@@ -270,7 +270,7 @@ pub fn list_items_from_vec(data: &Data, list: Computed<Vec<ListItem>>, mouse_ove
     )
 }
 
-pub fn list_items_from_dir(data: &Data, dir: &Computed<Vec<String>>, mouse_over_enable: bool) -> DomComment {
+pub fn list_items_from_dir(data: &Data, dir: &Computed<Vec<String>>, mouse_over_enable: bool) -> ListRendered<(Option<String>, ListItem)> {
     let list = Computed::from({
         let data = data.clone();
         let dir = dir.clone();

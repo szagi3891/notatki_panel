@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use vertigo::{Css, css, bind2, Resource, dom, DomElement, Computed, DomComment};
+use vertigo::{Css, css, bind2, Resource, dom, DomElement, Computed, ListRendered, DomCommentCreate};
 
 use crate::app::App;
 use crate::components::list_items_from_dir;
@@ -104,7 +104,7 @@ fn render_content_chunk(state: &App, item: &ParseTextItem) -> DomElement {
     }
 }
 
-fn render_content_text(state: &App, content: Rc<String>) -> DomComment {
+fn render_content_text(state: &App, content: Rc<String>) -> ListRendered<ParseTextItem> {
     let chunks = Computed::from({
         let state = state.clone();
         move |context| {
@@ -135,7 +135,7 @@ fn render_dir(data: &Data, dir: &Computed<Vec<String>>) -> DomElement {
     }
 }
 
-pub fn render_content(state: &App) -> DomComment {
+pub fn render_content(state: &App) -> DomCommentCreate {
     state.data.tab.current_content.render_value({
         let state = state.clone();
         move |current_content| {

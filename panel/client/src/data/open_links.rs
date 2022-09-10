@@ -1,5 +1,5 @@
 use vertigo::{
-    Value, css, Css, bind, Context, DomNode, DomElement, Computed, dom, DomComment, bind2,
+    Value, css, Css, bind, Context, DomElement, Computed, dom, DomNodeFragment, ListRendered, bind2,
 };
 
 #[derive(Clone, PartialEq)]
@@ -87,7 +87,7 @@ impl OpenLinks {
         self.tabs_active.set(None);
     }
 
-    pub fn render(&self, default_view: impl Into<DomNode>) -> DomElement {
+    pub fn render(&self, default_view: impl Into<DomNodeFragment>) -> DomElement {
         open_links_render(self, default_view.into())
     }
 }
@@ -198,7 +198,7 @@ fn button(
     }
 }
 
-fn render_main_content(active_default: &Computed<bool>, default_view: impl Into<DomNode>) -> DomElement {
+fn render_main_content(active_default: &Computed<bool>, default_view: impl Into<DomNodeFragment>) -> DomElement {
     let css_wrapper = active_default.clone().map(|active| {
         match active {
             true => css! {"
@@ -217,7 +217,7 @@ fn render_main_content(active_default: &Computed<bool>, default_view: impl Into<
     }
 }
 
-fn render_tab_list(open_links: &OpenLinks, tabs: &Computed<Vec<String>>) -> DomComment {
+fn render_tab_list(open_links: &OpenLinks, tabs: &Computed<Vec<String>>) -> ListRendered<String> {
     tabs.render_list(|item| item.clone(), {
         let open_links = open_links.clone();
         move |url| {
@@ -241,7 +241,7 @@ fn render_tab_list(open_links: &OpenLinks, tabs: &Computed<Vec<String>>) -> DomC
     })
 }
 
-fn render_tab_buttons(open_links: &OpenLinks, tabs: &Computed<Vec<String>>) -> DomComment {
+fn render_tab_buttons(open_links: &OpenLinks, tabs: &Computed<Vec<String>>) -> ListRendered<String> {
     tabs.render_list(|item| item.clone(), {
         let open_links = open_links.clone();
         move |url| {
@@ -277,7 +277,7 @@ fn render_tab_buttons(open_links: &OpenLinks, tabs: &Computed<Vec<String>>) -> D
     })
 }
 
-fn open_links_render(open_links: &OpenLinks, default_view: DomNode) -> DomElement {
+fn open_links_render(open_links: &OpenLinks, default_view: DomNodeFragment) -> DomElement {
     let active_default = Computed::from({
         let open_links = open_links.clone();
         move |context| {
