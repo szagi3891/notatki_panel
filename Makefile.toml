@@ -1,7 +1,6 @@
 [config]
 default_to_workspace = false
 
-
 [tasks.wasm32-target]
 install_script = '''
     if [ "$(rustup target list | grep wasm32-unknown-unknown | grep installed)" = "" ];
@@ -10,18 +9,12 @@ install_script = '''
     fi
 '''
 
-[tasks.client-clean]
-script = "rm -Rf ./build"
-
 [tasks.client-build]
 dependencies = [ "wasm32-target" ]
 script = [
     "static_path=build public_path=/build cargo build -p client --target wasm32-unknown-unknown --release",
     "static_path=build public_path=/build cargo build -p client --target wasm32-unknown-unknown",
 ]
-
-#example
-#cargo make --env GIT_REPO=/Users/grzegorzszeliga/Desktop/notatki_main/notatki app-serve
 
 [tasks.app-serve]
     command = "cargo"
@@ -30,11 +23,6 @@ script = [
     "RUST_LOG" = "info"
     "HTTP_HOST" = "0.0.0.0"
     "HTTP_PORT" = "4000"
-
-
-
-#example
-#cargo make --env GIT_REPO=/Users/grzegorzszeliga/Desktop/notatki_main/notatki app-start
 
 [tasks.app-start]
 dependencies = [
