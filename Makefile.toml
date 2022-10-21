@@ -14,12 +14,10 @@ install_script = '''
 script = "rm -Rf ./build"
 
 [tasks.client-build]
-dependencies = [ "wasm32-target", "client-clean" ]
+dependencies = [ "wasm32-target" ]
 script = [
-    "mkdir -p ./build",
-    "cargo build -p client --release --target wasm32-unknown-unknown",
-    "cp ${CARGO_MAKE_CRATE_TARGET_DIRECTORY}/wasm32-unknown-unknown/release/wasm_run.js ./build/wasm_run.js",
-    "wasm-opt -Os --strip-debug -o ./build/client.wasm ${CARGO_MAKE_CRATE_TARGET_DIRECTORY}/wasm32-unknown-unknown/release/client.wasm",
+    "static_path=build public_path=/build cargo build -p client --target wasm32-unknown-unknown --release",
+    "static_path=build public_path=/build cargo build -p client --target wasm32-unknown-unknown",
 ]
 
 #example

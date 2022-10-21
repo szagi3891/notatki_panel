@@ -74,27 +74,9 @@ impl App {
     }
 
     #[oai(method = "get", path = "/")]
-    async fn handler_index(&self) -> Html<&str> {
-        Html(
-            r##"
-                <!DOCTYPE html>
-                <html>
-                    <head>
-                        <meta charset="utf-8"/>
-                        <style type="text/css">
-                            * {
-                                box-sizing: border-box;
-                            }
-                        </style>
-                        <script type="module">
-                            import { runModule } from "./build/wasm_run.js";
-                            runModule("./build/client.wasm");
-                        </script>
-                    </head>
-                    <body></body>
-                </html>
-            "##
-        )
+    async fn handler_index(&self) -> Html<String> {
+        let data = std::fs::read_to_string("./build/index.html").unwrap();
+        Html(data)
     }
 
     #[oai(method = "get", path = "/fetch_root")]
@@ -349,3 +331,4 @@ async fn main() {
         )
         .await.unwrap();
 }
+

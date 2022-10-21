@@ -552,6 +552,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "hex"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
+
+[[package]]
 name = "hkdf"
 version = "0.12.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -725,6 +731,12 @@ checksum = "49409df3e3bf0856b916e2ceaca09ee28e6871cf7d9ce97a692cacfdb2a25a47"
 dependencies = [
  "wasm-bindgen",
 ]
+
+[[package]]
+name = "lazy_static"
+version = "1.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
 name = "libc"
@@ -1759,8 +1771,8 @@ checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
 
 [[package]]
 name = "vertigo"
-version = "0.1.0-beta.4"
-source = "git+https://github.com/vertigo-web/vertigo?branch=intersection#ef95fbe595d161e8c818aaed0ef269b7647a39ec"
+version = "0.1.0"
+source = "git+https://github.com/vertigo-web/vertigo?branch=vertigo-build#b11eab80fc91f3169e47a334380aaf03b2975f19"
 dependencies = [
  "log",
  "serde_json",
@@ -1769,14 +1781,20 @@ dependencies = [
 
 [[package]]
 name = "vertigo-macro"
-version = "0.1.0-beta.4"
-source = "git+https://github.com/vertigo-web/vertigo?branch=intersection#ef95fbe595d161e8c818aaed0ef269b7647a39ec"
+version = "0.1.0"
+source = "git+https://github.com/vertigo-web/vertigo?branch=vertigo-build#b11eab80fc91f3169e47a334380aaf03b2975f19"
 dependencies = [
+ "envy",
+ "hex",
  "itertools",
+ "lazy_static",
  "pest",
  "pest_derive",
  "proc-macro-error",
  "proc-macro2",
+ "serde",
+ "serde_json",
+ "sha2",
  "syn",
  "syn-rsx",
 ]

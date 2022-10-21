@@ -5,7 +5,7 @@ use vertigo::{
     LazyCache, get_driver, Context,
 };
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct RootNode {
     root: LazyCache<RootResponse>,
 }
