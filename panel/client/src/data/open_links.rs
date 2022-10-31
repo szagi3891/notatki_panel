@@ -293,20 +293,6 @@ fn open_links_render(open_links: &OpenLinks, default_view: DomNodeFragment) -> D
         }
     });
 
-    let style_css = dom! {
-        <style>
-            "
-            html, body {
-                width: 100%;
-                height: 100%;
-                margin: 0;
-                padding: 0;
-                border: 0;
-            }
-            "
-        </style>
-    };
-
     let default_tab_button = {
         let on_click = bind(open_links).call(|_, open_links| {
             open_links.tabs_default();
@@ -321,7 +307,6 @@ fn open_links_render(open_links: &OpenLinks, default_view: DomNodeFragment) -> D
 
     dom! {
         <div css={css_iframe_bg()}>
-            { style_css }
             <div css={css_left()}>
                 { render_main_content(&active_default, default_view) }
                 { render_tab_list(open_links, &tabs) }
