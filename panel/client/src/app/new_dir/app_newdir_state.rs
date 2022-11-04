@@ -1,5 +1,5 @@
 use common::{HandlerCreateDirBody};
-use vertigo::{Computed, Value, get_driver, Context, DomElement, bind2};
+use vertigo::{Computed, Value, get_driver, DomElement, bind, transaction};
 
 use crate::app::App;
 use crate::app::response::check_request_response;
@@ -19,10 +19,12 @@ pub struct AppNewdir {
 }
 
 impl AppNewdir {
-    pub fn new(context: &Context, app: &App) -> AppNewdir {
+    pub fn new(app: &App) -> AppNewdir {
         let action_save = Value::new(false);
         let list = app.data.tab.list.clone();
-        let parent = app.data.tab.router.get_dir(context);
+        let parent = transaction(|context| {
+            app.data.tab.router.get_dir(context)
+        });
 
         let new_name = new_name::NewName::new(list);
         let is_valid = new_name.is_valid.clone();
@@ -42,43 +44,47 @@ impl AppNewdir {
     }
 
     pub fn bind_on_save(&self, app: &App) -> impl Fn() {
-        bind2(self, app).spawn(|context, state, app| async move {
-            let action_save = state.action_save.get(&context);
+        let state = self.clone();
+        bind!(|state, app| {
+            let state = state.clone();
+            let app = app.clone();
 
-            if action_save {
-                log::error!("Trwa obecnie zapis");
-                return context;
-            }
+            get_driver().spawn(async move {
+                let action_save = transaction(|context| state.action_save.get(&context));
 
-            state.action_save.set(true);
-        
-            let new_dir_name = state.new_name.name.get(&context);
-
-            let body = HandlerCreateDirBody {
-                path: state.parent.clone(),
-                dir: new_dir_name.clone(),
-            };
-
-            let response = get_driver()
-                .request("/create_dir")
-                .body_json(body)
-                .post().await;
-
-            state.action_save.set(false);
-
-            match check_request_response(response) {
-                Ok(()) => {                
-                    let parent_string = state.parent.join("/");
-                    log::info!("Tworzenie katalogu {:?} udane -> przekierowanie na -> {:?}", new_dir_name, parent_string);
-
-                    app.redirect_to_index_with_path(state.parent.clone(), Some(new_dir_name));
-                },
-                Err(message) => {
-                    app.show_message_error(&context, message, Some(10000));
+                if action_save {
+                    log::error!("Trwa obecnie zapis");
+                    return;
                 }
-            };
 
-            context
+                state.action_save.set(true);
+            
+                let new_dir_name = transaction(|context| state.new_name.name.get(&context));
+
+                let body = HandlerCreateDirBody {
+                    path: state.parent.clone(),
+                    dir: new_dir_name.clone(),
+                };
+
+                let response = get_driver()
+                    .request("/create_dir")
+                    .body_json(body)
+                    .post().await;
+
+                state.action_save.set(false);
+
+                match check_request_response(response) {
+                    Ok(()) => {                
+                        let parent_string = state.parent.join("/");
+                        log::info!("Tworzenie katalogu {:?} udane -> przekierowanie na -> {:?}", new_dir_name, parent_string);
+
+                        app.redirect_to_index_with_path(state.parent.clone(), Some(new_dir_name));
+                    },
+                    Err(message) => {
+                        app.show_message_error(message, Some(10000));
+                    }
+                };
+            });
         })
     }
 }

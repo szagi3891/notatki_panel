@@ -1,5 +1,5 @@
 use common::{HandlerCreateFileBody};
-use vertigo::{Computed, Value, get_driver, transaction, Context, DomElement, bind2};
+use vertigo::{Computed, Value, get_driver, transaction, DomElement, bind};
 
 use crate::app::App;
 use crate::app::newcontent::app_newcontent_render::app_newcontent_render;
@@ -19,11 +19,11 @@ pub struct AppNewcontent {
 }
 
 impl AppNewcontent {
-    pub fn new(app: &App, context: &Context) -> AppNewcontent {
+    pub fn new(app: &App) -> AppNewcontent {
         log::info!("buduję stan dla new content");
         let action_save = Value::new(false);
 
-        let parent = app.data.tab.router.get_dir(context);
+        let parent = transaction(|context| app.data.tab.router.get_dir(context));
         let list = app.data.tab.list.clone();
 
         let new_name = NewName::new(list);
@@ -82,44 +82,57 @@ impl AppNewcontent {
     }
 
     pub fn on_save(&self) -> impl Fn() {
-        bind2(self, &self.app).spawn(|context, state, app| async move {
-            let action_save = state.action_save.get(&context);
+        let state = self;
+
+        bind!(|state| {
+            let action_save = transaction(|context| {
+                state.action_save.get(&context)
+            });
 
             if action_save {
                 log::error!("Trwa obecnie zapis");
-                return context;
+                return;
             }
 
             state.action_save.set(true);
 
-            let new_name = state.new_name.name.get(&context);
+            let (new_name, body) = transaction(|context| {
+                let new_name = state.new_name.name.get(&context);
 
-            let body: HandlerCreateFileBody = HandlerCreateFileBody {
-                path: state.parent.clone(),
-                new_name: new_name.clone(),
-                new_content: state.content.get(&context),
-            };
-
-            let response = get_driver()
-                .request("/create_file")
-                .body_json(body)
-                .post()
-                .await;
-
-            state.action_save.set(false);
+                (
+                    new_name.clone(),
+                    HandlerCreateFileBody {
+                        path: state.parent.clone(),
+                        new_name: new_name,
+                        new_content: state.content.get(&context),
+                    }
+                )
+            });
             
-            match check_request_response(response) {
-                Ok(()) => {       
-                    let path_redirect = state.parent.clone(); 
-                    log::info!("Zapis udany -> przekierowanie na -> {:?} {:?}", path_redirect, new_name);
-                    app.redirect_to_index_with_path(path_redirect, Some(new_name));
-                },
-                Err(message) => {
-                    app.show_message_error(&context, message, Some(10000));
-                }
-            };
+            get_driver().spawn({
+                let state = state.clone();
 
-            context
+                async move {
+                    let response = get_driver()
+                        .request("/create_file")
+                        .body_json(body)
+                        .post()
+                        .await;
+
+                    state.action_save.set(false);
+                    
+                    match check_request_response(response) {
+                        Ok(()) => {       
+                            let path_redirect = state.parent.clone(); 
+                            log::info!("Zapis udany -> przekierowanie na -> {:?} {:?}", path_redirect, new_name);
+                            state.app.redirect_to_index_with_path(path_redirect, Some(new_name));
+                        },
+                        Err(message) => {
+                            state.app.show_message_error(message, Some(10000));
+                        }
+                    };
+                }
+            });
         })
     }
 }

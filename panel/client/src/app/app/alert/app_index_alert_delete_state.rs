@@ -1,7 +1,7 @@
 use common::{HandlerDeleteItemBody};
 use vertigo::{
     Value,
-    bind, get_driver, Resource, Computed, Context, DomElement, dom, bind3,
+    bind, get_driver, Resource, Computed, DomElement, dom, transaction,
 };
 use crate::{components::{AlertBox, ButtonState}, app::{response::check_request_response, App}};
 
@@ -27,9 +27,13 @@ impl AppIndexAlertDelete {
         }
     }
 
-    async fn delete_yes(self, context: Context, app: App, current_hash: String) -> Context {
-        if self.progress.get(&context) {
-            return context;
+    async fn delete_yes(self, app: App, current_hash: String) {
+        let progress = transaction(|context| {
+            self.progress.get(&context)
+        });
+
+        if progress {
+            return;
         }
 
         let current_path = self.full_path;
@@ -51,16 +55,14 @@ impl AppIndexAlertDelete {
 
         match check_request_response(response) {
             Ok(()) => {
-                self.alert.data.tab.redirect_item_select_after_delete(&context);
+                self.alert.data.tab.redirect_item_select_after_delete();
                 self.alert.data.git.root.refresh();
                 self.alert.close_modal();
             },
             Err(message) => {
-                app.show_message_error(&context, message, Some(10000));
+                app.show_message_error(message, Some(10000));
             }
         };
-
-        context
     }
 
     pub fn bind_delete_yes(&self) -> DomElement {
@@ -72,9 +74,15 @@ impl AppIndexAlertDelete {
             let item = state.alert.data.git.content_from_path(context, &full_path);
 
             if let Resource::Ready(item) = item {
-                let action = bind3(&state, &app, &item.id).spawn(|context, state, app, id| async move {
-                    let context = state.delete_yes(context, app, id).await;
-                    context
+                let id = &item.id;
+
+                let action = bind!(|state, app, id| {
+                    let state = state.clone();
+                    let app = app.clone();
+                    let id = id.clone();
+                    get_driver().spawn(async move {
+                        state.delete_yes(app, id).await;
+                    });
                 });
 
                 return ButtonState::active("Tak", action);
@@ -88,8 +96,12 @@ impl AppIndexAlertDelete {
         let state = self.clone();
 
         ButtonState::render(Computed::from(move |_| {
-            let action = bind(&state).call(|context, state| {
-                if state.progress.get(context) {
+            let action = bind!(|state| {
+                let progress = transaction(|context| {
+                    state.progress.get(context)
+                });
+
+                if progress {
                     return;
                 }
         

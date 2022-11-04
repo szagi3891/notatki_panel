@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use vertigo::{
     Css,
-    Computed, dom, DomElement, bind2, DomCommentCreate,
+    Computed, dom, DomElement, bind, DomCommentCreate,
 };
 use vertigo::{css};
 
@@ -60,7 +60,7 @@ fn create_link(
         };
     }
 
-    let on_click = bind2(&on_click, &node_id).call(|_, on_click, node_id| {
+    let on_click = bind!(|on_click, node_id| {
         on_click(node_id.clone());
     });
 

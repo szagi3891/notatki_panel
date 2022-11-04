@@ -1,7 +1,7 @@
 use vertigo::{
     css, Css,
     Resource,
-    bind2, DomElement, dom, Computed, ListRendered, DomCommentCreate
+    bind, DomElement, dom, Computed, ListRendered, DomCommentCreate
 };
 use crate::data::{Data, ListItem};
 use crate::components::icon;
@@ -172,7 +172,9 @@ pub fn item_default_render(data: &Data, item: &ListItem, mouse_over_enable: bool
     let data = data.clone();
     let item = item.clone();
 
-    let on_click = bind2(&data.tab, &item).call(|_, tab, item| {
+    let tab = &data.tab;
+
+    let on_click = bind!(|tab, item| {
         tab.redirect_to_item(item.clone());
     });
 
@@ -180,12 +182,12 @@ pub fn item_default_render(data: &Data, item: &ListItem, mouse_over_enable: bool
 
     let element = if mouse_over_enable {
 
-        let mouse_over_enter = bind2(&item, &data.tab).call(|_, item, tab| {
+        let mouse_over_enter = bind!(|item, tab| {
             tab.hover_on(item.name.as_str());
         });
 
-        let mouse_over_leave = bind2(&item, &data.tab).call(|context, item, tab| {
-            tab.hover_off(context, item.name.as_str());
+        let mouse_over_leave = bind!(|item, tab| {
+            tab.hover_off(item.name.as_str());
         });
 
         element
@@ -214,8 +216,8 @@ fn item_image_render(data: &Data, item: &ListItem, ext: &String) -> DomElement {
 
     let id = item.id.clone();
     let url = format!("/image/{id}/{ext}");
-
-    let on_click = bind2(&item, &data.tab).call(|_, item, tab| {
+    let tab = &data.tab;
+    let on_click = bind!(|item, tab| {
         tab.redirect_to_item(item.clone());
     });
 

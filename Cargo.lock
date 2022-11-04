@@ -671,9 +671,9 @@ dependencies = [
 
 [[package]]
 name = "hyper"
-version = "0.14.21"
+version = "0.14.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "41a2df176f359a22aee9c8657e674f7aa54e9ba48b512a798e5ca36a1f51065c"
+checksum = "abfba89e19b959ca163c7752ba59d737c1ceea53a5d31a149c805446fc958064"
 dependencies = [
  "bytes",
  "futures-channel",
@@ -948,9 +948,9 @@ dependencies = [
 
 [[package]]
 name = "num_cpus"
-version = "1.13.1"
+version = "1.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "19e64526ebdee182341572e50e9ad03965aa510cd94427a4549448f285e957a1"
+checksum = "f6058e64324c71e02bc2b150e4f3bc8286db6c83092132ffa3f6b1eab0f9def5"
 dependencies = [
  "hermit-abi",
  "libc",
@@ -1865,7 +1865,7 @@ checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
 [[package]]
 name = "vertigo"
 version = "0.1.0"
-source = "git+https://github.com/vertigo-web/vertigo?branch=master#d165d3d9c97b429e8f85d3b50bf034494d998de0"
+source = "git+https://github.com/vertigo-web/vertigo?branch=master#5267843593f20eb65c0000819725bede4043d78b"
 dependencies = [
  "log",
  "serde_json",
@@ -1875,7 +1875,7 @@ dependencies = [
 [[package]]
 name = "vertigo-macro"
 version = "0.1.0"
-source = "git+https://github.com/vertigo-web/vertigo?branch=master#d165d3d9c97b429e8f85d3b50bf034494d998de0"
+source = "git+https://github.com/vertigo-web/vertigo?branch=master#5267843593f20eb65c0000819725bede4043d78b"
 dependencies = [
  "envy",
  "hex",

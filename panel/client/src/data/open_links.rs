@@ -1,5 +1,5 @@
 use vertigo::{
-    Value, css, Css, bind, Context, DomElement, Computed, dom, DomNodeFragment, ListRendered, bind2,
+    Value, css, Css, bind, Context, DomElement, Computed, dom, DomNodeFragment, ListRendered, transaction,
 };
 
 #[derive(Clone, PartialEq)]
@@ -38,42 +38,48 @@ impl OpenLinks {
         self.tabs_url.set(tabs_url);
     }
 
-    pub fn tabs_toogle(&self, context: &Context, url: String) {
-        let has_open = self.tabs_has(context, &url);
+    pub fn tabs_toogle(&self, url: String) {
+        transaction(|context| {
+            let has_open = self.tabs_has(context, &url);
 
-        if has_open {
-            self.tabs_remove(context, url);
-        } else {
-            self.tabs_add(context, url);
-        }
-    }
-
-    pub fn tabs_remove(&self, context: &Context, url: String) {
-        let tabs_url = self.tabs_url.get(context);
-
-        if !tabs_url.contains(&url) {
-            log::error!("not contain {}", url);
-            return;
-        }
-        
-        let mut new_tabs = Vec::<String>::with_capacity(tabs_url.len());
-
-        for tab_url in tabs_url.into_iter() {
-            if tab_url != url {
-                new_tabs.push(tab_url);
+            if has_open {
+                self.tabs_remove(url);
+            } else {
+                self.tabs_add(context, url);
             }
-        }
-
-        self.tabs_url.set(new_tabs);
-
-        let tabs_active = self.tabs_active.get(context);
-        if tabs_active == Some(url) {
-            self.tabs_default();
-        }
+        });
     }
 
-    pub fn tabs_set(&self, context: &Context, url: String) {
-        let tabs_url = self.tabs_url.get(context);
+    pub fn tabs_remove(&self, url: String) {
+        transaction(|context| {
+            let tabs_url = self.tabs_url.get(context);
+
+            if !tabs_url.contains(&url) {
+                log::error!("not contain {}", url);
+                return;
+            }
+            
+            let mut new_tabs = Vec::<String>::with_capacity(tabs_url.len());
+
+            for tab_url in tabs_url.into_iter() {
+                if tab_url != url {
+                    new_tabs.push(tab_url);
+                }
+            }
+
+            self.tabs_url.set(new_tabs);
+
+            let tabs_active = self.tabs_active.get(context);
+            if tabs_active == Some(url) {
+                self.tabs_default();
+            }
+        });
+    }
+
+    pub fn tabs_set(&self, url: String) {
+        let tabs_url = transaction(|context| {
+            self.tabs_url.get(context)
+        });
 
         if !tabs_url.contains(&url) {
             log::error!("not contain {}", url);
@@ -245,12 +251,12 @@ fn render_tab_buttons(open_links: &OpenLinks, tabs: &Computed<Vec<String>>) -> L
     tabs.render_list(|item| item.clone(), {
         let open_links = open_links.clone();
         move |url| {
-            let on_click = bind2(&open_links, url).call(|context, open_links, tab_item| {
-                open_links.tabs_set(context, (*tab_item).clone());
+            let on_click = bind!(|open_links, url| {
+                open_links.tabs_set(url.clone());
             });
 
-            let on_close = bind2(&open_links, url).call(|context, open_links, tab_item| {
-                open_links.tabs_remove(context, (*tab_item).clone());
+            let on_close = bind!(|open_links, url| {
+                open_links.tabs_remove(url.clone());
             });
 
             let is_select = Computed::from({
@@ -294,7 +300,7 @@ fn open_links_render(open_links: &OpenLinks, default_view: DomNodeFragment) -> D
     });
 
     let default_tab_button = {
-        let on_click = bind(open_links).call(|_, open_links| {
+        let on_click = bind!(|open_links| {
             open_links.tabs_default();
         });
 

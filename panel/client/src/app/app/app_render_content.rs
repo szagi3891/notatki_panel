@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use vertigo::{Css, css, bind2, Resource, dom, DomElement, Computed, ListRendered, DomCommentCreate};
+use vertigo::{Css, css, bind, Resource, dom, DomElement, Computed, ListRendered, DomCommentCreate};
 
 use crate::app::App;
 use crate::components::list_items_from_dir;
@@ -67,8 +67,8 @@ fn render_content_chunk(state: &App, item: &ParseTextItem) -> DomElement {
                 false => "(otwórz)"
             };
 
-            let on_click = bind2(state, &url).call(|context, state, url| {
-                state.data.tab.open_links.tabs_toogle(context, url.clone());
+            let on_click = bind!(|state, url| {
+                state.data.tab.open_links.tabs_toogle(url.clone());
             });
 
             let img = if let Some(thumb) = get_thumbnail(url.as_str()) {

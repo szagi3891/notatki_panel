@@ -26,7 +26,8 @@ pub fn app_newdir_render(state: AppNewdir) -> DomElement {
 
     let parent_path = state.parent.as_slice().join("/");
 
-    let button_back = button("Wróć", bind(&state.app).call(|_, app| {
+    let app = &state.app;
+    let button_back = button("Wróć", bind!(|app| {
         app.redirect_to_index();
     }));
 
