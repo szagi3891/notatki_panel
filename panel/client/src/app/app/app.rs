@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use vertigo::{Resource, get_driver, Context, transaction, dom, DomElement, bind2, DomCommentCreate};
+use vertigo::{Resource, get_driver, transaction, dom, bind, DomElement, DomCommentCreate};
 use vertigo::Value;
 use crate::components::{message_box, MessageBoxType, stict_to_top};
 use crate::data::Data;
@@ -78,30 +78,32 @@ impl App {
         });
     }
 
-    pub fn redirect_to_rename_item(&self, context: &Context, base_path: &Vec<String>, select_item: &String) {
-        let select_item = select_item.clone();
-        let full_path = self.data.tab.full_path.clone().get(context);
-        let content = self.data.git.content_from_path(context, &full_path);
+    pub fn redirect_to_rename_item(&self, base_path: &Vec<String>, select_item: &String) {
+        transaction(|context| {
+            let select_item = select_item.clone();
+            let full_path = self.data.tab.full_path.clone().get(context);
+            let content = self.data.git.content_from_path(context, &full_path);
 
-        match content {
-            Resource::Ready(list_item) => {
-                log::info!("redirect_to_rename_item {base_path:?} {select_item:?}");
+            match content {
+                Resource::Ready(list_item) => {
+                    log::info!("redirect_to_rename_item {base_path:?} {select_item:?}");
 
-                let state = AppRenameitem::new(
-                    self,
-                    base_path.clone(),
-                    select_item,
-                    list_item.id,
-                );
+                    let state = AppRenameitem::new(
+                        self,
+                        base_path.clone(),
+                        select_item,
+                        list_item.id,
+                    );
 
-                self.view.set(View::RenameItem {
-                    state
-                });
-            },
-            _ => {
-                log::error!("redirect_to_rename_item fail - {base_path:?} {select_item:?}");
+                    self.view.set(View::RenameItem {
+                        state
+                    });
+                },
+                _ => {
+                    log::error!("redirect_to_rename_item fail - {base_path:?} {select_item:?}");
+                }
             }
-        }
+        });
     }
 
     pub fn redirect_to_index(&self) {
@@ -116,8 +118,8 @@ impl App {
         self.data.git.root.refresh();
     }
 
-    pub fn redirect_to_mkdir(&self, context: &Context) {
-        let state = AppNewdir::new(context, self);
+    pub fn redirect_to_mkdir(&self) {
+        let state = AppNewdir::new(self);
 
         self.view.set(View::Mkdir {
             state
@@ -129,28 +131,30 @@ impl App {
         self.redirect_to_index();
     }
 
-    pub fn redirect_to_new_content(&self, context: &Context) {
-        let state = AppNewcontent::new(self, context);
+    pub fn redirect_to_new_content(&self) {
+        let state = AppNewcontent::new(self);
         self.view.set(View::NewContent { state });
     }
 
-    pub fn current_edit(&self, context: &Context) {
-        let full_path = self.data.tab.full_path.get(context);
+    pub fn current_edit(&self) {
+        let full_path = transaction(|context| self.data.tab.full_path.get(context));
         self.redirect_to_edit_content(&full_path);
     }
 
-    pub fn current_rename(&self, context: &Context) {
-        let path = self.data.tab.router.get_dir(context);
-        let select_item = self.data.tab.current_item.get(context);
+    pub fn current_rename(&self) {
+        transaction(|context| {
+            let path = self.data.tab.router.get_dir(context);
+            let select_item = self.data.tab.current_item.get(context);
 
-        if let Some(select_item) = select_item.as_ref() {
-            self.redirect_to_rename_item(context, &path, select_item);
-        } else {
-            log::error!("current_rename fail");
-        }
+            if let Some(select_item) = select_item.as_ref() {
+                self.redirect_to_rename_item(&path, select_item);
+            } else {
+                log::error!("current_rename fail");
+            }
+        });
     }
 
-    fn message_add(&self, context: &Context, info: MessageBoxType, message: String) -> u32 {
+    fn message_add(&self, info: MessageBoxType, message: String) -> u32 {
         let message_id = self.next_id.get_next();
 
         let error = Error {
@@ -159,9 +163,9 @@ impl App {
             message,
         };
 
-        let mut messages = self.errors.get(context);
-        messages.push(error);
-        self.errors.set(messages);
+        self.errors.change(|messages| {
+            messages.push(error);
+        });
 
         message_id
     }
@@ -171,34 +175,34 @@ impl App {
 
         get_driver().spawn(async move {
             get_driver().sleep(timeout).await;
-            transaction(|context| {
-                self_copy.remove_message(context, message_id);
-            });
+            self_copy.remove_message(message_id);
         });
     }
 
-    pub fn show_message_error(&self, context: &Context, message: impl Into<String>, timeout: Option<u32>) {
-        let message_id = self.message_add(context, MessageBoxType::Error, message.into());
+    pub fn show_message_error(&self, message: impl Into<String>, timeout: Option<u32>) {
+        let message_id = self.message_add(MessageBoxType::Error, message.into());
         if let Some(timeout) = timeout {
             self.message_off_with_timeout(message_id, timeout);
         }
     }
 
-    pub fn show_message_info(&self, context: &Context, message: impl Into<String>, timeout: Option<u32>) {
-        let message_id = self.message_add(context, MessageBoxType::Info, message.into());
+    pub fn show_message_info(&self, message: impl Into<String>, timeout: Option<u32>) {
+        let message_id = self.message_add(MessageBoxType::Info, message.into());
         if let Some(timeout) = timeout {
             self.message_off_with_timeout(message_id, timeout);
         }
     }
 
-    pub fn remove_message(&self, context: &Context, message_id: u32) {
-        let mut messages = self.errors.get(context);
-        messages.retain(|item| item.id != message_id);
-        self.errors.set(messages);
+    pub fn remove_message(&self, message_id: u32) {
+        transaction(|context| {
+            let mut messages = self.errors.get(context);
+            messages.retain(|item| item.id != message_id);
+            self.errors.set(messages);
+        })
     }
 
-    pub fn keydown(&self, context: &Context, code: String) -> bool {
-        if self.alert.is_visible(context) {
+    pub fn keydown(&self, code: String) -> bool {
+        if self.alert.is_visible() {
             if code == "Escape" {
                 self.alert.close_modal();
                 return true;
@@ -210,19 +214,19 @@ impl App {
         }
 
         if code == "ArrowUp" {
-            self.data.tab.pointer_up(context);
+            self.data.tab.pointer_up();
             return true;
         } else if code == "ArrowDown" {
-            self.data.tab.pointer_down(context);
+            self.data.tab.pointer_down();
             return true;
         } else if code == "Escape" {
-            self.data.tab.pointer_escape(context);
+            self.data.tab.pointer_escape();
             return true;
         } else if code == "ArrowRight" || code == "Enter" {
-            self.data.tab.pointer_enter(context);
+            self.data.tab.pointer_enter();
             return true;
         } else if code == "ArrowLeft" || code == "Backspace" || code == "Escape" {
-            self.data.tab.backspace(context);
+            self.data.tab.backspace();
             return true;
         }
 
@@ -253,8 +257,8 @@ fn render_error_one(state: &App, error: Error) -> DomElement {
     let Error { id, info, message } = error;
     let state = state.clone();
 
-    let on_remove = bind2(&state, &id).call(|context, state, id| {
-        state.remove_message(context, *id);
+    let on_remove = bind!(|state, id| {
+        state.remove_message(id);
     });
 
     message_box(info, message, on_remove)

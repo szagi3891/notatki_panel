@@ -1,4 +1,4 @@
-use vertigo::{Value, Context, dom, DomCommentCreate};
+use vertigo::{Value, dom, DomCommentCreate, transaction};
 use crate::app::App;
 use crate::app::app::alert::app_index_alert_delete_state::AppIndexAlertDelete;
 use crate::app::app::alert::app_index_alert_search_state::AppIndexAlertSearch;
@@ -34,16 +34,16 @@ impl AppIndexAlert {
         app_index_alert_render(self)
     }
 
-    pub fn is_visible(&self, context: &Context) -> bool {
-        let view = self.view.get(context);
+    pub fn is_visible(&self) -> bool {
+        let view = transaction(|context| self.view.get(context));
         match view {
             AlertView::None => false,
             _ => true
         }
     }
 
-    pub fn delete(&self, context: &Context, app: App, path: Vec<String>) {
-        if self.is_visible(context) {
+    pub fn delete(&self, app: App, path: Vec<String>) {
+        if self.is_visible() {
             return;
         }
 
@@ -52,8 +52,8 @@ impl AppIndexAlert {
         self.view.set(AlertView::DeleteFile { state });
     }
 
-    pub fn redirect_to_search(&self, context: &Context) {
-        if self.is_visible(context) {
+    pub fn redirect_to_search(&self) {
+        if self.is_visible() {
             return;
         }
 
@@ -61,8 +61,8 @@ impl AppIndexAlert {
         self.view.set(AlertView::SearchInPath { state });
     }
 
-    pub fn move_current(&self, context: &Context, app: &App, path: &Vec<String>, hash: &String) {
-        if self.is_visible(context) {
+    pub fn move_current(&self, app: &App, path: &Vec<String>, hash: &String) {
+        if self.is_visible() {
             return;
         }
 

@@ -1,4 +1,4 @@
-use vertigo::{Css, bind, dom, DomElement, DomCommentCreate};
+use vertigo::{Css, bind, dom, DomElement, DomCommentCreate, transaction};
 use vertigo::{css};
 
 use super::AppEditcontent;
@@ -61,15 +61,15 @@ fn render_textarea(state: &AppEditcontent) -> DomCommentCreate {
         move |show| {
             match show {
                 true => {
-                    let on_input = bind(&state)
-                        .call_param(|context, state, new_value| {
-                
+                    let on_input = bind!(|state, new_value: String| {
+                        transaction(|context| {
                             if let Some(EditContent { hash: Some(hash), content: _}) = state.content_view.get(context) {
                                 state.on_input(context, new_value, hash);
                             } else {
                                 log::warn!("Ignore on_input");
                             }
                         });
+                    });
             
                     dom! {
                         <textarea css={css_body()} on_input={on_input} value={content.clone()} />
@@ -153,7 +153,7 @@ pub fn app_editcontent_render(app: &App, state: &AppEditcontent) -> DomElement {
     let app = app.clone();
 
     let button_back = {
-        let on_click = bind(&app).call(|_, app| {
+        let on_click = bind!(|app| {
             app.redirect_to_index();
         });
         button("Wróć", on_click)

@@ -1,7 +1,7 @@
 use vertigo::{
     Css,
     Computed,
-    bind, Resource, DomElement, dom, bind3, bind2,
+    bind, Resource, DomElement, dom, transaction,
 };
 
 use vertigo::{css};
@@ -83,9 +83,9 @@ fn render_button_on_delete(state: &MenuComponent) -> DomElement {
 
             if is_current_content {
                 let alert = app.alert.clone();
-                let on_delete = bind2(&alert, &app).call(|context, alert, app| {
-                    let path = alert.data.tab.full_path.get(context);
-                    alert.delete(context, app.clone(), path);
+                let on_delete = bind!(|alert, app| {
+                    let path = transaction(|context| alert.data.tab.full_path.get(context));
+                    alert.delete(app.clone(), path);
                 });
         
                 ButtonState::active("Usuń", on_delete)
@@ -106,8 +106,8 @@ fn render_button_edit_file(state: &MenuComponent) -> DomElement {
             let is_current_content = is_current_content.get(context);
 
             if is_current_content {
-                let on_click = bind(&app).call(|context, app|{
-                    app.current_edit(context);
+                let on_click = bind!(|app|{
+                    app.current_edit();
                 });
 
                 ButtonState::active("Edycja pliku", on_click)
@@ -130,8 +130,8 @@ fn render_button_move_item(state: &MenuComponent) -> DomElement {
         if let Resource::Ready(current_content) = current_content {
             let hash = current_content.id;
 
-            let on_click = bind3(&app, &current_path, &hash).call(|context, app, current_path, hash| {
-                app.alert.move_current(context, app, current_path, hash);
+            let on_click = bind!(|app, current_path, hash| {
+                app.alert.move_current(&app, &current_path, &hash);
             });
 
             return ButtonState::active("Przenieś", on_click);
@@ -146,8 +146,8 @@ fn render_button_create_file(state: &MenuComponent) -> DomElement {
         let app = state.app.clone();
 
         Computed::from(move |_| {
-            let on_click = bind(&app).call(|context, app| {
-                app.redirect_to_new_content(context);
+            let on_click = bind!(|app| {
+                app.redirect_to_new_content();
             });
 
             ButtonState::active("Utwórz plik", on_click)
@@ -160,8 +160,8 @@ fn render_button_rename_name(state: &MenuComponent) -> DomElement {
         let app = state.app.clone();
 
         Computed::from(move |_| {
-            let on_click = bind(&app).call(|context, app| {
-                app.current_rename(context);
+            let on_click = bind!(|app| {
+                app.current_rename();
             });
 
             ButtonState::active("Zmień nazwę", on_click)
@@ -174,8 +174,8 @@ fn render_button_make_dir(state: &MenuComponent) -> DomElement {
         let app = state.app.clone();
 
         Computed::from(move |_| {
-            let on_click = bind(&app).call(|context, app| {
-                app.redirect_to_mkdir(context);
+            let on_click = bind!(|app| {
+                app.redirect_to_mkdir();
             });
 
             ButtonState::active("Utwórz katalog", on_click)
@@ -188,8 +188,9 @@ fn render_button_search(state: &MenuComponent) -> DomElement {
         let app = state.app.clone();
 
         Computed::from(move |_| {
-            let on_click = bind(&app.alert).call(|context, alert| {
-                alert.redirect_to_search(context);
+            let alert = &app.alert;
+            let on_click = bind!(|alert| {
+                alert.redirect_to_search();
             });
 
             ButtonState::active("Wyszukaj", on_click)

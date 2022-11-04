@@ -1,5 +1,5 @@
 use common::HandlerMoveItemBody;
-use vertigo::{Value, Resource, Computed, bind, css, Css, get_driver, dom, transaction, Context, DomElement, bind2, DomCommentCreate};
+use vertigo::{Value, Resource, Computed, bind, css, Css, get_driver, dom, transaction, Context, DomElement, DomCommentCreate};
 
 use crate::{components::{AlertBox, item_default, item_dot_html, ButtonState, render_path}, data::ListItem, app::{response::check_request_response, App}};
 
@@ -32,9 +32,11 @@ impl AppIndexAlertMoveitem {
         }
     }
 
-    fn prepare_new_path(&self, context: &Context) -> Option<Vec<String>> {
+    fn prepare_new_path(&self) -> Option<Vec<String>> {
         let mut path = self.path.clone();
-        let mut target = self.target.clone().get(context);
+        let mut target = transaction(|context| {
+            self.target.clone().get(context)
+        });
 
         let last = match path.pop() {
             Some(last) => last,
@@ -48,11 +50,11 @@ impl AppIndexAlertMoveitem {
         Some(target)
     }
 
-    async fn on_save(&self, context: Context) -> (Result<(), String>, Context) {
-        let new_path = match self.prepare_new_path(&context) {
+    async fn on_save(&self) -> Result<(), String> {
+        let new_path = match self.prepare_new_path() {
             Some(new_path) => new_path,
             None => {
-                return (Err("Problem with computing a new path".into()), context);
+                return Err("Problem with computing a new path".into());
             }
         };
 
@@ -68,7 +70,7 @@ impl AppIndexAlertMoveitem {
             .post()
             .await;
 
-        (check_request_response(response), context)
+        check_request_response(response)
     }
 
     pub fn render(&self) -> DomElement {
@@ -84,8 +86,8 @@ fn render_target(state: &AppIndexAlertMoveitem) -> DomElement {
             margin-bottom: 5px;
         ")
     }
-    let on_click_path = bind(state).call_param(|_, data, node_id: Vec<String>| {
-        data.target.set(node_id);
+    let on_click_path = bind!(|state, node_id: Vec<String>| {
+        state.target.set(node_id);
     });
     
     let target_path = render_path(&state.target.to_computed(), on_click_path);
@@ -107,12 +109,13 @@ fn render_back(state: &AppIndexAlertMoveitem) -> DomCommentCreate {
         match is_empty {
             true => None,
             false => {
-                let on_click = bind(&state.target)
-                    .call(|context, target| {
-                        let mut value = target.get(context);
-                        value.pop();
-                        target.set(value);
+                let target = &state.target;
+
+                let on_click = bind!(|target| {
+                    target.change(|inner| {
+                        inner.pop();
                     });
+                });
                 
                 Some(item_dot_html(on_click))
             }
@@ -170,12 +173,12 @@ fn render_list(state: &AppIndexAlertMoveitem) -> DomCommentCreate {
                     };
 
                     for item in list {
-                        let on_click = bind2(&item, &target).call(|context, item, target| {
+                        let on_click = bind!(|item, target| {
                             log::info!("kliknięto w element {name}", name = item.name);
 
-                            let mut target_value = target.get(context);
-                            target_value.push(item.name.clone());
-                            target.set(target_value);
+                            target.change(|inner| {
+                                inner.push(item.name.clone());    
+                            });
                         });
 
                         out.add_child(item_default(&data, &item, on_click));
@@ -217,17 +220,22 @@ fn render_button_yes(state: &AppIndexAlertMoveitem) -> DomElement {
             return ButtonState::Disabled { label: "Tak".into() };
         }
 
-        let action = bind(&state)
-            .spawn(|context, state| async move {
-                let progress = state.progress.get(&context);
+        let action = bind!(|state| {
+            let state = state.clone();
+            get_driver().spawn(async move {
+                let state = state.clone();
+
+                let progress = transaction(|context| {
+                    state.progress.get(&context)
+                });
 
                 if progress {
                     log::error!("Trwa obecnie przenoszenie elementu");
-                    return context;
+                    return;
                 }
 
                 state.progress.set(true);
-                let (response, context) = state.on_save(context).await;
+                let response = state.on_save().await;
                 state.progress.set(false);
 
                 match response {
@@ -235,18 +243,17 @@ fn render_button_yes(state: &AppIndexAlertMoveitem) -> DomElement {
                         log::info!("Przenoszenie udane");
                         state.alert.data.git.root.refresh();
                         state.alert.close_modal();
-                        state.app.show_message_info(&context, "Udane przenoszenie", Some(1000));
-                        state.app.data.tab.redirect_item_select_after_delete(&context);
+                        state.app.show_message_info("Udane przenoszenie", Some(1000));
+                        state.app.data.tab.redirect_item_select_after_delete();
                     },
                     Err(message) => {
                         let message = format!("nie udane przenoszenie {message}");
-                        state.app.show_message_error(&context, message.clone(), Some(10000));
+                        state.app.show_message_error(message.clone(), Some(10000));
                         log::error!("{message}");
                     }
                 };
-
-                context
             });
+        });
         
         ButtonState::active("Tak", action)
     }))

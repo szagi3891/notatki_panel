@@ -1,6 +1,6 @@
 
 use common::{HandlerSaveContentBody};
-use vertigo::{Computed, Value, bind, get_driver, Context, DomElement, bind3};
+use vertigo::{Computed, Value, bind, get_driver, Context, DomElement, transaction};
 
 use crate::{app::{App, response::check_request_response}, data::ContentView};
 use super::app_editcontent_render::app_editcontent_render;
@@ -123,75 +123,82 @@ impl AppEditcontent {
     }
 
     pub fn on_reset(&self) -> impl Fn() {
-        bind(self)
-            .call(|_, state| {
-                state.edit_content.set(None);
-                state.edit_hash.set(None);
-            })
+        let state = self;
+        bind!(|state| {
+            state.edit_content.set(None);
+            state.edit_hash.set(None);
+        })
     }
 
     pub fn on_save(&self, app: &App, and_back_to_view: bool) -> impl Fn() {
-        bind3(self, app, &and_back_to_view).spawn(|context, state, app, and_back_to_view| async move {
-                    
-            let action_save = state.action_save.get(&context);
+        let state = self.clone();
 
-            if action_save {
-                log::error!("Trwa obecnie zapis");
-                return context;
-            }
+        bind!(|state, app, and_back_to_view| {
+            
+            let state = state.clone();
+            let app = app.clone();
+            let and_back_to_view = and_back_to_view.clone();
+            
+            get_driver().spawn(async move {
+                        
+                let action_save = transaction(|context| state.action_save.get(&context));
 
-            let content_edit = match state.edit_content.get(&context) {
-                Some(content_edit) => content_edit,
-                None => {
-                    log::error!("Brak danych do zapisania");
-                    return context;
+                if action_save {
+                    log::error!("Trwa obecnie zapis");
+                    return;
                 }
-            };
 
-            let content_edit_hash = match state.edit_hash.get(&context) {
-                Some(content_edit_hash) => content_edit_hash,
-                None => {
-                    log::error!("Brak hasha danych");
-                    return context;
-                }
-            };
-
-
-            state.action_save.set(true);
-
-            let body: HandlerSaveContentBody = HandlerSaveContentBody {
-                path: state.path.clone(),
-                prev_hash: content_edit_hash,
-                new_content: content_edit,
-            };
-
-            let response = get_driver()
-                .request("/save_content")
-                .body_json(body)
-                .post().await;
-
-            state.action_save.set(false);
-
-            match check_request_response(response) {
-                Ok(()) => {
-                    log::info!("Zapis udany");
-
-                    state.edit_hash.set(None);
-
-                    if and_back_to_view {
-                        app.redirect_to_index_with_root_refresh();        
-                    } else {
-                        app.show_message_info(&context, "Zapis udany", Some(5000));
-                        app.data.git.root.refresh();
+                let content_edit = match transaction(|context| state.edit_content.get(&context)) {
+                    Some(content_edit) => content_edit,
+                    None => {
+                        log::error!("Brak danych do zapisania");
+                        return;
                     }
-                },
-                Err(message) => {
-                    // app.data.git.root.refresh();
-                    app.show_message_error(&context, message, Some(2000));
-                }
-            };
+                };
 
-            context
+                let content_edit_hash = match transaction(|context| state.edit_hash.get(&context)) {
+                    Some(content_edit_hash) => content_edit_hash,
+                    None => {
+                        log::error!("Brak hasha danych");
+                        return;
+                    }
+                };
+
+
+                state.action_save.set(true);
+
+                let body: HandlerSaveContentBody = HandlerSaveContentBody {
+                    path: state.path.clone(),
+                    prev_hash: content_edit_hash,
+                    new_content: content_edit,
+                };
+
+                let response = get_driver()
+                    .request("/save_content")
+                    .body_json(body)
+                    .post().await;
+
+                state.action_save.set(false);
+
+                match check_request_response(response) {
+                    Ok(()) => {
+                        log::info!("Zapis udany");
+
+                        state.edit_hash.set(None);
+
+                        if and_back_to_view {
+                            app.redirect_to_index_with_root_refresh();        
+                        } else {
+                            app.show_message_info("Zapis udany", Some(5000));
+                            app.data.git.root.refresh();
+                        }
+                    },
+                    Err(message) => {
+                        // app.data.git.root.refresh();
+                        app.show_message_error(message, Some(2000));
+                    }
+                };
+            })
         })
     }
 }
