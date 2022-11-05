@@ -134,11 +134,7 @@ impl AppEditcontent {
         let state = self.clone();
 
         bind!(state, app, and_back_to_view, || {
-            
-            let state = state.clone();
-            let app = app.clone();
-            
-            get_driver().spawn(async move {
+            get_driver().spawn(bind!(state, app, and_back_to_view, async move {
                         
                 let action_save = transaction(|context| state.action_save.get(context));
 
@@ -197,7 +193,7 @@ impl AppEditcontent {
                         app.show_message_error(message, Some(2000));
                     }
                 };
-            })
+            }))
         })
     }
 }

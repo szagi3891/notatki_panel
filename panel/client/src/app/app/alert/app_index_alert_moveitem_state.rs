@@ -221,8 +221,7 @@ fn render_button_yes(state: &AppIndexAlertMoveitem) -> DomElement {
         }
 
         let action = bind!(state, || {
-            let state = state.clone();
-            get_driver().spawn(async move {
+            get_driver().spawn(bind!(state, async move {
                 let state = state.clone();
 
                 let progress = transaction(|context| {
@@ -252,7 +251,7 @@ fn render_button_yes(state: &AppIndexAlertMoveitem) -> DomElement {
                         log::error!("{message}");
                     }
                 };
-            });
+            }));
         });
         
         ButtonState::active("Tak", action)

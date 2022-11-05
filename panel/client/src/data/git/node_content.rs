@@ -1,6 +1,6 @@
 use std::rc::Rc;
 use common::{ HandlerFetchNodeBody, HandlerFetchNodeResponse };
-use vertigo::{ Resource, AutoMap, LazyCache, get_driver, Context };
+use vertigo::{ Resource, AutoMap, LazyCache, get_driver, Context, bind };
 
 #[derive(Clone, Debug)]
 pub struct NodeContent {
@@ -9,11 +9,8 @@ pub struct NodeContent {
 
 impl NodeContent {
     pub fn new(hash: &String) -> NodeContent {
-        let hash = hash.clone();
-
-        let response = LazyCache::new(10 * 60 * 60 * 1000, move || {
-            let hash = hash.clone();
-            async move {
+        let response = LazyCache::new(10 * 60 * 60 * 1000, bind!(hash, move || {
+            bind!(hash, async move {
                 let request = get_driver()
                     .request("/fetch_node")
                     .body_json(HandlerFetchNodeBody {
@@ -31,8 +28,8 @@ impl NodeContent {
                         None
                     }
                 })
-            }
-        });
+            })
+        }));
 
         NodeContent {
             value: response,

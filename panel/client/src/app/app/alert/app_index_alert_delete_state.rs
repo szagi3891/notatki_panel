@@ -77,19 +77,9 @@ impl AppIndexAlertDelete {
                 let id = &item.id;
 
                 let action = bind!(state, app, id, || {
-                    let state = state.clone();
-                    let app = app.clone();
-                    let id = id.clone();
-                    get_driver().spawn(async move {
+                    get_driver().spawn(bind!(state, app, id, async move {
                         state.delete_yes(app, id).await;
-                    });
-
-                    // get_driver().spawn(bind!(state, app, id, async move {
-                    //     state.delete_yes(app, id).await;
-                    // }))
-
-                    // let action = bind!(state, || {
-                    // });
+                    }));
                 });
 
                 return ButtonState::active("Tak", action);

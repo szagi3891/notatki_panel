@@ -130,10 +130,7 @@ impl AppRenameitem {
                         let state = state.clone();
 
                         let action = bind!(state, app, || {
-                            let state = state.clone();
-                            let app = app.clone();
-
-                            get_driver().spawn(async move {
+                            get_driver().spawn(bind!(state, app, async move {
                                 let action_save = transaction(|context| {
                                     state.action_save.get(context)
                                 });
@@ -162,7 +159,7 @@ impl AppRenameitem {
                                         app.show_message_error(message, Some(10000));
                                     }
                                 };
-                            });
+                            }));
                         });
 
                         ButtonState::active("Zapisz zmianę nazwy", action)

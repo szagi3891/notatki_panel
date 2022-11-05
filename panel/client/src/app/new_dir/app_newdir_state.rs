@@ -45,11 +45,9 @@ impl AppNewdir {
 
     pub fn bind_on_save(&self, app: &App) -> impl Fn() {
         let state = self.clone();
-        bind!(state, app, || {
-            let state = state.clone();
-            let app = app.clone();
 
-            get_driver().spawn(async move {
+        bind!(state, app, || {
+            get_driver().spawn(bind!(state, app, async move {
                 let action_save = transaction(|context| state.action_save.get(context));
 
                 if action_save {
@@ -84,7 +82,7 @@ impl AppNewdir {
                         app.show_message_error(message, Some(10000));
                     }
                 };
-            });
+            }));
         })
     }
 }

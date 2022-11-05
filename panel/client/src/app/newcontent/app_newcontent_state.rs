@@ -85,54 +85,50 @@ impl AppNewcontent {
         let state = self;
 
         bind!(state, || {
-            let action_save = transaction(|context| {
-                state.action_save.get(context)
-            });
-
-            if action_save {
-                log::error!("Trwa obecnie zapis");
-                return;
-            }
-
-            state.action_save.set(true);
-
-            let (new_name, body) = transaction(|context| {
-                let new_name = state.new_name.name.get(context);
-
-                (
-                    new_name.clone(),
-                    HandlerCreateFileBody {
-                        path: state.parent.clone(),
-                        new_name,
-                        new_content: state.content.get(context),
-                    }
-                )
-            });
-            
-            get_driver().spawn({
-                let state = state.clone();
-
-                async move {
-                    let response = get_driver()
-                        .request("/create_file")
-                        .body_json(body)
-                        .post()
-                        .await;
-
-                    state.action_save.set(false);
-                    
-                    match check_request_response(response) {
-                        Ok(()) => {       
-                            let path_redirect = state.parent.clone(); 
-                            log::info!("Zapis udany -> przekierowanie na -> {:?} {:?}", path_redirect, new_name);
-                            state.app.redirect_to_index_with_path(path_redirect, Some(new_name));
-                        },
-                        Err(message) => {
-                            state.app.show_message_error(message, Some(10000));
-                        }
-                    };
+            get_driver().spawn(bind!(state, async move {
+                let action_save = transaction(|context| {
+                    state.action_save.get(context)
+                });
+    
+                if action_save {
+                    log::error!("Trwa obecnie zapis");
+                    return;
                 }
-            });
+    
+                state.action_save.set(true);
+    
+                let (new_name, body) = transaction(|context| {
+                    let new_name = state.new_name.name.get(context);
+    
+                    (
+                        new_name.clone(),
+                        HandlerCreateFileBody {
+                            path: state.parent.clone(),
+                            new_name,
+                            new_content: state.content.get(context),
+                        }
+                    )
+                });
+                
+                let response = get_driver()
+                    .request("/create_file")
+                    .body_json(body)
+                    .post()
+                    .await;
+
+                state.action_save.set(false);
+                
+                match check_request_response(response) {
+                    Ok(()) => {       
+                        let path_redirect = state.parent.clone(); 
+                        log::info!("Zapis udany -> przekierowanie na -> {:?} {:?}", path_redirect, new_name);
+                        state.app.redirect_to_index_with_path(path_redirect, Some(new_name));
+                    },
+                    Err(message) => {
+                        state.app.show_message_error(message, Some(10000));
+                    }
+                };
+            }));
         })
     }
 }
