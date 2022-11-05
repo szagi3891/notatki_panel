@@ -137,18 +137,17 @@ impl AppEditcontent {
             
             let state = state.clone();
             let app = app.clone();
-            let and_back_to_view = and_back_to_view.clone();
             
             get_driver().spawn(async move {
                         
-                let action_save = transaction(|context| state.action_save.get(&context));
+                let action_save = transaction(|context| state.action_save.get(context));
 
                 if action_save {
                     log::error!("Trwa obecnie zapis");
                     return;
                 }
 
-                let content_edit = match transaction(|context| state.edit_content.get(&context)) {
+                let content_edit = match transaction(|context| state.edit_content.get(context)) {
                     Some(content_edit) => content_edit,
                     None => {
                         log::error!("Brak danych do zapisania");
@@ -156,7 +155,7 @@ impl AppEditcontent {
                     }
                 };
 
-                let content_edit_hash = match transaction(|context| state.edit_hash.get(&context)) {
+                let content_edit_hash = match transaction(|context| state.edit_hash.get(context)) {
                     Some(content_edit_hash) => content_edit_hash,
                     None => {
                         log::error!("Brak hasha danych");

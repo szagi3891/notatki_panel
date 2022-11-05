@@ -226,7 +226,7 @@ fn render_button_yes(state: &AppIndexAlertMoveitem) -> DomElement {
                 let state = state.clone();
 
                 let progress = transaction(|context| {
-                    state.progress.get(&context)
+                    state.progress.get(context)
                 });
 
                 if progress {

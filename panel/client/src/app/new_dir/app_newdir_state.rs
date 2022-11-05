@@ -50,7 +50,7 @@ impl AppNewdir {
             let app = app.clone();
 
             get_driver().spawn(async move {
-                let action_save = transaction(|context| state.action_save.get(&context));
+                let action_save = transaction(|context| state.action_save.get(context));
 
                 if action_save {
                     log::error!("Trwa obecnie zapis");
@@ -59,7 +59,7 @@ impl AppNewdir {
 
                 state.action_save.set(true);
             
-                let new_dir_name = transaction(|context| state.new_name.name.get(&context));
+                let new_dir_name = transaction(|context| state.new_name.name.get(context));
 
                 let body = HandlerCreateDirBody {
                     path: state.parent.clone(),

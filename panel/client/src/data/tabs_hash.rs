@@ -1,7 +1,7 @@
 use serde::{Serialize, Deserialize};
-use vertigo::{router::HashRouter, Computed, Context};
+use vertigo::{router::HashRouter, Computed, Context, transaction};
 
-#[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 struct RouterValue {
     dir: Vec<String>,
     item: Option<String>,
@@ -57,19 +57,20 @@ impl Router {
         self.route.get(context).dir
     }
 
-    pub fn set_dir(&self, dir: Vec<String>, context: &Context) {
-        let mut route = self.route.get(context);
+    pub fn set_only_item(&self, item: Option<String>) {
+        let mut route = transaction(|context| self.route.get(context));
+        route.item = item;
+        self.route.set(route);
+    }
+
+    pub fn set(&self, dir: Vec<String>, item: Option<String>) {
+        let mut route = transaction(|context| self.route.get(context));
         route.dir = dir;
+        route.item = item;
         self.route.set(route);
     }
 
     pub fn get_item(&self, context: &Context) -> Option<String> {
         self.route.get(context).item
-    }
-
-    pub fn set_item(&self, item: Option<String>, context: &Context) {
-        let mut route = self.route.get(context);
-        route.item = item;
-        self.route.set(route);
     }
 }

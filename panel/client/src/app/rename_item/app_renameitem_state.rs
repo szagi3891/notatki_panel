@@ -93,7 +93,7 @@ impl AppRenameitem {
                 path: self.path.clone(),
                 prev_name: self.prev_name.clone(),
                 prev_hash: self.prev_hash.clone(),
-                new_name: self.new_name.get(&context),
+                new_name: self.new_name.get(context),
             }
         });
 
@@ -135,7 +135,7 @@ impl AppRenameitem {
 
                             get_driver().spawn(async move {
                                 let action_save = transaction(|context| {
-                                    state.action_save.get(&context)
+                                    state.action_save.get(context)
                                 });
 
                                 if action_save {
@@ -151,7 +151,7 @@ impl AppRenameitem {
                                     Ok(()) => {  
                                         let redirect_path = state.path.clone();
                                         let redirect_new_name = transaction(|context| {
-                                            state.new_name.get(&context)
+                                            state.new_name.get(context)
                                         });
 
                                         log::info!("Zapis udany");

@@ -191,43 +191,36 @@ impl TabPath {
             if let Some(current_index) = find_index(list.as_ref(), current_path_item) {
                 if current_index > 0 {
                     if let Some(prev) = list.get(current_index - 1) {
-                        self.router.set_item(Some(prev.name.clone()), context);
+                        self.router.set_only_item(Some(prev.name.clone()));
                         return;
                     }
                 }
 
                 if let Some(prev) = list.get(current_index + 1) {
-                    self.router.set_item(Some(prev.name.clone()), context);
+                    self.router.set_only_item(Some(prev.name.clone()));
                     return;
                 }
             };
 
-            self.router.set_item(None, context);
+            self.router.set_only_item(None);
         });
     }
 
     pub fn redirect_to_item(&self, item: ListItem) {
         if item.is_dir {
-            transaction(|context| {
-                let mut path = item.get_base_dir();
-                path.push(item.name.clone());
+            let mut path = item.get_base_dir();
+            path.push(item.name);
 
-                self.router.set_dir(path, context);
-                self.router.set_item(None, context);
-            });
+            log::info!("przekierowanie na katalog {path:?}");
+
+            self.router.set(path, None);
         } else {
-            transaction(|context| {
-                self.router.set_dir(item.get_base_dir(), context);
-                self.router.set_item(Some(item.name.clone()), context);
-            });
+            self.router.set(item.get_base_dir(), Some(item.name));
         }
     }
 
     pub fn redirect_to(&self, dir: Vec<String>, item: Option<String>) {
-        transaction(move |context| {
-            self.router.set_dir(dir, context);
-            self.router.set_item(item, context);
-        });
+        self.router.set(dir, item);
     }
 
     pub fn set_path(&self, path: Vec<String>) {
@@ -242,10 +235,7 @@ impl TabPath {
     
         let (new_current_path, new_current_item_value) = calculate_next_path(current_path.as_ref(), path);
 
-        transaction(|context|{
-            self.router.set_dir(new_current_path, context);
-            self.router.set_item(new_current_item_value, context);
-        });
+        self.router.set(new_current_path, new_current_item_value);
     }
 
     fn find(&self, context: &Context, item_finding: &String) -> Option<isize> {
@@ -271,7 +261,7 @@ impl TabPath {
         let list = self.list.get(context);
 
         if let Some(first) = list.get(index) {
-            self.router.set_item(Some(first.name.clone()), context);
+            self.router.set_only_item(Some(first.name.clone()));
             return true;
         }
 
@@ -316,9 +306,7 @@ impl TabPath {
     }
 
     pub fn pointer_escape(&self) {
-        transaction(|context| {
-            self.router.set_item(None, context);
-        });
+        self.router.set_only_item(None);
     }
 
     pub fn pointer_enter(&self) {

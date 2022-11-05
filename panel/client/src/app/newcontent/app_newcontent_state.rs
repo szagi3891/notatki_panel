@@ -86,7 +86,7 @@ impl AppNewcontent {
 
         bind!(|state| {
             let action_save = transaction(|context| {
-                state.action_save.get(&context)
+                state.action_save.get(context)
             });
 
             if action_save {
@@ -97,14 +97,14 @@ impl AppNewcontent {
             state.action_save.set(true);
 
             let (new_name, body) = transaction(|context| {
-                let new_name = state.new_name.name.get(&context);
+                let new_name = state.new_name.name.get(context);
 
                 (
                     new_name.clone(),
                     HandlerCreateFileBody {
                         path: state.parent.clone(),
-                        new_name: new_name,
-                        new_content: state.content.get(&context),
+                        new_name,
+                        new_content: state.content.get(context),
                     }
                 )
             });

@@ -29,7 +29,7 @@ impl AppIndexAlertDelete {
 
     async fn delete_yes(self, app: App, current_hash: String) {
         let progress = transaction(|context| {
-            self.progress.get(&context)
+            self.progress.get(context)
         });
 
         if progress {
@@ -83,6 +83,13 @@ impl AppIndexAlertDelete {
                     get_driver().spawn(async move {
                         state.delete_yes(app, id).await;
                     });
+
+                    // get_driver().spawn(bind!(state, app, id, async move {
+                    //     state.delete_yes(app, id).await;
+                    // }))
+
+                    // let action = bind!(state, || {
+                    // });
                 });
 
                 return ButtonState::active("Tak", action);
