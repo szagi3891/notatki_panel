@@ -210,9 +210,6 @@ impl TabPath {
         if item.is_dir {
             let mut path = item.get_base_dir();
             path.push(item.name);
-
-            log::info!("przekierowanie na katalog {path:?}");
-
             self.router.set(path, None);
         } else {
             self.router.set(item.get_base_dir(), Some(item.name));
