@@ -251,11 +251,11 @@ fn render_tab_buttons(open_links: &OpenLinks, tabs: &Computed<Vec<String>>) -> L
     tabs.render_list(|item| item.clone(), {
         let open_links = open_links.clone();
         move |url| {
-            let on_click = bind!(|open_links, url| {
+            let on_click = bind!(open_links, url, || {
                 open_links.tabs_set(url.clone());
             });
 
-            let on_close = bind!(|open_links, url| {
+            let on_close = bind!(open_links, url, || {
                 open_links.tabs_remove(url.clone());
             });
 
@@ -300,7 +300,7 @@ fn open_links_render(open_links: &OpenLinks, default_view: DomNodeFragment) -> D
     });
 
     let default_tab_button = {
-        let on_click = bind!(|open_links| {
+        let on_click = bind!(open_links, || {
             open_links.tabs_default();
         });
 

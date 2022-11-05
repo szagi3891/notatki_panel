@@ -59,7 +59,7 @@ pub fn app_index_render(app: &App) -> DomElement {
     let view_menu = MenuComponent::component(app);
 
     let data = &app.data;
-    let on_click_path = bind!(|data, node_id: Vec<String>| {
+    let on_click_path = bind!(data, |node_id: Vec<String>| {
         data.tab.set_path(node_id);
     });
     
@@ -70,7 +70,7 @@ pub fn app_index_render(app: &App) -> DomElement {
 
     // let app = app.clone();
 
-    let hook_keydown = bind!(|app, event: vertigo::KeyDownEvent| {
+    let hook_keydown = bind!(app, |event: vertigo::KeyDownEvent| {
         app.keydown(event.code)
     });
 

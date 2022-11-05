@@ -86,7 +86,7 @@ fn render_target(state: &AppIndexAlertMoveitem) -> DomElement {
             margin-bottom: 5px;
         ")
     }
-    let on_click_path = bind!(|state, node_id: Vec<String>| {
+    let on_click_path = bind!(state, |node_id: Vec<String>| {
         state.target.set(node_id);
     });
     
@@ -111,7 +111,7 @@ fn render_back(state: &AppIndexAlertMoveitem) -> DomCommentCreate {
             false => {
                 let target = &state.target;
 
-                let on_click = bind!(|target| {
+                let on_click = bind!(target, || {
                     target.change(|inner| {
                         inner.pop();
                     });
@@ -173,7 +173,7 @@ fn render_list(state: &AppIndexAlertMoveitem) -> DomCommentCreate {
                     };
 
                     for item in list {
-                        let on_click = bind!(|item, target| {
+                        let on_click = bind!(item, target, || {
                             log::info!("kliknięto w element {name}", name = item.name);
 
                             target.change(|inner| {
@@ -220,7 +220,7 @@ fn render_button_yes(state: &AppIndexAlertMoveitem) -> DomElement {
             return ButtonState::Disabled { label: "Tak".into() };
         }
 
-        let action = bind!(|state| {
+        let action = bind!(state, || {
             let state = state.clone();
             get_driver().spawn(async move {
                 let state = state.clone();

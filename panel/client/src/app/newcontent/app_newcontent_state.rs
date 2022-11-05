@@ -84,7 +84,7 @@ impl AppNewcontent {
     pub fn on_save(&self) -> impl Fn() {
         let state = self;
 
-        bind!(|state| {
+        bind!(state, || {
             let action_save = transaction(|context| {
                 state.action_save.get(context)
             });

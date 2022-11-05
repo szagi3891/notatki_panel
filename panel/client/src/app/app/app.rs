@@ -257,7 +257,7 @@ fn render_error_one(state: &App, error: Error) -> DomElement {
     let Error { id, info, message } = error;
     let state = state.clone();
 
-    let on_remove = bind!(|state, id| {
+    let on_remove = bind!(state, id, || {
         state.remove_message(id);
     });
 

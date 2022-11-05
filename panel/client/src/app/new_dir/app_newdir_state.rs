@@ -45,7 +45,7 @@ impl AppNewdir {
 
     pub fn bind_on_save(&self, app: &App) -> impl Fn() {
         let state = self.clone();
-        bind!(|state, app| {
+        bind!(state, app, || {
             let state = state.clone();
             let app = app.clone();
 

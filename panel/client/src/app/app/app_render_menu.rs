@@ -83,7 +83,7 @@ fn render_button_on_delete(state: &MenuComponent) -> DomElement {
 
             if is_current_content {
                 let alert = app.alert.clone();
-                let on_delete = bind!(|alert, app| {
+                let on_delete = bind!(alert, app, || {
                     let path = transaction(|context| alert.data.tab.full_path.get(context));
                     alert.delete(app.clone(), path);
                 });
@@ -106,7 +106,7 @@ fn render_button_edit_file(state: &MenuComponent) -> DomElement {
             let is_current_content = is_current_content.get(context);
 
             if is_current_content {
-                let on_click = bind!(|app|{
+                let on_click = bind!(app, ||{
                     app.current_edit();
                 });
 
@@ -130,7 +130,7 @@ fn render_button_move_item(state: &MenuComponent) -> DomElement {
         if let Resource::Ready(current_content) = current_content {
             let hash = current_content.id;
 
-            let on_click = bind!(|app, current_path, hash| {
+            let on_click = bind!(app, current_path, hash, || {
                 app.alert.move_current(&app, &current_path, &hash);
             });
 
@@ -146,7 +146,7 @@ fn render_button_create_file(state: &MenuComponent) -> DomElement {
         let app = state.app.clone();
 
         Computed::from(move |_| {
-            let on_click = bind!(|app| {
+            let on_click = bind!(app, || {
                 app.redirect_to_new_content();
             });
 
@@ -160,7 +160,7 @@ fn render_button_rename_name(state: &MenuComponent) -> DomElement {
         let app = state.app.clone();
 
         Computed::from(move |_| {
-            let on_click = bind!(|app| {
+            let on_click = bind!(app, || {
                 app.current_rename();
             });
 
@@ -174,7 +174,7 @@ fn render_button_make_dir(state: &MenuComponent) -> DomElement {
         let app = state.app.clone();
 
         Computed::from(move |_| {
-            let on_click = bind!(|app| {
+            let on_click = bind!(app, || {
                 app.redirect_to_mkdir();
             });
 
@@ -189,7 +189,7 @@ fn render_button_search(state: &MenuComponent) -> DomElement {
 
         Computed::from(move |_| {
             let alert = &app.alert;
-            let on_click = bind!(|alert| {
+            let on_click = bind!(alert, || {
                 alert.redirect_to_search();
             });
 

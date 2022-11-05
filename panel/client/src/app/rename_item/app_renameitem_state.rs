@@ -110,7 +110,7 @@ impl AppRenameitem {
         ButtonState::render({
             let app = self.app.clone();
 
-            Computed::from(move |_| ButtonState::active("Wróć", bind!(|app| {
+            Computed::from(move |_| ButtonState::active("Wróć", bind!(app, || {
                 app.redirect_to_index();
             })))
         })
@@ -129,7 +129,7 @@ impl AppRenameitem {
                     true => {
                         let state = state.clone();
 
-                        let action = bind!(|state, app| {
+                        let action = bind!(state, app, || {
                             let state = state.clone();
                             let app = app.clone();
 

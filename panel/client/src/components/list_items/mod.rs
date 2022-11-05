@@ -174,7 +174,7 @@ pub fn item_default_render(data: &Data, item: &ListItem, mouse_over_enable: bool
 
     let tab = &data.tab;
 
-    let on_click = bind!(|tab, item| {
+    let on_click = bind!(tab, item, || {
         tab.redirect_to_item(item.clone());
     });
 
@@ -182,11 +182,11 @@ pub fn item_default_render(data: &Data, item: &ListItem, mouse_over_enable: bool
 
     let element = if mouse_over_enable {
 
-        let mouse_over_enter = bind!(|item, tab| {
+        let mouse_over_enter = bind!(item, tab, || {
             tab.hover_on(item.name.as_str());
         });
 
-        let mouse_over_leave = bind!(|item, tab| {
+        let mouse_over_leave = bind!(item, tab, || {
             tab.hover_off(item.name.as_str());
         });
 
@@ -217,7 +217,7 @@ fn item_image_render(data: &Data, item: &ListItem, ext: &String) -> DomElement {
     let id = item.id.clone();
     let url = format!("/image/{id}/{ext}");
     let tab = &data.tab;
-    let on_click = bind!(|item, tab| {
+    let on_click = bind!(item, tab, || {
         tab.redirect_to_item(item.clone());
     });
 

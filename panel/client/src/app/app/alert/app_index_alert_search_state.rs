@@ -134,7 +134,7 @@ fn render_results(search: &AppIndexAlertSearch) -> DomElement {
     let list = search.results.render_list(|item| item.to_string(), {
         let search = search.clone();
         move |item| {
-            let on_click = bind!(|search, item| {
+            let on_click = bind!(search, item, || {
                 search.alert.close_modal();
                 search.alert.data.tab.redirect_to_item(item.clone());
             });
@@ -163,7 +163,7 @@ fn render_results(search: &AppIndexAlertSearch) -> DomElement {
 fn render_input(search: &AppIndexAlertSearch) -> DomElement {
     let current_value = search.phrase.to_computed();
 
-    let on_input = bind!(|search, new_value: String| {
+    let on_input = bind!(search, |new_value: String| {
         search.phrase.set(new_value);
     });
 
@@ -173,7 +173,7 @@ fn render_input(search: &AppIndexAlertSearch) -> DomElement {
 }
 
 fn render_close(search: &AppIndexAlertSearch) -> DomElement {
-    let on_close = bind!(|search| {
+    let on_close = bind!(search, || {
         search.alert.close_modal();
     });
 

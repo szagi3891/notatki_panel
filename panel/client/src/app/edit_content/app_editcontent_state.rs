@@ -124,7 +124,7 @@ impl AppEditcontent {
 
     pub fn on_reset(&self) -> impl Fn() {
         let state = self;
-        bind!(|state| {
+        bind!(state, || {
             state.edit_content.set(None);
             state.edit_hash.set(None);
         })
@@ -133,7 +133,7 @@ impl AppEditcontent {
     pub fn on_save(&self, app: &App, and_back_to_view: bool) -> impl Fn() {
         let state = self.clone();
 
-        bind!(|state, app, and_back_to_view| {
+        bind!(state, app, and_back_to_view, || {
             
             let state = state.clone();
             let app = app.clone();

@@ -76,7 +76,7 @@ impl AppIndexAlertDelete {
             if let Resource::Ready(item) = item {
                 let id = &item.id;
 
-                let action = bind!(|state, app, id| {
+                let action = bind!(state, app, id, || {
                     let state = state.clone();
                     let app = app.clone();
                     let id = id.clone();
@@ -103,7 +103,7 @@ impl AppIndexAlertDelete {
         let state = self.clone();
 
         ButtonState::render(Computed::from(move |_| {
-            let action = bind!(|state| {
+            let action = bind!(state, || {
                 let progress = transaction(|context| {
                     state.progress.get(context)
                 });

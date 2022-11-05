@@ -67,7 +67,7 @@ fn render_content_chunk(state: &App, item: &ParseTextItem) -> DomElement {
                 false => "(otwórz)"
             };
 
-            let on_click = bind!(|state, url| {
+            let on_click = bind!(state, url, || {
                 state.data.tab.open_links.tabs_toogle(url.clone());
             });
 

@@ -60,7 +60,7 @@ fn create_link(
         };
     }
 
-    let on_click = bind!(|on_click, node_id| {
+    let on_click = bind!(on_click, node_id, || {
         on_click(node_id.clone());
     });
 

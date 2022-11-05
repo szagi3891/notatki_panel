@@ -79,7 +79,7 @@ pub fn app_newcontent_render(app: App, state: &AppNewcontent) -> DomElement {
         }
     });
 
-    let on_click = bind!(|app| {
+    let on_click = bind!(app, || {
         app.redirect_to_index();
     });
 

@@ -64,7 +64,7 @@ fn render_input(state: &AppRenameitem) -> DomElement {
         move |context| state.new_name.get(context)
     });
 
-    let on_input = bind!(|state, new_value: String| {
+    let on_input = bind!(state, |new_value: String| {
         state.on_input(new_value);
     });
 
