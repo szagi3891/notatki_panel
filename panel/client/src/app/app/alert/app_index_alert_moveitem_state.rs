@@ -1,5 +1,5 @@
 use common::HandlerMoveItemBody;
-use vertigo::{Value, Resource, Computed, bind, css, Css, get_driver, dom, transaction, Context, DomElement, DomCommentCreate};
+use vertigo::{Value, Resource, Computed, bind, css, Css, get_driver, dom, transaction, Context, DomElement, DomCommentCreate, bind_spawn};
 
 use crate::{components::{AlertBox, item_default, item_dot_html, ButtonState, render_path}, data::ListItem, app::{response::check_request_response, App}};
 
@@ -220,38 +220,36 @@ fn render_button_yes(state: &AppIndexAlertMoveitem) -> DomElement {
             return ButtonState::Disabled { label: "Tak".into() };
         }
 
-        let action = bind!(state, || {
-            get_driver().spawn(bind!(state, async move {
-                let state = state.clone();
+        let action = bind_spawn!(state, async move {
+            let state = state.clone();
 
-                let progress = transaction(|context| {
-                    state.progress.get(context)
-                });
+            let progress = transaction(|context| {
+                state.progress.get(context)
+            });
 
-                if progress {
-                    log::error!("Trwa obecnie przenoszenie elementu");
-                    return;
+            if progress {
+                log::error!("Trwa obecnie przenoszenie elementu");
+                return;
+            }
+
+            state.progress.set(true);
+            let response = state.on_save().await;
+            state.progress.set(false);
+
+            match response {
+                Ok(()) => {  
+                    log::info!("Przenoszenie udane");
+                    state.alert.data.git.root.refresh();
+                    state.alert.close_modal();
+                    state.app.show_message_info("Udane przenoszenie", Some(1000));
+                    state.app.data.tab.redirect_item_select_after_delete();
+                },
+                Err(message) => {
+                    let message = format!("nie udane przenoszenie {message}");
+                    state.app.show_message_error(message.clone(), Some(10000));
+                    log::error!("{message}");
                 }
-
-                state.progress.set(true);
-                let response = state.on_save().await;
-                state.progress.set(false);
-
-                match response {
-                    Ok(()) => {  
-                        log::info!("Przenoszenie udane");
-                        state.alert.data.git.root.refresh();
-                        state.alert.close_modal();
-                        state.app.show_message_info("Udane przenoszenie", Some(1000));
-                        state.app.data.tab.redirect_item_select_after_delete();
-                    },
-                    Err(message) => {
-                        let message = format!("nie udane przenoszenie {message}");
-                        state.app.show_message_error(message.clone(), Some(10000));
-                        log::error!("{message}");
-                    }
-                };
-            }));
+            };
         });
         
         ButtonState::active("Tak", action)

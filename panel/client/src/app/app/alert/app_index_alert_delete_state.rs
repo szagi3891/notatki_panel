@@ -1,7 +1,7 @@
 use common::{HandlerDeleteItemBody};
 use vertigo::{
     Value,
-    bind, get_driver, Resource, Computed, DomElement, dom, transaction,
+    bind, bind_spawn, get_driver, Resource, Computed, DomElement, dom, transaction,
 };
 use crate::{components::{AlertBox, ButtonState}, app::{response::check_request_response, App}};
 
@@ -76,10 +76,8 @@ impl AppIndexAlertDelete {
             if let Resource::Ready(item) = item {
                 let id = &item.id;
 
-                let action = bind!(state, app, id, || {
-                    get_driver().spawn(bind!(state, app, id, async move {
-                        state.delete_yes(app, id).await;
-                    }));
+                let action = bind_spawn!(state, app, id, async move {
+                    state.delete_yes(app, id).await;
                 });
 
                 return ButtonState::active("Tak", action);

@@ -1,5 +1,5 @@
 use common::{HandlerRenameItemBody};
-use vertigo::{Computed, Value, get_driver, bind, DomElement, transaction};
+use vertigo::{Computed, Value, get_driver, bind, DomElement, transaction, bind_spawn};
 
 use crate::{app::{App, response::check_request_response}, components::ButtonState};
 
@@ -129,37 +129,35 @@ impl AppRenameitem {
                     true => {
                         let state = state.clone();
 
-                        let action = bind!(state, app, || {
-                            get_driver().spawn(bind!(state, app, async move {
-                                let action_save = transaction(|context| {
-                                    state.action_save.get(context)
-                                });
+                        let action = bind_spawn!(state, app, async move {
+                            let action_save = transaction(|context| {
+                                state.action_save.get(context)
+                            });
 
-                                if action_save {
-                                    log::error!("Trwa obecnie zapis");
-                                    return;
+                            if action_save {
+                                log::error!("Trwa obecnie zapis");
+                                return;
+                            }
+
+                            state.action_save.set(true);
+                            let response = state.on_save().await;
+                            state.action_save.set(false);
+
+                            match response {
+                                Ok(()) => {  
+                                    let redirect_path = state.path.clone();
+                                    let redirect_new_name = transaction(|context| {
+                                        state.new_name.get(context)
+                                    });
+
+                                    log::info!("Zapis udany");
+
+                                    app.redirect_to_index_with_path(redirect_path, Some(redirect_new_name));
+                                },
+                                Err(message) => {
+                                    app.show_message_error(message, Some(10000));
                                 }
-
-                                state.action_save.set(true);
-                                let response = state.on_save().await;
-                                state.action_save.set(false);
-
-                                match response {
-                                    Ok(()) => {  
-                                        let redirect_path = state.path.clone();
-                                        let redirect_new_name = transaction(|context| {
-                                            state.new_name.get(context)
-                                        });
-
-                                        log::info!("Zapis udany");
-
-                                        app.redirect_to_index_with_path(redirect_path, Some(redirect_new_name));
-                                    },
-                                    Err(message) => {
-                                        app.show_message_error(message, Some(10000));
-                                    }
-                                };
-                            }));
+                            };
                         });
 
                         ButtonState::active("Zapisz zmianę nazwy", action)
