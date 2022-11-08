@@ -36,7 +36,7 @@ impl PartialEq for NodeDir {
 
 impl NodeDir {
     pub fn new(id: &String) -> NodeDir {
-        let response = LazyCache::new(10 * 60 * 60 * 1000, bind!(id, move || {
+        let response = LazyCache::new(10 * 60 * 60 * 1000, bind!(id, || {
             bind!(id, async move {
                 let request = get_driver()
                     .request("/fetch_tree_item")

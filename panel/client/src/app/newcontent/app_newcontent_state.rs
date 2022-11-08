@@ -1,5 +1,5 @@
 use common::{HandlerCreateFileBody};
-use vertigo::{Computed, Value, get_driver, transaction, DomElement, bind, bind_spawn};
+use vertigo::{Computed, Value, get_driver, transaction, DomElement, bind_spawn};
 
 use crate::app::App;
 use crate::app::newcontent::app_newcontent_render::app_newcontent_render;

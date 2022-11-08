@@ -9,7 +9,7 @@ pub struct NodeContent {
 
 impl NodeContent {
     pub fn new(hash: &String) -> NodeContent {
-        let response = LazyCache::new(10 * 60 * 60 * 1000, bind!(hash, move || {
+        let response = LazyCache::new(10 * 60 * 60 * 1000, bind!(hash, || {
             bind!(hash, async move {
                 let request = get_driver()
                     .request("/fetch_node")

@@ -1,5 +1,5 @@
 use common::{HandlerCreateDirBody};
-use vertigo::{Computed, Value, get_driver, DomElement, bind, transaction, bind_spawn};
+use vertigo::{Computed, Value, get_driver, DomElement, transaction, bind_spawn};
 
 use crate::app::App;
 use crate::app::response::check_request_response;
