@@ -1,4 +1,4 @@
-use vertigo::{Resource, Value, Computed, Context, transaction};
+use vertigo::{Resource, Computed, Context, transaction};
 use super::{
     git::{Git, ListItem},
     open_links::OpenLinks,
@@ -66,16 +66,14 @@ fn create_current_item_view(
 fn create_current_full_path(
     router: &Router,
     list_current_item: &Computed<Option<String>>,
-    item_hover: &Value<Option<String>>,
 ) -> Computed<Vec<String>> {
     let router = router.clone();
     let list_current_item = list_current_item.clone();
-    let item_hover = item_hover.clone();
 
     Computed::from(move |context| -> Vec<String> {
         let mut current_path_dir = router.get_dir(context);
 
-        if let Some(item_hover) = item_hover.get(context).as_ref() {
+        if let Some(item_hover) = router.get_hover(context).as_ref() {
             current_path_dir.push(item_hover.clone());
         } else if let Some(list_current_item) = list_current_item.get(context).as_ref() {
             current_path_dir.push(list_current_item.clone());
@@ -113,9 +111,6 @@ pub struct TabPath {
 
     pub router: Router,
 
-    ///Element nad którym znajduje się hover
-    pub item_hover: Value<Option<String>>,
-
     /// Aktualnie wyliczona lista, która jest prezentowana w lewej kolumnie menu
     pub list: Computed<Vec<ListItem>>,
 
@@ -138,8 +133,6 @@ impl TabPath {
     pub fn new(git: &Git) -> TabPath {
         let router = Router::new();
 
-        let item_hover = Value::new(None);
-
         let dir_hash_map = create_list_hash_map(git, &router);
         let list = create_list(&dir_hash_map);
 
@@ -149,7 +142,6 @@ impl TabPath {
         let full_path = create_current_full_path(
             &router,
             &current_item,
-            &item_hover,
         );
 
         let current_content = create_current_content(
@@ -163,7 +155,6 @@ impl TabPath {
             router,
             // dir_select: dir_select.clone(),
             // item_select,
-            item_hover,
             list,
             current_item,
             full_path,
@@ -325,22 +316,6 @@ impl TabPath {
             let mut current_path = self.router.get_dir(context);
             current_path.pop();
             self.set_path(current_path);
-        });
-    }
-
-    pub fn hover_on(&self, name: &str) {
-        self.item_hover.set(Some(name.to_string()));
-    }
-
-    pub fn hover_off(&self, name: &str) {
-        transaction(|context| {
-            let item_hover = self.item_hover.get(context);
-
-            if let Some(item_hover) = item_hover.as_ref() {
-                if item_hover == name {
-                    self.item_hover.set(None);
-                }
-            }
         });
     }
 }

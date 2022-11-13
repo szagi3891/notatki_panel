@@ -79,6 +79,8 @@ impl App {
     }
 
     pub fn redirect_to_rename_item(&self, base_path: &Vec<String>, select_item: &String) {
+        log::info!("base_path {base_path:?} {select_item}");
+
         transaction(|context| {
             let select_item = select_item.clone();
             let full_path = self.data.tab.full_path.clone().get(context);
@@ -230,7 +232,7 @@ impl App {
             return true;
         }
 
-        log::info!("klawisz ... {:?} ", code);
+        log::info!("klawisz ... {:?}", code);
         false
     }
 

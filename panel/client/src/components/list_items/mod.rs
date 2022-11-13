@@ -122,7 +122,7 @@ pub fn item_default(data: &Data, item: &ListItem, on_click: impl Fn() + 'static)
         let item = item.clone();
         move |context| {
             let current_item = data.tab.current_item.get(context);
-            let current_hover = data.tab.item_hover.get(context);
+            let current_hover = data.tab.router.item_hover.get(context);
 
             let is_select = if let Some(list_pointer) = &current_item {
                 item.name == *list_pointer
@@ -183,11 +183,11 @@ pub fn item_default_render(data: &Data, item: &ListItem, mouse_over_enable: bool
     let element = if mouse_over_enable {
 
         let mouse_over_enter = bind!(item, tab, || {
-            tab.hover_on(item.name.as_str());
+            tab.router.hover_on(item.name.as_str());
         });
 
         let mouse_over_leave = bind!(item, tab, || {
-            tab.hover_off(item.name.as_str());
+            tab.router.hover_off(item.name.as_str());
         });
 
         element

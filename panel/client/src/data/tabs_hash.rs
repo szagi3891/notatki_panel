@@ -1,5 +1,5 @@
 use serde::{Serialize, Deserialize};
-use vertigo::{router::HashRouter, Computed, Context, transaction};
+use vertigo::{router::HashRouter, Computed, Context, transaction, Value};
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 struct RouterValue {
@@ -33,6 +33,9 @@ impl ToString for RouterValue {
 pub struct Router {
     route: HashRouter<RouterValue>,
     pub path: Computed<Vec<String>>,
+
+    ///Element nad którym znajduje się hover
+    pub item_hover: Value<Option<String>>,
 }
 
 impl Router {
@@ -49,7 +52,8 @@ impl Router {
 
         Router {
             route,
-            path
+            path,
+            item_hover: Value::default(),
         }
     }
 
@@ -57,20 +61,46 @@ impl Router {
         self.route.get(context).dir
     }
 
+    pub fn get_hover(&self, context: &Context) -> Option<String> {
+        self.item_hover.get(context)
+    }
+
     pub fn set_only_item(&self, item: Option<String>) {
-        let mut route = transaction(|context| self.route.get(context));
-        route.item = item;
-        self.route.set(route);
+        transaction(|context| {
+            let mut route = self.route.get(context);
+            route.item = item;
+            self.route.set(route);
+            self.item_hover.set(None);
+        });
     }
 
     pub fn set(&self, dir: Vec<String>, item: Option<String>) {
-        let mut route = transaction(|context| self.route.get(context));
-        route.dir = dir;
-        route.item = item;
-        self.route.set(route);
+        transaction(|_| {
+            self.route.set(RouterValue {
+                dir,
+                item,
+            });
+            self.item_hover.set(None);
+        });
     }
 
     pub fn get_item(&self, context: &Context) -> Option<String> {
         self.route.get(context).item
+    }
+
+    pub fn hover_on(&self, name: &str) {
+        self.item_hover.set(Some(name.to_string()));
+    }
+
+    pub fn hover_off(&self, name: &str) {
+        transaction(|context| {
+            let item_hover = self.item_hover.get(context);
+
+            if let Some(item_hover) = item_hover.as_ref() {
+                if item_hover == name {
+                    self.item_hover.set(None);
+                }
+            }
+        });
     }
 }

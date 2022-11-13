@@ -12,8 +12,7 @@ install_script = '''
 [tasks.client-build]
 dependencies = [ "wasm32-target" ]
 script = [
-    "static_path=build public_path=/build cargo build -p client --target wasm32-unknown-unknown --release",
-    "static_path=build public_path=/build cargo build -p client --target wasm32-unknown-unknown",
+    "vertigo build --dest-dir=build --public-path=/build"
 ]
 
 [tasks.app-serve]

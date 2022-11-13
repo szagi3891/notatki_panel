@@ -12,9 +12,9 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 log = "0.4.14"
 
-vertigo = { git="https://github.com/vertigo-web/vertigo", branch="master" }
+# vertigo = { git="https://github.com/vertigo-web/vertigo", branch="master" }
 
-# vertigo = { path = "../../../vertigo/crates/vertigo" }
+vertigo = { path = "../../../vertigo/crates/vertigo" }
 
 serde = { version = "1.0.125", features = ["derive"] }
 serde_json = "1.0.64"
