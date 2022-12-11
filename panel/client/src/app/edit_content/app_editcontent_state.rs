@@ -168,9 +168,9 @@ impl AppEditcontent {
             };
 
             let response = get_driver()
-                .request("/save_content")
+                .request_post("/save_content")
                 .body_json(body)
-                .post().await;
+                .call().await;
 
             state.action_save.set(false);
 

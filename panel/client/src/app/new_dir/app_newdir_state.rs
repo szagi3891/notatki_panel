@@ -64,9 +64,9 @@ impl AppNewdir {
             };
 
             let response = get_driver()
-                .request("/create_dir")
+                .request_post("/create_dir")
                 .body_json(body)
-                .post().await;
+                .call().await;
 
             state.action_save.set(false);
 

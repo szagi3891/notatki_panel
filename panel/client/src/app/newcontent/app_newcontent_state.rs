@@ -110,9 +110,9 @@ impl AppNewcontent {
             });
             
             let response = get_driver()
-                .request("/create_file")
+                .request_post("/create_file")
                 .body_json(body)
-                .post()
+                .call()
                 .await;
 
             state.action_save.set(false);

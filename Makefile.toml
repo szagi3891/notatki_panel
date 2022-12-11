@@ -1,16 +1,7 @@
 [config]
 default_to_workspace = false
 
-[tasks.wasm32-target]
-install_script = '''
-    if [ "$(rustup target list | grep wasm32-unknown-unknown | grep installed)" = "" ];
-    then
-        rustup target add wasm32-unknown-unknown;
-    fi
-'''
-
 [tasks.client-build]
-dependencies = [ "wasm32-target" ]
 script = [
     "vertigo build --dest-dir=build --public-path=/build"
 ]
@@ -49,7 +40,6 @@ args = [ "watch", "--watch", "./panel", "--delay", "0.5", "-x", "make app-my-sta
 
 
 [tasks.clippy-wasm32]
-dependencies = [ "wasm32-target" ]
 command = "cargo"
 args = [
     "clippy", "--all-features", "--target", "wasm32-unknown-unknown",

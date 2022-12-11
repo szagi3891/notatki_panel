@@ -1,5 +1,5 @@
 use common::HandlerMoveItemBody;
-use vertigo::{Value, Resource, Computed, bind, css, Css, get_driver, dom, transaction, Context, DomElement, DomCommentCreate, bind_spawn};
+use vertigo::{Value, Resource, Computed, bind, css, Css, dom, transaction, Context, DomElement, DomCommentCreate, bind_spawn, RequestBuilder};
 
 use crate::{components::{AlertBox, item_default, item_dot_html, ButtonState, render_path}, data::ListItem, app::{response::check_request_response, App}};
 
@@ -64,10 +64,9 @@ impl AppIndexAlertMoveitem {
             new_path,
         };
 
-        let response = get_driver()
-            .request("/move_item")
+        let response = RequestBuilder::post("/move_item")
             .body_json(body)
-            .post()
+            .call()
             .await;
 
         check_request_response(response)

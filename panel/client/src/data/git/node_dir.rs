@@ -3,7 +3,7 @@ use common::{GitTreeItem, HandlerFetchDirBody, HandlerFetchDirResponse};
 use vertigo::{
     Resource,
     Computed,
-    AutoMap, LazyCache, get_driver, Context, bind,
+    AutoMap, LazyCache, Context, RequestBuilder,
 };
 
 use super::models::{GitDirList, TreeItem};
@@ -36,24 +36,17 @@ impl PartialEq for NodeDir {
 
 impl NodeDir {
     pub fn new(id: &String) -> NodeDir {
-        let response = LazyCache::new(10 * 60 * 60 * 1000, bind!(id, || {
-            bind!(id, async move {
-                let request = get_driver()
-                    .request("/fetch_tree_item")
-                    .body_json(HandlerFetchDirBody {
-                        id,
-                    })
-                    .post();
-
-                request.await.into(|status, body| {
-                    if status == 200 {
-                        Some(body.into::<HandlerFetchDirResponse>())
-                    } else {
-                        None
-                    }
-                })
+        let response = RequestBuilder::post("/fetch_tree_item")
+            .body_json(HandlerFetchDirBody {
+                id: id.to_string(),
             })
-        }));
+            .lazy_cache(|status, body| {
+                if status == 200 {
+                    Some(body.into::<HandlerFetchDirResponse>())
+                } else {
+                    None
+                }
+            });
 
         let response2 = response.clone();
 

@@ -98,9 +98,9 @@ impl AppRenameitem {
         });
 
         let response = get_driver()
-            .request("/rename_item")
+            .request_post("/rename_item")
             .body_json(body)
-            .post()
+            .call()
             .await;
 
         check_request_response(response)

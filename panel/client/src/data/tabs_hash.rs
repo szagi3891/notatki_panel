@@ -1,5 +1,5 @@
 use serde::{Serialize, Deserialize};
-use vertigo::{router::HashRouter, Computed, Context, transaction, Value};
+use vertigo::{router::Router as HashRouter, Computed, Context, transaction, Value};
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 struct RouterValue {
@@ -40,7 +40,7 @@ pub struct Router {
 
 impl Router {
     pub fn new() -> Router {
-        let route = HashRouter::<RouterValue>::new();
+        let route = HashRouter::<RouterValue>::new_hash_router();
 
         let path = {
             let route = route.clone();

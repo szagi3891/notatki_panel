@@ -1,7 +1,7 @@
 use common::{HandlerDeleteItemBody};
 use vertigo::{
     Value,
-    bind, bind_spawn, get_driver, Resource, Computed, DomElement, dom, transaction,
+    bind, bind_spawn, Resource, Computed, DomElement, dom, transaction, RequestBuilder,
 };
 use crate::{components::{AlertBox, ButtonState}, app::{response::check_request_response, App}};
 
@@ -41,14 +41,13 @@ impl AppIndexAlertDelete {
         log::info!("usuwamy ...");
         self.progress.set(true);
 
-        let response = get_driver()
-            .request("/delete_item")
+        let response = RequestBuilder::post("/delete_item")
             .body_json(HandlerDeleteItemBody {
                 path: current_path,
                 hash: current_hash
                 
             })
-            .post()
+            .call()
             .await;
 
         self.progress.set(false);

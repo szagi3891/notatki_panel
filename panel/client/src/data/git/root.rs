@@ -2,7 +2,7 @@ use common::RootResponse;
 use vertigo::{
     Resource,
     Value,
-    LazyCache, get_driver, Context,
+    LazyCache, Context, RequestBuilder,
 };
 
 #[derive(Clone, PartialEq)]
@@ -12,19 +12,14 @@ pub struct RootNode {
 
 impl RootNode {
     fn new() -> RootNode {
-        let root = LazyCache::new(10 * 60 * 60 * 1000, move || async move {
-            let request = get_driver()
-                .request("/fetch_root")
-                .get();
-
-            request.await.into(|status, body| {
+        let root = RequestBuilder::get("/fetch_root")
+            .lazy_cache(|status, body| {
                 if status == 200 {
                     Some(body.into::<RootResponse>())
                 } else {
                     None
                 }
-            })
-        });
+            });
 
         RootNode {
             root,
