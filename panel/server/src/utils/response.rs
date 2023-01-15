@@ -36,16 +36,18 @@ impl<T: Send + ToJSON + ParseFromJSON> ApiResponseHttp<T> {
         ApiResponseHttp::Internal(Json(value))
     }
 
+    pub fn from_error_process(error: ErrorProcess) -> ApiResponseHttp<T> {
+        let (internal, message) = error.to_string();
+        match internal {
+            true => ApiResponseHttp::Internal(Json(message)),
+            false => ApiResponseHttp::User(Json(message)),
+        }
+    }
+
     pub fn from(value: Result<T, ErrorProcess>) -> ApiResponseHttp<T> {
         match value {
             Ok(value) => ApiResponseHttp::Ok(Json(value)),
-            Err(error) => {
-                let (internal, message) = error.to_string();
-                match internal {
-                    true => ApiResponseHttp::Internal(Json(message)),
-                    false => ApiResponseHttp::User(Json(message)),
-                }
-            },
+            Err(error) => ApiResponseHttp::from_error_process(error)
         }
     }
 }

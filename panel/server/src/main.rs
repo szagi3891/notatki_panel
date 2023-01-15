@@ -18,26 +18,21 @@ use models::{
     HandlerSaveContentBody, HandlerMoveItemBody,
 };
 use poem::{
-    Body,
     endpoint::StaticFilesEndpoint,
     listener::TcpListener,
     Server,
-    Route
+    Route,
 };
 use poem_openapi::{
     OpenApiService,
     OpenApi,
     param::Path,
-    payload::{
-        // PlainText,
-        Html, PlainText,
-        Binary
-    }
+    payload::{Html}
 };
+use static_response::StaticResponse;
 use utils::{
     ErrorProcess, ApiResponseHttp,
 };
-use poem_openapi::response::StaticFileResponse;
 
 use std::net::Ipv4Addr;
 use serde::{Deserialize};
@@ -47,8 +42,7 @@ use poem_openapi::payload::Json;
 
 mod git;
 mod utils;
-// mod sync;
-// use sync::start_sync;
+mod static_response;
 
 use git::{Git, GitBlob};
 
@@ -187,7 +181,7 @@ impl App {
         ).await;
 
         response_with_root(result)
-    }
+    } 
 
     #[oai(method = "post", path = "/create_dir")]
     async fn handler_create_dir(&self, json: Json<HandlerCreateDirBody>) -> ApiResponseHttp<RootResponse> {
@@ -242,7 +236,7 @@ impl App {
     //https://github.com/poem-web/poem/blob/master/poem-openapi/src/docs/response_content.md
 
     #[oai(method = "get", path = "/image/:id/:meta")]
-    async fn handler_get_image(&self, id: Path<String>, meta: Path<String>) -> StaticFileResponse {
+    async fn handler_get_image(&self, id: Path<String>, meta: Path<String>) -> StaticResponse {
         let Path(id) = id;
         let Path(meta) = meta;
 
@@ -256,21 +250,21 @@ impl App {
                     (true, message) => format!("Internal error: {message}"),
                 };
 
-                return StaticFileResponse::InternalServerError(PlainText(message));
+                return StaticResponse::internal_server(message);
             }
         };
 
         let data = match data {
             Some(data) => data,
             None => {
-                return StaticFileResponse::NotFound;
+                return StaticResponse::not_found();
             }
         };
 
         let content = match data {
             GitBlob::Blob { content } => content,
             GitBlob::Tree { .. } => {
-                return StaticFileResponse::NotFound;
+                return StaticResponse::not_found();
             }
         };
 
@@ -283,15 +277,8 @@ impl App {
         };
 
         match header {
-            Some(header) => {
-                StaticFileResponse::Ok(
-                    Binary(Body::from_vec(content)),
-                    None,
-                    None,
-                    Some(String::from(header))
-                )
-            },
-            None => StaticFileResponse::NotFound
+            Some(header) => StaticResponse::binary(header, content),
+            None => StaticResponse::not_found()
         }
     }
 }

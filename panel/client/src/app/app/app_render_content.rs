@@ -1,10 +1,10 @@
 use std::rc::Rc;
 
-use vertigo::{Css, css, bind, Resource, dom, DomElement, Computed, ListRendered, DomCommentCreate};
+use vertigo::{Css, css, bind, Resource, dom, DomElement, Computed, ListRendered, DomCommentCreate, DropFileEvent};
 
 use crate::app::App;
 use crate::components::list_items_from_dir;
-use crate::data::{Data, ContentType};
+use crate::data::{ContentType};
 use crate::{
     content::{
         parse_text,
@@ -125,11 +125,21 @@ fn render_content_text(state: &App, content: Rc<String>) -> ListRendered<ParseTe
     )
 }
 
-fn render_dir(data: &Data, dir: &Computed<Vec<String>>) -> DomElement {
-    let result = list_items_from_dir(data, dir, false);
+fn render_dir(state: &App, dir: &Computed<Vec<String>>) -> DomElement {
+    let result = list_items_from_dir(&state.data, dir, false);
+
+    //TODO - api do wgrywannia binarnego obiektu jako pliku, w odpowiedzi zwraca hash tego obiektu
+
+    //TODO - kolejny call, to będzie dodanie tych nowych elementów do drzewa
+
+    let on_dropfile = bind!(state, |event: DropFileEvent| {
+        for item in event.items {
+            log::info!("item ...");
+        }
+    });
 
     dom! {
-        <div css={css_content_dir()}>
+        <div css={css_content_dir()} on_dropfile={on_dropfile}>
             { result }
         </div>
     }
@@ -178,7 +188,7 @@ pub fn render_content(state: &App) -> DomCommentCreate {
                                 list.dir_path().as_ref().clone()
                             });
 
-                            render_dir(&state.data, &list)
+                            render_dir(&state, &list)
                         },
                     }
                 },
