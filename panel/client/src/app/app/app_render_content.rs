@@ -134,11 +134,10 @@ fn render_dir(state: &App, dir: &Computed<Vec<String>>) -> DomElement {
 
     let on_dropfile = bind!(state, |event: DropFileEvent| {
         get_driver().spawn(async move {
-            // let mut files = Vec::new();
+            let mut files = Vec::new();
 
             for item in event.items {
                 let data = item.data.as_ref().clone();
-                // item.name
 
                 let response = get_driver()
                     .request_post("/create_blob")
@@ -154,10 +153,13 @@ fn render_dir(state: &App, dir: &Computed<Vec<String>>) -> DomElement {
                     }
                 };
 
-                log::info!("blob info: {blob_id}");
-                // response.into_data::<>()
-                
+                files.push((
+                    item.name,
+                    blob_id
+                ));
             }
+
+            log::info!("blob info: {files:#?}");
 
             // for item in event.items {
             //     log::info!("item ...");
