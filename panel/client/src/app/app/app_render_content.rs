@@ -1,7 +1,6 @@
 use std::rc::Rc;
 
-use common::{HandlerAddFiles, HandlerAddFilesFile};
-use vertigo::{Css, css, bind, Resource, dom, DomElement, Computed, ListRendered, DomCommentCreate, DropFileEvent, get_driver, RequestBody, transaction};
+use vertigo::{Css, css, bind, Resource, dom, DomElement, Computed, ListRendered, DomCommentCreate};
 
 use crate::app::App;
 use crate::components::list_items_from_dir;
@@ -129,70 +128,8 @@ fn render_content_text(state: &App, content: Rc<String>) -> ListRendered<ParseTe
 fn render_dir(state: &App, dir: &Computed<Vec<String>>) -> DomElement {
     let result = list_items_from_dir(&state.data, dir, false);
 
-    let on_dropfile = bind!(state, |event: DropFileEvent| {
-        get_driver().spawn({
-            let state = state.clone();
-
-            async move {
-                let mut files = Vec::new();
-
-                for item in event.items {
-                    let data = item.data.as_ref().clone();
-
-                    let response = get_driver()
-                        .request_post("/create_blob")
-                        .body(RequestBody::Binary(data))
-                        .call()
-                        .await;
-
-                    let blob_id = match response.into_data::<String>() {
-                        Ok(blob_id) => blob_id,
-                        Err(message) => {
-                            log::error!("Error /create_blob for {} => error={message}", item.name);
-                            return;
-                        }
-                    };
-
-                    files.push((
-                        item.name,
-                        blob_id
-                    ));
-                }
-
-                let full_path = transaction(|context| state.data.tab.full_path.get(context));
-
-                let mut post_files = Vec::new();
-
-                for (file, blob_id) in files {
-                    post_files.push(HandlerAddFilesFile {
-                        name: file,
-                        blob_id,
-                    })
-                }
-
-                let post = HandlerAddFiles {
-                    path: full_path,
-                    files: post_files,
-                };
-
-                let response = get_driver()
-                    .request_post("/add_files")
-                    .body_json(post)
-                    .call()
-                    .await.into_data::<String>();
-
-                if response.is_err() {
-                    log::error!("Problem z dodaniem plików: {response:#?}");
-                    return;
-                }
-
-                state.data.git.root.refresh();
-            }
-        });
-    });
-
     dom! {
-        <div css={css_content_dir()} on_dropfile={on_dropfile}>
+        <div css={css_content_dir()}>
             { result }
         </div>
     }

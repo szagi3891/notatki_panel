@@ -1,17 +1,11 @@
+use common::{HandlerAddFilesFile, HandlerAddFiles};
 // use vertigo::dev::NodeRefs;
 use vertigo::{
-    Css, dom, Computed, DomElement,
+    dom, Computed, DomElement, bind, DropFileEvent, get_driver, RequestBody, transaction,
 };
 use vertigo::{css};
 use crate::app::App;
 use crate::components::list_items_from_dir;
-
-fn css_wrapper() -> Css {
-    css!("
-        flex-grow: 1;
-        overflow-y: scroll;
-    ")
-}
 
 //  444 .get_bounding_client_rect_y () .height
 /*
@@ -85,10 +79,80 @@ pub fn render_list(state: &App) -> DomElement {
         }
     });
 
+
+    let on_dropfile = bind!(state, |event: DropFileEvent| {
+        get_driver().spawn({
+            let state = state.clone();
+
+            async move {
+                let mut files = Vec::new();
+
+                for item in event.items {
+                    let data = item.data.as_ref().clone();
+
+                    let response = get_driver()
+                        .request_post("/create_blob")
+                        .body(RequestBody::Binary(data))
+                        .call()
+                        .await;
+
+                    let blob_id = match response.into_data::<String>() {
+                        Ok(blob_id) => blob_id,
+                        Err(message) => {
+                            log::error!("Error /create_blob for {} => error={message}", item.name);
+                            return;
+                        }
+                    };
+
+                    files.push((
+                        item.name,
+                        blob_id
+                    ));
+                }
+
+                let path = transaction(|context| state.data.tab.router.path.get(context));
+
+                let mut post_files = Vec::new();
+
+                for (file, blob_id) in files {
+                    post_files.push(HandlerAddFilesFile {
+                        name: file,
+                        blob_id,
+                    })
+                }
+
+                let post = HandlerAddFiles {
+                    path,
+                    files: post_files,
+                };
+
+                let response = get_driver()
+                    .request_post("/add_files")
+                    .body_json(post)
+                    .call()
+                    .await.into_data::<String>();
+
+                if response.is_err() {
+                    log::error!("Problem z dodaniem plików: {response:#?}");
+                    return;
+                }
+
+                state.data.git.root.refresh();
+            }
+        });
+    });
+
     //dom_ref="wrapper" dom_apply={dom_apply}
 
+
+    let css_wrapper = css!("
+        flex-grow: 1;
+        overflow-y: scroll;
+    ");
+
     let wrapper = dom! {
-        <div css={css_wrapper()} />
+        <div css={css_wrapper} on_dropfile={on_dropfile}>
+        </div>
     };
 
     //TODO - ref do wrappera będzie przekazywany do funkcji list_items_from_dir
