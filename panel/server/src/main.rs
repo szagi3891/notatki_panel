@@ -1,3 +1,4 @@
+#![feature(try_trait_v2)]
 #![allow(clippy::needless_lifetimes)]
 #![allow(clippy::ptr_arg)]
 #![allow(clippy::module_inception)]
@@ -27,11 +28,11 @@ use poem_openapi::{
     OpenApiService,
     OpenApi,
     param::Path,
-    payload::{Html}
+    payload::{Html, Binary}
 };
 use static_response::StaticResponse;
 use utils::{
-    ErrorProcess, ApiResponseHttp,
+    ApiResponseHttp,
 };
 
 use std::net::Ipv4Addr;
@@ -95,8 +96,10 @@ impl App {
 
     #[oai(method = "get", path = "/fetch_root")]
     async fn handler_fetch_root(&self) -> ApiResponseHttp<RootResponse> {
-        let result = self.git.main_commit().await;
-        response_with_root(result)
+        let result = self.git.main_commit().await?;
+        ApiResponseHttp::ok(RootResponse {
+            root: result
+        })
     }
 
     #[oai(method = "post", path = "/fetch_tree_item")]
@@ -166,9 +169,11 @@ impl App {
             body_request.path,
             body_request.prev_hash,
             body_request.new_content
-        ).await;
+        ).await?;
 
-        response_with_root(result)
+        ApiResponseHttp::ok(RootResponse {
+            root: result
+        })
     }
 
     #[oai(method = "post", path = "/create_file")]
@@ -178,9 +183,11 @@ impl App {
             body_request.path,
             body_request.new_name,
             body_request.new_content
-        ).await;
+        ).await?;
 
-        response_with_root(result)
+        ApiResponseHttp::ok(RootResponse {
+            root: result
+        })
     } 
 
     #[oai(method = "post", path = "/create_dir")]
@@ -189,9 +196,11 @@ impl App {
         let result = self.git.create_dir(
             body_request.path,
             body_request.dir
-        ).await;
+        ).await?;
 
-        response_with_root(result)
+        ApiResponseHttp::ok(RootResponse {
+            root: result
+        })
     }
 
     #[oai(method = "post", path = "/rename_item")]
@@ -202,9 +211,11 @@ impl App {
             body_request.prev_name,
             body_request.prev_hash,
             body_request.new_name
-        ).await;
+        ).await?;
 
-        response_with_root(result)
+        ApiResponseHttp::ok(RootResponse {
+            root: result
+        })
     }
 
     #[oai(method = "post", path = "/delete_item")]
@@ -213,9 +224,11 @@ impl App {
         let result = self.git.delete_item(
             body_request.path,
             body_request.hash,
-        ).await;
+        ).await?;
 
-        response_with_root(result)
+        ApiResponseHttp::ok(RootResponse {
+            root: result
+        })
     }
 
     #[oai(method = "post", path = "/move_item")]
@@ -226,9 +239,19 @@ impl App {
             body_request.path,
             body_request.hash,
             body_request.new_path,
-        ).await;
+        ).await?;
 
-        response_with_root(result)
+        ApiResponseHttp::ok(RootResponse {
+            root: result
+        })
+    }
+
+    #[oai(method = "post", path = "/create_blob")]
+    async fn handler_create_blob(&self, data: Binary<Vec<u8>>) -> ApiResponseHttp<String> {
+        let Binary(data) = data;
+
+        let result = self.git.create_blob(data).await?;
+        ApiResponseHttp::ok(result)
     }
 
     //meta - określa jakiego content type się spodziewamy 
@@ -279,20 +302,6 @@ impl App {
         match header {
             Some(header) => StaticResponse::binary(header, content),
             None => StaticResponse::not_found()
-        }
-    }
-}
-
-fn response_with_root(result: Result<String, ErrorProcess>) -> ApiResponseHttp<RootResponse> {
-    match result {
-        Ok(root) => {
-            let response = RootResponse {
-                root,
-            };
-            ApiResponseHttp::ok(response)
-        },
-        Err(err) => {
-            ApiResponseHttp::from(Err(err))
         }
     }
 }

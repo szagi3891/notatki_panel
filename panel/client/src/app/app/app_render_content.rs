@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use vertigo::{Css, css, bind, Resource, dom, DomElement, Computed, ListRendered, DomCommentCreate, DropFileEvent};
+use vertigo::{Css, css, bind, Resource, dom, DomElement, Computed, ListRendered, DomCommentCreate, DropFileEvent, get_driver, RequestBody};
 
 use crate::app::App;
 use crate::components::list_items_from_dir;
@@ -133,9 +133,27 @@ fn render_dir(state: &App, dir: &Computed<Vec<String>>) -> DomElement {
     //TODO - kolejny call, to będzie dodanie tych nowych elementów do drzewa
 
     let on_dropfile = bind!(state, |event: DropFileEvent| {
-        for item in event.items {
-            log::info!("item ...");
-        }
+        get_driver().spawn(async move {
+            // let mut files = Vec::new();
+
+            for item in event.items {
+                let data = item.data.as_ref().clone();
+                // item.name
+
+                let response = get_driver()
+                    .request_post("/create_blob")
+                    .body(RequestBody::Binary(data))
+                    .call()
+                    .await;
+                
+                    // response.into_data::<>()
+                
+            }
+
+            // for item in event.items {
+            //     log::info!("item ...");
+            // }
+        });
     });
 
     dom! {

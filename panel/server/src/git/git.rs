@@ -77,6 +77,14 @@ impl Git {
         session.commit().await
     }
 
+    pub async fn create_blob(&self, data: Vec<u8>) -> Result<String, ErrorProcess> {
+        let session = self.session().await?;
+        let (session, id) = session.create_blob_vec_u8(data).await?;
+        session.end();
+
+        Ok(id.convert_to_string())
+    }
+
     pub async fn get_from_id(&self, id: &String) -> Result<Option<GitBlob>, ErrorProcess> {
         let session = self.session().await?;
         let (_, result) = session.get_from_id(id).await?;

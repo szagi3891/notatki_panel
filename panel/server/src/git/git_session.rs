@@ -48,6 +48,10 @@ impl GitId {
             is_file: false,
         }
     }
+
+    pub fn convert_to_string(self) -> String {
+        self.id.to_string()
+    }
 }
 
 
@@ -318,12 +322,15 @@ pub fn commit<'repo>(
     Ok(session.root.to_string())
 }
 
-
 fn create_blob<'repo>(session: &GitSession<'repo>, new_content: String) -> Result<GitId, ErrorProcess> {
     let new_content_id = session.repo.blob(new_content.as_bytes())?;
     Ok(GitId::new_file(new_content_id))
 }
 
+fn create_blob_vec_u8<'repo>(session: &GitSession<'repo>, new_content: Vec<u8>) -> Result<GitId, ErrorProcess> {
+    let new_content_id = session.repo.blob(new_content.as_slice())?;
+    Ok(GitId::new_file(new_content_id))
+}
 
 fn convert_to_name(item: &TreeEntry) -> Result<String, ErrorProcess> {
     let name = item.name();
@@ -362,6 +369,8 @@ impl<'repo> GitSession<'repo> {
         })
     }
 
+    pub fn end(self) {}
+
     pub async fn command_main_commit(
         self,
     ) -> Result<String, ErrorProcess> {
@@ -371,6 +380,13 @@ impl<'repo> GitSession<'repo> {
     pub async fn create_blob(self, new_content: String) -> Result<(GitSession<'repo>, GitId), ErrorProcess> {
         task::block_in_place(move || {
             let new_content_id = create_blob(&self, new_content)?;
+            Ok((self, new_content_id))
+        })
+    }
+
+    pub async fn create_blob_vec_u8(self, new_content: Vec<u8>) -> Result<(GitSession<'repo>, GitId), ErrorProcess> {
+        task::block_in_place(move || {
+            let new_content_id = create_blob_vec_u8(&self, new_content)?;
             Ok((self, new_content_id))
         })
     }

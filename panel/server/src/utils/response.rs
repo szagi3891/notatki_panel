@@ -4,7 +4,8 @@ use poem_openapi::payload::{
     // Binary,
     Json
 };
-
+use std::convert::Infallible;
+use std::ops::FromResidual;
 use super::ErrorProcess;
 
 #[derive(ApiResponse)]
@@ -48,6 +49,21 @@ impl<T: Send + ToJSON + ParseFromJSON> ApiResponseHttp<T> {
         match value {
             Ok(value) => ApiResponseHttp::Ok(Json(value)),
             Err(error) => ApiResponseHttp::from_error_process(error)
+        }
+    }
+}
+
+// std::ops::FromResidual<std::result::Result<std::convert::Infallible, utils::error::ErrorProcess>>` is not implemented for `utils::response::ApiResponseHttp<T>`
+
+impl<T:ToJSON + ParseFromJSON> FromResidual<Result<Infallible, ErrorProcess>> for ApiResponseHttp<T> {
+    fn from_residual(residual: Result<Infallible, ErrorProcess>) -> Self {
+        match residual {
+            Ok(_) => {
+                unreachable!();
+            }
+            Err(error) => {
+                ApiResponseHttp::from(Err(error))
+            }
         }
     }
 }
