@@ -1,8 +1,8 @@
 use std::sync::Arc;
-use git2::Repository;
-use crate::utils::ErrorProcess;
+use git2::{Repository, Oid};
+use crate::{utils::ErrorProcess, models::HandlerAddFilesFile};
 use tokio::sync::{Mutex};
-use super::git_session::GitSession;
+use super::git_session::{GitSession, GitId};
 use crate::git::GitBlob;
 
 fn split_last(path: &[String]) -> Result<(&[String], &String), ErrorProcess> {    
@@ -161,6 +161,24 @@ impl Git {
         
         let new_root_id = session.commit().await?;
         Ok(new_root_id)
+    }
+
+    pub async fn add_files(
+        &self,
+        path: Vec<String>,
+        files: Vec<HandlerAddFilesFile>,
+    ) -> Result<String, ErrorProcess> {
+
+        let mut session = self.session().await?;
+
+        for file in files {
+            let id_oid = Oid::from_str(file.blob_id.as_str())?;
+            let id = GitId::new_file(id_oid);
+
+            session = session.insert_child(&path, &file.name, id).await?;
+        }
+
+        session.commit().await
     }
 
     pub async fn delete_item(

@@ -1,6 +1,7 @@
 use std::rc::Rc;
 
-use vertigo::{Css, css, bind, Resource, dom, DomElement, Computed, ListRendered, DomCommentCreate, DropFileEvent, get_driver, RequestBody};
+use common::{HandlerAddFiles, HandlerAddFilesFile};
+use vertigo::{Css, css, bind, Resource, dom, DomElement, Computed, ListRendered, DomCommentCreate, DropFileEvent, get_driver, RequestBody, transaction};
 
 use crate::app::App;
 use crate::components::list_items_from_dir;
@@ -128,42 +129,65 @@ fn render_content_text(state: &App, content: Rc<String>) -> ListRendered<ParseTe
 fn render_dir(state: &App, dir: &Computed<Vec<String>>) -> DomElement {
     let result = list_items_from_dir(&state.data, dir, false);
 
-    //TODO - api do wgrywannia binarnego obiektu jako pliku, w odpowiedzi zwraca hash tego obiektu
-
-    //TODO - kolejny call, to będzie dodanie tych nowych elementów do drzewa
-
     let on_dropfile = bind!(state, |event: DropFileEvent| {
-        get_driver().spawn(async move {
-            let mut files = Vec::new();
+        get_driver().spawn({
+            let state = state.clone();
 
-            for item in event.items {
-                let data = item.data.as_ref().clone();
+            async move {
+                let mut files = Vec::new();
 
-                let response = get_driver()
-                    .request_post("/create_blob")
-                    .body(RequestBody::Binary(data))
-                    .call()
-                    .await;
+                for item in event.items {
+                    let data = item.data.as_ref().clone();
 
-                let blob_id = match response.into_data::<String>() {
-                    Ok(blob_id) => blob_id,
-                    Err(message) => {
-                        log::error!("Error /create_blob for {} => error={message}", item.name);
-                        return;
-                    }
+                    let response = get_driver()
+                        .request_post("/create_blob")
+                        .body(RequestBody::Binary(data))
+                        .call()
+                        .await;
+
+                    let blob_id = match response.into_data::<String>() {
+                        Ok(blob_id) => blob_id,
+                        Err(message) => {
+                            log::error!("Error /create_blob for {} => error={message}", item.name);
+                            return;
+                        }
+                    };
+
+                    files.push((
+                        item.name,
+                        blob_id
+                    ));
+                }
+
+                let full_path = transaction(|context| state.data.tab.full_path.get(context));
+
+                let mut post_files = Vec::new();
+
+                for (file, blob_id) in files {
+                    post_files.push(HandlerAddFilesFile {
+                        name: file,
+                        blob_id,
+                    })
+                }
+
+                let post = HandlerAddFiles {
+                    path: full_path,
+                    files: post_files,
                 };
 
-                files.push((
-                    item.name,
-                    blob_id
-                ));
+                let response = get_driver()
+                    .request_post("/add_files")
+                    .body_json(post)
+                    .call()
+                    .await.into_data::<String>();
+
+                if response.is_err() {
+                    log::error!("Problem z dodaniem plików: {response:#?}");
+                    return;
+                }
+
+                state.data.git.root.refresh();
             }
-
-            log::info!("blob info: {files:#?}");
-
-            // for item in event.items {
-            //     log::info!("item ...");
-            // }
         });
     });
 

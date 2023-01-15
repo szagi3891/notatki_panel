@@ -112,11 +112,26 @@ pub struct HandlerDeleteItemBody {
     pub hash: String,
 }
 
-#[cfg_attr(feature = "api", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "api", derive(serde::Serialize, serde::Deserialize, poem_openapi::Object))]
 #[cfg_attr(feature = "client", derive(vertigo::AutoJsJson))]
 #[derive(Debug, PartialEq, Eq)]
 pub struct HandlerMoveItemBody {
     pub path: Vec<String>,
     pub hash: String,
     pub new_path: Vec<String>,
+}
+
+
+#[cfg_attr(feature = "client", derive(vertigo::AutoJsJson))]
+#[derive(Debug, PartialEq, Eq)]
+pub struct HandlerAddFiles {
+    pub path: Vec<String>,
+    pub files: Vec<HandlerAddFilesFile>,
+}
+
+#[cfg_attr(feature = "client", derive(vertigo::AutoJsJson))]
+#[derive(Debug, PartialEq, Eq)]
+pub struct HandlerAddFilesFile {
+    pub name: String,
+    pub blob_id: String,
 }

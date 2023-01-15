@@ -53,8 +53,6 @@ impl<T: Send + ToJSON + ParseFromJSON> ApiResponseHttp<T> {
     }
 }
 
-// std::ops::FromResidual<std::result::Result<std::convert::Infallible, utils::error::ErrorProcess>>` is not implemented for `utils::response::ApiResponseHttp<T>`
-
 impl<T:ToJSON + ParseFromJSON> FromResidual<Result<Infallible, ErrorProcess>> for ApiResponseHttp<T> {
     fn from_residual(residual: Result<Infallible, ErrorProcess>) -> Self {
         match residual {
@@ -67,16 +65,3 @@ impl<T:ToJSON + ParseFromJSON> FromResidual<Result<Infallible, ErrorProcess>> fo
         }
     }
 }
-
-
-// #[derive(ApiResponse)]
-// enum GetResponse {
-//     #[oai(status = 200)]
-//     #[oai(content_type="")]
-//     ImageFile(
-//         Binary<Vec<u8>>
-//     ),
-
-//     #[oai(status = 404)]
-//     NotFound(PlainText<String>),
-// }

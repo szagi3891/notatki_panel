@@ -16,7 +16,7 @@ use models::{
     HandlerFetchNodeBody,
     HandlerFetchNodeResponse,
     HandlerRenameItemBody,
-    HandlerSaveContentBody, HandlerMoveItemBody,
+    HandlerSaveContentBody, HandlerMoveItemBody, HandlerAddFiles,
 };
 use poem::{
     endpoint::StaticFilesEndpoint,
@@ -252,6 +252,14 @@ impl App {
 
         let result = self.git.create_blob(data).await?;
         ApiResponseHttp::ok(result)
+    }
+
+    #[oai(method = "post", path = "/add_files")]
+    async fn handler_add_files(&self, data: Json<HandlerAddFiles>) -> ApiResponseHttp<String> {
+        let Json(data) = data;
+        let root = self.git.add_files(data.path, data.files).await?;
+
+        ApiResponseHttp::ok(root)
     }
 
     //meta - określa jakiego content type się spodziewamy 

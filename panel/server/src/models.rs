@@ -103,3 +103,14 @@ pub struct HandlerMoveItemBody {
     pub new_path: Vec<String>,
 }
 
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Object)]
+pub struct HandlerAddFiles {
+    pub path: Vec<String>,
+    pub files: Vec<HandlerAddFilesFile>,
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Object)]
+pub struct HandlerAddFilesFile {
+    pub name: String,
+    pub blob_id: String,
+}
