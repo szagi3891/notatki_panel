@@ -145,8 +145,17 @@ fn render_dir(state: &App, dir: &Computed<Vec<String>>) -> DomElement {
                     .body(RequestBody::Binary(data))
                     .call()
                     .await;
-                
-                    // response.into_data::<>()
+
+                let blob_id = match response.into_data::<String>() {
+                    Ok(blob_id) => blob_id,
+                    Err(message) => {
+                        log::error!("Error /create_blob for {} => error={message}", item.name);
+                        return;
+                    }
+                };
+
+                log::info!("blob info: {blob_id}");
+                // response.into_data::<>()
                 
             }
 
