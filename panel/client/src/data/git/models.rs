@@ -248,6 +248,7 @@ impl ListItem {
                     "jpg" => FileType::Image { ext: "jpg".into() },
                     "jpeg" => FileType::Image { ext: "jpeg".into() },
                     "png" => FileType::Image { ext: "png".into() },
+                    "key" => FileType::Txt,
                     _ => {
                         log::warn!("Nierozpoznany typ pliku: {ext}");
                         FileType::Unknown
