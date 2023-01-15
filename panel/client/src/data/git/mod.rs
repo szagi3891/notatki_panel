@@ -23,7 +23,7 @@ fn get_item_from_map<'a>(current_wsk: &'a GitDirList, path_item: &String) -> Res
     let wsk_child = match wsk_child {
         Some(wsk_child) => wsk_child,
         None => {
-            return Resource::Error(format!("missing tree_item {}", path_item));
+            return Resource::Error(format!("missing tree_item {path_item}"));
         }
     };
 
@@ -40,7 +40,7 @@ fn move_pointer(context: &Context, state_data: &Git, list: GitDirList, path_item
         return Resource::Ready(child_list);
     }
 
-    return Resource::Error(format!("dir expected {}", path_item));
+    return Resource::Error(format!("dir expected {path_item}"));
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

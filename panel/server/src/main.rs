@@ -162,7 +162,7 @@ impl App {
             };
         }
 
-        ApiResponseHttp::not_found(format!("missing content {}", hash_id))
+        ApiResponseHttp::not_found(format!("missing content {hash_id}"))
     }
 
     #[oai(method = "post", path = "/save_content")]
@@ -317,7 +317,7 @@ async fn main() {
 
     let config = match envy::from_env::<Config>() {
         Ok(config) => config,
-        Err(error) => panic!("Service started with invalid environment variables {:#?}", error)
+        Err(error) => panic!("Service started with invalid environment variables {error:#?}")
     };
 
     println!("start git test: {}", &config.git_repo);

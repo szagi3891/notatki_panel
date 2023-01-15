@@ -24,7 +24,7 @@ impl Git {
         let repository = match Repository::open(&path) {
             Ok(repo) => repo,
             Err(e) => {
-                return ErrorProcess::server_result(format!("Problem with init repo: {} {}", path, e));
+                return ErrorProcess::server_result(format!("Problem with init repo: {path} {e}"));
             },
         };
 
@@ -67,7 +67,7 @@ impl Git {
         let (session, prev_content_id) = session.extract_child(&path, &file_name).await?;
 
         if prev_content_id.id.to_string() != prev_hash {
-            return ErrorProcess::user_result(format!("item not found to be modified = {}, hash mismatch", file_name));
+            return ErrorProcess::user_result(format!("item not found to be modified = {file_name}, hash mismatch"));
         }
 
         let (session, new_content_id) = session.create_blob(new_content).await?;
@@ -172,7 +172,7 @@ impl Git {
         match result {
             Some(GitBlob::Tree { list }) => {
                 if list.len() > 0 {
-                    return Err(ErrorProcess::user(format!("non-empty directory cannot be deleted {:?}", path)));
+                    return Err(ErrorProcess::user(format!("non-empty directory cannot be deleted {path:?}")));
                 }
                 //ok
             },
@@ -180,7 +180,7 @@ impl Git {
                 //ok
             },
             None => {
-                return Err(ErrorProcess::user(format!("Missing hash {}", item_hash)));
+                return Err(ErrorProcess::user(format!("Missing hash {item_hash}")));
             }
         };
 

@@ -27,10 +27,10 @@ impl GitId {
                 Ok(GitId::new_file(id))
             },
             Some(kind) => {
-                Err(ErrorProcess::user(format!("Incorrect type object = {}, {}", id, kind)))
+                Err(ErrorProcess::user(format!("Incorrect type object = {id}, {kind}")))
             },
             None => {
-                ErrorProcess::user_result(format!("It was not possible to determine the type of this object = {}", id))
+                ErrorProcess::user_result(format!("It was not possible to determine the type of this object = {id}"))
             },
         }
     }
@@ -107,7 +107,7 @@ fn create_id(hash: &String) -> Result<Oid, ErrorProcess> {
     match Oid::from_str(hash) {
         Ok(id) => Ok(id),
         Err(err) => {
-            ErrorProcess::user_result(format!("Invalid hash {} {}", hash, err))
+            ErrorProcess::user_result(format!("Invalid hash {hash} {err}"))
         }
     }
 }
@@ -143,7 +143,7 @@ fn get_child_tree<'repo>(
         }
     }
 
-    ErrorProcess::user_result(format!("Element not found {}", name))
+    ErrorProcess::user_result(format!("Element not found {name}"))
 }
 
 fn put_child_tree<'repo>(
@@ -159,10 +159,10 @@ fn put_child_tree<'repo>(
         Some(ObjectType::Tree) => {}, 
         Some(ObjectType::Blob) => {},
         Some(kind) => {
-            return Err(ErrorProcess::user(format!("Incorrect type object = {}, {}", child, kind)));
+            return Err(ErrorProcess::user(format!("Incorrect type object = {child}, {kind}")));
         },
         None => {
-            return ErrorProcess::user_result(format!("It was not possible to determine the type of this object = {}", child));
+            return ErrorProcess::user_result(format!("It was not possible to determine the type of this object = {child}"));
         },
     };
 
@@ -408,7 +408,7 @@ impl<'repo> GitSession<'repo> {
                 let is_exist = tree_builder.is_exist(new_child_item.as_str())?;
 
                 if is_exist {
-                    return ErrorProcess::user_result(format!("this element already exists - {}", new_child_item));
+                    return ErrorProcess::user_result(format!("this element already exists - {new_child_item}"));
                 }
 
                 tree_builder.insert(new_child_item, new_content_id)?;
@@ -470,7 +470,7 @@ impl<'repo> GitSession<'repo> {
         let hash = self.create_id(hash)?;
 
         if hash != *child {
-            return ErrorProcess::user_result(format!("'hash' does not match - child={:?} hash={:?}", child, hash));
+            return ErrorProcess::user_result(format!("'hash' does not match - child={child:?} hash={hash:?}"));
         }
 
         Ok(())

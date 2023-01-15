@@ -45,11 +45,11 @@ impl ErrorProcess {
     pub fn context<T: Debug>(self, label: &str, label_message: T) -> Self {
         match self {
             ErrorProcess::User { mut context, message } => {
-                context.push(format!("{} = {:?}", label, label_message));
+                context.push(format!("{label} = {label_message:?}"));
                 ErrorProcess::User { context, message }
             },
             ErrorProcess::Server { mut context, message } => {
-                context.push(format!("{} = {:?}", label, label_message));
+                context.push(format!("{label} = {label_message:?}"));
                 ErrorProcess::User { context, message }
             },
         }
@@ -71,7 +71,7 @@ impl From<Error> for ErrorProcess {
     fn from(err: Error) -> ErrorProcess {
         ErrorProcess::Server {
             context: Vec::new(),
-            message: format!("{}", err),
+            message: format!("{err}"),
         }
     }
 }
@@ -79,6 +79,6 @@ impl From<Error> for ErrorProcess {
 
 fn format_message(context: Vec<String>, message: String) -> String {
     let context = context.as_slice().join(",");
-    format!("{} context=({})", message, context)
+    format!("{message} context=({context})")
 }
 

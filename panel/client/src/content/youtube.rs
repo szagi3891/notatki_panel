@@ -50,7 +50,7 @@ fn get_thumbnail_youtube(url: &str) -> Option<String> {
         }
     };
 
-    return Some(format!("http://i3.ytimg.com/vi/{}/hqdefault.jpg", id));
+    return Some(format!("http://i3.ytimg.com/vi/{id}/hqdefault.jpg"));
 }
 
 pub fn get_thumbnail(url: &str) -> Option<String> {
