@@ -8,7 +8,7 @@
 #![allow(clippy::match_like_matches_macro)]
 #![allow(clippy::let_and_return)]
 #![allow(clippy::vtable_address_comparisons)]               //TODO - do sprawdzenia, podobno bywa niebezpieczne
-use vertigo::start_app;
+use vertigo::{start_app_fn};
 
 mod content;
 mod data;
@@ -17,5 +17,9 @@ mod app;
 
 #[no_mangle]
 pub fn start_application() {
-    start_app(|| app::App::new().render());
+    start_app_fn(|| {
+        let state = app::App::new();
+        let view = state.render();
+        (state, view)
+    });
 }

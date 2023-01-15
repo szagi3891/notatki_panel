@@ -48,7 +48,6 @@ use poem_openapi::payload::Json;
 mod git;
 mod utils;
 // mod sync;
-
 // use sync::start_sync;
 
 use git::{Git, GitBlob};
@@ -58,6 +57,12 @@ struct Config {
     http_host: Ipv4Addr,
     http_port: u16,
     git_repo: String,
+}
+
+#[derive(Deserialize)]
+struct IndexJson {
+    run_js: String,
+    wasm: String
 }
 
 #[derive(Clone)]
@@ -75,8 +80,23 @@ impl App {
 
     #[oai(method = "get", path = "/")]
     async fn handler_index(&self) -> Html<String> {
-        let data = std::fs::read_to_string("./build/index.html").unwrap();
-        Html(data)
+        let data = std::fs::read_to_string("./build/index.json").unwrap();
+        let IndexJson { run_js, wasm} = serde_json::from_str::<IndexJson>(&data).unwrap();
+
+        let html = format!(r#"
+            <html>
+                <body>
+                    <script
+                        type="module"
+                        data-vertigo-run-wasm="{wasm}"
+                        src="{run_js}"
+                    >
+                    </script>
+                </body>
+            </html>
+            "#);
+
+        Html(html)
     }
 
     #[oai(method = "get", path = "/fetch_root")]
