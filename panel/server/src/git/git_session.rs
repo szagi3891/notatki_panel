@@ -1,4 +1,6 @@
-use git2::{BranchType, ObjectType, Oid, Repository, Tree, TreeBuilder, TreeEntry};
+use std::collections::HashMap;
+
+use git2::{BranchType, ObjectType, Oid, Repository, Tree, TreeBuilder, TreeEntry, Status};
 use crate::utils::ErrorProcess;
 use tokio::sync::{MutexGuard};
 use crate::models::GitTreeItem;
@@ -319,6 +321,7 @@ pub fn commit<'repo>(
         &[&commit]
     )?;
 
+    session.repo.checkout_head(Some(git2::build::CheckoutBuilder::default().force()))?;
     Ok(session.root.to_string())
 }
 
