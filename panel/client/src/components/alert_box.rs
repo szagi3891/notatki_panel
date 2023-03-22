@@ -1,4 +1,4 @@
-use vertigo::{DomElement, dom, DomFragment};
+use vertigo::{DomElement, dom, DomComment};
 
 use vertigo::{
     Css,
@@ -65,7 +65,7 @@ fn css_progress() -> Css {
     ")
 }
 
-fn render_progress(progress: Computed<bool>) -> DomFragment {
+fn render_progress(progress: Computed<bool>) -> DomComment {
     progress.render_value_option(|progress| {
         if progress {
             Some(dom! {
@@ -83,7 +83,7 @@ pub struct AlertBox {
     message: DomElement,
     progress: Option<Computed<bool>>,
     buttons: Vec<DomElement>,
-    content: Option<DomFragment>,
+    content: Option<DomComment>,
 }
 
 impl AlertBox {
@@ -106,8 +106,8 @@ impl AlertBox {
         self
     }
 
-    pub fn set_content(mut self, content: DomFragment) -> Self {
-        self.content = Some(content);
+    pub fn set_content(mut self, content: impl Into<DomComment>) -> Self {
+        self.content = Some(content.into());
         self
     }
 

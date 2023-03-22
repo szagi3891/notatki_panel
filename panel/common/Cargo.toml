@@ -14,5 +14,5 @@ client = [ "vertigo" ]
 [dependencies]
 serde = { version = "1.0.125", features = ["derive"], optional = true }
 serde_json = { version = "1.0.64", optional = true }
-vertigo = { git="https://github.com/vertigo-web/vertigo", branch="master", optional = true }
+vertigo = { git="https://github.com/vertigo-web/vertigo", branch="dom_fragment", optional = true }
 # vertigo = { path = "../../../vertigo/crates/vertigo", optional = true }

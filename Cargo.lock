@@ -63,7 +63,7 @@ checksum = "86ea188f25f0255d8f92797797c97ebf5631fa88178beb1a46fdf5622c9a00e4"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.5",
+ "syn 2.0.6",
 ]
 
 [[package]]
@@ -280,7 +280,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "scratch",
- "syn 2.0.5",
+ "syn 2.0.6",
 ]
 
 [[package]]
@@ -297,7 +297,7 @@ checksum = "631569015d0d8d54e6c241733f944042623ab6df7bc3be7466874b05fcdb1c5f"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.5",
+ "syn 2.0.6",
 ]
 
 [[package]]
@@ -1464,7 +1464,7 @@ checksum = "e801c1712f48475582b7696ac71e0ca34ebb30e09338425384269d9717c62cad"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.5",
+ "syn 2.0.6",
 ]
 
 [[package]]
@@ -1606,9 +1606,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "2.0.5"
+version = "2.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "89c2d1c76a26822187a1fbb5964e3fff108bc208f02e820ab9dac1234f6b388a"
+checksum = "ece519cfaf36269ea69d16c363fa1d59ceba8296bbfbfc003c3176d01f2816ee"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1665,7 +1665,7 @@ checksum = "f9456a42c5b0d803c8cd86e73dd7cc9edd429499f37a3550d286d5e86720569f"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.5",
+ "syn 2.0.6",
 ]
 
 [[package]]
@@ -1926,7 +1926,7 @@ checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
 [[package]]
 name = "vertigo"
 version = "0.2.0-alpha"
-source = "git+https://github.com/vertigo-web/vertigo?branch=master#58fb1f3f7b8a91b8995a4c358463de1c370b213c"
+source = "git+https://github.com/vertigo-web/vertigo?branch=dom_fragment#2a64b45178ca3beaf15cc43e06ece3c75f2d2141"
 dependencies = [
  "log",
  "vertigo-macro",
@@ -1935,7 +1935,7 @@ dependencies = [
 [[package]]
 name = "vertigo-macro"
 version = "0.2.0-alpha"
-source = "git+https://github.com/vertigo-web/vertigo?branch=master#58fb1f3f7b8a91b8995a4c358463de1c370b213c"
+source = "git+https://github.com/vertigo-web/vertigo?branch=dom_fragment#2a64b45178ca3beaf15cc43e06ece3c75f2d2141"
 dependencies = [
  "hex",
  "itertools",

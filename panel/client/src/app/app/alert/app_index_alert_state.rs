@@ -1,4 +1,4 @@
-use vertigo::{Value, dom, DomFragment, transaction};
+use vertigo::{Value, dom, DomComment, transaction};
 use crate::app::App;
 use crate::app::app::alert::app_index_alert_delete_state::AppIndexAlertDelete;
 use crate::app::app::alert::app_index_alert_search_state::AppIndexAlertSearch;
@@ -30,7 +30,7 @@ impl AppIndexAlert {
         }
     }
 
-    pub fn render(&self) -> DomFragment {
+    pub fn render(&self) -> DomComment {
         app_index_alert_render(self)
     }
 
@@ -76,7 +76,7 @@ impl AppIndexAlert {
 }
 
 
-fn app_index_alert_render(alert: &AppIndexAlert) -> DomFragment {
+fn app_index_alert_render(alert: &AppIndexAlert) -> DomComment {
     alert.view.render_value_option(|view| {
         match view {
             AlertView::None => {
