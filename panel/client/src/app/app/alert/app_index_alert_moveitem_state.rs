@@ -1,5 +1,5 @@
 use common::HandlerMoveItemBody;
-use vertigo::{Value, Resource, Computed, bind, css, Css, dom, transaction, Context, DomElement, DomCommentCreate, bind_spawn, RequestBuilder};
+use vertigo::{Value, Resource, Computed, bind, css, Css, dom, transaction, Context, DomElement, DomFragment, bind_spawn, RequestBuilder};
 
 use crate::{components::{AlertBox, item_default, item_dot_html, ButtonState, render_path}, data::ListItem, app::{response::check_request_response, App}};
 
@@ -98,7 +98,7 @@ fn render_target(state: &AppIndexAlertMoveitem) -> DomElement {
     }
 }
 
-fn render_back(state: &AppIndexAlertMoveitem) -> DomCommentCreate {
+fn render_back(state: &AppIndexAlertMoveitem) -> DomFragment {
     let state = state.clone();
     let target_is_empty = state.target.to_computed().map(|target| {
         target.is_empty()
@@ -122,7 +122,7 @@ fn render_back(state: &AppIndexAlertMoveitem) -> DomCommentCreate {
     })
 }
 
-fn render_list(state: &AppIndexAlertMoveitem) -> DomCommentCreate {
+fn render_list(state: &AppIndexAlertMoveitem) -> DomFragment {
     fn css_list() -> Css {
         css!("
             max-height: 70vh;

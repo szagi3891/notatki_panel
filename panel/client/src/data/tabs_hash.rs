@@ -46,7 +46,7 @@ impl Router {
             let route = route.clone();
 
             Computed::from(move |context| {
-                route.get(context).dir
+                route.route.get(context).dir
             })
         };
 
@@ -58,7 +58,7 @@ impl Router {
     }
 
     pub fn get_dir(&self, context: &Context) -> Vec<String> {
-        self.route.get(context).dir
+        self.route.route.get(context).dir
     }
 
     pub fn get_hover(&self, context: &Context) -> Option<String> {
@@ -67,7 +67,7 @@ impl Router {
 
     pub fn set_only_item(&self, item: Option<String>) {
         transaction(|context| {
-            let mut route = self.route.get(context);
+            let mut route = self.route.route.get(context);
             route.item = item;
             self.route.set(route);
             self.item_hover.set(None);
@@ -85,7 +85,7 @@ impl Router {
     }
 
     pub fn get_item(&self, context: &Context) -> Option<String> {
-        self.route.get(context).item
+        self.route.route.get(context).item
     }
 
     pub fn hover_on(&self, name: &str) {

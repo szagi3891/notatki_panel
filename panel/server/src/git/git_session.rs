@@ -1,6 +1,4 @@
-use std::collections::HashMap;
-
-use git2::{BranchType, ObjectType, Oid, Repository, Tree, TreeBuilder, TreeEntry, Status};
+use git2::{BranchType, ObjectType, Oid, Repository, Tree, TreeBuilder, TreeEntry};
 use crate::utils::ErrorProcess;
 use tokio::sync::{MutexGuard};
 use crate::models::GitTreeItem;

@@ -1,7 +1,7 @@
 use vertigo::{
     css, Css,
     Resource,
-    bind, DomElement, dom, Computed, ListRendered, DomCommentCreate
+    bind, DomElement, dom, Computed, ListRendered, DomFragment
 };
 use crate::data::{Data, ListItem};
 use crate::components::icon;
@@ -75,7 +75,7 @@ fn icon_arrow_render(show: bool) -> DomElement {
     }
 }
 
-fn icon_arrow(show: Computed<bool>) -> DomCommentCreate {
+fn icon_arrow(show: Computed<bool>) -> DomFragment {
     show.render_value(|show| {
         icon_arrow_render(show)
     })

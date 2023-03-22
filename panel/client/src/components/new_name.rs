@@ -121,7 +121,7 @@ pub fn render(state: &NewName, autofocus: bool) -> DomElement {
     };
 
     let input = if autofocus {
-        input.attr("autofocus", "".into())
+        input.attr("autofocus", "")
     } else {
         input
     };

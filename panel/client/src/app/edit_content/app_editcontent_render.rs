@@ -1,4 +1,4 @@
-use vertigo::{Css, bind, dom, DomElement, DomCommentCreate, transaction};
+use vertigo::{Css, bind, dom, DomElement, transaction, DomFragment};
 use vertigo::{css};
 
 use super::AppEditcontent;
@@ -37,7 +37,7 @@ fn css_body() -> Css {
     ")
 }
 
-fn render_textarea(state: &AppEditcontent) -> DomCommentCreate {
+fn render_textarea(state: &AppEditcontent) -> DomFragment {
     let show_textarea = state.content_view.clone().map(|content| {
         if let Some(EditContent { ..}) = content {
             true

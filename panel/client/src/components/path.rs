@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use vertigo::{
     Css,
-    Computed, dom, DomElement, bind, DomCommentCreate,
+    Computed, dom, DomElement, bind, DomFragment,
 };
 use vertigo::{css};
 
@@ -73,7 +73,7 @@ fn create_link(
     }
 }
 
-pub fn render_path(path: &Computed<Vec<String>>, on_click: impl Fn(Vec<String>) + 'static) -> DomCommentCreate {
+pub fn render_path(path: &Computed<Vec<String>>, on_click: impl Fn(Vec<String>) + 'static) -> DomFragment {
     let path = path.clone();
     let on_click = Rc::new(on_click);
 
