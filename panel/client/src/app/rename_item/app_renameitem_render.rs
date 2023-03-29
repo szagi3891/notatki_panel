@@ -1,4 +1,4 @@
-use vertigo::{Css, DomElement, Computed, dom};
+use vertigo::{Css, Computed, dom, DomNode};
 use vertigo::{css, bind};
 
 use super::AppRenameitem;
@@ -56,7 +56,7 @@ fn css_textarea() -> Css {
     ")
 }
 
-fn render_input(state: &AppRenameitem) -> DomElement {
+fn render_input(state: &AppRenameitem) -> DomNode {
     let state = state.clone();
 
     let content = Computed::from({
@@ -73,7 +73,7 @@ fn render_input(state: &AppRenameitem) -> DomElement {
     }
 }
 
-fn render_textarea(state: &AppRenameitem) -> DomElement {
+fn render_textarea(state: &AppRenameitem) -> DomNode {
     let state = state.clone();
 
     let content_computed = Computed::from(move |contetx| {
@@ -102,7 +102,7 @@ fn render_textarea(state: &AppRenameitem) -> DomElement {
     }
 }
 
-fn render_path(state: &AppRenameitem) -> DomElement {
+fn render_path(state: &AppRenameitem) -> DomNode {
     let state = state.clone();
     let path = Computed::from(move |_| state.get_full_path());
 
@@ -114,7 +114,7 @@ fn render_path(state: &AppRenameitem) -> DomElement {
     }
 }
 
-pub fn app_renameitem_render(state: &AppRenameitem) -> DomElement {
+pub fn app_renameitem_render(state: &AppRenameitem) -> DomNode {
 
     let view_path = render_path(state);
     let view_input = render_input(state);

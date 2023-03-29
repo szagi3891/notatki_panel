@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use vertigo::{Css, css, bind, Resource, dom, DomElement, Computed, DomComment};
+use vertigo::{Css, css, bind, Resource, dom, Computed, DomNode};
 
 use crate::app::App;
 use crate::components::list_items_from_dir;
@@ -57,7 +57,7 @@ fn open_css() -> Css {
     ")
 }
 
-fn render_content_chunk(state: &App, item: &ParseTextItem) -> DomElement {
+fn render_content_chunk(state: &App, item: &ParseTextItem) -> DomNode {
     match item {
         ParseTextItem::Link { url, has_open } => {
             let url = url.to_string();
@@ -104,7 +104,7 @@ fn render_content_chunk(state: &App, item: &ParseTextItem) -> DomElement {
     }
 }
 
-fn render_content_text(state: &App, content: Rc<String>) -> DomComment {
+fn render_content_text(state: &App, content: Rc<String>) -> DomNode {
     let chunks = Computed::from({
         let state = state.clone();
         move |context| {
@@ -125,7 +125,7 @@ fn render_content_text(state: &App, content: Rc<String>) -> DomComment {
     )
 }
 
-fn render_dir(state: &App, dir: &Computed<Vec<String>>) -> DomElement {
+fn render_dir(state: &App, dir: &Computed<Vec<String>>) -> DomNode {
     let result = list_items_from_dir(&state.data, dir, false);
 
     dom! {
@@ -135,7 +135,7 @@ fn render_dir(state: &App, dir: &Computed<Vec<String>>) -> DomElement {
     }
 }
 
-pub fn render_content(state: &App) -> DomComment {
+pub fn render_content(state: &App) -> DomNode {
     state.data.tab.current_content.render_value({
         let state = state.clone();
         move |current_content| {

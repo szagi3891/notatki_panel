@@ -1,4 +1,4 @@
-use vertigo::{DomElement, dom, DomComment};
+use vertigo::{dom, DomNode, dom_element};
 
 use vertigo::{
     Css,
@@ -65,7 +65,7 @@ fn css_progress() -> Css {
     ")
 }
 
-fn render_progress(progress: Computed<bool>) -> DomComment {
+fn render_progress(progress: Computed<bool>) -> DomNode {
     progress.render_value_option(|progress| {
         if progress {
             Some(dom! {
@@ -80,14 +80,14 @@ fn render_progress(progress: Computed<bool>) -> DomComment {
 }
 
 pub struct AlertBox {
-    message: DomElement,
+    message: DomNode,
     progress: Option<Computed<bool>>,
-    buttons: Vec<DomElement>,
-    content: Option<DomComment>,
+    buttons: Vec<DomNode>,
+    content: Option<DomNode>,
 }
 
 impl AlertBox {
-    pub fn new(message: DomElement) -> AlertBox {
+    pub fn new(message: DomNode) -> AlertBox {
         AlertBox {
             message,
             progress: None,
@@ -101,17 +101,17 @@ impl AlertBox {
         self
     }
 
-    pub fn button(mut self, component: DomElement) -> Self {
+    pub fn button(mut self, component: DomNode) -> Self {
         self.buttons.push(component);
         self
     }
 
-    pub fn set_content(mut self, content: impl Into<DomComment>) -> Self {
+    pub fn set_content(mut self, content: impl Into<DomNode>) -> Self {
         self.content = Some(content.into());
         self
     }
 
-    pub fn render_popup(content: DomElement) -> DomElement {
+    pub fn render_popup(content: DomNode) -> DomNode {
         dom! {
             <div css={css_bg()}>
                 <div css={css_center()}>
@@ -121,10 +121,10 @@ impl AlertBox {
         }
     }
 
-    pub fn render(self) -> DomElement {
+    pub fn render(self) -> DomNode {
         let AlertBox { message, progress, buttons, content } = self;
 
-        let result = dom! {
+        let result = dom_element! {
             <div>
                 <div css={css_message()}>
                     { message }
@@ -137,7 +137,7 @@ impl AlertBox {
         }
 
         if buttons.len() > 0 {
-            let buttons_wrapper = dom! { <div css={css_buttons_wrapper()}/> };
+            let buttons_wrapper = dom_element! { <div css={css_buttons_wrapper()}/> };
 
             for button in buttons.into_iter() {
                 buttons_wrapper.add_child(button);
@@ -154,6 +154,6 @@ impl AlertBox {
             });
         }
     
-        Self::render_popup(result)
+        Self::render_popup(result.into())
     }
 }

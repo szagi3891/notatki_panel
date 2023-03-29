@@ -1,4 +1,4 @@
-use vertigo::{Css, Resource, Computed, Value, bind, Context, DomElement, dom};
+use vertigo::{Css, Resource, Computed, Value, bind, Context, dom, DomNode};
 use vertigo::{css};
 use crate::data::ListItem;
 use crate::{components::AlertBox, data::{Data}};
@@ -122,13 +122,13 @@ impl AppIndexAlertSearch {
         }
     }
 
-    pub fn render(&self) -> DomElement {
+    pub fn render(&self) -> DomNode {
         render(self)
     }
 }
 
 
-fn render_results(search: &AppIndexAlertSearch) -> DomElement {
+fn render_results(search: &AppIndexAlertSearch) -> DomNode {
     let search = search.clone();
 
     let list = search.results.render_list(|item| item.to_string(), {
@@ -160,7 +160,7 @@ fn render_results(search: &AppIndexAlertSearch) -> DomElement {
     }
 }
 
-fn render_input(search: &AppIndexAlertSearch) -> DomElement {
+fn render_input(search: &AppIndexAlertSearch) -> DomNode {
     let current_value = search.phrase.to_computed();
 
     let on_input = bind!(search, |new_value: String| {
@@ -172,7 +172,7 @@ fn render_input(search: &AppIndexAlertSearch) -> DomElement {
     }
 }
 
-fn render_close(search: &AppIndexAlertSearch) -> DomElement {
+fn render_close(search: &AppIndexAlertSearch) -> DomNode {
     let on_close = bind!(search, || {
         search.alert.close_modal();
     });
@@ -183,7 +183,7 @@ fn render_close(search: &AppIndexAlertSearch) -> DomElement {
         </div>
     }
 }
-pub fn render(search: &AppIndexAlertSearch) -> DomElement {
+pub fn render(search: &AppIndexAlertSearch) -> DomNode {
 
     let results = render_results(search);
 

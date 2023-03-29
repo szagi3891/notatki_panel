@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use vertigo::{
     Css,
-    Computed, dom, DomElement, bind, DomComment,
+    Computed, dom, bind, DomNode, dom_element,
 };
 use vertigo::{css};
 
@@ -49,7 +49,7 @@ fn create_link(
     create_css: fn(bool) -> Css,
     is_active: bool,
     on_click: Rc<dyn Fn(Vec<String>) + 'static>,
-) -> DomElement {
+) -> DomNode {
     if is_active {
         let css = create_css(true);
 
@@ -73,7 +73,7 @@ fn create_link(
     }
 }
 
-pub fn render_path(path: &Computed<Vec<String>>, on_click: impl Fn(Vec<String>) + 'static) -> DomComment {
+pub fn render_path(path: &Computed<Vec<String>>, on_click: impl Fn(Vec<String>) + 'static) -> DomNode {
     let path = path.clone();
     let on_click = Rc::new(on_click);
 
@@ -81,7 +81,7 @@ pub fn render_path(path: &Computed<Vec<String>>, on_click: impl Fn(Vec<String>) 
         move |current_path| {
             let all_items = current_path.len();
 
-            let result = dom! {
+            let result = dom_element! {
                 <div css={css_header()} />
             };
 
@@ -99,7 +99,7 @@ pub fn render_path(path: &Computed<Vec<String>>, on_click: impl Fn(Vec<String>) 
                 result.add_child(create_link(item.clone(), wsk_current_path.clone(), css_item, is_active, on_click.clone()));
             }
 
-            result
+            result.into()
         }
     })
 }

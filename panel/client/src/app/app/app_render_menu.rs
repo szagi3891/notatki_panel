@@ -1,7 +1,7 @@
 use vertigo::{
     Css,
     Computed,
-    bind, Resource, DomElement, dom, transaction,
+    bind, Resource, dom, transaction, DomNode,
 };
 
 use vertigo::{css};
@@ -25,7 +25,7 @@ pub struct MenuComponent {
 }
 
 impl MenuComponent {
-    pub fn component(app: &App) -> DomElement {
+    pub fn component(app: &App) -> DomNode {
         let is_current_content= Computed::from({
             let current_content = app.data.tab.current_content.clone();
             move |context| -> bool {
@@ -49,7 +49,7 @@ impl MenuComponent {
     }
 }
 
-fn render_menu(state: &MenuComponent) -> DomElement {
+fn render_menu(state: &MenuComponent) -> DomNode {
     let button_edit_file = render_button_edit_file(state);
     let button_create_file = render_button_create_file(state);
     let button_rename_name = render_button_rename_name(state);
@@ -73,7 +73,7 @@ fn render_menu(state: &MenuComponent) -> DomElement {
     }
 }
 
-fn render_button_on_delete(state: &MenuComponent) -> DomElement {
+fn render_button_on_delete(state: &MenuComponent) -> DomNode {
     ButtonState::render({
         let app = state.app.clone();
         let is_current_content = state.is_current_content.clone();
@@ -97,7 +97,7 @@ fn render_button_on_delete(state: &MenuComponent) -> DomElement {
 
 }
 
-fn render_button_edit_file(state: &MenuComponent) -> DomElement {
+fn render_button_edit_file(state: &MenuComponent) -> DomNode {
     ButtonState::render({
         let app = state.app.clone();
         let is_current_content = state.is_current_content.clone();
@@ -118,7 +118,7 @@ fn render_button_edit_file(state: &MenuComponent) -> DomElement {
     })
 }
 
-fn render_button_move_item(state: &MenuComponent) -> DomElement {
+fn render_button_move_item(state: &MenuComponent) -> DomNode {
     let state = state.clone();
     let app = state.app;
 
@@ -141,7 +141,7 @@ fn render_button_move_item(state: &MenuComponent) -> DomElement {
     }))
 }
     
-fn render_button_create_file(state: &MenuComponent) -> DomElement {
+fn render_button_create_file(state: &MenuComponent) -> DomNode {
     ButtonState::render({
         let app = state.app.clone();
 
@@ -155,7 +155,7 @@ fn render_button_create_file(state: &MenuComponent) -> DomElement {
     })
 }
 
-fn render_button_rename_name(state: &MenuComponent) -> DomElement {
+fn render_button_rename_name(state: &MenuComponent) -> DomNode {
     ButtonState::render({
         let app = state.app.clone();
 
@@ -169,7 +169,7 @@ fn render_button_rename_name(state: &MenuComponent) -> DomElement {
     })
 }
 
-fn render_button_make_dir(state: &MenuComponent) -> DomElement {
+fn render_button_make_dir(state: &MenuComponent) -> DomNode {
     ButtonState::render({
         let app = state.app.clone();
 
@@ -183,7 +183,7 @@ fn render_button_make_dir(state: &MenuComponent) -> DomElement {
     })
 }
 
-fn render_button_search(state: &MenuComponent) -> DomElement {
+fn render_button_search(state: &MenuComponent) -> DomNode {
     ButtonState::render({
         let app = state.app.clone();
 
@@ -198,7 +198,7 @@ fn render_button_search(state: &MenuComponent) -> DomElement {
     })
 }
 
-fn render_button_todo(state: &MenuComponent) -> DomElement {
+fn render_button_todo(state: &MenuComponent) -> DomNode {
     ButtonState::render({
         // let app = state.app.clone();
 

@@ -1,6 +1,6 @@
 
 use common::{HandlerSaveContentBody};
-use vertigo::{Computed, Value, bind, get_driver, Context, DomElement, transaction, bind_spawn};
+use vertigo::{Computed, Value, bind, get_driver, Context, transaction, bind_spawn, DomNode};
 
 use crate::{app::{App, response::check_request_response}, data::ContentView};
 use super::app_editcontent_render::app_editcontent_render;
@@ -106,7 +106,7 @@ impl AppEditcontent {
         }
     }
 
-    pub fn render(&self) -> DomElement {
+    pub fn render(&self) -> DomNode {
         app_editcontent_render(&self.app, self)
     }
 

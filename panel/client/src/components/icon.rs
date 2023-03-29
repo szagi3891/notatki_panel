@@ -1,7 +1,7 @@
 use vertigo::{
     Css,
-    DomElement,
     dom,
+    DomNode,
 };
 use vertigo::{css};
 
@@ -16,7 +16,7 @@ fn icon_dir_css() -> Css {
     ")
 }
 
-pub fn icon_dir() -> DomElement {
+pub fn icon_dir() -> DomNode {
     dom! {
         <svg
             viewBox="0 0 16 16"
@@ -40,7 +40,7 @@ fn icon_file_css() -> Css {
     ")
 }
 
-pub fn icon_file() -> DomElement {
+pub fn icon_file() -> DomNode {
     dom! {
         <svg
             viewBox="0 0 16 16"
@@ -54,7 +54,7 @@ pub fn icon_file() -> DomElement {
     }
 }
 
-pub fn icon_render(dir: bool) -> DomElement {
+pub fn icon_render(dir: bool) -> DomNode {
     if dir {
         icon_dir()
     } else {

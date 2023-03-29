@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use vertigo::{
-    Css, Computed, DomElement, dom,
+    Css, Computed, dom, DomNode,
 };
 
 use vertigo::{css};
@@ -44,7 +44,7 @@ fn css_item(button_type: ButtonType) -> Css {
 }
 
 
-pub fn button(label: &'static str, on_click: impl Fn() + 'static) -> DomElement {
+pub fn button(label: &'static str, on_click: impl Fn() + 'static) -> DomNode {
     dom! {
         <span css={css_item(ButtonType::Active)} on_click={on_click}>{label}</span>
     }
@@ -115,7 +115,7 @@ impl ButtonState {
     }
 
 
-    pub fn render(value: Computed<ButtonState>) -> DomElement {
+    pub fn render(value: Computed<ButtonState>) -> DomNode {
         let render = value.render_value_option(|value| {
             match value {
                 ButtonState::None => {
@@ -143,6 +143,7 @@ impl ButtonState {
             }
         });
 
+        //TODO - pozbyć się tego div-a
         dom! {
             <div>
                 {render}

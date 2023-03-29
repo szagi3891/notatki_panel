@@ -1,4 +1,4 @@
-use vertigo::{Css, css, bind, dom, DomElement};
+use vertigo::{Css, css, bind, dom, DomNode};
 
 use super::AppNewdir;
 use crate::components::button;
@@ -21,7 +21,7 @@ fn css_header() -> Css {
     ")
 }
 
-pub fn app_newdir_render(state: AppNewdir) -> DomElement {
+pub fn app_newdir_render(state: AppNewdir) -> DomNode {
     let view_new_name = state.new_name.render(true);
 
     let parent_path = state.parent.as_slice().join("/");

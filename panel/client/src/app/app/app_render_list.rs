@@ -1,7 +1,7 @@
 use common::{HandlerAddFilesFile, HandlerAddFiles};
 // use vertigo::dev::NodeRefs;
 use vertigo::{
-    dom, Computed, DomElement, bind, DropFileEvent, get_driver, RequestBody, transaction,
+    Computed, DomElement, bind, DropFileEvent, get_driver, RequestBody, transaction, dom_element,
 };
 use vertigo::{css};
 use crate::app::App;
@@ -150,7 +150,7 @@ pub fn render_list(state: &App) -> DomElement {
         overflow-y: scroll;
     ");
 
-    let wrapper = dom! {
+    let wrapper = dom_element! {
         <div css={css_wrapper} on_dropfile={on_dropfile}>
         </div>
     };

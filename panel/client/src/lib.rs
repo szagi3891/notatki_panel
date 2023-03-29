@@ -8,7 +8,7 @@
 #![allow(clippy::match_like_matches_macro)]
 #![allow(clippy::let_and_return)]
 #![allow(clippy::vtable_address_comparisons)]               //TODO - do sprawdzenia, podobno bywa niebezpieczne
-use vertigo::{main, DomElement};
+use vertigo::{main, DomNode};
 
 mod content;
 mod data;
@@ -16,7 +16,7 @@ mod components;
 mod app;
 
 #[main]
-pub fn render() -> DomElement {
+pub fn render() -> DomNode {
     let state = app::App::new();
     state.render()
 }

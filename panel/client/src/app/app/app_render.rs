@@ -1,4 +1,4 @@
-use vertigo::{Css, dom, DomElement};
+use vertigo::{Css, dom, DomNode};
 use vertigo::{css, bind};
 
 use crate::app::App;
@@ -53,7 +53,7 @@ fn css_content_content() -> Css {
     ")
 }
 
-pub fn app_index_render(app: &App) -> DomElement {
+pub fn app_index_render(app: &App) -> DomNode {
     let view_alert = app.alert.render();
 
     let view_menu = MenuComponent::component(app);

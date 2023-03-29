@@ -1,4 +1,4 @@
-use vertigo::{Css, bind, dom, DomElement, css};
+use vertigo::{Css, bind, dom, css, DomNode};
 
 use crate::app::App;
 use crate::components::{button};
@@ -36,7 +36,7 @@ fn css_input_content() -> Css {
     ")
 }
 
-fn render_input_content(state: &AppNewcontent) -> DomElement {
+fn render_input_content(state: &AppNewcontent) -> DomNode {
     let content = state.content.to_computed();
 
     let on_input = {
@@ -51,7 +51,7 @@ fn render_input_content(state: &AppNewcontent) -> DomElement {
     }
 }
 
-pub fn app_newcontent_render(app: App, state: &AppNewcontent) -> DomElement {
+pub fn app_newcontent_render(app: App, state: &AppNewcontent) -> DomNode {
     let view_input = render_input_content(state);
     let view_new_name = state.new_name.clone().render(true);
 

@@ -1,4 +1,4 @@
-use vertigo::{Computed, Value, dom, DomElement};
+use vertigo::{Computed, Value, dom, DomNode, dom_element};
 
 use vertigo::{Css, css};
 
@@ -60,7 +60,7 @@ impl NewName {
         }
     }
 
-    pub fn render(&self, autofocus: bool) -> DomElement {
+    pub fn render(&self, autofocus: bool) -> DomNode {
         render(self, autofocus)
     }
 
@@ -100,7 +100,7 @@ fn css_input_name() -> Css {
     ")
 }
 
-pub fn render(state: &NewName, autofocus: bool) -> DomElement {
+pub fn render(state: &NewName, autofocus: bool) -> DomNode {
     let content = state.name.to_computed();
 
     let on_input = {
@@ -111,7 +111,7 @@ pub fn render(state: &NewName, autofocus: bool) -> DomElement {
         }
     };
 
-    let input = dom! {
+    let input = dom_element! {
         <input
             css={css_input_name()}
             on_input={on_input}

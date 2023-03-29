@@ -1,5 +1,5 @@
 use common::{HandlerRenameItemBody};
-use vertigo::{Computed, Value, get_driver, bind, DomElement, transaction, bind_spawn};
+use vertigo::{Computed, Value, get_driver, bind, transaction, bind_spawn, DomNode};
 
 use crate::{app::{App, response::check_request_response}, components::ButtonState};
 
@@ -61,7 +61,7 @@ impl AppRenameitem {
         }
     }
 
-    pub fn render(&self) -> DomElement {
+    pub fn render(&self) -> DomNode {
         app_renameitem_render(self)
     }
 
@@ -106,7 +106,7 @@ impl AppRenameitem {
         check_request_response(response)
     }
 
-    pub fn button_on_back(&self) -> DomElement {
+    pub fn button_on_back(&self) -> DomNode {
         ButtonState::render({
             let app = self.app.clone();
 
@@ -115,7 +115,8 @@ impl AppRenameitem {
             })))
         })
     }
-    pub fn button_on_save(&self) -> DomElement {
+
+    pub fn button_on_save(&self) -> DomNode {
         ButtonState::render({
             let state = self.clone();
             let app = self.app.clone();

@@ -1,7 +1,7 @@
 use common::{HandlerDeleteItemBody};
 use vertigo::{
     Value,
-    bind, bind_spawn, Resource, Computed, DomElement, dom, transaction, RequestBuilder,
+    bind, bind_spawn, Resource, Computed, dom, transaction, RequestBuilder, DomNode,
 };
 use crate::{components::{AlertBox, ButtonState}, app::{response::check_request_response, App}};
 
@@ -64,7 +64,7 @@ impl AppIndexAlertDelete {
         };
     }
 
-    pub fn bind_delete_yes(&self) -> DomElement {
+    pub fn bind_delete_yes(&self) -> DomNode {
         let state = self.clone();
         let app = self.app.clone();
 
@@ -86,7 +86,7 @@ impl AppIndexAlertDelete {
         }))
     }
 
-    pub fn bind_delete_no(&self) -> DomElement {
+    pub fn bind_delete_no(&self) -> DomNode {
         let state = self.clone();
 
         ButtonState::render(Computed::from(move |_| {
@@ -106,7 +106,7 @@ impl AppIndexAlertDelete {
         }))
     }
 
-    pub fn render(&self) -> DomElement {
+    pub fn render(&self) -> DomNode {
         let message = render_message(self);
         let progress = self.progress.to_computed();
         AlertBox::new(message)
@@ -117,7 +117,7 @@ impl AppIndexAlertDelete {
     }
 }
 
-fn render_message(state: &AppIndexAlertDelete) -> DomElement {
+fn render_message(state: &AppIndexAlertDelete) -> DomNode {
     let full_path = state.full_path.clone();
     let message = format!("Czy usunąć -> {} ?", full_path.join("/"));
     dom!{

@@ -1,7 +1,7 @@
 use vertigo::{
     css, Css,
     Resource,
-    bind, DomElement, dom, Computed, DomComment
+    bind, DomElement, dom, Computed, DomNode, dom_element
 };
 use crate::data::{Data, ListItem};
 use crate::components::icon;
@@ -50,7 +50,7 @@ fn icon_wrapper_svg() -> Css {
 
 //https://css.gg/play-button
 
-fn icon_arrow_render(show: bool) -> DomElement {
+fn icon_arrow_render(show: bool) -> DomNode {
     if show {
         dom! {
             <div css={icon_arrow_wrapper()}>
@@ -75,7 +75,7 @@ fn icon_arrow_render(show: bool) -> DomElement {
     }
 }
 
-fn icon_arrow(show: Computed<bool>) -> DomComment {
+fn icon_arrow(show: Computed<bool>) -> DomNode {
     show.render_value(|show| {
         icon_arrow_render(show)
     })
@@ -101,7 +101,7 @@ fn label_css(prirority: u8) -> Css {
     ")
 }
 
-pub fn item_dot_html(on_click: impl Fn() + 'static) -> DomElement {
+pub fn item_dot_html(on_click: impl Fn() + 'static) -> DomNode {
     dom!{
         <div
             on_click={on_click}
@@ -153,7 +153,7 @@ pub fn item_default(data: &Data, item: &ListItem, on_click: impl Fn() + 'static)
         }
     });
 
-    dom!{
+    dom_element!{
         <div
             on_click={on_click}
             css={css_wrapper}
@@ -210,7 +210,7 @@ fn css_image() -> Css {
     ")
 }
 
-fn item_image_render(data: &Data, item: &ListItem, ext: &String) -> DomElement {
+fn item_image_render(data: &Data, item: &ListItem, ext: &String) -> DomNode {
     let data = data.clone();
     let item = item.clone();
 
@@ -230,7 +230,7 @@ fn item_image_render(data: &Data, item: &ListItem, ext: &String) -> DomElement {
     }
 }
 
-pub fn list_items_from_vec(data: &Data, list: Computed<Vec<ListItem>>, mouse_over_enable: bool) -> DomComment {
+pub fn list_items_from_vec(data: &Data, list: Computed<Vec<ListItem>>, mouse_over_enable: bool) -> DomNode {
     let list_sorted = Computed::from({
         move |context| {
             let list = list.get(context);
@@ -261,18 +261,18 @@ pub fn list_items_from_vec(data: &Data, list: Computed<Vec<ListItem>>, mouse_ove
             move |(picture, item)| {
 
                 if mouse_over_enable {
-                    item_default_render(&data, item, mouse_over_enable)
+                    item_default_render(&data, item, mouse_over_enable).into()
                 } else if let Some(ext) = picture {
                     item_image_render(&data, item, ext)
                 } else {
-                    item_default_render(&data, item, mouse_over_enable)
+                    item_default_render(&data, item, mouse_over_enable).into()
                 }
             }
         }
     )
 }
 
-pub fn list_items_from_dir(data: &Data, dir: &Computed<Vec<String>>, mouse_over_enable: bool) -> DomComment {
+pub fn list_items_from_dir(data: &Data, dir: &Computed<Vec<String>>, mouse_over_enable: bool) -> DomNode {
     let list = Computed::from({
         let data = data.clone();
         let dir = dir.clone();

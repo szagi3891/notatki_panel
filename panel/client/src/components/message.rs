@@ -1,4 +1,4 @@
-use vertigo::{css, Css, DomElement, dom};
+use vertigo::{css, Css, DomNode, dom};
 
 #[derive(Clone, PartialEq, Eq)]
 pub enum MessageBoxType {
@@ -44,7 +44,7 @@ fn css_error_close() -> Css {
     "}
 }
 
-pub fn message_box(message_type: MessageBoxType, message: impl Into<String>, on_close: impl Fn() + 'static) -> DomElement {
+pub fn message_box(message_type: MessageBoxType, message: impl Into<String>, on_close: impl Fn() + 'static) -> DomNode {
     let message: String = message.into();
 
     dom! {

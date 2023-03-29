@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use vertigo::{Resource, get_driver, transaction, dom, bind, DomElement, DomComment};
+use vertigo::{Resource, get_driver, transaction, dom, bind, DomNode};
 use vertigo::Value;
 use crate::components::{message_box, MessageBoxType, stict_to_top};
 use crate::data::Data;
@@ -236,7 +236,7 @@ impl App {
         false
     }
 
-    pub fn render(&self) -> DomElement {
+    pub fn render(&self) -> DomNode {
         let view = render_view(self);
         let errors = render_errors(self);
 
@@ -270,12 +270,12 @@ impl App {
 }
 
 
-fn render_view(state: &App) -> DomElement {
+fn render_view(state: &App) -> DomNode {
     let app = app_render(state);
     state.data.tab.open_links.render(app)
 }
 
-fn render_error_one(state: &App, error: Error) -> DomElement {
+fn render_error_one(state: &App, error: Error) -> DomNode {
     let Error { id, info, message } = error;
     let state = state.clone();
 
@@ -286,7 +286,7 @@ fn render_error_one(state: &App, error: Error) -> DomElement {
     message_box(info, message, on_remove)
 }
 
-fn render_errors(state: &App) -> DomElement {
+fn render_errors(state: &App) -> DomNode {
     let errors_view = state.errors.render_list(|error| error.id, {
         let state = state.clone();
         move |error| {
@@ -302,7 +302,7 @@ fn render_errors(state: &App) -> DomElement {
 }
 
 
-fn app_render(app: &App) -> DomComment {
+fn app_render(app: &App) -> DomNode {
     app.view.render_value({
         let app = app.clone();
         move |view| {

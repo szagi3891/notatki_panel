@@ -1,5 +1,5 @@
 use common::HandlerMoveItemBody;
-use vertigo::{Value, Resource, Computed, bind, css, Css, dom, transaction, Context, DomElement, DomComment, bind_spawn, RequestBuilder};
+use vertigo::{Value, Resource, Computed, bind, css, Css, dom, transaction, Context, bind_spawn, RequestBuilder, DomNode, dom_element};
 
 use crate::{components::{AlertBox, item_default, item_dot_html, ButtonState, render_path}, data::ListItem, app::{response::check_request_response, App}};
 
@@ -72,12 +72,12 @@ impl AppIndexAlertMoveitem {
         check_request_response(response)
     }
 
-    pub fn render(&self) -> DomElement {
+    pub fn render(&self) -> DomNode {
         render(self)
     }
 }
 
-fn render_target(state: &AppIndexAlertMoveitem) -> DomElement {
+fn render_target(state: &AppIndexAlertMoveitem) -> DomNode {
     fn css_wrapper() -> Css {
         css!("
             margin-top: 5px;
@@ -98,7 +98,7 @@ fn render_target(state: &AppIndexAlertMoveitem) -> DomElement {
     }
 }
 
-fn render_back(state: &AppIndexAlertMoveitem) -> DomComment {
+fn render_back(state: &AppIndexAlertMoveitem) -> DomNode {
     let state = state.clone();
     let target_is_empty = state.target.to_computed().map(|target| {
         target.is_empty()
@@ -122,7 +122,7 @@ fn render_back(state: &AppIndexAlertMoveitem) -> DomComment {
     })
 }
 
-fn render_list(state: &AppIndexAlertMoveitem) -> DomComment {
+fn render_list(state: &AppIndexAlertMoveitem) -> DomNode {
     fn css_list() -> Css {
         css!("
             max-height: 70vh;
@@ -164,7 +164,7 @@ fn render_list(state: &AppIndexAlertMoveitem) -> DomComment {
                     let target_view = render_target(&state);
                     let back_view = render_back(&state);
                 
-                    let out = dom! {
+                    let out = dom_element! {
                         <div css={css_list()}>
                             { target_view }
                             { back_view }
@@ -183,7 +183,7 @@ fn render_list(state: &AppIndexAlertMoveitem) -> DomComment {
                         out.add_child(item_default(&data, &item, on_click));
                     }
 
-                    out
+                    out.into()
                 },
                 Resource::Error(error) => {
                     let message = format!("error = {error}");
@@ -206,7 +206,7 @@ fn render_list(state: &AppIndexAlertMoveitem) -> DomComment {
     })
 }
 
-fn render_button_yes(state: &AppIndexAlertMoveitem) -> DomElement {
+fn render_button_yes(state: &AppIndexAlertMoveitem) -> DomNode {
     let state = state.clone();
 
     ButtonState::render(Computed::from(move |context| {
@@ -255,7 +255,7 @@ fn render_button_yes(state: &AppIndexAlertMoveitem) -> DomElement {
     }))
 }
 
-fn render_button_no(state: &AppIndexAlertMoveitem) -> DomElement {
+fn render_button_no(state: &AppIndexAlertMoveitem) -> DomNode {
     let state = state.clone();
 
     ButtonState::render(Computed::from(move |_| {
@@ -272,7 +272,7 @@ fn render_button_no(state: &AppIndexAlertMoveitem) -> DomElement {
     }))
 }
 
-fn render_message(state: &AppIndexAlertMoveitem) -> DomElement {
+fn render_message(state: &AppIndexAlertMoveitem) -> DomNode {
     let message = format!("Przenoszenie -> {} ?", state.path.join("/"));
 
     dom! {
@@ -282,7 +282,7 @@ fn render_message(state: &AppIndexAlertMoveitem) -> DomElement {
     }
 }
 
-fn render(state: &AppIndexAlertMoveitem) -> DomElement {
+fn render(state: &AppIndexAlertMoveitem) -> DomNode {
     let content = render_list(state);
     let button_yes = render_button_yes(state);
     let button_no = render_button_no(state);

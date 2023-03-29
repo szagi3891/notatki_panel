@@ -12,7 +12,7 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 log = "0.4.14"
 
-vertigo = { git="https://github.com/vertigo-web/vertigo", branch="dom_fragment" }
+vertigo = { git="https://github.com/vertigo-web/vertigo", branch="render_list" }
 # vertigo = { path = "../../../vertigo/crates/vertigo" }
 
 # TODO - pozbyć się tej zaleności
