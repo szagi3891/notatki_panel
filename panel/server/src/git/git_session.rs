@@ -299,6 +299,7 @@ fn command_find_blob<'repo>(
 
 pub fn commit<'repo>(
     session: GitSession<'repo>,
+    message: String,
 ) -> Result<String, ErrorProcess> {
     let new_tree = find_tree(&session, session.root)?;
 
@@ -314,7 +315,7 @@ pub fn commit<'repo>(
         Some(update_ref.as_str()),   //"heads/master"),
         &commit.author(),
         &commit.committer(),
-        "auto save",
+        message.as_str(),
         &new_tree,
         &[&commit]
     )?;
@@ -364,9 +365,9 @@ impl<'repo> GitSession<'repo> {
         })
     }
 
-    pub async fn commit(self) -> Result<String, ErrorProcess> {
+    pub async fn commit(self, message: String) -> Result<String, ErrorProcess> {
         task::block_in_place(move || {
-            commit(self)
+            commit(self, message)
         })
     }
 

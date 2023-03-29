@@ -54,6 +54,7 @@ impl Git {
         new_content: String
     ) -> Result<String, ErrorProcess> {
         let session = self.session().await?;
+        let message = format!("save content {}", path.join("/"));
 
         let file_name = path.pop();
 
@@ -74,7 +75,7 @@ impl Git {
 
         let session = session.insert_child(&path, &file_name, new_content_id).await?;
 
-        session.commit().await
+        session.commit(message).await
     }
 
     pub async fn create_blob(&self, data: Vec<u8>) -> Result<String, ErrorProcess> {
@@ -109,7 +110,8 @@ impl Git {
 
         let session = session.insert_child(&path, &new_name, new_content_id).await?;
 
-        session.commit().await
+        let message = format!("create file {}/{}", path.join("/"), new_name);
+        session.commit(message).await
     }
 
     pub async fn create_dir(
@@ -123,7 +125,8 @@ impl Git {
 
         let session = session.insert_child(&path, &dir, empty_dir).await?;
 
-        session.commit().await
+        let message = format!("create dir {}/{}", path.join("/"), dir);
+        session.commit(message).await
     }
 
 
@@ -140,7 +143,8 @@ impl Git {
         session.should_eq(&child, &prev_hash)?;
         let session = session.insert_child(&path, &new_name, child).await?;
 
-        session.commit().await
+        let message = format!("rename {} {prev_name} -> {new_name}", path.join("/"));
+        session.commit(message).await
     }
 
     pub async fn move_item(
@@ -159,7 +163,8 @@ impl Git {
 
         let session = session.insert_child(new_path_base, new_path_last, child).await?;
         
-        let new_root_id = session.commit().await?;
+        let message = format!("move item from={} to={}", path.join("/"), new_path.join("/"));
+        let new_root_id = session.commit(message).await?;
         Ok(new_root_id)
     }
 
@@ -171,14 +176,20 @@ impl Git {
 
         let mut session = self.session().await?;
 
-        for file in files {
+        for file in files.iter() {
             let id_oid = Oid::from_str(file.blob_id.as_str())?;
             let id = GitId::new_file(id_oid);
 
             session = session.insert_child(&path, &file.name, id).await?;
         }
 
-        session.commit().await
+        let mut files_name = Vec::new();
+        for file in files {
+            files_name.push(file.name);
+        }
+
+        let message = format!("Add files to path={}, files={}", path.join("/"), files_name.join(","));
+        session.commit(message).await
     }
 
     pub async fn delete_item(
@@ -210,7 +221,8 @@ impl Git {
             }
         };
 
-        let new_root_id = session.commit().await?;
+        let commit_message = format!("delete {}", path.join("/"));
+        let new_root_id = session.commit(commit_message).await?;
         Ok(new_root_id)
     }
 }
