@@ -37,7 +37,7 @@ impl Executor {
             }
         };
 
-        if ignore_error == false {
+        if !ignore_error {
             if !output.status.success() {
                 println!("status code -> {:?}", output.status.code());
                 panic!("Niepowodzenie1 ==> {}", command_text);
@@ -50,8 +50,7 @@ impl Executor {
             }
         }
 
-        let stdout = convert_to_lines(output.stdout);
-        stdout
+        convert_to_lines(output.stdout)
     }
 
     async fn exec_command(&self, command: &mut Command) -> Vec<String> {
