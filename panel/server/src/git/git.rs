@@ -56,7 +56,7 @@ impl Git {
         new_content: String
     ) -> Result<String, ErrorProcess> {
         let session = self.session().await?;
-        let message = format!("save content {}", path.join("/"));
+        let message = format!("save {}", path.join("/"));
 
         let file_name = path.pop();
 
