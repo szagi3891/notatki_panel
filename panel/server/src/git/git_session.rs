@@ -1,6 +1,8 @@
+use std::sync::Arc;
+
 use git2::{BranchType, ObjectType, Oid, Repository, Tree, TreeBuilder, TreeEntry, Signature};
 use crate::utils::ErrorProcess;
-use tokio::sync::{MutexGuard};
+use tokio::sync::{MutexGuard, Notify};
 use crate::models::GitTreeItem;
 use tokio::task;
 
@@ -326,6 +328,8 @@ pub fn commit<'repo>(
         &[&commit]
     )?;
 
+    session.notify.notify_one();
+
     session.repo.checkout_head(Some(git2::build::CheckoutBuilder::default().force()))?;
     Ok(session.root.to_string())
 }
@@ -350,13 +354,18 @@ fn convert_to_name(item: &TreeEntry) -> Result<String, ErrorProcess> {
 }
 
 pub struct GitSession<'repo> {
+    notify: Arc<Notify>,
     root: Oid,
     branch_name: String,
     repo: MutexGuard<'repo, Repository>,
 }
 
 impl<'repo> GitSession<'repo> {
-    pub fn new(repo: MutexGuard<'repo, Repository>, branch_name: &str) -> Result<GitSession<'repo>, ErrorProcess> {
+    pub fn new(
+        notify: Arc<Notify>,
+        repo: MutexGuard<'repo, Repository>,
+        branch_name: &str
+    ) -> Result<GitSession<'repo>, ErrorProcess> {
         let id = {
             let branch = (*repo).find_branch(branch_name, BranchType::Local)?;
             let reference = branch.get();
@@ -365,6 +374,7 @@ impl<'repo> GitSession<'repo> {
         };
 
         Ok(GitSession {
+            notify,
             root: id,
             branch_name: branch_name.into(),
             repo

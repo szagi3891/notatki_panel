@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use git2::{Repository, Oid};
 use crate::{utils::ErrorProcess, models::HandlerAddFilesFile};
-use tokio::sync::{Mutex};
+use tokio::sync::{Mutex, Notify};
 use super::git_session::{GitSession, GitId};
 use crate::git::GitBlob;
 
@@ -15,12 +15,13 @@ fn split_last(path: &[String]) -> Result<(&[String], &String), ErrorProcess> {
 
 #[derive(Clone)]
 pub struct Git {
+    notify: Arc<Notify>,
     branch_name: String,
     repo: Arc<Mutex<Repository>>,
 }
 
 impl Git {
-    pub fn new(path: String, branch_name: String) -> Result<Git, ErrorProcess> {
+    pub fn new(notify: Arc<Notify>, path: String, branch_name: String) -> Result<Git, ErrorProcess> {
         let repository = match Repository::open(&path) {
             Ok(repo) => repo,
             Err(e) => {
@@ -29,6 +30,7 @@ impl Git {
         };
 
         Ok(Git {
+            notify,
             branch_name,
             repo: Arc::new(Mutex::new(repository))
         })
@@ -37,7 +39,7 @@ impl Git {
     async fn session<'repo>(&'repo self) -> Result<GitSession<'repo>, ErrorProcess> {
         let mutex_guard = self.repo.lock().await;
 
-        GitSession::new(mutex_guard, self.branch_name.as_str())
+        GitSession::new(self.notify.clone(), mutex_guard, self.branch_name.as_str())
     }
 
     pub async fn main_commit(
