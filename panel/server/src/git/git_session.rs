@@ -1,4 +1,4 @@
-use git2::{BranchType, ObjectType, Oid, Repository, Tree, TreeBuilder, TreeEntry};
+use git2::{BranchType, ObjectType, Oid, Repository, Tree, TreeBuilder, TreeEntry, Signature};
 use crate::utils::ErrorProcess;
 use tokio::sync::{MutexGuard};
 use crate::models::GitTreeItem;
@@ -311,10 +311,16 @@ pub fn commit<'repo>(
     let update_ref = format!("refs/heads/{}", session.branch_name);
     //HEAD
 
+    let signatire = Signature::now(
+        commit.author().name().unwrap(),
+        commit.author().email().unwrap()
+    )?;
+
     session.repo.commit(
         Some(update_ref.as_str()),   //"heads/master"),
-        &commit.author(),
-        &commit.committer(),
+        &signatire,
+        &signatire,
+        // &commit.committer(),
         message.as_str(),
         &new_tree,
         &[&commit]
