@@ -161,11 +161,38 @@ pub struct ListItem {
     pub id: Computed<String>,     //hash tego elementu
 }
 
+/*
+    TODO
+
+    dorobic metodę, pobierz wszystie dzieci ...
+
+    dorobic metodę, pobierz wszystkie dzieci które są TODOsami
+
+    jesli to katalog, to transformacja do todosowego wpisu ma sie dziać z uwzględnieniem nazwy, w przypadku katalogu, dopisywana jest ilość dzieci todosowych
+
+
+    aktualny wskaźnik, z wybranym drzewem do wyswietlenia, to moze być struktura ListItem
+    a moze podswietlony element naliscie, to ten ListItem moze byc ... do zastanowienia
+
+
+    To się moze udać, bo ListItem zawiera base_dir oraz name
+
+
+
+    router zawiera dwie zmienne, dir oraz item (stanowia ścieke wybranego elementu)
+
+    //wyliczać ListItem odpowiednie bazowe (katalog)
+    //wyliczać ListItem aktualnie wyswietlane w podglądzie po prawej stronie
+
+    mając strukturę ListItem, powinno się dać łatwo nawigować i rysować kolejne dane w głąb
+*/
+
 impl ListItem {
     pub fn new(content: Content, dir: Dir, base_dir: Rc<Vec<String>>, name: String, is_dir: bool, id: String) -> Self {
         Self {
             content,
             dir,
+
             base_dir,
             name,
             is_dir,
