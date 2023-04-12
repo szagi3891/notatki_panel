@@ -5,6 +5,8 @@ use vertigo::{
 };
 use vertigo::{css};
 
+use crate::data::ListItem;
+
 
 fn icon_dir_css() -> Css {
     css!("
@@ -54,11 +56,13 @@ pub fn icon_file() -> DomNode {
     }
 }
 
-pub fn icon_render(dir: bool) -> DomNode {
-    if dir {
-        icon_dir()
-    } else {
-        icon_file()
-    }
+pub fn icon_render(item: &ListItem) -> DomNode {
+    item.is_dir.render_value(|is_dir| {
+        if is_dir {
+            icon_dir()
+        } else {
+            icon_file()
+        }
+    })
 }
 

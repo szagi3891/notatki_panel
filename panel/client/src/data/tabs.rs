@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use vertigo::{Resource, Computed, Context, transaction, Value, bind};
 use super::{
     git::{Git, ListItem},
@@ -20,7 +22,7 @@ fn create_list(todo_only: Value<bool>, list: &Computed<Resource<ViewDirList>>) -
             Resource::Ready(current_view) => {
                 let todo_only = todo_only.get(context);
 
-                let list = current_view.get_list();
+                let list = current_view.get_list(context);
 
                 list
             },
@@ -193,6 +195,24 @@ impl TabPath {
 
             self.router.set_only_item(None);
         });
+    }
+
+    pub fn build_redirect_to_item(&self, item: ListItem) -> Computed<Rc<dyn Fn()>> {
+        let self_clone = self;
+
+        Computed::from(bind!(item, self_clone, |context| -> Rc<dyn Fn()> {
+            if item.is_dir.get(context) {
+                Rc::new(move || {
+                    let mut path = item.get_base_dir();
+                    path.push(item.name);
+                    self_clone.router.set(path, None);
+                })
+            } else {
+                Rc::new(move || {
+                    self_clone.router.set(item.get_base_dir(), Some(item.name));
+                })
+            }
+        }))
     }
 
     pub fn redirect_to_item(&self, item: ListItem) {

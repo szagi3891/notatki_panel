@@ -78,7 +78,7 @@ impl ViewDirList {
         }
     }
 
-    pub fn get_list(&self) -> Vec<ListItem> {
+    pub fn get_list(&self, context: &Context) -> Vec<ListItem> {
         let mut list_out: Vec<ListItem> = Vec::new();
 
         for (name, item) in self.list.as_ref() {
@@ -92,8 +92,8 @@ impl ViewDirList {
         }
 
         list_out.sort_by(|a: &ListItem, b: &ListItem| -> Ordering {
-            let a_prirority = a.prirority_for_sort();
-            let b_prirority = b.prirority_for_sort();
+            let a_prirority = a.prirority_for_sort(context);
+            let b_prirority = b.prirority_for_sort(context);
 
             if a_prirority > b_prirority {
                 return Ordering::Less;
@@ -151,7 +151,11 @@ pub struct ListItem {
     //zmienne adresujące treść, one są stałę
     pub base_dir: Rc<Vec<String>>,
     pub name: String,
-    pub is_dir: bool,
+
+    pub full_path: Rc<Vec<String>>,
+
+    //TODO - zamienić na computed, ta wartość moze sie zmienic
+    pub is_dir: Computed<bool>,
     
     //TODO - zamienić na computed, ta wartość moze sie zmienic
     pub id: Computed<String>,     //hash tego elementu
@@ -185,12 +189,20 @@ pub struct ListItem {
 
 impl ListItem {
     pub fn new(git: Git, base_dir: Rc<Vec<String>>, name: String, is_dir: bool, id: String) -> Self {
+
+        let mut full_path = base_dir.as_ref().clone();
+        full_path.push(name);
+
         Self {
             git,
 
             base_dir,
             name,
-            is_dir,
+
+            full_path: Rc::new(full_path),
+
+            //TODO - zorbić aby ten computed się wyliczał
+            is_dir: Value::new(is_dir).to_computed(),
 
             //TODO - zorbić aby ten computed się wyliczał
             id: Value::new(id).to_computed(),
@@ -221,11 +233,7 @@ impl Ord for ListItem {
             return result;
         }
 
-        if let Some(result) = ordering_result(self.name.cmp(&other.name)) {
-            return result;
-        }
-
-        self.is_dir.cmp(&other.is_dir)
+        self.name.cmp(&other.name)
     }
 }
 
@@ -252,14 +260,10 @@ impl ListItem {
         get_list_item_prirority(&self.name)
     }
 
-    pub fn full_path(&self) -> Vec<String> {
-        let mut result = self.base_dir.as_ref().clone();
-        result.push(self.name.clone());
-        result
-    }
-
     pub fn get_content_type(&self, context: &Context) -> Resource<ContentType> {
-        if self.is_dir {
+        let is_dir = self.is_dir.get(context);
+
+        if is_dir {
             let id = self.id.get(context);
 
             let list = self.git.get_list(context, &id)?;
@@ -328,24 +332,24 @@ impl ListItem {
     }
 
     pub fn to_string(&self) -> String {
-        self.full_path().join("/")
+        self.full_path.join("/")
     }
 
     pub fn get_base_dir(&self) -> Vec<String> {
         (*(self.base_dir)).clone()
     }
 
-    fn prirority_for_sort(&self) -> u8 {
+    fn prirority_for_sort(&self, context: &Context) -> u8 {
         let mut prirority = 2 * get_list_item_prirority(&self.name);
-        if self.is_dir {
+        if self.is_dir.get(context) {
             prirority += 1;
         }
 
         prirority
     }
 
-    pub fn get_id(&self) -> (String, bool) {
-        (self.name.clone(), self.is_dir)
+    pub fn get_id(&self) -> Rc<Vec<String>> {
+        self.full_path.clone()
     }
 }
 

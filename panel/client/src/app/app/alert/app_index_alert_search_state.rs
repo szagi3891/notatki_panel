@@ -49,15 +49,15 @@ fn push_list<F: Fn(&String) -> bool>(
 ) -> Resource<()> {
     let list = data_state.git.dir_list(context, base.as_slice())?;
 
-    for item in list.get_list() {
+    for item in list.get_list(context) {
         if test_name(&item.name) {
             result.push(item);
         }
     }
 
-    for item in list.get_list() {
-        if item.is_dir {
-            push_list(context, data_state, result, &item.full_path(), test_name)?;
+    for item in list.get_list(context) {
+        if item.is_dir.get(context) {
+            push_list(context, data_state, result, &item.full_path, test_name)?;
         }
     }
 
@@ -139,7 +139,7 @@ fn render_results(search: &AppIndexAlertSearch) -> DomNode {
                 search.alert.data.tab.redirect_to_item(item.clone());
             });
 
-            let icon_el = icon::icon_render(item.is_dir);
+            let icon_el = icon::icon_render(item);
             let path = item.to_string();
 
             dom! {
