@@ -5,8 +5,8 @@ mod node_content;
 mod root;
 mod models;
 
-pub use node_dir::Dir;
-pub use node_content::Content;
+use node_dir::Dir;
+use node_content::Content;
 pub use root::Root;
 
 pub use models::{
@@ -51,8 +51,8 @@ pub struct ContentView {
 
 #[derive(Clone, PartialEq)]
 pub struct Git {
-    pub dir: Dir,
-    pub content: Content,
+    dir: Dir,
+    content: Content,
     pub root: Root
 }
 
@@ -79,7 +79,7 @@ impl Git {
         }
 
         let base_dir = Rc::new(Vec::from(path));
-        Resource::Ready(ViewDirList::new(&self.dir, &self.content, base_dir, result))
+        Resource::Ready(ViewDirList::new(self, base_dir, result))
     }
 
     fn node_content(&self, context: &Context, base_dir: &[String], current_item: &String) -> Resource<ListItem> {
@@ -91,8 +91,7 @@ impl Git {
 
             if current_value.dir {
                 let dir = ListItem::new(
-                    self.content.clone(),
-                    self.dir.clone(),
+                    self.clone(),
                     base_dir,
                     current_item.clone(),
                     true,
@@ -101,8 +100,7 @@ impl Git {
                 Resource::Ready(dir)
             } else {
                 let file = ListItem::new(
-                    self.content.clone(),
-                    self.dir.clone(),
+                    self.clone(),
                     base_dir,
                     current_item.clone(),
                     false,
@@ -128,8 +126,7 @@ impl Git {
                 let id = self.root.get_current_root(context)?;
 
                 let dir = ListItem::new(
-                    self.content.clone(),
-                    self.dir.clone(),
+                    self.clone(),
                     Rc::new(Vec::new()),
                     "root".into(),
                     true,
@@ -161,6 +158,14 @@ impl Git {
         }
 
         None
+    }
+
+    pub fn get_list(&self, context: &Context, id: &String) -> Resource<GitDirList> {
+        self.dir.get_list(context, id)
+    }
+
+    pub fn get_content_string(&self, context: &Context, id: &String) -> Resource<Rc<String>> {
+        self.content.get(context, id)
     }
 }
 

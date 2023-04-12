@@ -3,7 +3,7 @@ use std::cmp::Ordering;
 
 use vertigo::{Resource, Context, Computed, Value};
 
-use super::{Content, Dir};
+use super::{Git};
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct TreeItem {
@@ -58,8 +58,7 @@ fn extract() {
 
 #[derive(Clone)]
 pub struct ViewDirList {
-    dir: Dir,
-    content: Content,
+    git: Git,
     dir_path: Rc<Vec<String>>,
     list: Rc<HashMap<String, TreeItem>>,
 }
@@ -71,10 +70,9 @@ impl PartialEq for ViewDirList {
 }
 
 impl ViewDirList {
-    pub fn new(dir: &Dir, content: &Content, base_dir: Rc<Vec<String>>, list: GitDirList) -> ViewDirList {
+    pub fn new(git: &Git, base_dir: Rc<Vec<String>>, list: GitDirList) -> ViewDirList {
         ViewDirList {
-            dir: dir.clone(),
-            content: content.clone(),
+            git: git.clone(),
             dir_path: base_dir,
             list: list.list,
         }
@@ -85,8 +83,7 @@ impl ViewDirList {
 
         for (name, item) in self.list.as_ref() {
             list_out.push(ListItem::new(
-                self.content.clone(),
-                self.dir.clone(),
+                self.git.clone(),
                 self.dir_path.clone(),
                 name.clone(),
                 item.dir,
@@ -149,8 +146,7 @@ fn ordering_result(ordering: Ordering) -> Option<Ordering> {
 
 #[derive(Clone)]
 pub struct ListItem {
-    content: Content,                   //TODO - scalić te dwa store
-    dir: Dir,                           //TODO - scalić te dwa store
+    git: Git,
 
     //zmienne adresujące treść, one są stałę
     pub base_dir: Rc<Vec<String>>,
@@ -188,10 +184,9 @@ pub struct ListItem {
 */
 
 impl ListItem {
-    pub fn new(content: Content, dir: Dir, base_dir: Rc<Vec<String>>, name: String, is_dir: bool, id: String) -> Self {
+    pub fn new(git: Git, base_dir: Rc<Vec<String>>, name: String, is_dir: bool, id: String) -> Self {
         Self {
-            content,
-            dir,
+            git,
 
             base_dir,
             name,
@@ -215,7 +210,7 @@ impl Eq for ListItem {}
 
 impl PartialOrd for ListItem {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(&other))
+        Some(self.cmp(other))
     }
 }
 
@@ -267,14 +262,13 @@ impl ListItem {
         if self.is_dir {
             let id = self.id.get(context);
 
-            let list = self.dir.get_list(context, &id)?;
+            let list = self.git.get_list(context, &id)?;
 
             let mut full_path = self.base_dir.as_ref().clone();
             full_path.push(self.name.clone());
 
             let dir_list = ViewDirList::new(
-                &self.dir,
-                &self.content,
+                &self.git,
                 Rc::new(full_path),
                 list,
             );
@@ -316,7 +310,7 @@ impl ListItem {
 
         let content = match file_type {
             FileType::Txt => {
-                let content = self.content.get(context, &id)?;
+                let content = self.git.get_content_string(context, &id)?;
                 ContentType::Text { content }
             },
             FileType::Image { ext } => {
@@ -325,7 +319,7 @@ impl ListItem {
                 ContentType::Image { url: Rc::new(url) }
             }
             FileType::Unknown => {
-                let content = self.content.get(context, &id)?;
+                let content = self.git.get_content_string(context, &id)?;
                 ContentType::Text { content }
             }
         };
