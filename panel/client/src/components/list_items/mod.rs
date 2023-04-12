@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use vertigo::{
     css, Css,
     Resource,
@@ -108,7 +110,7 @@ pub fn item_dot_html(on_click: impl Fn() + 'static) -> DomNode {
             css={css_normal(false, false)}
         >
             {icon_arrow_render(false)}
-            {icon::icon_render(true)}
+            {icon::icon_dir()}
             <span css={label_css(1)}>
                 ".."
             </span>
@@ -116,7 +118,7 @@ pub fn item_dot_html(on_click: impl Fn() + 'static) -> DomNode {
     }
 }
 
-pub fn item_default(data: &Data, item: &ListItem, on_click: impl Fn() + 'static) -> DomElement {
+pub fn item_default(data: &Data, item: &ListItem, on_click: Computed<Rc<dyn Fn() + 'static>>) -> DomElement {
     let css_wrapper = Computed::from({
         let data = data.clone();
         let item = item.clone();
@@ -159,7 +161,7 @@ pub fn item_default(data: &Data, item: &ListItem, on_click: impl Fn() + 'static)
             css={css_wrapper}
         >
             {icon_arrow(is_select)}
-            {icon::icon_render(item.is_dir)}
+            {icon::icon_render(item)}
             <span css={label_css(item.prirority())}>
                 {remove_prefix(&item.name)}
             </span>
@@ -174,9 +176,10 @@ pub fn item_default_render(data: &Data, item: &ListItem, mouse_over_enable: bool
 
     let tab = &data.tab;
 
-    let on_click = bind!(tab, item, || {
-        tab.redirect_to_item(item.clone());
-    });
+    let on_click = tab.build_redirect_to_item(item);
+    // let on_click = bind!(tab, item, || {
+    //     tab.redirect_to_item(item.clone());
+    // });
 
     let element = item_default(&data, &item, on_click);
 
@@ -220,9 +223,7 @@ fn item_image_render(data: &Data, item: &ListItem, ext: &String) -> DomNode {
     }));
 
     let tab = &data.tab;
-    let on_click = bind!(item, tab, || {
-        tab.redirect_to_item(item.clone());
-    });
+    let on_click = tab.build_redirect_to_item(item);
 
     dom!{
         <img
@@ -284,7 +285,7 @@ pub fn list_items_from_dir(data: &Data, dir: &Computed<Vec<String>>, mouse_over_
             let current = data.git.dir_list(context, &dir);
 
             match current {
-                Resource::Ready(list) => list.get_list(),
+                Resource::Ready(list) => list.get_list(context),
                 _ => {
                     return Vec::new();
                 }
