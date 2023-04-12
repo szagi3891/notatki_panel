@@ -94,7 +94,7 @@ impl App {
                         self,
                         base_path.clone(),
                         select_item,
-                        list_item.id,
+                        list_item.id.get(context),
                     );
 
                     self.view.set(View::RenameItem {

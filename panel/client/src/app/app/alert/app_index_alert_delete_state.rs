@@ -73,7 +73,7 @@ impl AppIndexAlertDelete {
             let item = state.alert.data.git.content_from_path(context, &full_path);
 
             if let Resource::Ready(item) = item {
-                let id = &item.id;
+                let id = &item.id.get(context);
 
                 let action = bind_spawn!(state, app, id, async move {
                     state.delete_yes(app, id).await;

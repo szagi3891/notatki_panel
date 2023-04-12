@@ -90,24 +90,24 @@ impl Git {
             let base_dir = Rc::new(Vec::from(base_dir));
 
             if current_value.dir {
-                let dir = ListItem {
-                    dir: self.dir.clone(),
-                    content: self.content.clone(),
+                let dir = ListItem::new(
+                    self.content.clone(),
+                    self.dir.clone(),
                     base_dir,
-                    name: current_item.clone(),
-                    is_dir: true,
-                    id: current_value.id.clone()
-                };
+                    current_item.clone(),
+                    true,
+                    current_value.id.clone()
+                );
                 Resource::Ready(dir)
             } else {
-                let file = ListItem {
-                    dir: self.dir.clone(),
-                    content: self.content.clone(),
+                let file = ListItem::new(
+                    self.content.clone(),
+                    self.dir.clone(),
                     base_dir,
-                    name: current_item.clone(),
-                    is_dir: false,
-                    id: current_value.id.clone()
-                };
+                    current_item.clone(),
+                    false,
+                    current_value.id.clone()
+                );
 
                 Resource::Ready(file)
             }
@@ -127,14 +127,14 @@ impl Git {
 
                 let id = self.root.get_current_root(context)?;
 
-                let dir = ListItem {
-                    dir: self.dir.clone(),
-                    content: self.content.clone(),
-                    base_dir: Rc::new(Vec::new()),
-                    name: "root".into(),
-                    is_dir: true,
+                let dir = ListItem::new(
+                    self.content.clone(),
+                    self.dir.clone(),
+                    Rc::new(Vec::new()),
+                    "root".into(),
+                    true,
                     id
-                };
+                );
 
                 return Resource::Ready(dir);
             }
@@ -151,8 +151,10 @@ impl Git {
 
             if let Resource::Ready(ContentType::Text { content }) = content_type {
                 // return Some(content.as_ref().clone());
+                let id = item.id.get(context);
+
                 return Some(ContentView {
-                    id: item.id,
+                    id,
                     content,
                 })
             }

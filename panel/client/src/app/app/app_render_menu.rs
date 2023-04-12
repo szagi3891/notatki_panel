@@ -128,7 +128,7 @@ fn render_button_move_item(state: &MenuComponent) -> DomNode {
         let current_content = app.data.git.content_from_path(context, &current_path);
 
         if let Resource::Ready(current_content) = current_content {
-            let hash = current_content.id;
+            let hash = current_content.id.get(context);
 
             let on_click = bind!(app, current_path, hash, || {
                 app.alert.move_current(&app, &current_path, &hash);

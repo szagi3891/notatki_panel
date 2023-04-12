@@ -1,4 +1,4 @@
-use vertigo::{Resource, Computed, Context, transaction};
+use vertigo::{Resource, Computed, Context, transaction, Value};
 use super::{
     git::{Git, ListItem},
     open_links::OpenLinks,
@@ -19,13 +19,17 @@ fn create_list_hash_map(git: &Git, router: &Router) -> Computed<Resource<ViewDir
 }
 
 
-fn create_list(list: &Computed<Resource<ViewDirList>>) -> Computed<Vec<ListItem>> {
+fn create_list(todo_only: Value<bool>, list: &Computed<Resource<ViewDirList>>) -> Computed<Vec<ListItem>> {
     let list = list.clone();
 
     Computed::from(move |context| -> Vec<ListItem> {
         match list.get(context) {
             Resource::Ready(current_view) => {
-                current_view.get_list()
+                let todo_only = todo_only.get(context);
+
+                let list = current_view.get_list();
+
+                list
             },
             Resource::Loading => {
                 log::info!("Create list --> Loading");
@@ -111,6 +115,8 @@ pub struct TabPath {
 
     pub router: Router,
 
+    pub todo_only: Value<bool>,
+
     /// Aktualnie wyliczona lista, która jest prezentowana w lewej kolumnie menu
     pub list: Computed<Vec<ListItem>>,
 
@@ -133,8 +139,10 @@ impl TabPath {
     pub fn new(git: &Git) -> TabPath {
         let router = Router::new();
 
+        let todo_only = Value::new(false);
+
         let dir_hash_map = create_list_hash_map(git, &router);
-        let list = create_list(&dir_hash_map);
+        let list = create_list(todo_only.clone(), &dir_hash_map);
 
 
         let current_item = create_current_item_view(&router, &list);
@@ -151,7 +159,13 @@ impl TabPath {
 
         let open_links = OpenLinks::new();
 
+        //TODO - dodać opcję todo
+        //list filtrowane w zalenosci od todo_only
+        //kazdy z katalogow dociagal bedzie dodatkowa informacje o ilosci elementów w środku które posiadają todosu
+        //przycisk w menu, będzie reagował na flagę todo_only
+
         TabPath {
+            todo_only,
             router,
             // dir_select: dir_select.clone(),
             // item_select,

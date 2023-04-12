@@ -1,7 +1,7 @@
 use std::{collections::HashMap, rc::Rc};
 use std::cmp::Ordering;
 
-use vertigo::{Resource, Context};
+use vertigo::{Resource, Context, Computed, Value};
 
 use super::{Content, Dir};
 
@@ -84,14 +84,14 @@ impl ViewDirList {
         let mut list_out: Vec<ListItem> = Vec::new();
 
         for (name, item) in self.list.as_ref() {
-            list_out.push(ListItem {
-                dir: self.dir.clone(),
-                content: self.content.clone(),
-                base_dir: self.dir_path.clone(),
-                name: name.clone(),
-                is_dir: item.dir,
-                id: item.id.clone(),
-            });
+            list_out.push(ListItem::new(
+                self.content.clone(),
+                self.dir.clone(),
+                self.dir_path.clone(),
+                name.clone(),
+                item.dir,
+                item.id.clone(),
+            ));
         }
 
         list_out.sort_by(|a: &ListItem, b: &ListItem| -> Ordering {
@@ -139,20 +139,48 @@ pub enum ContentType {
     }
 }
 
+fn ordering_result(ordering: Ordering) -> Option<Ordering> {
+    if ordering == Ordering::Equal {
+        None
+    } else {
+        Some(ordering)
+    }
+}
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct ListItem {
-    pub content: Content,                   //TODO - scalić te dwa store
-    pub dir: Dir,                           //TODO - scalić te dwa store
+    content: Content,                   //TODO - scalić te dwa store
+    dir: Dir,                           //TODO - scalić te dwa store
+
+    //zmienne adresujące treść, one są stałę
     pub base_dir: Rc<Vec<String>>,
     pub name: String,
     pub is_dir: bool,
-    pub id: String,     //hash tego elementu
+    
+    //TODO - zamienić na computed, ta wartość moze sie zmienic
+    pub id: Computed<String>,     //hash tego elementu
+}
+
+impl ListItem {
+    pub fn new(content: Content, dir: Dir, base_dir: Rc<Vec<String>>, name: String, is_dir: bool, id: String) -> Self {
+        Self {
+            content,
+            dir,
+            base_dir,
+            name,
+            is_dir,
+
+            //TODO - zorbić aby ten computed się wyliczał
+            id: Value::new(id).to_computed(),
+        }
+    }
+
+    
 }
 
 impl PartialEq for ListItem {
     fn eq(&self, other: &Self) -> bool {
-        self.base_dir == other.base_dir && self.name == other.name
+        self.base_dir == other.base_dir && self.name == other.name && self.is_dir == other.is_dir
     }
 }
 
@@ -160,25 +188,22 @@ impl Eq for ListItem {}
 
 impl PartialOrd for ListItem {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        let result = self.base_dir.cmp(&other.base_dir);
-
-        if result != Ordering::Equal {
-            return Some(result);
-        }
-
-        Some(self.name.cmp(&other.name))
+        Some(self.cmp(&other))
     }
 }
 
 impl Ord for ListItem {
     fn cmp(&self, other: &Self) -> Ordering {
-        let result = self.base_dir.cmp(&other.base_dir);
 
-        if result != Ordering::Equal {
+        if let Some(result) = ordering_result(self.base_dir.cmp(&other.base_dir)) {
             return result;
         }
 
-        self.name.cmp(&other.name)
+        if let Some(result) = ordering_result(self.name.cmp(&other.name)) {
+            return result;
+        }
+
+        self.is_dir.cmp(&other.is_dir)
     }
 }
 
@@ -213,7 +238,9 @@ impl ListItem {
 
     pub fn get_content_type(&self, context: &Context) -> Resource<ContentType> {
         if self.is_dir {
-            let list = self.dir.get_list(context, &self.id)?;
+            let id = self.id.get(context);
+
+            let list = self.dir.get_list(context, &id)?;
 
             let mut full_path = self.base_dir.as_ref().clone();
             full_path.push(self.name.clone());
@@ -258,18 +285,20 @@ impl ListItem {
             None => FileType::Txt,
         };
 
+        let id = self.id.get(context);
+
         let content = match file_type {
             FileType::Txt => {
-                let content = self.content.get(context, &self.id)?;
+                let content = self.content.get(context, &id)?;
                 ContentType::Text { content }
             },
             FileType::Image { ext } => {
-                let id = &self.id;
+                let id = &id;
                 let url = format!("/image/{id}/{ext}");
                 ContentType::Image { url: Rc::new(url) }
             }
             FileType::Unknown => {
-                let content = self.content.get(context, &self.id)?;
+                let content = self.content.get(context, &id)?;
                 ContentType::Text { content }
             }
         };

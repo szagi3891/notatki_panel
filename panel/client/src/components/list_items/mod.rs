@@ -214,8 +214,11 @@ fn item_image_render(data: &Data, item: &ListItem, ext: &String) -> DomNode {
     let data = data.clone();
     let item = item.clone();
 
-    let id = item.id.clone();
-    let url = format!("/image/{id}/{ext}");
+    let url = Computed::from(bind!(item, ext, |context| {
+        let id = item.id.get(context);
+        format!("/image/{id}/{ext}")
+    }));
+
     let tab = &data.tab;
     let on_click = bind!(item, tab, || {
         tab.redirect_to_item(item.clone());
