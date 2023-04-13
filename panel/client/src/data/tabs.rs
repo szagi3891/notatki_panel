@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use vertigo::{Resource, Computed, Context, transaction, Value, bind};
+use vertigo::{Resource, Computed, Context, transaction, Value, bind, bind_rc};
 use super::{
     git::{Git, ListItem},
     open_links::OpenLinks,
@@ -200,31 +200,19 @@ impl TabPath {
     pub fn build_redirect_to_item(&self, item: ListItem) -> Computed<Rc<dyn Fn() + 'static>> {
         let self_clone = self;
 
-        Computed::from(bind!(item, self_clone, |context| -> Rc<dyn Fn()> {
+        Computed::from(bind!(item, self_clone, |context| {
             if item.is_dir.get(context) {
-                Rc::new(bind!(item, self_clone, || {
+                bind_rc!(item, self_clone, || {
                     let mut path = item.get_base_dir();
                     path.push(item.name.clone());
                     self_clone.router.set(path, None);
-                }))
+                })
             } else {
-                Rc::new(bind!(self_clone, item, || {
+                bind_rc!(self_clone, item, || {
                     self_clone.router.set(item.get_base_dir(), Some(item.name.clone()));
-                }))
+                })
             }
         }))
-    }
-
-    pub fn redirect_to_item(&self, item: ListItem) {
-        // if item.is_dir {
-        //     let mut path = item.get_base_dir();
-        //     path.push(item.name);
-        //     self.router.set(path, None);
-        // } else {
-        //     self.router.set(item.get_base_dir(), Some(item.name));
-        // }
-
-        todo!()
     }
 
     pub fn redirect_to(&self, dir: Vec<String>, item: Option<String>) {
