@@ -176,10 +176,7 @@ pub fn item_default_render(data: &Data, item: &ListItem, mouse_over_enable: bool
 
     let tab = &data.tab;
 
-    let on_click = tab.build_redirect_to_item(item);
-    // let on_click = bind!(tab, item, || {
-    //     tab.redirect_to_item(item.clone());
-    // });
+    let on_click = tab.build_redirect_to_item(item.clone());
 
     let element = item_default(&data, &item, on_click);
 

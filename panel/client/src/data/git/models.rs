@@ -191,7 +191,7 @@ impl ListItem {
     pub fn new(git: Git, base_dir: Rc<Vec<String>>, name: String, is_dir: bool, id: String) -> Self {
 
         let mut full_path = base_dir.as_ref().clone();
-        full_path.push(name);
+        full_path.push(name.clone());
 
         Self {
             git,

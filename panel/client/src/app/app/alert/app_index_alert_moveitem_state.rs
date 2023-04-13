@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use common::HandlerMoveItemBody;
 use vertigo::{Value, Resource, Computed, bind, css, Css, dom, transaction, Context, bind_spawn, RequestBuilder, DomNode, dom_element};
 
@@ -172,13 +174,15 @@ fn render_list(state: &AppIndexAlertMoveitem) -> DomNode {
                     };
 
                     for item in list {
-                        let on_click = bind!(item, target, || {
-                            log::info!("kliknięto w element {name}", name = item.name);
-
-                            target.change(|inner| {
-                                inner.push(item.name.clone());    
-                            });
-                        });
+                        let on_click = Computed::from(bind!(target, item, |_| -> Rc<dyn Fn() + 'static>{
+                            Rc::new(bind!(target, item, || {
+                                log::info!("kliknięto w element {name}", name = item.name);
+    
+                                target.change(|inner| {
+                                    inner.push(item.name.clone());    
+                                });
+                            }))
+                        }));
 
                         out.add_child(item_default(&data, &item, on_click));
                     }

@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use vertigo::{Css, Resource, Computed, Value, bind, Context, dom, DomNode};
 use vertigo::{css};
 use crate::data::ListItem;
@@ -127,6 +129,14 @@ impl AppIndexAlertSearch {
     }
 }
 
+//spróbować z takim tworzeniem computed
+// Computed::from_pars(
+//     (aa, bb, cc),
+//     |(aa, bb, cc), context| {
+
+//     }
+// )
+
 
 fn render_results(search: &AppIndexAlertSearch) -> DomNode {
     let search = search.clone();
@@ -134,10 +144,21 @@ fn render_results(search: &AppIndexAlertSearch) -> DomNode {
     let list = search.results.render_list(|item| item.to_string(), {
         let search = search.clone();
         move |item| {
-            let on_click = bind!(search, item, || {
-                search.alert.close_modal();
-                search.alert.data.tab.redirect_to_item(item.clone());
-            });
+            let redirect_to_item = search.alert.data.tab.build_redirect_to_item(item.clone());
+
+            let on_click = Computed::from(bind!(search, redirect_to_item, |context| {
+                let redirect_to_item = redirect_to_item.get(context);
+
+                Rc::new(bind!(search, || {
+                    search.alert.close_modal();
+                    redirect_to_item();
+                }))
+            }));
+
+            // let on_click = bind!(search, item, || {
+            //     search.alert.close_modal();
+            //     search.alert.data.tab.redirect_to_item(item.clone());
+            // });
 
             let icon_el = icon::icon_render(item);
             let path = item.to_string();
