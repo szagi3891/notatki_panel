@@ -197,32 +197,34 @@ impl TabPath {
         });
     }
 
-    pub fn build_redirect_to_item(&self, item: ListItem) -> Computed<Rc<dyn Fn()>> {
+    pub fn build_redirect_to_item(&self, item: ListItem) -> Computed<Rc<dyn Fn() + 'static>> {
         let self_clone = self;
 
         Computed::from(bind!(item, self_clone, |context| -> Rc<dyn Fn()> {
             if item.is_dir.get(context) {
-                Rc::new(move || {
+                Rc::new(bind!(item, self_clone, || {
                     let mut path = item.get_base_dir();
-                    path.push(item.name);
+                    path.push(item.name.clone());
                     self_clone.router.set(path, None);
-                })
+                }))
             } else {
-                Rc::new(move || {
-                    self_clone.router.set(item.get_base_dir(), Some(item.name));
-                })
+                Rc::new(bind!(self_clone, item, || {
+                    self_clone.router.set(item.get_base_dir(), Some(item.name.clone()));
+                }))
             }
         }))
     }
 
     pub fn redirect_to_item(&self, item: ListItem) {
-        if item.is_dir {
-            let mut path = item.get_base_dir();
-            path.push(item.name);
-            self.router.set(path, None);
-        } else {
-            self.router.set(item.get_base_dir(), Some(item.name));
-        }
+        // if item.is_dir {
+        //     let mut path = item.get_base_dir();
+        //     path.push(item.name);
+        //     self.router.set(path, None);
+        // } else {
+        //     self.router.set(item.get_base_dir(), Some(item.name));
+        // }
+
+        todo!()
     }
 
     pub fn redirect_to(&self, dir: Vec<String>, item: Option<String>) {

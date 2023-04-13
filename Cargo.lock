@@ -1477,9 +1477,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.95"
+version = "1.0.96"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d721eca97ac802aa7777b701877c8004d950fc142651367300d21c1cc0194744"
+checksum = "057d394a50403bcac12672b2b18fb387ab6d289d957dab67dd201875391e52f1"
 dependencies = [
  "itoa",
  "ryu",
@@ -1933,7 +1933,7 @@ checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
 [[package]]
 name = "vertigo"
 version = "0.2.0"
-source = "git+https://github.com/vertigo-web/vertigo?branch=other#790a1009f2039d87190d0fb8f6044d2d67bc634c"
+source = "git+https://github.com/vertigo-web/vertigo?branch=other#690eabbe006102c6c13e638cd2af462cb9c3f656"
 dependencies = [
  "log",
  "vertigo-macro",
@@ -1942,7 +1942,7 @@ dependencies = [
 [[package]]
 name = "vertigo-macro"
 version = "0.2.0"
-source = "git+https://github.com/vertigo-web/vertigo?branch=other#790a1009f2039d87190d0fb8f6044d2d67bc634c"
+source = "git+https://github.com/vertigo-web/vertigo?branch=other#690eabbe006102c6c13e638cd2af462cb9c3f656"
 dependencies = [
  "hex",
  "itertools",
