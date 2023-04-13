@@ -1,7 +1,5 @@
-use std::rc::Rc;
-
 use common::HandlerMoveItemBody;
-use vertigo::{Value, Resource, Computed, bind, css, Css, dom, transaction, Context, bind_spawn, RequestBuilder, DomNode, dom_element};
+use vertigo::{Value, Resource, Computed, bind, css, Css, dom, transaction, Context, bind_spawn, RequestBuilder, DomNode, dom_element, bind_rc};
 
 use crate::{components::{AlertBox, item_default, item_dot_html, ButtonState, render_path}, data::ListItem, app::{response::check_request_response, App}};
 
@@ -174,14 +172,14 @@ fn render_list(state: &AppIndexAlertMoveitem) -> DomNode {
                     };
 
                     for item in list {
-                        let on_click = Computed::from(bind!(target, item, |_| -> Rc<dyn Fn() + 'static>{
-                            Rc::new(bind!(target, item, || {
+                        let on_click = Computed::from(bind!(target, item, |_| {
+                            bind_rc!(target, item, || {
                                 log::info!("kliknięto w element {name}", name = item.name);
     
                                 target.change(|inner| {
                                     inner.push(item.name.clone());    
                                 });
-                            }))
+                            })
                         }));
 
                         out.add_child(item_default(&data, &item, on_click));
