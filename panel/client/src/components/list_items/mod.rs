@@ -216,19 +216,33 @@ fn item_image_render(data: &Data, item: &ListItem, ext: &String) -> DomNode {
 
     let url = Computed::from(bind!(item, ext, |context| {
         let id = item.id.get(context);
-        format!("/image/{id}/{ext}")
+
+        match id {
+            Resource::Ready(id) => Some(format!("/image/{id}/{ext}")),
+            _ => None
+        }
     }));
 
     let tab = &data.tab;
     let on_click = tab.build_redirect_to_item(item);
 
-    dom!{
-        <img
-            css={css_image()}
-            src={url}
-            on_click={on_click}
-        />
-    }
+    url.render_value(bind!(on_click, |url| {
+        match url {
+            Some(url) => {
+                dom!{
+                    <img
+                        css={css_image()}
+                        src={url}
+                        on_click={on_click.clone()}
+                    />
+                }
+            },
+            None => {
+                dom! { <span /> }
+            }
+        }
+    }))
+
 }
 
 pub fn list_items_from_vec(data: &Data, list: Computed<Vec<ListItem>>, mouse_over_enable: bool) -> DomNode {

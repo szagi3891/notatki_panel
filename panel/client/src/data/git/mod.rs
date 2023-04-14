@@ -14,7 +14,8 @@ pub use models::{
     GitDirList,
     TreeItem,
     ViewDirList,
-    ListItem
+    ListItem,
+    ListItemType,
 };
 
 fn get_item_from_map<'a>(current_wsk: &'a GitDirList, path_item: &String) -> Resource<&'a TreeItem> {
@@ -115,6 +116,7 @@ impl Git {
         }
     }
 
+    #[deprecated]
     pub fn content_from_path(&self, context: &Context, path: &[String]) -> Resource<ListItem> {
         let mut path: Vec<String> = Vec::from(path);
         let last = path.pop();
@@ -148,7 +150,9 @@ impl Git {
 
             if let Resource::Ready(ContentType::Text { content }) = content_type {
                 // return Some(content.as_ref().clone());
-                let id = item.id.get(context);
+                let Resource::Ready(id) = item.id.get(context) else {
+                    return None;
+                };
 
                 return Some(ContentView {
                     id,

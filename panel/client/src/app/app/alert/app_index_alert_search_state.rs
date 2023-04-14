@@ -1,6 +1,6 @@
 use vertigo::{Css, Resource, Computed, Value, bind, Context, dom, DomNode, bind_rc};
 use vertigo::{css};
-use crate::data::ListItem;
+use crate::data::{ListItem, ListItemType};
 use crate::{components::AlertBox, data::{Data}};
 use crate::components::icon;
 
@@ -56,7 +56,7 @@ fn push_list<F: Fn(&String) -> bool>(
     }
 
     for item in list.get_list(context) {
-        if item.is_dir.get(context) {
+        if item.is_dir.get(context) == ListItemType::Dir {
             push_list(context, data_state, result, &item.full_path, test_name)?;
         }
     }

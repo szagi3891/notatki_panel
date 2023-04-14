@@ -7,7 +7,7 @@ mod open_links;
 mod calculate_next_path;
 
 pub use git::{GitDirList, ViewDirList, ContentType, ContentView};
-pub use git::ListItem;
+pub use git::{ListItem, ListItemType};
 pub use open_links::OpenLinks;
 pub use tabs_hash::Router;
 

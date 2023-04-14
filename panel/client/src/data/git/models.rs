@@ -1,7 +1,7 @@
 use std::{collections::HashMap, rc::Rc};
 use std::cmp::Ordering;
 
-use vertigo::{Resource, Context, Computed, Value};
+use vertigo::{Resource, Context, Computed, Value, bind};
 
 use super::{Git};
 
@@ -144,6 +144,40 @@ fn ordering_result(ordering: Ordering) -> Option<Ordering> {
     }
 }
 
+#[derive(Clone, PartialEq)]
+pub enum ListItemType {
+    Dir,
+    File,
+    Unknown,
+}
+
+/*
+    TODO - zmienić wewnętrzny stan ListItem na
+
+    pub base_dir: Rc<Vec<String>>,
+    name: Option<String>,
+
+    name na zewnątrz będzie wyliczane tak:
+
+        if None {
+            + dodanie log::error, ze odwolujemy sie do nazwy roota
+            return "root".into()
+        } else 
+            return Name
+        }
+
+
+
+        albo niech ListItem ma w środku ściezke i po sprawie
+
+            base_dir, bedzie mozna wyliczyc
+            nazwe elementu równiez
+
+
+    sprawdzić, czy do struktury da się przyczepić typ
+    ListItem::ListItemType
+ */
+
 #[derive(Clone)]
 pub struct ListItem {
     git: Git,
@@ -155,10 +189,12 @@ pub struct ListItem {
     pub full_path: Rc<Vec<String>>,
 
     //TODO - zamienić na computed, ta wartość moze sie zmienic
-    pub is_dir: Computed<bool>,
+    pub is_dir: Computed<ListItemType>,
+    //TODO - to przerobić na prywatne, dorobic nową metodę is_dir() -> bool oraz is_file()
     
     //TODO - zamienić na computed, ta wartość moze sie zmienic
-    pub id: Computed<String>,     //hash tego elementu
+    pub id: Computed<Resource<String>>,     //hash tego elementu
+        //None - oznacza ze nie zaladowano jeszcze
 }
 
 /*
@@ -193,6 +229,21 @@ impl ListItem {
         let mut full_path = base_dir.as_ref().clone();
         full_path.push(name.clone());
 
+
+
+        // let is_dir2 = Computed::from(bind!(git, base_dir, |context| -> ListItemType {
+        //     let content = git.get_content(context, &base_dir);
+            
+        //     match content 
+            
+        // }));
+
+
+        let is_dir = match is_dir {
+            false => ListItemType::File,
+            true => ListItemType::Dir,
+        };
+
         Self {
             git,
 
@@ -205,7 +256,7 @@ impl ListItem {
             is_dir: Value::new(is_dir).to_computed(),
 
             //TODO - zorbić aby ten computed się wyliczał
-            id: Value::new(id).to_computed(),
+            id: Value::new(Resource::Ready(id)).to_computed(),
         }
     }
 
@@ -214,7 +265,7 @@ impl ListItem {
 
 impl PartialEq for ListItem {
     fn eq(&self, other: &Self) -> bool {
-        self.base_dir == other.base_dir && self.name == other.name && self.is_dir == other.is_dir
+        self.base_dir == other.base_dir && self.name == other.name
     }
 }
 
@@ -263,8 +314,8 @@ impl ListItem {
     pub fn get_content_type(&self, context: &Context) -> Resource<ContentType> {
         let is_dir = self.is_dir.get(context);
 
-        if is_dir {
-            let id = self.id.get(context);
+        if is_dir == ListItemType::Dir {
+            let id = self.id.get(context)?;
 
             let list = self.git.get_list(context, &id)?;
 
@@ -310,7 +361,7 @@ impl ListItem {
             None => FileType::Txt,
         };
 
-        let id = self.id.get(context);
+        let id = self.id.get(context)?;
 
         let content = match file_type {
             FileType::Txt => {
@@ -341,7 +392,7 @@ impl ListItem {
 
     fn prirority_for_sort(&self, context: &Context) -> u8 {
         let mut prirority = 2 * get_list_item_prirority(&self.name);
-        if self.is_dir.get(context) {
+        if self.is_dir.get(context) == ListItemType::Dir {
             prirority += 1;
         }
 

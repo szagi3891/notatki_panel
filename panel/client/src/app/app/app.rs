@@ -90,16 +90,22 @@ impl App {
                 Resource::Ready(list_item) => {
                     log::info!("redirect_to_rename_item {base_path:?} {select_item:?}");
 
-                    let state = AppRenameitem::new(
-                        self,
-                        base_path.clone(),
-                        select_item,
-                        list_item.id.get(context),
-                    );
+                    let id = list_item.id.get(context);
 
-                    self.view.set(View::RenameItem {
-                        state
-                    });
+                    if let Resource::Ready(id) = id {
+                        let state = AppRenameitem::new(
+                            self,
+                            base_path.clone(),
+                            select_item,
+                            id,
+                        );
+
+                        self.view.set(View::RenameItem {
+                            state
+                        });
+                    } else {
+                        log::error!("event ignore");
+                    }
                 },
                 _ => {
                     log::error!("redirect_to_rename_item fail - {base_path:?} {select_item:?}");

@@ -4,7 +4,7 @@ use vertigo::{Resource, Computed, Context, transaction, Value, bind, bind_rc};
 use super::{
     git::{Git, ListItem},
     open_links::OpenLinks,
-    calculate_next_path::calculate_next_path, ViewDirList, ContentType, tabs_hash::Router
+    calculate_next_path::calculate_next_path, ViewDirList, ContentType, tabs_hash::Router, ListItemType
 };
 
 fn create_list_hash_map(git: &Git, router: &Router) -> Computed<Resource<ViewDirList>> {
@@ -201,16 +201,24 @@ impl TabPath {
         let self_clone = self;
 
         Computed::from(bind!(item, self_clone, |context| {
-            if item.is_dir.get(context) {
-                bind_rc!(item, self_clone, || {
-                    let mut path = item.get_base_dir();
-                    path.push(item.name.clone());
-                    self_clone.router.set(path, None);
-                })
-            } else {
-                bind_rc!(self_clone, item, || {
-                    self_clone.router.set(item.get_base_dir(), Some(item.name.clone()));
-                })
+            match item.is_dir.get(context) {
+                ListItemType::Dir => {
+                    bind_rc!(item, self_clone, || {
+                        let mut path = item.get_base_dir();
+                        path.push(item.name.clone());
+                        self_clone.router.set(path, None);
+                    })
+                },
+                ListItemType::File => {
+                    bind_rc!(self_clone, item, || {
+                        self_clone.router.set(item.get_base_dir(), Some(item.name.clone()));
+                    })
+                },
+                ListItemType::Unknown => {
+                    bind_rc!(|| {
+                        log::error!("redirect to the item, not ready");
+                    })
+                }
             }
         }))
     }

@@ -1,7 +1,7 @@
 use common::HandlerMoveItemBody;
 use vertigo::{Value, Resource, Computed, bind, css, Css, dom, transaction, Context, bind_spawn, RequestBuilder, DomNode, dom_element, bind_rc};
 
-use crate::{components::{AlertBox, item_default, item_dot_html, ButtonState, render_path}, data::ListItem, app::{response::check_request_response, App}};
+use crate::{components::{AlertBox, item_default, item_dot_html, ButtonState, render_path}, data::{ListItem, ListItemType}, app::{response::check_request_response, App}};
 
 use super::AppIndexAlert;
 
@@ -138,7 +138,7 @@ fn render_list(state: &AppIndexAlertMoveitem) -> DomNode {
         let mut out = Vec::new();
 
         for item in list {
-            if item.is_dir.get(context) {
+            if item.is_dir.get(context) == ListItemType::Dir {
                 out.push(item);
             }
         }

@@ -76,7 +76,11 @@ impl AppIndexAlertDelete {
                 let id = &item.id.get(context);
 
                 let action = bind_spawn!(state, app, id, async move {
-                    state.delete_yes(app, id).await;
+                    if let Resource::Ready(id) = id {
+                        state.delete_yes(app, id).await;
+                    } else {
+                        log::error!("ignore action");
+                    }
                 });
 
                 return ButtonState::active("Tak", action);

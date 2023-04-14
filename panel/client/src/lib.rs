@@ -11,7 +11,7 @@
 use vertigo::{main, DomNode};
 
 mod content;
-mod data;
+pub mod data;
 mod components;
 mod app;
 
