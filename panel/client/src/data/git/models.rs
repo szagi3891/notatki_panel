@@ -182,8 +182,8 @@ pub struct ListItem {
 
     //zmienne adresujące treść, one są stałę 
     //TODO - pozbyć się tych zmiennych na rzecz zmiennej full_path
-    pub base_dir: Rc<Vec<String>>,
-    pub name: String,
+    base_dir: Rc<Vec<String>>,
+    name: String,
 
     pub full_path: Rc<Vec<String>>,
 
@@ -263,7 +263,16 @@ impl ListItem {
         }
     }
 
-    
+    pub fn name(&self) -> String {
+        let mut full_path = self.full_path.as_ref().clone();
+        let name = full_path.pop();
+
+        let Some(name) = name else {
+            return "root".into();
+        };
+
+        name
+    }
 }
 
 impl PartialEq for ListItem {

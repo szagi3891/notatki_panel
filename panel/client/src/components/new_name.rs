@@ -6,7 +6,7 @@ use crate::data::ListItem;
 
 fn is_exist_in_list(name: String, list: Vec<ListItem>) -> bool {
     for item in list.into_iter() {
-        if item.name == *name {
+        if item.name() == *name {
             return true;
         }
     }

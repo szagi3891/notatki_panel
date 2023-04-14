@@ -174,10 +174,10 @@ fn render_list(state: &AppIndexAlertMoveitem) -> DomNode {
                     for item in list {
                         let on_click = Computed::from(bind!(target, item, |_| {
                             bind_rc!(target, item, || {
-                                log::info!("kliknięto w element {name}", name = item.name);
+                                log::info!("kliknięto w element {name}", name = item.name());
     
                                 target.change(|inner| {
-                                    inner.push(item.name.clone());    
+                                    inner.push(item.name());    
                                 });
                             })
                         }));
