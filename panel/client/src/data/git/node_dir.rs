@@ -35,7 +35,7 @@ impl PartialEq for NodeDir {
 }
 
 impl NodeDir {
-    pub fn new(id: &String) -> NodeDir {
+    pub fn new(_: &AutoMap<String, NodeDir>, id: &String) -> NodeDir {
         let response = RequestBuilder::post("/fetch_tree_item")
             .body_json(HandlerFetchDirBody {
                 id: id.to_string(),

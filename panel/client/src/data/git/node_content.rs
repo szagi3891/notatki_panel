@@ -8,7 +8,7 @@ pub struct NodeContent {
 }
 
 impl NodeContent {
-    pub fn new(hash: &String) -> NodeContent {
+    pub fn new(_: &AutoMap<String, NodeContent>, hash: &String) -> NodeContent {
         let response = RequestBuilder::post("/fetch_node")
             .body_json(HandlerFetchNodeBody {
                 hash: hash.clone(),

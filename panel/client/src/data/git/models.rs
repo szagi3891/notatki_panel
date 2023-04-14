@@ -220,6 +220,11 @@ pub struct ListItem {
 */
 
 impl ListItem {
+    pub fn new_full(git: Git, full_path: Rc<Vec<String>>) -> Self {
+        
+        todo!()
+    }
+
     pub fn new(git: Git, base_dir: Rc<Vec<String>>, name: String) -> Self {
 
         let mut full_path = base_dir.as_ref().clone();

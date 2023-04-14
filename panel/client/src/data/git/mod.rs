@@ -1,5 +1,5 @@
-use std::{rc::Rc};
-use vertigo::{Resource, Context};
+use std::{rc::Rc, sync::Arc};
+use vertigo::{Resource, Context, AutoMap};
 mod node_dir;
 mod node_content;
 mod root;
@@ -54,7 +54,7 @@ pub struct ContentView {
 pub struct Git {
     dir: Dir,
     content: Content,
-    pub root: Root
+    pub root: Root,
 }
 
 impl Default for Git {
