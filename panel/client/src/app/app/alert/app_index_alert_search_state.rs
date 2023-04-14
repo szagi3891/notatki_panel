@@ -50,7 +50,7 @@ fn push_list<F: Fn(&String) -> bool>(
     let list = data_state.git.dir_list(context, base.as_slice())?;
 
     for item in list.get_list(context) {
-        if test_name(&item.name()) {
+        if test_name(item.name()) {
             result.push(item);
         }
     }

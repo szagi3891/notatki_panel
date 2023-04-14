@@ -263,15 +263,16 @@ impl ListItem {
         }
     }
 
-    pub fn name(&self) -> String {
-        let mut full_path = self.full_path.as_ref().clone();
-        let name = full_path.pop();
+    pub fn name(&self) -> &String {
+        &self.name
+        // let mut full_path = self.full_path.as_ref().clone();
+        // let name = full_path.pop();
 
-        let Some(name) = name else {
-            return "root".into();
-        };
+        // let Some(name) = name else {
+        //     return "root".into();
+        // };
 
-        name
+        // name
     }
 }
 

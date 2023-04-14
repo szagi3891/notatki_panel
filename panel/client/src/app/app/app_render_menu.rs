@@ -132,7 +132,7 @@ fn render_button_move_item(state: &MenuComponent) -> DomNode {
 
             let on_click = bind!(app, current_path, hash, || {
                 if let Resource::Ready(hash) = &hash {
-                    app.alert.move_current(&app, &current_path, &hash);
+                    app.alert.move_current(&app, &current_path, hash);
                 } else {
                     log::error!("error move item");
                 }

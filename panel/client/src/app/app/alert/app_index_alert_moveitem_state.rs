@@ -177,7 +177,7 @@ fn render_list(state: &AppIndexAlertMoveitem) -> DomNode {
                                 log::info!("kliknięto w element {name}", name = item.name());
     
                                 target.change(|inner| {
-                                    inner.push(item.name());    
+                                    inner.push(item.name().clone());    
                                 });
                             })
                         }));

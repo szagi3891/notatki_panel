@@ -51,7 +51,7 @@ fn create_current_item_view(
 
         let list = list.get(context);
         if let Some(first) = list.first() {
-            return Some(first.name());
+            return Some(first.name().clone());
         }
 
         None
@@ -171,7 +171,7 @@ impl TabPath {
             fn find_index(list: &Vec<ListItem>, value: Option<String>) -> Option<usize> {
                 if let Some(value) = value {
                     for (index, item) in list.iter().enumerate() {
-                        if item.name() == *value {
+                        if item.name() == &value {
                             return Some(index);
                         }
                     }
@@ -182,13 +182,13 @@ impl TabPath {
             if let Some(current_index) = find_index(list.as_ref(), current_path_item) {
                 if current_index > 0 {
                     if let Some(prev) = list.get(current_index - 1) {
-                        self.router.set_only_item(Some(prev.name()));
+                        self.router.set_only_item(Some(prev.name().clone()));
                         return;
                     }
                 }
 
                 if let Some(prev) = list.get(current_index + 1) {
-                    self.router.set_only_item(Some(prev.name()));
+                    self.router.set_only_item(Some(prev.name().clone()));
                     return;
                 }
             };
@@ -205,13 +205,13 @@ impl TabPath {
                 ListItemType::Dir => {
                     bind_rc!(item, self_clone, || {
                         let mut path = item.get_base_dir();
-                        path.push(item.name());
+                        path.push(item.name().clone());
                         self_clone.router.set(path, None);
                     })
                 },
                 ListItemType::File => {
                     bind_rc!(self_clone, item, || {
-                        self_clone.router.set(item.get_base_dir(), Some(item.name()));
+                        self_clone.router.set(item.get_base_dir(), Some(item.name().clone()));
                     })
                 },
                 ListItemType::Unknown => {
@@ -246,7 +246,7 @@ impl TabPath {
         let list = self.list.get(context);
 
         for (index, item) in list.iter().enumerate() {
-            if item.name() == *item_finding {
+            if item.name() == item_finding {
                 return Some(index as isize);
             }
         }
@@ -265,7 +265,7 @@ impl TabPath {
         let list = self.list.get(context);
 
         if let Some(first) = list.get(index) {
-            self.router.set_only_item(Some(first.name()));
+            self.router.set_only_item(Some(first.name().clone()));
             return true;
         }
 
