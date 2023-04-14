@@ -171,7 +171,7 @@ impl TabPath {
             fn find_index(list: &Vec<ListItem>, value: Option<String>) -> Option<usize> {
                 if let Some(value) = value {
                     for (index, item) in list.iter().enumerate() {
-                        if item.name() == &value {
+                        if item.name() == value {
                             return Some(index);
                         }
                     }
@@ -204,14 +204,16 @@ impl TabPath {
             match item.is_dir.get(context) {
                 ListItemType::Dir => {
                     bind_rc!(item, self_clone, || {
-                        let mut path = item.get_base_dir();
-                        path.push(item.name().clone());
+                        let path = item.full_path.as_ref().clone();
                         self_clone.router.set(path, None);
                     })
                 },
                 ListItemType::File => {
                     bind_rc!(self_clone, item, || {
-                        self_clone.router.set(item.get_base_dir(), Some(item.name().clone()));
+                        let mut path = item.full_path.as_ref().clone();
+                        path.pop();
+
+                        self_clone.router.set(path, Some(item.name().clone()));
                     })
                 },
                 ListItemType::Unknown => {
@@ -246,7 +248,7 @@ impl TabPath {
         let list = self.list.get(context);
 
         for (index, item) in list.iter().enumerate() {
-            if item.name() == item_finding {
+            if item.name() == *item_finding {
                 return Some(index as isize);
             }
         }

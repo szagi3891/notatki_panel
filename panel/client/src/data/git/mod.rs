@@ -1,5 +1,5 @@
-use std::{rc::Rc, sync::Arc};
-use vertigo::{Resource, Context, AutoMap};
+use std::{rc::Rc};
+use vertigo::{Resource, Context};
 mod node_dir;
 mod node_content;
 mod root;

@@ -101,7 +101,7 @@ impl ViewDirList {
                 return Ordering::Greater;
             }
 
-            a.name.to_lowercase().cmp(&b.name.to_lowercase())
+            a.name().to_lowercase().cmp(&b.name().to_lowercase())
         });
 
         list_out
@@ -182,8 +182,8 @@ pub struct ListItem {
 
     //zmienne adresujące treść, one są stałę 
     //TODO - pozbyć się tych zmiennych na rzecz zmiennej full_path
-    base_dir: Rc<Vec<String>>,
-    name: String,
+    // base_dir: Rc<Vec<String>>,
+    // name: String,
 
     pub full_path: Rc<Vec<String>>,
 
@@ -221,17 +221,6 @@ pub struct ListItem {
 
 impl ListItem {
     pub fn new_full(git: Git, full_path: Rc<Vec<String>>) -> Self {
-        
-        todo!()
-    }
-
-    pub fn new(git: Git, base_dir: Rc<Vec<String>>, name: String) -> Self {
-
-        let mut full_path = base_dir.as_ref().clone();
-        full_path.push(name.clone());
-
-
-
         let is_dir = Computed::from(bind!(git, full_path, |context| -> ListItemType {
             let content = git.get_item_from_path(context, &full_path);
             
@@ -258,32 +247,41 @@ impl ListItem {
         Self {
             git,
 
-            base_dir,
-            name,
-
-            full_path: Rc::new(full_path),
+            full_path,
 
             is_dir,
             id,
         }
     }
 
-    pub fn name(&self) -> &String {
-        &self.name
-        // let mut full_path = self.full_path.as_ref().clone();
-        // let name = full_path.pop();
+    #[deprecated]
+    pub fn new(git: Git, base_dir: Rc<Vec<String>>, name: String) -> Self {
 
-        // let Some(name) = name else {
-        //     return "root".into();
-        // };
+        let mut full_path = base_dir.as_ref().clone();
+        full_path.push(name.clone());
 
-        // name
+        Self::new_full(git, Rc::new(full_path))
+    }
+
+
+    //TODO - dodać jakiesz keszowanie na nazwę pliku ?
+
+    pub fn name(&self) -> String {
+        // &self.name
+        let mut full_path = self.full_path.as_ref().clone();
+        let name = full_path.pop();
+
+        let Some(name) = name else {
+            return "root".into();
+        };
+
+        name
     }
 }
 
 impl PartialEq for ListItem {
     fn eq(&self, other: &Self) -> bool {
-        self.base_dir == other.base_dir && self.name == other.name
+        self.full_path == other.full_path
     }
 }
 
@@ -297,18 +295,13 @@ impl PartialOrd for ListItem {
 
 impl Ord for ListItem {
     fn cmp(&self, other: &Self) -> Ordering {
-
-        if let Some(result) = ordering_result(self.base_dir.cmp(&other.base_dir)) {
-            return result;
-        }
-
-        self.name.cmp(&other.name)
+        self.full_path.cmp(&other.full_path)
     }
 }
 
 impl ListItem {
     pub fn get_ext(&self) -> Option<String> {
-        get_ext(&self.name)
+        get_ext(&self.name())
     }
 
     pub fn get_picture_ext(&self) -> Option<String> {
@@ -326,7 +319,7 @@ impl ListItem {
     }
 
     pub fn prirority(&self) -> u8 {
-        get_list_item_prirority(&self.name)
+        get_list_item_prirority(&self.name())
     }
 
     pub fn get_content_type(&self, context: &Context) -> Resource<ContentType> {
@@ -337,12 +330,9 @@ impl ListItem {
 
             let list = self.git.get_list(context, &id)?;
 
-            let mut full_path = self.base_dir.as_ref().clone();
-            full_path.push(self.name.clone());
-
             let dir_list = ViewDirList::new(
                 &self.git,
-                Rc::new(full_path),
+                self.full_path.clone(),
                 list,
             );
 
@@ -404,12 +394,8 @@ impl ListItem {
         self.full_path.join("/")
     }
 
-    pub fn get_base_dir(&self) -> Vec<String> {
-        (*(self.base_dir)).clone()
-    }
-
     fn prirority_for_sort(&self, context: &Context) -> u8 {
-        let mut prirority = 2 * get_list_item_prirority(&self.name);
+        let mut prirority = 2 * get_list_item_prirority(&self.name());
         if self.is_dir.get(context) == ListItemType::Dir {
             prirority += 1;
         }

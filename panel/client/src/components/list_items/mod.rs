@@ -127,13 +127,13 @@ pub fn item_default(data: &Data, item: &ListItem, on_click: Computed<Rc<dyn Fn()
             let current_hover = data.tab.router.item_hover.get(context);
 
             let is_select = if let Some(list_pointer) = &current_item {
-                item.name() == list_pointer
+                item.name() == *list_pointer
             } else {
                 false
             };
 
             let is_hover = if let Some(hover) = &current_hover {
-                hover == item.name()
+                *hover == item.name()
             } else {
                 false
             };
@@ -148,7 +148,7 @@ pub fn item_default(data: &Data, item: &ListItem, on_click: Computed<Rc<dyn Fn()
         move |context| {
             let current_item = data.tab.current_item.get(context);
             if let Some(list_pointer) = &current_item {
-                item.name() == list_pointer
+                item.name() == *list_pointer
             } else {
                 false
             }
@@ -163,7 +163,7 @@ pub fn item_default(data: &Data, item: &ListItem, on_click: Computed<Rc<dyn Fn()
             {icon_arrow(is_select)}
             {icon::icon_render(item)}
             <span css={label_css(item.prirority())}>
-                {remove_prefix(item.name())}
+                {remove_prefix(&item.name())}
             </span>
         </div>
     }
@@ -183,7 +183,7 @@ pub fn item_default_render(data: &Data, item: &ListItem, mouse_over_enable: bool
     let element = if mouse_over_enable {
 
         let mouse_over_enter = bind!(item, tab, || {
-            tab.router.hover_on(item.name().as_str());
+            tab.router.hover_on(&item.name());
         });
 
         let mouse_over_leave = bind!(item, tab, || {

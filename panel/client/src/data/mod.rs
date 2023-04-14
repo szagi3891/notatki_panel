@@ -12,7 +12,7 @@ pub use git::{GitDirList, ViewDirList, ContentType, ContentView};
 pub use git::{ListItem, ListItemType};
 pub use open_links::OpenLinks;
 pub use tabs_hash::Router;
-use vertigo::AutoMap;
+use vertigo::{AutoMap, Resource, Context};
 
 #[derive(Clone, PartialEq)]
 pub struct Data {
@@ -44,6 +44,12 @@ impl Data {
             tab,
             items,
         }
+    }
+
+    //TODO - Tylko w ten sposób mozna tworzyc nowe struktury ListItem
+
+    pub fn get_from_path(&self, path: &[String]) -> ListItem {
+        todo!()
     }
 }
 
