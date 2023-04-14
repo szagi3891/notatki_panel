@@ -38,6 +38,12 @@ pub struct Router {
     pub item_hover: Value<Option<String>>,
 }
 
+impl Default for Router {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Router {
     pub fn new() -> Router {
         let route = HashRouter::<RouterValue>::new_hash_router();

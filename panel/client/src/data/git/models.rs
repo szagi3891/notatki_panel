@@ -1,9 +1,9 @@
 use std::{collections::HashMap, rc::Rc};
 use std::cmp::Ordering;
 
-use vertigo::{Resource, Context, Computed, Value, bind};
+use vertigo::{Resource, Context, Computed, bind};
 
-use super::{Git};
+use super::Git;
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct TreeItem {
@@ -81,13 +81,11 @@ impl ViewDirList {
     pub fn get_list(&self, context: &Context) -> Vec<ListItem> {
         let mut list_out: Vec<ListItem> = Vec::new();
 
-        for (name, item) in self.list.as_ref() {
+        for name in self.list.keys() {
             list_out.push(ListItem::new(
                 self.git.clone(),
                 self.dir_path.clone(),
                 name.clone(),
-                item.dir,
-                item.id.clone(),
             ));
         }
 
@@ -182,19 +180,17 @@ pub enum ListItemType {
 pub struct ListItem {
     git: Git,
 
-    //zmienne adresujące treść, one są stałę
+    //zmienne adresujące treść, one są stałę 
+    //TODO - pozbyć się tych zmiennych na rzecz zmiennej full_path
     pub base_dir: Rc<Vec<String>>,
     pub name: String,
 
     pub full_path: Rc<Vec<String>>,
 
-    //TODO - zamienić na computed, ta wartość moze sie zmienic
     pub is_dir: Computed<ListItemType>,
     //TODO - to przerobić na prywatne, dorobic nową metodę is_dir() -> bool oraz is_file()
     
-    //TODO - zamienić na computed, ta wartość moze sie zmienic
     pub id: Computed<Resource<String>>,     //hash tego elementu
-        //None - oznacza ze nie zaladowano jeszcze
 }
 
 /*
@@ -224,25 +220,35 @@ pub struct ListItem {
 */
 
 impl ListItem {
-    pub fn new(git: Git, base_dir: Rc<Vec<String>>, name: String, is_dir: bool, id: String) -> Self {
+    pub fn new(git: Git, base_dir: Rc<Vec<String>>, name: String) -> Self {
 
         let mut full_path = base_dir.as_ref().clone();
         full_path.push(name.clone());
 
 
 
-        // let is_dir2 = Computed::from(bind!(git, base_dir, |context| -> ListItemType {
-        //     let content = git.get_content(context, &base_dir);
+        let is_dir = Computed::from(bind!(git, full_path, |context| -> ListItemType {
+            let content = git.get_item_from_path(context, &full_path);
             
-        //     match content 
+            let Resource::Ready(Some(content)) = content else {
+                return ListItemType::Unknown;   
+            };
+
+            match content.dir {
+                true => ListItemType::Dir,
+                false => ListItemType::File
+            }
+        }));
+
+        let id = Computed::from(bind!(git, full_path, |context| -> Resource<String> {
+            let content = git.get_item_from_path(context, &full_path)?;
             
-        // }));
+            let Some(content) = content else {
+                return Resource::Error(format!("nie znaleziono id={}", full_path.join("/")));
+            };
 
-
-        let is_dir = match is_dir {
-            false => ListItemType::File,
-            true => ListItemType::Dir,
-        };
+            Resource::Ready(content.id)
+        }));
 
         Self {
             git,
@@ -252,11 +258,8 @@ impl ListItem {
 
             full_path: Rc::new(full_path),
 
-            //TODO - zorbić aby ten computed się wyliczał
-            is_dir: Value::new(is_dir).to_computed(),
-
-            //TODO - zorbić aby ten computed się wyliczał
-            id: Value::new(Resource::Ready(id)).to_computed(),
+            is_dir,
+            id,
         }
     }
 

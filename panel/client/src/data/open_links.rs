@@ -8,6 +8,12 @@ pub struct OpenLinks {
     pub tabs_active: Value<Option<String>>,
 }
 
+impl Default for OpenLinks {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl OpenLinks {
     pub fn new() -> OpenLinks {
         let tabs_url = Value::new(Vec::new());

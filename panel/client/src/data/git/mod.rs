@@ -57,6 +57,12 @@ pub struct Git {
     pub root: Root
 }
 
+impl Default for Git {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Git {
     pub fn new() -> Git {
         let dir = Dir::new();
@@ -83,6 +89,57 @@ impl Git {
         Resource::Ready(ViewDirList::new(self, base_dir, result))
     }
 
+    pub fn get_item(&self, context: &Context, base_dir: &[String], current_item: &String) -> Resource<Option<TreeItem>> {
+        let list = self.dir_list(context, base_dir)?;
+        let current_value = list.get(current_item).cloned();
+        Resource::Ready(current_value)
+    }
+
+    pub fn get_item_from_path(&self, context: &Context, path: &[String]) -> Resource<Option<TreeItem>> {
+        let mut path: Vec<String> = Vec::from(path);
+        let last = path.pop();
+
+        let last = match last {
+            Some(last) => last,
+            None => {
+                let id = self.root.get_current_root(context)?;
+
+                return Resource::Ready(Some(TreeItem {
+                    dir: true,
+                    id
+                }));
+            }
+        };
+
+        self.get_item(context, path.as_slice(), &last)
+    }
+
+    // pub fn content_from_path2(&self, context: &Context, path: &[String]) -> Resource<ListItem> {
+    //     let mut path: Vec<String> = Vec::from(path);
+    //     let last = path.pop();
+
+    //     let last = match last {
+    //         Some(last) => last,
+    //         None => {
+
+    //             let id = self.root.get_current_root(context)?;
+
+    //             let dir = ListItem::new(
+    //                 self.clone(),
+    //                 Rc::new(Vec::new()),
+    //                 "root".into(),
+    //                 true,
+    //                 id
+    //             );
+
+    //             return Resource::Ready(dir);
+    //         }
+    //     };
+
+    //     self.node_content2(context, path.as_slice(), &last)
+    // }
+
+    #[deprecated]
     fn node_content(&self, context: &Context, base_dir: &[String], current_item: &String) -> Resource<ListItem> {
         let list = self.dir_list(context, base_dir)?;
         let current_value = list.get(current_item);
@@ -90,26 +147,11 @@ impl Git {
         if let Some(current_value) = current_value {
             let base_dir = Rc::new(Vec::from(base_dir));
 
-            if current_value.dir {
-                let dir = ListItem::new(
-                    self.clone(),
-                    base_dir,
-                    current_item.clone(),
-                    true,
-                    current_value.id.clone()
-                );
-                Resource::Ready(dir)
-            } else {
-                let file = ListItem::new(
-                    self.clone(),
-                    base_dir,
-                    current_item.clone(),
-                    false,
-                    current_value.id.clone()
-                );
-
-                Resource::Ready(file)
-            }
+            Resource::Ready(ListItem::new(
+                self.clone(),
+                base_dir,
+                current_item.clone(),
+            ))
         } else {
             let message = format!("Brakuje {current_item} w {base_dir:?}");
             Resource::Error(message)
@@ -124,15 +166,10 @@ impl Git {
         let last = match last {
             Some(last) => last,
             None => {
-
-                let id = self.root.get_current_root(context)?;
-
                 let dir = ListItem::new(
                     self.clone(),
                     Rc::new(Vec::new()),
                     "root".into(),
-                    true,
-                    id
                 );
 
                 return Resource::Ready(dir);

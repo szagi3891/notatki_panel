@@ -38,6 +38,12 @@ pub struct Root {
     //list: Value<VecDeque<RootNode>>,      //todo zaimplementowach historie, zeby zniwelowac ilosc migań
 }
 
+impl Default for Root {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Root {
     pub fn new() -> Root {
         let current = RootNode::new();
