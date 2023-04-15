@@ -1,5 +1,5 @@
 use serde::{Serialize, Deserialize};
-use vertigo::{router::Router as HashRouter, Computed, Context, transaction, Value};
+use vertigo::{router::Router as HashRouter, Context, transaction, Value};
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 struct RouterValue {
@@ -33,9 +33,6 @@ impl ToString for RouterValue {
 pub struct Router {
     route: HashRouter<RouterValue>,
 
-    #[deprecated]
-    pub path: Computed<Vec<String>>,
-
     ///Element nad którym znajduje się hover
     pub item_hover: Value<Option<String>>,
 }
@@ -50,17 +47,8 @@ impl Router {
     pub fn new() -> Router {
         let route = HashRouter::<RouterValue>::new_hash_router();
 
-        let path = {
-            let route = route.clone();
-
-            Computed::from(move |context| {
-                route.route.get(context).dir
-            })
-        };
-
         Router {
             route,
-            path,
             item_hover: Value::default(),
         }
     }
