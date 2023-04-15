@@ -25,7 +25,6 @@ impl NewName {
 
         let name_exists = {
             let name = name.clone();
-            let select_dir = select_dir.clone();
 
             Computed::from(move |context| -> bool {
                 let list = select_dir.get(context).list.get(context);

@@ -113,8 +113,15 @@ fn render_button_edit_file(state: &MenuComponent) -> DomNode {
             let is_current_content = is_current_content.get(context);
 
             if is_current_content {
-                let on_click = bind!(app, ||{
-                    app.current_edit();
+                let current_list_item = app.data.tab.current_list_item.get(context);
+
+                let Some(current_list_item) = current_list_item else {
+                    return ButtonState::disabled("Edycja pliku");
+                };
+
+                let full_path = current_list_item.full_path.as_ref().clone();
+                let on_click = bind!(app, full_path, || {
+                    app.redirect_to_edit_content(full_path.clone());
                 });
 
                 ButtonState::active("Edycja pliku", on_click)

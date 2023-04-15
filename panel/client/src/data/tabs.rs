@@ -4,77 +4,8 @@ use vertigo::{Resource, Computed, Context, transaction, Value, bind, bind_rc};
 use super::{
     git::ListItem,
     open_links::OpenLinks,
-    calculate_next_path::calculate_next_path, ViewDirList, ContentType, tabs_hash::Router, ListItemType, AutoMapListItem
+    calculate_next_path::calculate_next_path, ContentType, tabs_hash::Router, ListItemType, AutoMapListItem
 };
-
-fn create_list_hash_map(items: &AutoMapListItem, router: &Router) -> Computed<Resource<ViewDirList>> {
-    Computed::from(bind!(items, router, |context| -> Resource<ViewDirList> {
-        let current_path_rc = router.get_dir(context);
-        let current_path = current_path_rc.as_ref();
-
-        items.dir_list(context, current_path)
-    }))
-}
-
-fn create_list(todo_only: Value<bool>, list: &Computed<Resource<ViewDirList>>) -> Computed<Vec<ListItem>> {
-    Computed::from(bind!(list, |context| -> Vec<ListItem> {
-        match list.get(context) {
-            Resource::Ready(current_view) => {
-                let todo_only = todo_only.get(context);
-
-                let list = current_view.get_list(context);
-
-                list
-            },
-            Resource::Loading => {
-                log::info!("Create list --> Loading");
-                Vec::new()
-            },
-            Resource::Error(err) => {
-                log::error!("Create list --> {:?}", err);
-                Vec::new()
-            }
-        }
-    }))
-}
-
-fn create_current_item_view(
-    router: &Router,
-    list: &Computed<Vec<ListItem>>
-) -> Computed<Option<String>> {
-    Computed::from(bind!(router, list, |context| -> Option<String> {
-        let current_item = router.get_item(context);
-
-        if let Some(current_item) = current_item.as_ref() {
-            return Some(current_item.clone());
-        }
-
-        let list = list.get(context);
-        if let Some(first) = list.first() {
-            return Some(first.name());
-        }
-
-        None
-    }))
-}
-
-fn create_current_full_path(
-    router: &Router,
-    list_current_item: &Computed<Option<String>>,
-) -> Computed<Vec<String>> {
-    Computed::from(bind!(router, list_current_item, |context| -> Vec<String> {
-        let mut current_path_dir = router.get_dir(context);
-
-        if let Some(item_hover) = router.get_hover(context).as_ref() {
-            current_path_dir.push(item_hover.clone());
-        } else if let Some(list_current_item) = list_current_item.get(context).as_ref() {
-            current_path_dir.push(list_current_item.clone());
-        }
-
-        current_path_dir
-    }))
-}
-
 
 #[derive(Clone, PartialEq)]
 pub struct TabPath {
@@ -85,10 +16,6 @@ pub struct TabPath {
 
     /// Wybrany katalog
     pub select_dir: Computed<ListItem>,
-
-    /// Suma "dir" + "current_item". Wskazuje na wybrany element do wyświetlenia w prawym panelu
-    #[deprecated]
-    pub full_path: Computed<Vec<String>>,
 
     /// Aktualnie wyliczony wybrany ListItem wskazywany przez full_path
     pub current_list_item: Computed<Option<ListItem>>,
@@ -112,19 +39,6 @@ impl TabPath {
                 items.get_from_path(&dir)
             }
         });
-
-        let dir_hash_map = create_list_hash_map(items, &router);
-        let list = create_list(todo_only.clone(), &dir_hash_map);
-
-
-        let current_item = create_current_item_view(&router, &list);
-
-        //TODO - full_path bezpośrednio wyliczać z routingu, nie jest do tego potrzebna zmienne current_item w poniszej regule
-
-        let full_path = create_current_full_path(
-            &router,
-            &current_item,
-        );
 
         let current_list_item = Computed::from({
             let select_dir = select_dir.clone();
@@ -169,7 +83,6 @@ impl TabPath {
             todo_only,
             router,
             select_dir,
-            full_path,
             current_list_item,
             open_links,
         }

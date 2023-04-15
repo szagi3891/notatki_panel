@@ -65,9 +65,7 @@ impl App {
         }
     }
 
-    pub fn redirect_to_edit_content(&self, full_path: &Vec<String>) {
-        let full_path = full_path.clone();
-
+    pub fn redirect_to_edit_content(&self, full_path: Vec<String>) {
         let state = AppEditcontent::new(
             self,
             full_path,
@@ -108,10 +106,16 @@ impl App {
         self.view.set(View::NewContent { state });
     }
 
-    pub fn current_edit(&self) {
-        let full_path = transaction(|context| self.data.tab.full_path.get(context));
-        self.redirect_to_edit_content(&full_path);
-    }
+    // pub fn current_edit(&self, context: &Context) {
+    //     let current_list_item = self.data.tab.current_list_item.get(context);
+
+    //     let Some(current_list_item) = current_list_item else {
+    //         log::error!("current_edit - ignore");
+    //         return;
+    //     };
+
+    //     self.redirect_to_edit_content(current_list_item.full_path.as_ref());
+    // }
 
     pub fn render_current_rename(&self) -> DomNode {
         ButtonState::render({    
@@ -119,7 +123,7 @@ impl App {
                 let app = self.clone();
 
                 move |context| {
-                    let path = app.data.tab.select_dir.get(context).full_path.clone();
+                    let path = app.data.tab.select_dir.get(context).full_path;
 
                     let Some(current_list_item) = app.data.tab.current_list_item.get(context) else {
                         return ButtonState::disabled("Zmień nazwę");
@@ -137,7 +141,7 @@ impl App {
             
                         let state = AppRenameitem::new(
                             &app,
-                            base_path.clone(),
+                            base_path,
                             select_item.clone(),
                             id.clone(),
                         );
