@@ -83,13 +83,8 @@ pub struct TabPath {
 
     pub todo_only: Value<bool>,
 
-    /// Aktualnie wyliczona lista, która jest prezentowana w lewej kolumnie menu
-    #[deprecated]
-    pub list: Computed<Vec<ListItem>>,
-
     /// Wybrany katalog
     pub select_dir: Computed<ListItem>,
-
 
     /// Wybrany element z listy (dla widoku)
     /// Jeśli w zmiennej "item" znajduje się None, to brany jest pierwszy element z "list"
@@ -177,9 +172,6 @@ impl TabPath {
             todo_only,
             router,
             select_dir,
-            // dir_select: dir_select.clone(),
-            // item_select,
-            list,
             current_item,
             full_path,
             current_list_item,
@@ -190,34 +182,36 @@ impl TabPath {
     pub fn redirect_item_select_after_delete(&self) {
         transaction(|context| {
             let current_path_item = self.router.get_item(context);
-            let list = self.list.get(context);
-
-            fn find_index(list: &Vec<ListItem>, value: Option<String>) -> Option<usize> {
-                if let Some(value) = value {
-                    for (index, item) in list.iter().enumerate() {
-                        if item.name() == value {
-                            return Some(index);
+            if let Resource::Ready(list) = self.select_dir.get(context).list.get(context) {
+                fn find_index(list: &Vec<ListItem>, value: Option<String>) -> Option<usize> {
+                    if let Some(value) = value {
+                        for (index, item) in list.iter().enumerate() {
+                            if item.name() == value {
+                                return Some(index);
+                            }
                         }
                     }
+                    None
                 }
-                None
-            }
 
-            if let Some(current_index) = find_index(list.as_ref(), current_path_item) {
-                if current_index > 0 {
-                    if let Some(prev) = list.get(current_index - 1) {
+                if let Some(current_index) = find_index(list.as_ref(), current_path_item) {
+                    if current_index > 0 {
+                        if let Some(prev) = list.get(current_index - 1) {
+                            self.router.set_only_item(Some(prev.name()));
+                            return;
+                        }
+                    }
+
+                    if let Some(prev) = list.get(current_index + 1) {
                         self.router.set_only_item(Some(prev.name()));
                         return;
                     }
-                }
+                };
 
-                if let Some(prev) = list.get(current_index + 1) {
-                    self.router.set_only_item(Some(prev.name()));
-                    return;
-                }
-            };
-
-            self.router.set_only_item(None);
+                self.router.set_only_item(None);
+            } else {
+                log::error!("redirect_item_select_after_delete - ignore");
+            }
         });
     }
 
@@ -269,11 +263,11 @@ impl TabPath {
     }
 
     fn find(&self, context: &Context, item_finding: &String) -> Option<isize> {
-        let list = self.list.get(context);
-
-        for (index, item) in list.iter().enumerate() {
-            if item.name() == *item_finding {
-                return Some(index as isize);
+        if let Resource::Ready(list) = self.select_dir.get(context).list.get(context) {
+            for (index, item) in list.iter().enumerate() {
+                if item.name() == *item_finding {
+                    return Some(index as isize);
+                }
             }
         }
 
@@ -288,19 +282,23 @@ impl TabPath {
 
         let index = index as usize;
 
-        let list = self.list.get(context);
-
-        if let Some(first) = list.get(index) {
-            self.router.set_only_item(Some(first.name()));
-            return true;
+        if let Resource::Ready(list) = self.select_dir.get(context).list.get(context) {
+            if let Some(first) = list.get(index) {
+                self.router.set_only_item(Some(first.name()));
+                return true;
+            }
         }
 
         false
     }
 
     fn try_set_pointer_to_end(&self, context: &Context) {
-        let len = self.list.get(context).len() as isize;
-        self.try_set_pointer_to(context, len - 1);
+        if let Resource::Ready(list) = self.select_dir.get(context).list.get(context) {
+            let len = list.len() as isize;
+            self.try_set_pointer_to(context, len - 1);
+        } else {
+            log::error!("try_set_pointer_to_end - ignore");
+        }
     }
 
     pub fn pointer_up(&self) {
