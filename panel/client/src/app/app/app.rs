@@ -84,32 +84,25 @@ impl App {
         transaction(|context| {
             let select_item = select_item.clone();
             let full_path = self.data.tab.full_path.clone().get(context);
-            let content = self.data.git.content_from_path(context, &full_path);
+            let list_item = self.data.items.get_from_path(&full_path);
 
-            match content {
-                Resource::Ready(list_item) => {
-                    log::info!("redirect_to_rename_item {base_path:?} {select_item:?}");
+            log::info!("redirect_to_rename_item {base_path:?} {select_item:?}");
 
-                    let id = list_item.id.get(context);
+            let id = list_item.id.get(context);
 
-                    if let Resource::Ready(id) = id {
-                        let state = AppRenameitem::new(
-                            self,
-                            base_path.clone(),
-                            select_item,
-                            id,
-                        );
+            if let Resource::Ready(id) = id {
+                let state = AppRenameitem::new(
+                    self,
+                    base_path.clone(),
+                    select_item,
+                    id,
+                );
 
-                        self.view.set(View::RenameItem {
-                            state
-                        });
-                    } else {
-                        log::error!("event ignore");
-                    }
-                },
-                _ => {
-                    log::error!("redirect_to_rename_item fail - {base_path:?} {select_item:?}");
-                }
+                self.view.set(View::RenameItem {
+                    state
+                });
+            } else {
+                log::error!("event ignore");
             }
         });
     }

@@ -4,7 +4,7 @@ use vertigo::{Resource, Computed, Context, transaction, Value, bind, bind_rc};
 use super::{
     git::{Git, ListItem},
     open_links::OpenLinks,
-    calculate_next_path::calculate_next_path, ViewDirList, ContentType, tabs_hash::Router, ListItemType
+    calculate_next_path::calculate_next_path, ViewDirList, ContentType, tabs_hash::Router, ListItemType, AutoMapListItem
 };
 
 fn create_list_hash_map(git: &Git, router: &Router) -> Computed<Resource<ViewDirList>> {
@@ -51,7 +51,7 @@ fn create_current_item_view(
 
         let list = list.get(context);
         if let Some(first) = list.first() {
-            return Some(first.name().clone());
+            return Some(first.name());
         }
 
         None
@@ -76,11 +76,11 @@ fn create_current_full_path(
 }
 
 fn create_current_content(
-    state_data_git: &Git,
+    items: &AutoMapListItem,
     full_path: &Computed<Vec<String>>,
 ) -> Computed<Resource<ContentType>> {
-    Computed::from(bind!(state_data_git, full_path, |context| -> Resource<ContentType> {
-        let list_item = state_data_git.content_from_path(context, full_path.get(context).as_ref())?;
+    Computed::from(bind!(items, full_path, |context| -> Resource<ContentType> {
+        let list_item = items.get_from_path(full_path.get(context).as_ref());
 
         list_item.get_content_type(context)
     }))
@@ -120,7 +120,7 @@ pub struct TabPath {
 }
 
 impl TabPath {
-    pub fn new(git: &Git) -> TabPath {
+    pub fn new(git: &Git, items: &AutoMapListItem) -> TabPath {
         let router = Router::new();
 
         let todo_only = Value::new(false);
@@ -139,7 +139,7 @@ impl TabPath {
         );
 
         let current_content = create_current_content(
-            git,
+            items,
             &full_path,
         );
 
@@ -182,13 +182,13 @@ impl TabPath {
             if let Some(current_index) = find_index(list.as_ref(), current_path_item) {
                 if current_index > 0 {
                     if let Some(prev) = list.get(current_index - 1) {
-                        self.router.set_only_item(Some(prev.name().clone()));
+                        self.router.set_only_item(Some(prev.name()));
                         return;
                     }
                 }
 
                 if let Some(prev) = list.get(current_index + 1) {
-                    self.router.set_only_item(Some(prev.name().clone()));
+                    self.router.set_only_item(Some(prev.name()));
                     return;
                 }
             };
@@ -213,7 +213,7 @@ impl TabPath {
                         let mut path = item.full_path.as_ref().clone();
                         path.pop();
 
-                        self_clone.router.set(path, Some(item.name().clone()));
+                        self_clone.router.set(path, Some(item.name()));
                     })
                 },
                 ListItemType::Unknown => {
@@ -267,7 +267,7 @@ impl TabPath {
         let list = self.list.get(context);
 
         if let Some(first) = list.get(index) {
-            self.router.set_only_item(Some(first.name().clone()));
+            self.router.set_only_item(Some(first.name()));
             return true;
         }
 

@@ -125,23 +125,19 @@ fn render_button_move_item(state: &MenuComponent) -> DomNode {
     ButtonState::render(Computed::from(move |context| {
         let current_path = app.data.tab.full_path.get(context);
 
-        let current_content = app.data.git.content_from_path(context, &current_path);
+        let current_content = app.data.items.get_from_path(&current_path);
 
-        if let Resource::Ready(current_content) = current_content {
-            let hash = current_content.id.get(context);
+        let hash = current_content.id.get(context);
 
-            let on_click = bind!(app, current_path, hash, || {
-                if let Resource::Ready(hash) = &hash {
-                    app.alert.move_current(&app, &current_path, hash);
-                } else {
-                    log::error!("error move item");
-                }
-            });
+        let on_click = bind!(app, current_path, hash, || {
+            if let Resource::Ready(hash) = &hash {
+                app.alert.move_current(&app, &current_path, hash);
+            } else {
+                log::error!("error move item");
+            }
+        });
 
-            return ButtonState::active("Przenieś", on_click);
-        }
-
-        ButtonState::disabled("Przenieś")
+        return ButtonState::active("Przenieś", on_click);
     }))
 }
     

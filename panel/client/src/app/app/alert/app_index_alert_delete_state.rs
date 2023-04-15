@@ -70,23 +70,19 @@ impl AppIndexAlertDelete {
 
         ButtonState::render(Computed::from(move |context| {
             let full_path = state.full_path.clone();
-            let item = state.alert.data.git.content_from_path(context, &full_path);
+            let item = state.alert.data.items.get_from_path(&full_path);
 
-            if let Resource::Ready(item) = item {
-                let id = &item.id.get(context);
+            let id = &item.id.get(context);
 
+            if let Resource::Ready(id) = id {
                 let action = bind_spawn!(state, app, id, async move {
-                    if let Resource::Ready(id) = id {
-                        state.delete_yes(app, id).await;
-                    } else {
-                        log::error!("ignore action");
-                    }
+                    state.delete_yes(app, id).await;
                 });
 
                 return ButtonState::active("Tak", action);
+            } else {
+                ButtonState::disabled("Tak")
             }
-
-            ButtonState::disabled("Tak")
         }))
     }
 

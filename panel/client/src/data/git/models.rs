@@ -134,14 +134,6 @@ pub enum ContentType {
     }
 }
 
-fn ordering_result(ordering: Ordering) -> Option<Ordering> {
-    if ordering == Ordering::Equal {
-        None
-    } else {
-        Some(ordering)
-    }
-}
-
 #[derive(Clone, PartialEq)]
 pub enum ListItemType {
     Dir,
@@ -258,7 +250,7 @@ impl ListItem {
     pub fn new(git: Git, base_dir: Rc<Vec<String>>, name: String) -> Self {
 
         let mut full_path = base_dir.as_ref().clone();
-        full_path.push(name.clone());
+        full_path.push(name);
 
         Self::new_full(git, Rc::new(full_path))
     }
