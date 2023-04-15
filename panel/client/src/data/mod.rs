@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use std::rc::Rc;
 
 use self::{git::Git, tabs::TabPath};
@@ -50,6 +51,7 @@ impl AutoMapListItem {
 
     //TODO - tą metodę scalić docelowo z ListItem
 
+    #[deprecated]
     pub fn dir_list(&self, context: &Context, path: &[String]) -> Resource<ViewDirList> {
         let result = self.git.dir_list(context, path)?;
 

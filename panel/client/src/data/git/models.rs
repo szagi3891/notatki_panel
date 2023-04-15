@@ -52,6 +52,7 @@ impl PartialEq for ViewDirList {
 }
 
 impl ViewDirList {
+    #[deprecated]
     pub fn new(git: &Git, base_dir: Rc<Vec<String>>, list: Rc<HashMap<String, TreeItem>>) -> ViewDirList {
         ViewDirList {
             git: git.clone(),
@@ -60,6 +61,7 @@ impl ViewDirList {
         }
     }
 
+    #[deprecated]
     pub fn get_list(&self, context: &Context) -> Vec<ListItem> {
         let mut list_out: Vec<ListItem> = Vec::new();
 
@@ -89,10 +91,12 @@ impl ViewDirList {
         list_out
     }
 
+    #[deprecated]
     pub fn len(&self) -> usize {
         self.list.len()
     }
 
+    #[deprecated]
     pub fn dir_path(&self) -> Rc<Vec<String>> {
         self.dir_path.clone()
     }
@@ -127,6 +131,7 @@ pub struct ListItem {
 
     pub is_dir: Computed<ListItemType>,
     pub id: Computed<Resource<String>>,     //hash tego elementu
+    pub list: Computed<Resource<Vec<ListItem>>>,
 }
 
 /*
@@ -180,6 +185,42 @@ impl ListItem {
             Resource::Ready(content.id)
         }));
 
+        let list = Computed::from({
+            let git = git.clone();
+            let dir_path = full_path.clone();
+
+            move |context| -> Resource<Vec<ListItem>> {
+                let list = git.dir_list(context, dir_path.as_ref())?;
+
+                let mut list_out: Vec<ListItem> = Vec::new();
+
+                for name in list.keys() {
+                    list_out.push(ListItem::new(
+                        git.clone(),
+                        dir_path.clone(),
+                        name.clone(),
+                    ));
+                }
+
+                list_out.sort_by(|a: &ListItem, b: &ListItem| -> Ordering {
+                    let a_prirority = a.prirority_for_sort(context);
+                    let b_prirority = b.prirority_for_sort(context);
+
+                    if a_prirority > b_prirority {
+                        return Ordering::Less;
+                    }
+
+                    if a_prirority < b_prirority {
+                        return Ordering::Greater;
+                    }
+
+                    a.name().to_lowercase().cmp(&b.name().to_lowercase())
+                });
+
+                Resource::Ready(list_out)
+            }
+        });
+
         Self {
             git,
 
@@ -187,6 +228,7 @@ impl ListItem {
 
             is_dir,
             id,
+            list,
         }
     }
 
@@ -213,29 +255,7 @@ impl ListItem {
 
         name
     }
-}
 
-impl PartialEq for ListItem {
-    fn eq(&self, other: &Self) -> bool {
-        self.full_path == other.full_path
-    }
-}
-
-impl Eq for ListItem {}
-
-impl PartialOrd for ListItem {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Ord for ListItem {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.full_path.cmp(&other.full_path)
-    }
-}
-
-impl ListItem {
     pub fn get_ext(&self) -> Option<String> {
         get_ext(&self.name())
     }
@@ -341,6 +361,27 @@ impl ListItem {
 
     pub fn get_id(&self) -> Rc<Vec<String>> {
         self.full_path.clone()
+    }
+}
+
+
+impl PartialEq for ListItem {
+    fn eq(&self, other: &Self) -> bool {
+        self.full_path == other.full_path
+    }
+}
+
+impl Eq for ListItem {}
+
+impl PartialOrd for ListItem {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for ListItem {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.full_path.cmp(&other.full_path)
     }
 }
 

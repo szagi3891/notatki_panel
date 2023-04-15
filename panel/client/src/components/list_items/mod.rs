@@ -293,10 +293,10 @@ pub fn list_items_from_dir(data: &Data, dir: &Computed<Vec<String>>, mouse_over_
         let dir = dir.clone();
         move |context| {
             let dir = dir.get(context);
-            let current = data.items.dir_list(context, &dir);
+            let current = data.items.get_from_path(&dir).list.get(context);
 
             match current {
-                Resource::Ready(list) => list.get_list(context),
+                Resource::Ready(list) => list,
                 _ => {
                     return Vec::new();
                 }

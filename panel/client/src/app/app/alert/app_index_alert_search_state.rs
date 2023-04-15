@@ -47,15 +47,15 @@ fn push_list<F: Fn(&String) -> bool>(
     base: &Vec<String>,
     test_name: &F
 ) -> Resource<()> {
-    let list = data_state.items.dir_list(context, base.as_slice())?;
+    let list = data_state.items.get_from_path(base.as_slice()).list.get(context)?;
 
-    for item in list.get_list(context) {
+    for item in list.iter() {
         if test_name(&item.name()) {
-            result.push(item);
+            result.push(item.clone());
         }
     }
 
-    for item in list.get_list(context) {
+    for item in list {
         if item.is_dir.get(context) == ListItemType::Dir {
             push_list(context, data_state, result, &item.full_path, test_name)?;
         }

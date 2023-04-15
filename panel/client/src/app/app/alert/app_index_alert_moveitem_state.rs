@@ -132,8 +132,7 @@ fn render_list(state: &AppIndexAlertMoveitem) -> DomNode {
 
     fn list_calculate(context: &Context, alert: &AppIndexAlert, target: &Value<Vec<String>>) -> Resource<Vec<ListItem>> {
         let target = target.get(context);
-        let list = alert.data.items.dir_list(context, target.as_slice())?;
-        let list = list.get_list(context);
+        let list = alert.data.items.get_from_path(target.as_slice()).list.get(context)?;
 
         let mut out = Vec::new();
 
