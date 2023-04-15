@@ -16,6 +16,7 @@ use vertigo::{AutoMap, Resource, Context};
 
 #[derive(Clone, PartialEq)]
 pub struct AutoMapListItem {
+    git: Git,
     items: AutoMap<Rc<Vec<String>>, ListItem>,
 }
 
@@ -34,6 +35,7 @@ impl AutoMapListItem {
         });
 
         AutoMapListItem {
+            git: git.clone(),
             items
         }
     }
@@ -44,6 +46,15 @@ impl AutoMapListItem {
         let path = Rc::new(Vec::from(path));
 
         self.items.get(&path)
+    }
+
+    //TODO - tą metodę scalić docelowo z ListItem
+
+    pub fn dir_list(&self, context: &Context, path: &[String]) -> Resource<ViewDirList> {
+        let result = self.git.dir_list(context, path)?;
+
+        let base_dir = Rc::new(Vec::from(path));
+        Resource::Ready(ViewDirList::new(&self.git, base_dir, result))
     }
 }
 
@@ -63,7 +74,7 @@ impl Data {
 
         let items = AutoMapListItem::new(&git);
 
-        let tab = TabPath::new(&git, &items);
+        let tab = TabPath::new(&items);
 
 
         Data {
@@ -73,6 +84,7 @@ impl Data {
         }
     }
 
+    //TODO - docelowo scalić z ListItem
 
     pub fn get_content(&self, context: &Context, path: &[String]) -> Option<ContentView> {
         let item = self.items.get_from_path(path);
@@ -80,7 +92,6 @@ impl Data {
         let content_type = item.get_content_type(context);
 
         if let Resource::Ready(ContentType::Text { content }) = content_type {
-            // return Some(content.as_ref().clone());
             let Resource::Ready(id) = item.id.get(context) else {
                 return None;
             };

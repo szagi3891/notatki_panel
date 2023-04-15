@@ -47,7 +47,7 @@ fn push_list<F: Fn(&String) -> bool>(
     base: &Vec<String>,
     test_name: &F
 ) -> Resource<()> {
-    let list = data_state.git.dir_list(context, base.as_slice())?;
+    let list = data_state.items.dir_list(context, base.as_slice())?;
 
     for item in list.get_list(context) {
         if test_name(&item.name()) {

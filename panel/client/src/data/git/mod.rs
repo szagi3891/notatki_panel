@@ -76,7 +76,7 @@ impl Git {
         }
     }
 
-    pub fn dir_list(&self, context: &Context, path: &[String]) -> Resource<ViewDirList> {
+    pub fn dir_list(&self, context: &Context, path: &[String]) -> Resource<GitDirList> {
         let root_wsk = self.root.get_current_root(context)?;
 
         let mut result = self.dir.get_list(context, &root_wsk)?;
@@ -85,8 +85,7 @@ impl Git {
             result = move_pointer(context, self, result, path_item)?;
         }
 
-        let base_dir = Rc::new(Vec::from(path));
-        Resource::Ready(ViewDirList::new(self, base_dir, result))
+        Resource::Ready(result)
     }
 
     pub fn get_item(&self, context: &Context, base_dir: &[String], current_item: &String) -> Resource<Option<TreeItem>> {

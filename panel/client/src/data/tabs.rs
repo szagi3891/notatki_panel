@@ -2,17 +2,17 @@ use std::rc::Rc;
 
 use vertigo::{Resource, Computed, Context, transaction, Value, bind, bind_rc};
 use super::{
-    git::{Git, ListItem},
+    git::ListItem,
     open_links::OpenLinks,
     calculate_next_path::calculate_next_path, ViewDirList, ContentType, tabs_hash::Router, ListItemType, AutoMapListItem
 };
 
-fn create_list_hash_map(git: &Git, router: &Router) -> Computed<Resource<ViewDirList>> {
-    Computed::from(bind!(git, router, |context| -> Resource<ViewDirList> {
+fn create_list_hash_map(items: &AutoMapListItem, router: &Router) -> Computed<Resource<ViewDirList>> {
+    Computed::from(bind!(items, router, |context| -> Resource<ViewDirList> {
         let current_path_rc = router.get_dir(context);
         let current_path = current_path_rc.as_ref();
 
-        git.dir_list(context, current_path)
+        items.dir_list(context, current_path)
     }))
 }
 
@@ -120,12 +120,12 @@ pub struct TabPath {
 }
 
 impl TabPath {
-    pub fn new(git: &Git, items: &AutoMapListItem) -> TabPath {
+    pub fn new(items: &AutoMapListItem) -> TabPath {
         let router = Router::new();
 
         let todo_only = Value::new(false);
 
-        let dir_hash_map = create_list_hash_map(git, &router);
+        let dir_hash_map = create_list_hash_map(items, &router);
         let list = create_list(todo_only.clone(), &dir_hash_map);
 
 
