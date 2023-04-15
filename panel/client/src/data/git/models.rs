@@ -11,24 +11,6 @@ pub struct TreeItem {
     pub id: String,
 }
 
-
-#[derive(PartialEq, Eq, Clone, Debug)]
-pub struct GitDirList {
-    list: Rc<HashMap<String, TreeItem>>,
-}
-
-impl GitDirList {
-    pub fn new(list: Rc<HashMap<String, TreeItem>>) -> GitDirList {
-        GitDirList {
-            list
-        }
-    }
-
-    pub fn get(&self, current_item: &String) -> Option<&TreeItem> {
-        self.list.get(current_item)
-    }
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -70,11 +52,11 @@ impl PartialEq for ViewDirList {
 }
 
 impl ViewDirList {
-    pub fn new(git: &Git, base_dir: Rc<Vec<String>>, list: GitDirList) -> ViewDirList {
+    pub fn new(git: &Git, base_dir: Rc<Vec<String>>, list: Rc<HashMap<String, TreeItem>>) -> ViewDirList {
         ViewDirList {
             git: git.clone(),
             dir_path: base_dir,
-            list: list.list,
+            list: list,
         }
     }
 
@@ -107,10 +89,6 @@ impl ViewDirList {
         list_out
     }
 
-    pub fn get(&self, current_item: &String) -> Option<&TreeItem> {
-        self.list.get(current_item)
-    }
-
     pub fn len(&self) -> usize {
         self.list.len()
     }
@@ -140,33 +118,6 @@ pub enum ListItemType {
     File,
     Unknown,
 }
-
-/*
-    TODO - zmienić wewnętrzny stan ListItem na
-
-    pub base_dir: Rc<Vec<String>>,
-    name: Option<String>,
-
-    name na zewnątrz będzie wyliczane tak:
-
-        if None {
-            + dodanie log::error, ze odwolujemy sie do nazwy roota
-            return "root".into()
-        } else 
-            return Name
-        }
-
-
-
-        albo niech ListItem ma w środku ściezke i po sprawie
-
-            base_dir, bedzie mozna wyliczyc
-            nazwe elementu równiez
-
-
-    sprawdzić, czy do struktury da się przyczepić typ
-    ListItem::ListItemType
- */
 
 #[derive(Clone)]
 pub struct ListItem {

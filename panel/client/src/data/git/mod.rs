@@ -1,4 +1,4 @@
-use std::{rc::Rc};
+use std::{rc::Rc, collections::HashMap};
 use vertigo::{Resource, Context};
 mod node_dir;
 mod node_content;
@@ -11,14 +11,13 @@ pub use root::Root;
 
 pub use models::{
     ContentType,
-    GitDirList,
     TreeItem,
     ViewDirList,
     ListItem,
     ListItemType,
 };
 
-fn get_item_from_map<'a>(current_wsk: &'a GitDirList, path_item: &String) -> Resource<&'a TreeItem> {
+fn get_item_from_map<'a>(current_wsk: &'a Rc<HashMap<String, TreeItem>>, path_item: &String) -> Resource<&'a TreeItem> {
     let wsk_child = current_wsk.get(path_item);
 
     let wsk_child = match wsk_child {
@@ -31,7 +30,7 @@ fn get_item_from_map<'a>(current_wsk: &'a GitDirList, path_item: &String) -> Res
     Resource::Ready(wsk_child)
 }
 
-fn move_pointer(context: &Context, state_data: &Git, list: GitDirList, path_item: &String) -> Resource<GitDirList> {
+fn move_pointer(context: &Context, state_data: &Git, list: Rc<HashMap<String, TreeItem>>, path_item: &String) -> Resource<Rc<HashMap<String, TreeItem>>> {
 
     let child = get_item_from_map(&list, path_item)?;
 
@@ -76,7 +75,7 @@ impl Git {
         }
     }
 
-    pub fn dir_list(&self, context: &Context, path: &[String]) -> Resource<GitDirList> {
+    pub fn dir_list(&self, context: &Context, path: &[String]) -> Resource<Rc<HashMap<String, TreeItem>>> {
         let root_wsk = self.root.get_current_root(context)?;
 
         let mut result = self.dir.get_list(context, &root_wsk)?;
@@ -113,7 +112,7 @@ impl Git {
         self.get_item(context, path.as_slice(), &last)
     }
 
-    pub fn get_list(&self, context: &Context, id: &String) -> Resource<GitDirList> {
+    pub fn get_list(&self, context: &Context, id: &String) -> Resource<Rc<HashMap<String, TreeItem>>> {
         self.dir.get_list(context, id)
     }
 

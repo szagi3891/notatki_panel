@@ -6,9 +6,9 @@ use vertigo::{
     AutoMap, LazyCache, Context, RequestBuilder,
 };
 
-use super::models::{GitDirList, TreeItem};
+use super::models::{TreeItem};
 
-fn convert(list: Rc<HandlerFetchDirResponse>) -> GitDirList {
+fn convert(list: Rc<HandlerFetchDirResponse>) -> Rc<HashMap<String, TreeItem>> {
     let mut out: HashMap<String, TreeItem> = HashMap::new();
 
     for item in list.list.iter() {
@@ -19,13 +19,13 @@ fn convert(list: Rc<HandlerFetchDirResponse>) -> GitDirList {
         });
     }
 
-    GitDirList::new(Rc::new(out))
+    Rc::new(out)
 }
 
 #[derive(Clone)]
 struct NodeDir {
     _response: LazyCache<HandlerFetchDirResponse>,
-    list: Computed<Resource<GitDirList>>,
+    list: Computed<Resource<Rc<HashMap<String, TreeItem>>>>,
 }
 
 impl PartialEq for NodeDir {
@@ -61,11 +61,11 @@ impl NodeDir {
         }
     }
 
-    pub fn get(&self, context: &Context) -> Resource<GitDirList> {
+    pub fn get(&self, context: &Context) -> Resource<Rc<HashMap<String, TreeItem>>> {
         self.list.get(context)
     }
 
-    pub fn get_list(&self, context: &Context) -> Resource<GitDirList> {
+    pub fn get_list(&self, context: &Context) -> Resource<Rc<HashMap<String, TreeItem>>> {
         self.get(context).ref_clone()
     }
 }
@@ -84,7 +84,7 @@ impl Dir {
         }
     }
 
-    pub fn get_list(&self, context: &Context, id: &String) -> Resource<GitDirList> {
+    pub fn get_list(&self, context: &Context, id: &String) -> Resource<Rc<HashMap<String, TreeItem>>> {
         self.data.get(id).get_list(context)
     }
 }
