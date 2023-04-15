@@ -278,6 +278,8 @@ impl ListItem {
         get_list_item_prirority(&self.name())
     }
 
+    //TODO - zrobić z tego computed
+
     pub fn get_content_type(&self, context: &Context) -> Resource<ContentType> {
         let is_dir = self.is_dir.get(context);
 

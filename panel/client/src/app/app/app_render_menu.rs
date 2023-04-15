@@ -27,9 +27,9 @@ pub struct MenuComponent {
 impl MenuComponent {
     pub fn component(app: &App) -> DomNode {
         let is_current_content= Computed::from({
-            let current_content = app.data.tab.current_content.clone();
+            let tab = app.data.tab.clone();
             move |context| -> bool {
-                if let Resource::Ready(content) = current_content.get(context) {
+                if let Resource::Ready(content) = tab.current_list_item.get(context).get_content_type(context) {
                     match content {
                         ContentType::Dir { list } => list.len() == 0,
                         _ => true

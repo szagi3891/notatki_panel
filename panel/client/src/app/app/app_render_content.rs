@@ -136,7 +136,14 @@ fn render_dir(state: &App, dir: &Computed<Vec<String>>) -> DomNode {
 }
 
 pub fn render_content(state: &App) -> DomNode {
-    state.data.tab.current_content.render_value({
+    let current_content = Computed::from({
+        let current_list_item = state.data.tab.current_list_item.clone();
+        move |context| {
+            current_list_item.get(context).get_content_type(context)
+        }
+    });
+
+    current_content.render_value({
         let state = state.clone();
         move |current_content| {
 

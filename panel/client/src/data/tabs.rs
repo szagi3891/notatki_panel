@@ -75,17 +75,6 @@ fn create_current_full_path(
     }))
 }
 
-fn create_current_content(
-    items: &AutoMapListItem,
-    full_path: &Computed<Vec<String>>,
-) -> Computed<Resource<ContentType>> {
-    Computed::from(bind!(items, full_path, |context| -> Resource<ContentType> {
-        let list_item = items.get_from_path(full_path.get(context).as_ref());
-
-        list_item.get_content_type(context)
-    }))
-}
-
 
 #[derive(Clone, PartialEq)]
 pub struct TabPath {
@@ -112,8 +101,8 @@ pub struct TabPath {
     /// Suma "dir" + "current_item". Wskazuje na wybrany element do wyświetlenia w prawym panelu
     pub full_path: Computed<Vec<String>>,
 
-    /// Aktualnie wyliczony wybrany content wskazywany przez full_path
-    pub current_content: Computed<Resource<ContentType>>,
+    /// Aktualnie wyliczony wybrany ListItem wskazywany przez full_path
+    pub current_list_item: Computed<ListItem>,
 
     //Otworzone zakładki z podględem do zewnętrznych linków
     pub open_links: OpenLinks,
@@ -138,10 +127,10 @@ impl TabPath {
             &current_item,
         );
 
-        let current_content = create_current_content(
-            items,
-            &full_path,
-        );
+        let current_list_item = full_path.map({
+            let items = items.clone();
+            move |full_path| items.get_from_path(&full_path)
+        });
 
         let open_links = OpenLinks::new();
 
@@ -158,7 +147,7 @@ impl TabPath {
             list,
             current_item,
             full_path,
-            current_content,
+            current_list_item,
             open_links,
         }
     }
@@ -318,7 +307,7 @@ impl TabPath {
     pub fn pointer_enter(&self) {
         transaction(|context| {
             if let Some(current_item) = self.current_item.get(context).as_ref() {
-                let content = self.current_content.get(context);
+                let content = self.current_list_item.get(context).get_content_type(context);
 
                 if let Resource::Ready(ContentType::Dir { .. }) = content {
                     let mut current = self.router.get_dir(context);
