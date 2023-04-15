@@ -168,6 +168,8 @@ impl TabPath {
         //kazdy z katalogow dociagal bedzie dodatkowa informacje o ilosci elementów w środku które posiadają todosu
         //przycisk w menu, będzie reagował na flagę todo_only
 
+        //TODO - transaction - zminimalizować ilość tranzakcji, na rzecz renderowania przycisków
+
         TabPath {
             todo_only,
             router,

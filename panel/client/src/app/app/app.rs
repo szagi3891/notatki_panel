@@ -1,8 +1,8 @@
 use std::rc::Rc;
 
-use vertigo::{Resource, get_driver, transaction, dom, bind, DomNode};
+use vertigo::{Resource, get_driver, transaction, dom, bind, DomNode, Computed};
 use vertigo::Value;
-use crate::components::{message_box, MessageBoxType, stict_to_top};
+use crate::components::{message_box, MessageBoxType, stict_to_top, ButtonState};
 use crate::data::Data;
 
 use crate::app::edit_content::AppEditcontent;
@@ -78,35 +78,6 @@ impl App {
         });
     }
 
-    pub fn redirect_to_rename_item(&self, base_path: &Vec<String>, select_item: &String) {
-        log::info!("base_path {base_path:?} {select_item}");
-
-        transaction(|context| {
-            let select_item = select_item.clone();
-            let full_path = self.data.tab.full_path.clone().get(context);
-            let list_item = self.data.items.get_from_path(&full_path);
-
-            log::info!("redirect_to_rename_item {base_path:?} {select_item:?}");
-
-            let id = list_item.id.get(context);
-
-            if let Resource::Ready(id) = id {
-                let state = AppRenameitem::new(
-                    self,
-                    base_path.clone(),
-                    select_item,
-                    id,
-                );
-
-                self.view.set(View::RenameItem {
-                    state
-                });
-            } else {
-                log::error!("event ignore");
-            }
-        });
-    }
-
     pub fn redirect_to_index(&self) {
         log::info!("redirect_to_index");
         self.view.set(View::Index);
@@ -142,17 +113,42 @@ impl App {
         self.redirect_to_edit_content(&full_path);
     }
 
-    pub fn current_rename(&self) {
-        transaction(|context| {
-            let path = self.data.tab.router.get_dir(context);
-            let select_item = self.data.tab.current_item.get(context);
+    pub fn render_current_rename(&self) -> DomNode {
+        ButtonState::render({    
+            Computed::from({                
+                let app = self.clone();
 
-            if let Some(select_item) = select_item.as_ref() {
-                self.redirect_to_rename_item(&path, select_item);
-            } else {
-                log::error!("current_rename fail");
-            }
-        });
+                move |context| {
+                    let path = app.data.tab.select_dir.get(context).full_path.clone();
+
+                    let Some(current_list_item) = app.data.tab.current_list_item.get(context) else {
+                        return ButtonState::disabled("Zmień nazwę");
+                    };
+                    let select_item = current_list_item.name();
+
+                    let Resource::Ready(id) = current_list_item.id.get(context) else {
+                        return ButtonState::disabled("Zmień nazwę");
+                    };
+        
+                    ButtonState::active("Zmień nazwę", bind!(app, path, select_item, || {
+                        let base_path = path.as_ref().clone();
+            
+                        log::info!("redirect_to_rename_item {base_path:?} {select_item:?}");
+            
+                        let state = AppRenameitem::new(
+                            &app,
+                            base_path.clone(),
+                            select_item.clone(),
+                            id.clone(),
+                        );
+        
+                        app.view.set(View::RenameItem {
+                            state
+                        });
+                    }))
+                }
+            })
+        })
     }
 
     fn message_add(&self, info: MessageBoxType, message: String) -> u32 {
