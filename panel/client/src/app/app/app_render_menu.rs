@@ -32,7 +32,14 @@ impl MenuComponent {
                 if let Some(select_content) = tab.select_content.get(context) {
                     if let Resource::Ready(content) = select_content.get_content_type(context) {
                         return match content {
-                            ContentType::Dir { list } => list.len() == 0,
+                            ContentType::Dir { item } => {
+                                let len = match item.list.get(context) {
+                                    Resource::Ready(list) => list.len(),
+                                    _ => 0,
+                                };
+
+                                len == 0
+                            },
                             _ => true
                         };
                     }

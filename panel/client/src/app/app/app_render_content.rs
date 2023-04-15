@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use vertigo::{Css, css, bind, Resource, dom, Computed, DomNode};
+use vertigo::{Css, css, bind, Resource, dom, Computed, DomNode, Value};
 
 use crate::app::App;
 use crate::components::list_items_from_dir;
@@ -125,8 +125,9 @@ fn render_content_text(state: &App, content: Rc<String>) -> DomNode {
     )
 }
 
-fn render_dir(state: &App, dir: &Computed<Vec<String>>) -> DomNode {
-    let result = list_items_from_dir(&state.data, dir, false);
+fn render_dir(state: &App, dir: &Vec<String>) -> DomNode {
+    let dir = Value::new(dir.clone()).to_computed();
+    let result = list_items_from_dir(&state.data, &dir, false);
 
     dom! {
         <div css={css_content_dir()}>
@@ -184,12 +185,8 @@ pub fn render_content(state: &App) -> DomNode {
                                 </div>
                             }
                         },
-                        ContentType::Dir { list } => {
-                            let list = Computed::from(move |_| {
-                                list.dir_path().as_ref().clone()
-                            });
-
-                            render_dir(&state, &list)
+                        ContentType::Dir { item } => {
+                            render_dir(&state, &item.full_path)
                         },
                     }
                 },

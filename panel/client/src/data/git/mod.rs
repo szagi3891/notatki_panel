@@ -12,7 +12,6 @@ pub use root::Root;
 pub use models::{
     ContentType,
     TreeItem,
-    ViewDirList,
     ListItem,
     ListItemType,
 };

@@ -1,4 +1,4 @@
-use std::{collections::HashMap, rc::Rc};
+use std::{rc::Rc};
 use std::cmp::Ordering;
 
 use vertigo::{Resource, Context, Computed, bind, AutoMap};
@@ -34,47 +34,12 @@ fn extract() {
     assert_eq!(get_ext(&name2), Some("txt".to_string()));
 }
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-#[derive(Clone)]
-pub struct ViewDirList {
-    dir_path: Rc<Vec<String>>,
-    list: Rc<HashMap<String, TreeItem>>,
-}
-
-impl PartialEq for ViewDirList {
-    fn eq(&self, other: &Self) -> bool {
-        self.dir_path == other.dir_path && self.list == other.list
-    }
-}
-
-impl ViewDirList {
-    #[deprecated]
-    pub fn new(base_dir: Rc<Vec<String>>, list: Rc<HashMap<String, TreeItem>>) -> ViewDirList {
-        ViewDirList {
-            dir_path: base_dir,
-            list,
-        }
-    }
-
-    #[deprecated]
-    pub fn len(&self) -> usize {
-        self.list.len()
-    }
-
-    #[deprecated]
-    pub fn dir_path(&self) -> Rc<Vec<String>> {
-        self.dir_path.clone()
-    }
-}
-
 
 #[derive(Clone, PartialEq)]
 pub enum ContentType {
     Dir {
-        list: ViewDirList
+        item: ListItem,
     },
     Text {
         content: Rc<String>,
@@ -246,17 +211,8 @@ impl ListItem {
         let is_dir = self.is_dir.get(context);
 
         if is_dir == ListItemType::Dir {
-            let id = self.id.get(context)?;
-
-            let list = self.git.get_list(context, &id)?;
-
-            let dir_list = ViewDirList::new(
-                self.full_path.clone(),
-                list,
-            );
-
             return Resource::Ready(ContentType::Dir {
-                list: dir_list
+                item: self.clone(),
             });
         }
 
