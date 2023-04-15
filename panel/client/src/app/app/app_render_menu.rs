@@ -54,7 +54,7 @@ impl MenuComponent {
 fn render_menu(state: &MenuComponent) -> DomNode {
     let button_edit_file = render_button_edit_file(state);
     let button_create_file = render_button_create_file(state);
-    let button_rename_name = render_button_rename_name(state);
+    let button_rename_name = state.app.render_current_rename();
     let button_make_dir = render_button_make_dir(state);
     let button_delete = render_button_on_delete(state);
     let button_search = render_button_search(state);
@@ -171,11 +171,6 @@ fn render_button_create_file(state: &MenuComponent) -> DomNode {
             ButtonState::active("Utwórz plik", on_click)
         })
     })
-}
-
-#[deprecated]
-fn render_button_rename_name(state: &MenuComponent) -> DomNode {
-    state.app.render_current_rename()
 }
 
 fn render_button_make_dir(state: &MenuComponent) -> DomNode {

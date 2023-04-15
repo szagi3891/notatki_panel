@@ -1,7 +1,7 @@
 use std::{collections::HashMap, rc::Rc};
 use std::cmp::Ordering;
 
-use vertigo::{Resource, Context, Computed, bind};
+use vertigo::{Resource, Context, Computed, bind, AutoMap};
 
 use super::Git;
 
@@ -40,7 +40,6 @@ fn extract() {
 
 #[derive(Clone)]
 pub struct ViewDirList {
-    git: Git,
     dir_path: Rc<Vec<String>>,
     list: Rc<HashMap<String, TreeItem>>,
 }
@@ -53,42 +52,11 @@ impl PartialEq for ViewDirList {
 
 impl ViewDirList {
     #[deprecated]
-    pub fn new(git: &Git, base_dir: Rc<Vec<String>>, list: Rc<HashMap<String, TreeItem>>) -> ViewDirList {
+    pub fn new(base_dir: Rc<Vec<String>>, list: Rc<HashMap<String, TreeItem>>) -> ViewDirList {
         ViewDirList {
-            git: git.clone(),
             dir_path: base_dir,
-            list: list,
+            list,
         }
-    }
-
-    #[deprecated]
-    pub fn get_list(&self, context: &Context) -> Vec<ListItem> {
-        let mut list_out: Vec<ListItem> = Vec::new();
-
-        for name in self.list.keys() {
-            list_out.push(ListItem::new(
-                self.git.clone(),
-                self.dir_path.clone(),
-                name.clone(),
-            ));
-        }
-
-        list_out.sort_by(|a: &ListItem, b: &ListItem| -> Ordering {
-            let a_prirority = a.prirority_for_sort(context);
-            let b_prirority = b.prirority_for_sort(context);
-
-            if a_prirority > b_prirority {
-                return Ordering::Less;
-            }
-
-            if a_prirority < b_prirority {
-                return Ordering::Greater;
-            }
-
-            a.name().to_lowercase().cmp(&b.name().to_lowercase())
-        });
-
-        list_out
     }
 
     #[deprecated]
@@ -125,6 +93,7 @@ pub enum ListItemType {
 
 #[derive(Clone)]
 pub struct ListItem {
+    auto_map: AutoMap<Rc<Vec<String>>, ListItem>,
     git: Git,
 
     pub full_path: Rc<Vec<String>>,
@@ -161,7 +130,7 @@ pub struct ListItem {
 */
 
 impl ListItem {
-    pub fn new_full(git: Git, full_path: Rc<Vec<String>>) -> Self {
+    pub fn new_full(auto_map: &AutoMap<Rc<Vec<String>>, ListItem>, git: Git, full_path: Rc<Vec<String>>) -> Self {
         let is_dir = Computed::from(bind!(git, full_path, |context| -> ListItemType {
             let content = git.get_item_from_path(context, &full_path);
             
@@ -186,6 +155,7 @@ impl ListItem {
         }));
 
         let list = Computed::from({
+            let auto_map = auto_map.clone();
             let git = git.clone();
             let dir_path = full_path.clone();
 
@@ -195,11 +165,12 @@ impl ListItem {
                 let mut list_out: Vec<ListItem> = Vec::new();
 
                 for name in list.keys() {
-                    list_out.push(ListItem::new(
-                        git.clone(),
-                        dir_path.clone(),
-                        name.clone(),
-                    ));
+                    let mut dir_path = dir_path.as_ref().clone();
+                    dir_path.push(name.clone());
+
+                    let item = auto_map.get(&Rc::new(dir_path));
+
+                    list_out.push(item);
                 }
 
                 list_out.sort_by(|a: &ListItem, b: &ListItem| -> Ordering {
@@ -222,6 +193,7 @@ impl ListItem {
         });
 
         Self {
+            auto_map: auto_map.clone(),
             git,
 
             full_path,
@@ -231,16 +203,6 @@ impl ListItem {
             list,
         }
     }
-
-    #[deprecated]
-    pub fn new(git: Git, base_dir: Rc<Vec<String>>, name: String) -> Self {
-
-        let mut full_path = base_dir.as_ref().clone();
-        full_path.push(name);
-
-        Self::new_full(git, Rc::new(full_path))
-    }
-
 
     //TODO - dodać jakiesz keszowanie na nazwę pliku ?
 
@@ -289,7 +251,6 @@ impl ListItem {
             let list = self.git.get_list(context, &id)?;
 
             let dir_list = ViewDirList::new(
-                &self.git,
                 self.full_path.clone(),
                 list,
             );
@@ -361,8 +322,22 @@ impl ListItem {
         prirority
     }
 
-    pub fn get_id(&self) -> Rc<Vec<String>> {
-        self.full_path.clone()
+    fn get_from_path(&self, path: &[String]) -> ListItem {
+        let path = Rc::new(Vec::from(path));
+
+        self.auto_map.get(&path)
+    }
+
+    pub fn back(&self) -> Option<ListItem> {
+        let mut full_path = self.full_path.as_ref().clone();
+
+        let last = full_path.pop();
+
+        if last.is_some() {
+            return Some(self.get_from_path(&full_path));
+        }
+
+        None
     }
 }
 

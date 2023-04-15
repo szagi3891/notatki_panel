@@ -26,11 +26,11 @@ impl AutoMapListItem {
             let git = git.clone();
 
             move |
-                _auto_map: &AutoMap<Rc<Vec<String>>, ListItem>,
+                auto_map: &AutoMap<Rc<Vec<String>>, ListItem>,
                 full_path: &Rc<Vec<String>>,
             | -> ListItem {
 
-                ListItem::new_full(git.clone(), full_path.clone())
+                ListItem::new_full(auto_map, git.clone(), full_path.clone())
             }
         });
 
@@ -46,16 +46,6 @@ impl AutoMapListItem {
         let path = Rc::new(Vec::from(path));
 
         self.items.get(&path)
-    }
-
-    //TODO - tą metodę scalić docelowo z ListItem
-
-    #[deprecated]
-    pub fn dir_list(&self, context: &Context, path: &[String]) -> Resource<ViewDirList> {
-        let result = self.git.dir_list(context, path)?;
-
-        let base_dir = Rc::new(Vec::from(path));
-        Resource::Ready(ViewDirList::new(&self.git, base_dir, result))
     }
 }
 

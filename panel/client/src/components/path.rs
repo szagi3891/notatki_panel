@@ -6,6 +6,8 @@ use vertigo::{
 };
 use vertigo::{css};
 
+use crate::data::ListItem;
+
 fn css_header() -> Css {
     css!("
         flex-shrink: 0;
@@ -73,9 +75,16 @@ fn create_link(
     }
 }
 
-pub fn render_path(path: &Computed<Vec<String>>, on_click: impl Fn(Vec<String>) + 'static) -> DomNode {
-    let path = path.clone();
+pub fn render_path(path: &Computed<ListItem>, on_click: impl Fn(Vec<String>) + 'static) -> DomNode {
     let on_click = Rc::new(on_click);
+
+    let path = Computed::from({
+        let path = path.clone();
+        move |context| {
+            let path = path.get(context);
+            path.full_path.as_ref().clone()
+        }
+    });
 
     path.render_value({
         move |current_path| {

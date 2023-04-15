@@ -9,9 +9,10 @@ use super::AppIndexAlert;
 pub struct AppIndexAlertMoveitem {
     pub app: App,
     alert: AppIndexAlert,
-    path: Vec<String>,                  //pełna ściezka do przenoszonego elementu
-    hash: String,                       //hash przenoszonego elementu
-    target: Value<Vec<String>>,         //nowy katalog do którego będziemy przenosić ten element
+    //TODO - zamienić nazwę na from
+    path: Value<ListItem>,                              //pełna ściezka do przenoszonego elementu
+    hash: String,                                       //hash przenoszonego elementu
+    target: Value<ListItem>, //Vec<String>>,            //nowy katalog do którego będziemy przenosić ten element
     progress: Value<bool>,
 }
 
@@ -21,33 +22,38 @@ impl AppIndexAlertMoveitem {
         let mut target = path.clone();
         target.pop();
 
-        let target = Value::new(target);
+        let path = app.data.items.get_from_path(&path);
+        let target = app.data.items.get_from_path(&target);
+
         AppIndexAlertMoveitem {
             app: app.clone(),
             alert: alert.clone(),
-            path,
+            path: Value::new(path),
             hash,
-            target,
+            target: Value::new(target),
             progress: Value::new(false),
         }
     }
 
     fn prepare_new_path(&self) -> Option<Vec<String>> {
-        let mut path = self.path.clone();
-        let mut target = transaction(|context| {
-            self.target.clone().get(context)
-        });
+        let self_clone = self.clone();
 
-        let last = match path.pop() {
-            Some(last) => last,
-            None => {
-                return None;
-            }
-        };
+        transaction(|context| {
+            let mut path = self_clone.path.get(context).full_path.as_ref().clone();
+            let mut target = self_clone.target.clone().get(context).full_path.as_ref().clone();
+    
+            let last = match path.pop() {
+                Some(last) => last,
+                None => {
+                    return None;
+                }
+            };
+    
+            target.push(last);
+    
+            Some(target)
+        })
 
-        target.push(last);
-
-        Some(target)
     }
 
     async fn on_save(&self) -> Result<(), String> {
@@ -58,8 +64,12 @@ impl AppIndexAlertMoveitem {
             }
         };
 
+        let path = transaction(|context| {
+            self.path.get(context).full_path.as_ref().clone()
+        });
+
         let body: HandlerMoveItemBody = HandlerMoveItemBody {
-            path: self.path.clone(),
+            path,
             hash: self.hash.clone(),
             new_path,
         };
@@ -86,7 +96,9 @@ fn render_target(state: &AppIndexAlertMoveitem) -> DomNode {
         ")
     }
     let on_click_path = bind!(state, |node_id: Vec<String>| {
-        state.target.set(node_id);
+        let new_target = state.app.data.items.get_from_path(&node_id);
+
+        state.target.set(new_target);
     });
     
     let target_path = render_path(&state.target.to_computed(), on_click_path);
@@ -100,8 +112,14 @@ fn render_target(state: &AppIndexAlertMoveitem) -> DomNode {
 
 fn render_back(state: &AppIndexAlertMoveitem) -> DomNode {
     let state = state.clone();
-    let target_is_empty = state.target.to_computed().map(|target| {
-        target.is_empty()
+
+    let target_is_empty = Computed::from({
+        let target = state.target.clone();
+
+        move |context| {
+            let target = target.get(context);
+            target.full_path.is_empty()
+        }
     });
 
     target_is_empty.render_value_option(move |is_empty| {
@@ -111,8 +129,12 @@ fn render_back(state: &AppIndexAlertMoveitem) -> DomNode {
                 let target = &state.target;
 
                 let on_click = bind!(target, || {
-                    target.change(|inner| {
-                        inner.pop();
+                    transaction(|context| {                        
+                        if let Some(dir) = target.get(context).back() {
+                            target.set(dir);
+                        } else {
+                            log::error!("render_back ignore");
+                        }
                     });
                 });
                 
@@ -130,9 +152,9 @@ fn render_list(state: &AppIndexAlertMoveitem) -> DomNode {
         ")
     }
 
-    fn list_calculate(context: &Context, alert: &AppIndexAlert, target: &Value<Vec<String>>) -> Resource<Vec<ListItem>> {
+    fn list_calculate(context: &Context, target: &Value<ListItem>) -> Resource<Vec<ListItem>> {
         let target = target.get(context);
-        let list = alert.data.items.get_from_path(target.as_slice()).list.get(context)?;
+        let list = target.list.get(context)?;
 
         let mut out = Vec::new();
 
@@ -146,11 +168,10 @@ fn render_list(state: &AppIndexAlertMoveitem) -> DomNode {
     }
 
     let data = state.alert.data.clone();
-    let alert = state.alert.clone();
     let target = state.target.clone();
     let list = Computed::from({
         let target = target.clone();
-        move |context| list_calculate(context, &alert, &target)
+        move |context| list_calculate(context, &target)
     });
 
 
@@ -175,9 +196,7 @@ fn render_list(state: &AppIndexAlertMoveitem) -> DomNode {
                             bind_rc!(target, item, || {
                                 log::info!("kliknięto w element {name}", name = item.name());
     
-                                target.change(|inner| {
-                                    inner.push(item.name());    
-                                });
+                                target.set(item.clone());
                             })
                         }));
 
@@ -211,12 +230,12 @@ fn render_button_yes(state: &AppIndexAlertMoveitem) -> DomNode {
     let state = state.clone();
 
     ButtonState::render(Computed::from(move |context| {
-        let mut path = state.path.clone();
-        path.pop();
+        let path = state.path.get(context);
+        let path = path.back();
 
         let target = state.target.get(context);
 
-        if path == target {
+        if path == Some(target) {
             return ButtonState::Disabled { label: "Tak".into() };
         }
 
@@ -273,8 +292,16 @@ fn render_button_no(state: &AppIndexAlertMoveitem) -> DomNode {
     }))
 }
 
-fn render_message(state: &AppIndexAlertMoveitem) -> DomNode {
-    let message = format!("Przenoszenie -> {} ?", state.path.join("/"));
+fn render_message(state: &AppIndexAlertMoveitem) -> DomNode {    
+    let message = Computed::from({
+        let path = state.path.clone();
+
+        move |context| {
+            let path = path.get(context);
+            let path = path.full_path.as_ref().join("/");
+            format!("Przenoszenie -> {path} ?")
+        }
+    });
 
     dom! {
         <div>

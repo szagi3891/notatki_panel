@@ -63,7 +63,7 @@ pub fn app_index_render(app: &App) -> DomNode {
         data.tab.set_path(node_id);
     });
     
-    let view_header = render_path(&app.data.tab.router.path, on_click_path);
+    let view_header = render_path(&app.data.tab.select_dir, on_click_path);
 
     let view_list = render_list(app);
     let view_content = render_content(app);

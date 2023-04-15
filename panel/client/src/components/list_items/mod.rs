@@ -268,7 +268,7 @@ pub fn list_items_from_vec(data: &Data, list: Computed<Vec<ListItem>>, mouse_ove
     });
 
     list_sorted.render_list(
-        |(_, item)| item.get_id(),
+        |(_, item)| item.full_path.clone(),
         {
             let data = data.clone();
             move |(picture, item)| {
