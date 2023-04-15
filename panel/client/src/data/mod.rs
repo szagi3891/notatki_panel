@@ -1,4 +1,3 @@
-use std::cmp::Ordering;
 use std::rc::Rc;
 
 use self::{git::Git, tabs::TabPath};

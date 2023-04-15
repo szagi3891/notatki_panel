@@ -79,19 +79,16 @@ fn create_current_full_path(
 #[derive(Clone, PartialEq)]
 pub struct TabPath {
 
-    /// Bazowy katalog który został wybrany
-    // pub dir_select: Value<Vec<String>>,
-
-    /// Wybrany element z listy
-    /// Ta zmienna nie powinna być bezpośrednio modyfikowana z zewnątrz
-    // item_select: Value<Option<String>>,
-
     pub router: Router,
 
     pub todo_only: Value<bool>,
 
     /// Aktualnie wyliczona lista, która jest prezentowana w lewej kolumnie menu
+    #[deprecated]
     pub list: Computed<Vec<ListItem>>,
+
+    /// Wybrany katalog
+    pub select_dir: Computed<ListItem>,
 
 
     /// Wybrany element z listy (dla widoku)
@@ -99,6 +96,7 @@ pub struct TabPath {
     pub current_item: Computed<Option<String>>,
 
     /// Suma "dir" + "current_item". Wskazuje na wybrany element do wyświetlenia w prawym panelu
+    #[deprecated]
     pub full_path: Computed<Vec<String>>,
 
     /// Aktualnie wyliczony wybrany ListItem wskazywany przez full_path
@@ -113,6 +111,16 @@ impl TabPath {
         let router = Router::new();
 
         let todo_only = Value::new(false);
+
+        let select_dir = Computed::from({
+            let router = router.clone();
+            let items = items.clone();
+
+            move |context| {
+                let dir = router.get_dir(context);
+                items.get_from_path(&dir)
+            }
+        });
 
         let dir_hash_map = create_list_hash_map(items, &router);
         let list = create_list(todo_only.clone(), &dir_hash_map);
@@ -142,6 +150,7 @@ impl TabPath {
         TabPath {
             todo_only,
             router,
+            select_dir,
             // dir_select: dir_select.clone(),
             // item_select,
             list,
