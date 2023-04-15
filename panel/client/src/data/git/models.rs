@@ -172,16 +172,9 @@ pub enum ListItemType {
 pub struct ListItem {
     git: Git,
 
-    //zmienne adresujące treść, one są stałę 
-    //TODO - pozbyć się tych zmiennych na rzecz zmiennej full_path
-    // base_dir: Rc<Vec<String>>,
-    // name: String,
-
     pub full_path: Rc<Vec<String>>,
 
     pub is_dir: Computed<ListItemType>,
-    //TODO - to przerobić na prywatne, dorobic nową metodę is_dir() -> bool oraz is_file()
-    
     pub id: Computed<Resource<String>>,     //hash tego elementu
 }
 
