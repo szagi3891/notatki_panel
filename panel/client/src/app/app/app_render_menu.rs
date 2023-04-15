@@ -29,14 +29,16 @@ impl MenuComponent {
         let is_current_content= Computed::from({
             let tab = app.data.tab.clone();
             move |context| -> bool {
-                if let Resource::Ready(content) = tab.current_list_item.get(context).get_content_type(context) {
-                    match content {
-                        ContentType::Dir { list } => list.len() == 0,
-                        _ => true
+                if let Some(current_list_item) = tab.current_list_item.get(context) {
+                    if let Resource::Ready(content) = current_list_item.get_content_type(context) {
+                        return match content {
+                            ContentType::Dir { list } => list.len() == 0,
+                            _ => true
+                        };
                     }
-                } else {
-                    false
                 }
+
+                false
             }
         });
 

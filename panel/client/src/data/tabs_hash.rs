@@ -32,6 +32,8 @@ impl ToString for RouterValue {
 #[derive(Clone, PartialEq)]
 pub struct Router {
     route: HashRouter<RouterValue>,
+
+    #[deprecated]
     pub path: Computed<Vec<String>>,
 
     ///Element nad którym znajduje się hover

@@ -100,7 +100,7 @@ pub struct TabPath {
     pub full_path: Computed<Vec<String>>,
 
     /// Aktualnie wyliczony wybrany ListItem wskazywany przez full_path
-    pub current_list_item: Computed<ListItem>,
+    pub current_list_item: Computed<Option<ListItem>>,
 
     //Otworzone zakładki z podględem do zewnętrznych linków
     pub open_links: OpenLinks,
@@ -137,7 +137,37 @@ impl TabPath {
 
         let current_list_item = full_path.map({
             let items = items.clone();
-            move |full_path| items.get_from_path(&full_path)
+            move |full_path| Some(items.get_from_path(&full_path))
+        });
+
+        let current_list_item2 = Computed::from({
+            let select_dir = select_dir.clone();
+            let router = router.clone();
+            let items = items.clone();
+
+            move |context| -> Option<ListItem> {
+
+                let mut path = router.get_dir(context);
+
+                let current_item = router.get_item(context);
+
+                if let Some(current_item) = current_item.as_ref() {
+                    path.push(current_item.clone());
+                    return Some(items.get_from_path(&path));
+                }
+        
+                let list = select_dir.get(context).list.get(context);
+
+                if let Resource::Ready(list) = list {
+                    if let Some(first) = list.first() {
+                        let name = first.name();
+                        path.push(name);
+                        return Some(items.get_from_path(&path));
+                    }
+                }
+
+                None
+            }
         });
 
         let open_links = OpenLinks::new();
@@ -316,12 +346,15 @@ impl TabPath {
     pub fn pointer_enter(&self) {
         transaction(|context| {
             if let Some(current_item) = self.current_item.get(context).as_ref() {
-                let content = self.current_list_item.get(context).get_content_type(context);
 
-                if let Resource::Ready(ContentType::Dir { .. }) = content {
-                    let mut current = self.router.get_dir(context);
-                    current.push(current_item.clone());
-                    self.set_path(current);
+                if let Some(current_item) = self.current_list_item.get(context) {
+                    let content = current_item.get_content_type(context);
+
+                    if let Resource::Ready(ContentType::Dir { .. }) = content {
+                        let mut current = self.router.get_dir(context);
+                        current.push(current_item.name());
+                        self.set_path(current);
+                    }    
                 }
             }
         });
