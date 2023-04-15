@@ -123,14 +123,13 @@ pub fn item_default(data: &Data, item: &ListItem, on_click: Computed<Rc<dyn Fn()
         let data = data.clone();
         let item = item.clone();
         move |context| {
-            let current_item = data.tab.current_item.get(context);
+            let Some(current_item) = data.tab.current_list_item.get(context) else {
+                return css!("");
+            };
+
             let current_hover = data.tab.router.item_hover.get(context);
 
-            let is_select = if let Some(list_pointer) = &current_item {
-                item.name() == *list_pointer
-            } else {
-                false
-            };
+            let is_select = item.name() == current_item.name();
 
             let is_hover = if let Some(hover) = &current_hover {
                 *hover == item.name()
