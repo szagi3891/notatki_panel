@@ -80,7 +80,7 @@ fn render_textarea(state: &AppRenameitem) -> DomNode {
         let mut full_path = state.path.clone();
         full_path.push(state.prev_name.clone());
 
-        state.app.data.git.get_content(contetx, &full_path)
+        state.app.data.get_content(contetx, &full_path)
     });
 
     let render = content_computed.render_value_option(|content_inner| {

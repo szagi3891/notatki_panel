@@ -44,7 +44,7 @@ impl AppEditcontent {
             Computed::from(move |context| -> bool {
                 let edit_content = edit_content.get(context);
                 if let Some(edit_content) = edit_content {
-                    if let Some(ContentView { id: _, content }) = data.git.get_content(context, &path) {
+                    if let Some(ContentView { id: _, content }) = data.get_content(context, &path) {
                         return edit_content != *content;
                     }
                 }
@@ -72,7 +72,7 @@ impl AppEditcontent {
 
                 println!("ładowanie danych {path:?}");
 
-                if let Some(ContentView { id, content }) = data.git.get_content(context, &path) {
+                if let Some(ContentView { id, content }) = data.get_content(context, &path) {
                     let content = (*content).clone();
 
                     return Some(EditContent {
