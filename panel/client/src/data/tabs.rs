@@ -86,11 +86,6 @@ pub struct TabPath {
     /// Wybrany katalog
     pub select_dir: Computed<ListItem>,
 
-    /// Wybrany element z listy (dla widoku)
-    /// Jeśli w zmiennej "item" znajduje się None, to brany jest pierwszy element z "list"
-    #[deprecated]
-    pub current_item: Computed<Option<String>>,
-
     /// Suma "dir" + "current_item". Wskazuje na wybrany element do wyświetlenia w prawym panelu
     #[deprecated]
     pub full_path: Computed<Vec<String>>,
@@ -174,7 +169,6 @@ impl TabPath {
             todo_only,
             router,
             select_dir,
-            current_item,
             full_path,
             current_list_item,
             open_links,
@@ -305,10 +299,8 @@ impl TabPath {
 
     pub fn pointer_up(&self) {
         transaction(|context| {
-            let list_pointer_rc = self.current_item.get(context);
-
-            if let Some(list_pointer) = list_pointer_rc.as_ref() {
-                if let Some(index) = self.find(context, list_pointer) {
+            if let Some(current_item) = self.current_list_item.get(context) {
+                if let Some(index) = self.find(context, &current_item.name()) {
                     if !self.try_set_pointer_to(context, index - 1) {
                         self.try_set_pointer_to_end(context);
                     }
@@ -321,10 +313,8 @@ impl TabPath {
 
     pub fn pointer_down(&self) {
         transaction(|context| {
-            let list_pointer_rc = self.current_item.get(context);
-
-            if let Some(list_pointer) = list_pointer_rc.as_ref() {
-                if let Some(index) = self.find(context, list_pointer) {
+            if let Some(current_item) = self.current_list_item.get(context) {
+                if let Some(index) = self.find(context, &current_item.name()) {
                     if !self.try_set_pointer_to(context, index + 1) {
                         self.try_set_pointer_to(context, 0);
                     }
@@ -341,17 +331,14 @@ impl TabPath {
 
     pub fn pointer_enter(&self) {
         transaction(|context| {
-            if let Some(current_item) = self.current_item.get(context).as_ref() {
+            if let Some(current_item) = self.current_list_item.get(context) {
+                let content = current_item.get_content_type(context);
 
-                if let Some(current_item) = self.current_list_item.get(context) {
-                    let content = current_item.get_content_type(context);
-
-                    if let Resource::Ready(ContentType::Dir { .. }) = content {
-                        let mut current = self.router.get_dir(context);
-                        current.push(current_item.name());
-                        self.set_path(current);
-                    }    
-                }
+                if let Resource::Ready(ContentType::Dir { .. }) = content {
+                    let mut current = self.router.get_dir(context);
+                    current.push(current_item.name());
+                    self.set_path(current);
+                }    
             }
         });
     }

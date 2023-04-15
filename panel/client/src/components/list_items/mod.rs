@@ -145,9 +145,8 @@ pub fn item_default(data: &Data, item: &ListItem, on_click: Computed<Rc<dyn Fn()
         let data = data.clone();
         let item = item.clone();
         move |context| {
-            let current_item = data.tab.current_item.get(context);
-            if let Some(list_pointer) = &current_item {
-                item.name() == *list_pointer
+            if let Some(current_item) = data.tab.current_list_item.get(context) {
+                item.name() == current_item.name()
             } else {
                 false
             }
