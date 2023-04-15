@@ -123,7 +123,7 @@ pub fn item_default(data: &Data, item: &ListItem, on_click: Computed<Rc<dyn Fn()
         let data = data.clone();
         let item = item.clone();
         move |context| {
-            let Some(current_item) = data.tab.current_list_item.get(context) else {
+            let Some(current_item) = data.tab.select_content.get(context) else {
                 return css!("");
             };
 
@@ -145,7 +145,7 @@ pub fn item_default(data: &Data, item: &ListItem, on_click: Computed<Rc<dyn Fn()
         let data = data.clone();
         let item = item.clone();
         move |context| {
-            if let Some(current_item) = data.tab.current_list_item.get(context) {
+            if let Some(current_item) = data.tab.select_content.get(context) {
                 item.name() == current_item.name()
             } else {
                 false

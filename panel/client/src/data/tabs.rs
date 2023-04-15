@@ -18,7 +18,7 @@ pub struct TabPath {
     pub select_dir: Computed<ListItem>,
 
     /// Aktualnie wyliczony wybrany ListItem wskazywany przez full_path
-    pub current_list_item: Computed<Option<ListItem>>,
+    pub select_content: Computed<Option<ListItem>>,
 
     //Otworzone zakładki z podględem do zewnętrznych linków
     pub open_links: OpenLinks,
@@ -40,7 +40,7 @@ impl TabPath {
             }
         });
 
-        let current_list_item = Computed::from({
+        let select_content = Computed::from({
             let select_dir = select_dir.clone();
             let router = router.clone();
             let items = items.clone();
@@ -83,7 +83,7 @@ impl TabPath {
             todo_only,
             router,
             select_dir,
-            current_list_item,
+            select_content,
             open_links,
         }
     }
@@ -212,7 +212,7 @@ impl TabPath {
 
     pub fn pointer_up(&self) {
         transaction(|context| {
-            if let Some(current_item) = self.current_list_item.get(context) {
+            if let Some(current_item) = self.select_content.get(context) {
                 if let Some(index) = self.find(context, &current_item.name()) {
                     if !self.try_set_pointer_to(context, index - 1) {
                         self.try_set_pointer_to_end(context);
@@ -226,7 +226,7 @@ impl TabPath {
 
     pub fn pointer_down(&self) {
         transaction(|context| {
-            if let Some(current_item) = self.current_list_item.get(context) {
+            if let Some(current_item) = self.select_content.get(context) {
                 if let Some(index) = self.find(context, &current_item.name()) {
                     if !self.try_set_pointer_to(context, index + 1) {
                         self.try_set_pointer_to(context, 0);
@@ -244,7 +244,7 @@ impl TabPath {
 
     pub fn pointer_enter(&self) {
         transaction(|context| {
-            if let Some(current_item) = self.current_list_item.get(context) {
+            if let Some(current_item) = self.select_content.get(context) {
                 let content = current_item.get_content_type(context);
 
                 if let Resource::Ready(ContentType::Dir { .. }) = content {

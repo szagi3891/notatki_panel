@@ -137,9 +137,9 @@ fn render_dir(state: &App, dir: &Computed<Vec<String>>) -> DomNode {
 
 pub fn render_content(state: &App) -> DomNode {
     let current_content = Computed::from({
-        let current_list_item = state.data.tab.current_list_item.clone();
+        let select_content = state.data.tab.select_content.clone();
         move |context| {
-            if let Some(item) = current_list_item.get(context) {
+            if let Some(item) = select_content.get(context) {
                 item.get_content_type(context)
             } else {
                 Resource::Loading

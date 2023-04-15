@@ -29,8 +29,8 @@ impl MenuComponent {
         let is_current_content= Computed::from({
             let tab = app.data.tab.clone();
             move |context| -> bool {
-                if let Some(current_list_item) = tab.current_list_item.get(context) {
-                    if let Resource::Ready(content) = current_list_item.get_content_type(context) {
+                if let Some(select_content) = tab.select_content.get(context) {
+                    if let Resource::Ready(content) = select_content.get_content_type(context) {
                         return match content {
                             ContentType::Dir { list } => list.len() == 0,
                             _ => true
@@ -85,11 +85,11 @@ fn render_button_on_delete(state: &MenuComponent) -> DomNode {
 
             if is_current_content {
                 let alert = app.alert.clone();
-                let Some(current_list_item) = alert.data.tab.current_list_item.get(context) else {
+                let Some(select_content) = alert.data.tab.select_content.get(context) else {
                     return ButtonState::disabled("Usuń");
                 };
 
-                let path = current_list_item.full_path.as_ref().clone();
+                let path = select_content.full_path.as_ref().clone();
 
                 let on_delete = bind!(alert, app, path, || {
                     alert.delete(app.clone(), path.clone());
@@ -113,13 +113,13 @@ fn render_button_edit_file(state: &MenuComponent) -> DomNode {
             let is_current_content = is_current_content.get(context);
 
             if is_current_content {
-                let current_list_item = app.data.tab.current_list_item.get(context);
+                let select_content = app.data.tab.select_content.get(context);
 
-                let Some(current_list_item) = current_list_item else {
+                let Some(select_content) = select_content else {
                     return ButtonState::disabled("Edycja pliku");
                 };
 
-                let full_path = current_list_item.full_path.as_ref().clone();
+                let full_path = select_content.full_path.as_ref().clone();
                 let on_click = bind!(app, full_path, || {
                     app.redirect_to_edit_content(full_path.clone());
                 });
@@ -137,7 +137,7 @@ fn render_button_move_item(state: &MenuComponent) -> DomNode {
     let app = state.app;
 
     ButtonState::render(Computed::from(move |context| {
-        let current_content = app.data.tab.current_list_item.get(context);
+        let current_content = app.data.tab.select_content.get(context);
 
         let Some(current_content) = current_content else {
             return ButtonState::disabled("Przenieś");

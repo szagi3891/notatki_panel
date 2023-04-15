@@ -106,17 +106,6 @@ impl App {
         self.view.set(View::NewContent { state });
     }
 
-    // pub fn current_edit(&self, context: &Context) {
-    //     let current_list_item = self.data.tab.current_list_item.get(context);
-
-    //     let Some(current_list_item) = current_list_item else {
-    //         log::error!("current_edit - ignore");
-    //         return;
-    //     };
-
-    //     self.redirect_to_edit_content(current_list_item.full_path.as_ref());
-    // }
-
     pub fn render_current_rename(&self) -> DomNode {
         ButtonState::render({    
             Computed::from({                
@@ -125,12 +114,12 @@ impl App {
                 move |context| {
                     let path = app.data.tab.select_dir.get(context).full_path;
 
-                    let Some(current_list_item) = app.data.tab.current_list_item.get(context) else {
+                    let Some(select_content) = app.data.tab.select_content.get(context) else {
                         return ButtonState::disabled("Zmień nazwę");
                     };
-                    let select_item = current_list_item.name();
+                    let select_item = select_content.name();
 
-                    let Resource::Ready(id) = current_list_item.id.get(context) else {
+                    let Resource::Ready(id) = select_content.id.get(context) else {
                         return ButtonState::disabled("Zmień nazwę");
                     };
         
