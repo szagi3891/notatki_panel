@@ -135,12 +135,7 @@ impl TabPath {
             &current_item,
         );
 
-        let current_list_item = full_path.map({
-            let items = items.clone();
-            move |full_path| Some(items.get_from_path(&full_path))
-        });
-
-        let current_list_item2 = Computed::from({
+        let current_list_item = Computed::from({
             let select_dir = select_dir.clone();
             let router = router.clone();
             let items = items.clone();
