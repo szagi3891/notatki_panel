@@ -24,9 +24,8 @@ impl AppNewcontent {
         let action_save = Value::new(false);
 
         let parent = transaction(|context| app.data.tab.router.get_dir(context));
-        let list = app.data.tab.list.clone();
 
-        let new_name = NewName::new(list);
+        let new_name = NewName::new(app.data.tab.select_dir.clone());
 
         let content = Value::new(String::from(""));
 

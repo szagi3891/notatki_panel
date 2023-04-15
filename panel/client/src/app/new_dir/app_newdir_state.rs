@@ -21,12 +21,12 @@ pub struct AppNewdir {
 impl AppNewdir {
     pub fn new(app: &App) -> AppNewdir {
         let action_save = Value::new(false);
-        let list = app.data.tab.list.clone();
+
         let parent = transaction(|context| {
             app.data.tab.router.get_dir(context)
         });
 
-        let new_name = new_name::NewName::new(list);
+        let new_name = new_name::NewName::new(app.data.tab.select_dir.clone());
         let is_valid = new_name.is_valid.clone();
 
         AppNewdir {

@@ -1,4 +1,4 @@
-use vertigo::{Computed, Value, dom, DomNode, dom_element};
+use vertigo::{Computed, Value, dom, DomNode, dom_element, Resource};
 
 use vertigo::{Css, css};
 
@@ -20,19 +20,22 @@ pub struct NewName {
 }
 
 impl NewName {
-    pub fn new(
-        list: Computed<Vec<ListItem>>,
-    ) -> NewName {
+    pub fn new(select_dir: Computed<ListItem>) -> NewName {
         let name: Value<String> = Value::new("".to_string());
 
         let name_exists = {
             let name = name.clone();
+            let select_dir = select_dir.clone();
 
             Computed::from(move |context| -> bool {
-                let list = list.get(context);
+                let list = select_dir.get(context).list.get(context);
 
-                let name = name.get(context);
-                is_exist_in_list(name, list)
+                if let Resource::Ready(list) = list {
+                    let name = name.get(context);
+                    return is_exist_in_list(name, list);
+                }
+
+                false
             })
         };
 

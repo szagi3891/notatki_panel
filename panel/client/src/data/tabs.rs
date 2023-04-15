@@ -93,6 +93,7 @@ pub struct TabPath {
 
     /// Wybrany element z listy (dla widoku)
     /// Jeśli w zmiennej "item" znajduje się None, to brany jest pierwszy element z "list"
+    #[deprecated]
     pub current_item: Computed<Option<String>>,
 
     /// Suma "dir" + "current_item". Wskazuje na wybrany element do wyświetlenia w prawym panelu
