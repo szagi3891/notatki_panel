@@ -105,7 +105,7 @@ pub fn render_list(state: &App) -> DomElement {
                 }
 
                 let path = transaction(|context| {
-                    state.data.tab.select_dir.get(context).full_path
+                    state.data.tab.select_dir.get(context).to_vec_path()
                 });
 
                 let mut post_files = Vec::new();
@@ -118,7 +118,7 @@ pub fn render_list(state: &App) -> DomElement {
                 }
 
                 let post = HandlerAddFiles {
-                    path: path.as_ref().clone(),
+                    path,
                     files: post_files,
                 };
 
