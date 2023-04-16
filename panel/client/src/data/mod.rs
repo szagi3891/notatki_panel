@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use self::{git::Git, tabs::TabPath};
 
 mod git;
@@ -9,7 +7,7 @@ mod open_links;
 mod calculate_next_path;
 
 pub use git::{ContentType, ContentView};
-pub use git::{ListItem, ListItemType};
+pub use git::{ListItem, ListItemPath, ListItemType};
 pub use open_links::OpenLinks;
 pub use tabs_hash::Router;
 use vertigo::{AutoMap, Value};
@@ -17,7 +15,7 @@ use vertigo::{AutoMap, Value};
 #[derive(Clone, PartialEq)]
 pub struct AutoMapListItem {
     git: Git,
-    items: AutoMap<Rc<Vec<String>>, ListItem>,
+    items: AutoMap<ListItemPath, ListItem>,
     pub todo_only: Value<bool>,
 }
 
@@ -30,8 +28,8 @@ impl AutoMapListItem {
             let todo_only = todo_only.clone();
 
             move |
-                auto_map: &AutoMap<Rc<Vec<String>>, ListItem>,
-                full_path: &Rc<Vec<String>>,
+                auto_map: &AutoMap<ListItemPath, ListItem>,
+                full_path: &ListItemPath,
             | -> ListItem {
 
                 ListItem::new_full(auto_map, git.clone(), full_path.clone(), todo_only.to_computed())
@@ -46,7 +44,7 @@ impl AutoMapListItem {
     }
 
     pub fn get_from_path(&self, path: &[String]) -> ListItem {
-        let path = Rc::new(Vec::from(path));
+        let path = ListItemPath::new(path);
 
         self.items.get(&path)
     }

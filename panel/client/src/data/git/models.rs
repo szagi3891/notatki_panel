@@ -57,42 +57,74 @@ pub enum ListItemType {
 }
 
 
-// #[derive(Clone)]
-// struct Path {
-//     path: Rc<Vec<String>>,
-// }
+#[derive(Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub struct ListItemPath {
+    path: Rc<Vec<String>>,
+}
 
-// impl Path {
-//     pub fn dir(&self) -> Vec<String> {
-//         let mut full_path = self.path.as_ref().clone();
-//         full_path.pop();
-//         full_path
-//     }
+impl ListItemPath {
+    pub fn new(path: impl Into<Vec<String>>) -> Self {
+        Self {
+            path: Rc::new(path.into())
+        }
+    }
 
-//     pub fn name(&self) -> String {
-//         let mut full_path = self.path.as_ref().clone();
-//         let name = full_path.pop();
+    pub fn name(&self) -> String {
+        let mut full_path = self.path.as_ref().clone();
+        let name = full_path.pop();
 
-//         let Some(name) = name else {
-//             return "root".into();
-//         };
+        let Some(name) = name else {
+            return "root".into();
+        };
 
-//         name
-//     }
-// }
+        name
+    }
+
+    pub fn as_slice(&self) -> &[String] {
+        self.path.as_slice()
+    }
+
+    pub fn dir(&self) -> Self {
+        let mut path = self.path.as_ref().clone();
+        path.pop();
+        Self::new(path)
+    }
+
+
+    pub fn push(&self, name: impl Into<String>) -> Self {
+        let mut path = self.path.as_ref().clone();
+        path.push(name.into());
+        Self {
+            path: Rc::new(path),
+        }
+    }
+
+    pub fn to_string_path(&self) -> String {
+        self.path.join("/")
+    }
+
+    pub fn to_vec_path(&self) -> Vec<String> {
+        self.path.as_ref().clone()
+    }
+
+    pub fn is_root(&self) -> bool {
+        self.path.is_empty()
+    }
+}
 
 
 #[derive(Clone)]
 pub struct ListItem {
-    auto_map: AutoMap<Rc<Vec<String>>, ListItem>,
+    auto_map: AutoMap<ListItemPath, ListItem>,
     git: Git,
     todo_only: Computed<bool>,
 
-    full_path: Rc<Vec<String>>,
+    full_path: ListItemPath,
 
     pub is_dir: Computed<ListItemType>,
-    pub id: Computed<Resource<String>>,     //hash tego elementu
+    pub id: Computed<Resource<String>>,             //hash tego elementu
     pub list: Computed<Resource<Vec<ListItem>>>,
+    pub count_todo: Computed<u32>,                  //ilość elementów todo, które zawiera ten element
 }
 
 /*
@@ -122,7 +154,7 @@ pub struct ListItem {
 */
 
 impl ListItem {
-    pub fn new_full(auto_map: &AutoMap<Rc<Vec<String>>, ListItem>, git: Git, full_path: Rc<Vec<String>>, todo_only: Computed<bool>) -> Self {
+    pub fn new_full(auto_map: &AutoMap<ListItemPath, ListItem>, git: Git, full_path: ListItemPath, todo_only: Computed<bool>) -> Self {
         let is_dir = Computed::from(bind!(git, full_path, |context| -> ListItemType {
             let content = git.get_item_from_path(context, &full_path);
             
@@ -140,7 +172,7 @@ impl ListItem {
             let content = git.get_item_from_path(context, &full_path)?;
             
             let Some(content) = content else {
-                return Resource::Error(format!("nie znaleziono id={}", full_path.join("/")));
+                return Resource::Error(format!("nie znaleziono id={}", full_path.to_string_path()));
             };
 
             Resource::Ready(content.id)
@@ -152,16 +184,12 @@ impl ListItem {
             let dir_path = full_path.clone();
 
             move |context| -> Resource<Vec<ListItem>> {
-                let list = git.dir_list(context, dir_path.as_ref())?;
+                let list = git.dir_list(context, dir_path.as_slice())?;
 
                 let mut list_out: Vec<ListItem> = Vec::new();
 
                 for name in list.keys() {
-                    let mut dir_path = dir_path.as_ref().clone();
-                    dir_path.push(name.clone());
-
-                    let item = auto_map.get(&Rc::new(dir_path));
-
+                    let item = auto_map.get(&dir_path.push(name));
                     list_out.push(item);
                 }
 
@@ -184,6 +212,44 @@ impl ListItem {
             }
         });
 
+
+        let count_todo = Computed::from({
+            // let full_path = full_path.clone();
+            let is_dir = is_dir.clone();
+            let list = list.clone();
+
+            move |context: &Context| -> u32 {
+                let is_dir = is_dir.get(context);
+
+                match is_dir {
+                    ListItemType::File => {
+                        // if is_todo_name(full_path.as_ref()) {
+                        //     1
+                        // } else {
+                        //     0
+                        // }
+                        todo!()
+                    },
+                    ListItemType::Dir => {
+                        let mut count = 0;
+
+                        if let Resource::Ready(list) = list.get(context) {
+                            for item in list {
+                                let item_count = item.count_todo.get(context);
+                                count += item_count;
+                            }
+                        }
+
+                        count
+                    },
+                    ListItemType::Unknown => {
+                        0
+                    }
+                }
+            }
+        });
+
+
         Self {
             auto_map: auto_map.clone(),
             git,
@@ -194,27 +260,22 @@ impl ListItem {
             id,
             list,
             todo_only,
+            count_todo,
         }
     }
 
     //TODO - dodać jakiesz keszowanie na nazwę pliku ?
 
     pub fn dir(&self) -> ListItem {
-        let mut full_path = self.full_path.as_ref().clone();
-        full_path.pop();
+        
+        // let mut full_path = self.full_path.as_ref().clone();
+        // full_path.pop();
 
-        self.get_from_path(&full_path)
+        self.get_from_path(&self.full_path.dir())
     }
 
     pub fn name(&self) -> String {
-        let mut full_path = self.full_path.as_ref().clone();
-        let name = full_path.pop();
-
-        let Some(name) = name else {
-            return "root".into();
-        };
-
-        name
+        self.full_path.name()
     }
 
     pub fn get_ext(&self) -> Option<String> {
@@ -318,15 +379,15 @@ impl ListItem {
     }
 
     pub fn to_string_path(&self) -> String {
-        self.full_path.join("/")
+        self.full_path.to_string_path()
     }
 
     pub fn to_vec_path(&self) -> Vec<String> {
-        self.full_path.as_ref().clone()
+        self.full_path.to_vec_path()
     }
 
     pub fn is_root(&self) -> bool {
-        self.full_path.is_empty()
+        self.full_path.is_root()
     }
 
     fn prirority_for_sort(&self, context: &Context) -> u8 {
@@ -338,17 +399,12 @@ impl ListItem {
         prirority
     }
 
-    fn get_from_path(&self, path: &[String]) -> ListItem {
-        let path = Rc::new(Vec::from(path));
-
-        self.auto_map.get(&path)
+    fn get_from_path(&self, path: &ListItemPath) -> ListItem {
+        self.auto_map.get(path)
     }
 
     pub fn push(&self, name: impl Into<String>) -> ListItem {
-        let mut full_path = self.full_path.as_ref().clone();
-        full_path.push(name.into());
-
-        self.get_from_path(&full_path)
+        self.get_from_path(&self.full_path.push(name))
     }
 
     pub fn name_without_prefix(&self) -> String {
@@ -415,4 +471,20 @@ fn remove_prefix(name: &String) -> String {
     }
 
     out
+}
+
+fn is_todo_name(name: &str) -> bool {
+    let aa = name.chars().rev().take(5).collect::<String>();
+    aa == "odot."
+}
+
+#[test]
+fn test_is_todo_name() {
+    assert_eq!(is_todo_name("dsada.todo"), true);
+    assert_eq!(is_todo_name("dsadasd.todo"), true);
+    assert_eq!(is_todo_name("dsadatodo"), false);
+    assert_eq!(is_todo_name("as"), false);
+    assert_eq!(is_todo_name("todo"), false);
+    assert_eq!(is_todo_name("o"), false);
+    assert_eq!(is_todo_name(""), false);
 }

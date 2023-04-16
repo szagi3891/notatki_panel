@@ -13,6 +13,7 @@ pub use models::{
     ContentType,
     TreeItem,
     ListItem,
+    ListItemPath,
     ListItemType,
 };
 
@@ -92,8 +93,8 @@ impl Git {
         Resource::Ready(current_value)
     }
 
-    pub fn get_item_from_path(&self, context: &Context, path: &[String]) -> Resource<Option<TreeItem>> {
-        let mut path: Vec<String> = Vec::from(path);
+    pub fn get_item_from_path(&self, context: &Context, path: &ListItemPath) -> Resource<Option<TreeItem>> {
+        let mut path: Vec<String> = Vec::from(path.as_slice());
         let last = path.pop();
 
         let last = match last {
