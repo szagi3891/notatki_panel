@@ -16,6 +16,10 @@ pub struct TabPath {
     /// Wybrany katalog
     pub select_dir: Computed<ListItem>,
 
+    /// Częściowe stany składające się na select_content
+    pub select_content_hover: Computed<Option<ListItem>>,
+    pub select_content_current: Computed<Option<ListItem>>,
+
     /// Aktualnie wyliczony wybrany ListItem wskazywany przez full_path
     pub select_content: Computed<Option<ListItem>>,
 
@@ -37,13 +41,11 @@ impl TabPath {
             }
         });
 
-        let select_content = Computed::from({
-            let select_dir = select_dir.clone();
-            let router = router.clone();
+        let select_content_hover = Computed::from({
             let items = items.clone();
+            let router = router.clone();
 
-            move |context| -> Option<ListItem> {
-
+            move |context| {
                 let path = ListItemPath::new(router.get_dir(context));
 
                 if let Some(hover) = router.get_hover(context) {
@@ -51,15 +53,26 @@ impl TabPath {
                     return Some(items.items.get(&curret_path));
                 }
 
+                None
+            }
+        });
+
+        let select_content_current = Computed::from({
+            let select_dir = select_dir.clone();
+            let items = items.clone();
+            let router = router.clone();
+
+            move |context| {
+
                 let current_item = router.get_item(context);
 
-                if let Some(current_item) = current_item.as_ref() {
-                    let curret_path = path.push(current_item.clone());
+                if let Some(current_item) = current_item {
+                    let path = ListItemPath::new(router.get_dir(context));
+                    let curret_path = path.push(current_item);
                     return Some(items.items.get(&curret_path));
                 }
-        
-                let list = select_dir.get(context).list.get(context);
 
+                let list = select_dir.get(context).list.get(context);
                 if let Resource::Ready(list) = list {
                     if let Some(first) = list.first() {
                         return Some(first.clone());
@@ -67,6 +80,20 @@ impl TabPath {
                 }
 
                 None
+            }
+        });
+
+        let select_content = Computed::from({
+            let select_content_hover = select_content_hover.clone();
+            let select_content_current = select_content_current.clone();
+
+            move |context| {
+                let select_content_hover = select_content_hover.get(context);
+                if select_content_hover.is_some() {
+                    return select_content_hover;
+                }
+
+                select_content_current.get(context)
             }
         });
 
@@ -85,6 +112,10 @@ impl TabPath {
             router,
             items: items.clone(),
             select_dir,
+
+            select_content_hover,
+            select_content_current,
+
             select_content,
             open_links,
         }

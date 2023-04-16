@@ -123,8 +123,9 @@ pub fn item_default(data: &Data, item: &ListItem, on_click: Computed<Rc<dyn Fn()
         let data = data.clone();
         let item = item.clone();
         move |context| {
-            let is_select = Some(item.name()) == data.tab.current_item(context);
-            let is_hover = Some(item.name()) == data.tab.get_hover(context);
+            let is_hover = Some(item.name()) == data.tab.select_content_hover.get(context).map(|item| item.name());
+            let is_select = Some(item.name()) == data.tab.select_content_current.get(context).map(|item| item.name());
+
             css_normal(is_select, is_hover)
         }
     });
