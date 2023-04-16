@@ -82,7 +82,7 @@ pub fn render_path(path: &Computed<ListItem>, on_click: impl Fn(Vec<String>) + '
         let path = path.clone();
         move |context| {
             let path = path.get(context);
-            path.full_path.as_ref().clone()
+            path.to_vec_path()
         }
     });
 

@@ -145,13 +145,13 @@ impl TabPath {
             match item.is_dir.get(context) {
                 ListItemType::Dir => {
                     bind_rc!(item, self_clone, || {
-                        let path = item.full_path.as_ref().clone();
+                        let path = item.to_vec_path();
                         self_clone.router.set(path, None);
                     })
                 },
                 ListItemType::File => {
                     bind_rc!(self_clone, item, || {
-                        let mut path = item.full_path.as_ref().clone();
+                        let mut path = item.to_vec_path();
                         path.pop();
 
                         self_clone.router.set(path, Some(item.name()));

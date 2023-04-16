@@ -5,6 +5,8 @@ use crate::{components::{AlertBox, item_default, item_dot_html, ButtonState, ren
 
 use super::AppIndexAlert;
 
+//TODO - wypozycjonować to okno wyskakujace, zeby górna krawędź nie skakała w sytuacji gdy zmienia się wysokość zawartości
+
 #[derive(Clone, PartialEq)]
 pub struct AppIndexAlertMoveitem {
     pub app: App,
