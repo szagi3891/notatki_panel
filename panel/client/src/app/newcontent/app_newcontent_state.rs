@@ -5,13 +5,14 @@ use crate::app::App;
 use crate::app::newcontent::app_newcontent_render::app_newcontent_render;
 use crate::app::response::check_request_response;
 use crate::components::new_name::NewName;
+use crate::data::ListItem;
 
 #[derive(Clone, PartialEq)]
 pub struct AppNewcontent {
     app: App,
     pub action_save: Value<bool>,
 
-    pub parent: Vec<String>,
+    pub select_dir: ListItem,
     pub content: Value<String>,
 
     pub new_name: NewName,
@@ -19,13 +20,11 @@ pub struct AppNewcontent {
 }
 
 impl AppNewcontent {
-    pub fn new(app: &App) -> AppNewcontent {
+    pub fn new(app: &App, select_dir: ListItem) -> AppNewcontent {
         log::info!("buduję stan dla new content");
         let action_save = Value::new(false);
 
-        let parent = transaction(|context| app.data.tab.router.get_dir(context));
-
-        let new_name = NewName::new(app.data.tab.select_dir.clone());
+        let new_name = NewName::new(select_dir.clone());
 
         let content = Value::new(String::from(""));
 
@@ -52,7 +51,7 @@ impl AppNewcontent {
             app: app.clone(),
             action_save,
             
-            parent,
+            select_dir,
             content,
 
             new_name,
@@ -101,7 +100,7 @@ impl AppNewcontent {
                 (
                     new_name.clone(),
                     HandlerCreateFileBody {
-                        path: state.parent.clone(),
+                        path: state.select_dir.full_path.as_ref().clone(),
                         new_name,
                         new_content: state.content.get(context),
                     }
@@ -118,7 +117,7 @@ impl AppNewcontent {
             
             match check_request_response(response) {
                 Ok(()) => {       
-                    let path_redirect = state.parent.clone(); 
+                    let path_redirect = state.select_dir.full_path.as_ref().clone();
                     log::info!("Zapis udany -> przekierowanie na -> {:?} {:?}", path_redirect, new_name);
                     state.app.redirect_to_index_with_path(path_redirect, Some(new_name));
                 },

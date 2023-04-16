@@ -10,6 +10,7 @@ use super::{
 #[derive(Clone, PartialEq)]
 pub struct TabPath {
 
+    //TODO - router powinien być prywatny
     pub router: Router,
 
     pub todo_only: Value<bool>,
@@ -153,6 +154,8 @@ impl TabPath {
             }
         }))
     }
+
+    //TODO - pierwszy argument zamienić na ListItem --- który będzie katalogiem
 
     pub fn redirect_to(&self, dir: Vec<String>, item: Option<String>) {
         self.router.set(dir, item);

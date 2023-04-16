@@ -56,7 +56,7 @@ pub fn app_newcontent_render(app: App, state: &AppNewcontent) -> DomNode {
     let view_new_name = state.new_name.clone().render(true);
 
     let view_path = {
-        let parent_path = state.parent.as_slice().join("/");
+        let parent_path = state.select_dir.full_path.join("/");
 
         dom! {
             <div css={css_header()}>

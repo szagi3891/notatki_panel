@@ -169,9 +169,11 @@ fn render_button_create_file(state: &MenuComponent) -> DomNode {
     ButtonState::render({
         let app = state.app.clone();
 
-        Computed::from(move |_| {
-            let on_click = bind!(app, || {
-                app.redirect_to_new_content();
+        Computed::from(move |context| {
+            let select_dir = app.data.tab.select_dir.get(context);
+
+            let on_click = bind!(app, select_dir, || {
+                app.redirect_to_new_content(select_dir.clone());
             });
 
             ButtonState::active("Utwórz plik", on_click)
@@ -183,9 +185,11 @@ fn render_button_make_dir(state: &MenuComponent) -> DomNode {
     ButtonState::render({
         let app = state.app.clone();
 
-        Computed::from(move |_| {
-            let on_click = bind!(app, || {
-                app.redirect_to_mkdir();
+        Computed::from(move |context| {
+            let select_dir = app.data.tab.select_dir.get(context);
+
+            let on_click = bind!(app, select_dir, || {
+                app.redirect_to_mkdir(select_dir.clone());
             });
 
             ButtonState::active("Utwórz katalog", on_click)

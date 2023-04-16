@@ -20,14 +20,14 @@ pub struct NewName {
 }
 
 impl NewName {
-    pub fn new(select_dir: Computed<ListItem>) -> NewName {
+    pub fn new(select_dir: ListItem) -> NewName {
         let name: Value<String> = Value::new("".to_string());
 
         let name_exists = {
             let name = name.clone();
 
             Computed::from(move |context| -> bool {
-                let list = select_dir.get(context).list.get(context);
+                let list = select_dir.list.get(context);
 
                 if let Resource::Ready(list) = list {
                     let name = name.get(context);

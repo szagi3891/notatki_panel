@@ -88,8 +88,8 @@ impl App {
         self.data.git.root.refresh();
     }
 
-    pub fn redirect_to_mkdir(&self) {
-        let state = AppNewdir::new(self);
+    pub fn redirect_to_mkdir(&self, select_dir: ListItem) {
+        let state = AppNewdir::new(self, select_dir);
 
         self.view.set(View::Mkdir {
             state
@@ -101,8 +101,8 @@ impl App {
         self.redirect_to_index();
     }
 
-    pub fn redirect_to_new_content(&self) {
-        let state = AppNewcontent::new(self);
+    pub fn redirect_to_new_content(&self, dir: ListItem) {
+        let state = AppNewcontent::new(self, dir);
         self.view.set(View::NewContent { state });
     }
 

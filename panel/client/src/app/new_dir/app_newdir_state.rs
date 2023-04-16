@@ -4,6 +4,7 @@ use vertigo::{Computed, Value, get_driver, transaction, bind_spawn, DomNode};
 use crate::app::App;
 use crate::app::response::check_request_response;
 use crate::components::new_name::{self, NewName};
+use crate::data::ListItem;
 
 use super::app_newdir_render::app_newdir_render;
 
@@ -19,14 +20,14 @@ pub struct AppNewdir {
 }
 
 impl AppNewdir {
-    pub fn new(app: &App) -> AppNewdir {
+    pub fn new(app: &App, select_dir: ListItem) -> AppNewdir {
         let action_save = Value::new(false);
 
         let parent = transaction(|context| {
             app.data.tab.router.get_dir(context)
         });
 
-        let new_name = new_name::NewName::new(app.data.tab.select_dir.clone());
+        let new_name = new_name::NewName::new(select_dir);
         let is_valid = new_name.is_valid.clone();
 
         AppNewdir {
