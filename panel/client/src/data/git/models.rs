@@ -60,6 +60,7 @@ pub enum ListItemType {
 pub struct ListItem {
     auto_map: AutoMap<Rc<Vec<String>>, ListItem>,
     git: Git,
+    todo_only: Computed<bool>,
 
     full_path: Rc<Vec<String>>,
 
@@ -95,7 +96,7 @@ pub struct ListItem {
 */
 
 impl ListItem {
-    pub fn new_full(auto_map: &AutoMap<Rc<Vec<String>>, ListItem>, git: Git, full_path: Rc<Vec<String>>) -> Self {
+    pub fn new_full(auto_map: &AutoMap<Rc<Vec<String>>, ListItem>, git: Git, full_path: Rc<Vec<String>>, todo_only: Computed<bool>) -> Self {
         let is_dir = Computed::from(bind!(git, full_path, |context| -> ListItemType {
             let content = git.get_item_from_path(context, &full_path);
             
@@ -166,6 +167,7 @@ impl ListItem {
             is_dir,
             id,
             list,
+            todo_only,
         }
     }
 
@@ -328,6 +330,10 @@ impl ListItem {
 
         self.get_from_path(&full_path)
     }
+
+    pub fn name_without_prefix(&self) -> String {
+        remove_prefix(&self.name())
+    }
 }
 
 
@@ -364,3 +370,29 @@ fn get_list_item_prirority(name: &String) -> u8 {
     1
 }
 
+
+fn remove_first(chars: &[char]) -> &[char] {
+    if let Some((name_item, rest_path)) = chars.split_first() {
+        if *name_item == '_' {
+            return rest_path;
+        }
+    }
+
+    chars
+}
+
+
+fn remove_prefix(name: &String) -> String {
+    let chars = name.chars().collect::<Vec<char>>();
+
+    let chars = remove_first(&chars);
+    let chars = remove_first(chars);
+
+    let mut out: String = String::new();
+
+    for char in chars {
+        out.push(*char);
+    }
+
+    out
+}

@@ -210,17 +210,23 @@ fn render_button_search(state: &MenuComponent) -> DomNode {
 
 fn render_button_todo(state: &MenuComponent) -> DomNode {
     ButtonState::render({
-        // let app = state.app.clone();
+        let app = state.app.clone();
 
-        Computed::from(move |_| {
-            let on_click = || {
-                log::info!("todo --- ....");
+        Computed::from(move |context| {
+            let todo_only = app.data.tab.items.todo_only.clone();
+
+            let todo = todo_only.get(context);
+
+            let on_click = move || {
+                todo_only.set(!todo);
             };
-            // let on_click = bind(&app.alert).call(|alert| {
-            //     alert.redirect_to_search();
-            // });
 
-            ButtonState::active("Todo", on_click)
+            let label = match todo {
+                false => "Todo nieaktywne",
+                true => "Todo aktywne",
+            };
+
+            ButtonState::active(label, on_click)
         })
     })
 }

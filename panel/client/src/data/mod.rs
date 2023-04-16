@@ -12,31 +12,36 @@ pub use git::{ContentType, ContentView};
 pub use git::{ListItem, ListItemType};
 pub use open_links::OpenLinks;
 pub use tabs_hash::Router;
-use vertigo::AutoMap;
+use vertigo::{AutoMap, Value};
 
 #[derive(Clone, PartialEq)]
 pub struct AutoMapListItem {
     git: Git,
     items: AutoMap<Rc<Vec<String>>, ListItem>,
+    pub todo_only: Value<bool>,
 }
 
 impl AutoMapListItem {
     fn new(git: &Git) -> Self {
+        let todo_only = Value::new(false);
+
         let items = AutoMap::new({
             let git = git.clone();
+            let todo_only = todo_only.clone();
 
             move |
                 auto_map: &AutoMap<Rc<Vec<String>>, ListItem>,
                 full_path: &Rc<Vec<String>>,
             | -> ListItem {
 
-                ListItem::new_full(auto_map, git.clone(), full_path.clone())
+                ListItem::new_full(auto_map, git.clone(), full_path.clone(), todo_only.to_computed())
             }
         });
 
         AutoMapListItem {
             git: git.clone(),
-            items
+            items,
+            todo_only
         }
     }
 

@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use vertigo::{Resource, Computed, Context, transaction, Value, bind, bind_rc};
+use vertigo::{Resource, Computed, Context, transaction, bind, bind_rc};
 use super::{
     git::ListItem,
     open_links::OpenLinks,
@@ -11,8 +11,7 @@ use super::{
 pub struct TabPath {
 
     router: Router,
-
-    pub todo_only: Value<bool>,
+    pub items: AutoMapListItem,
 
     /// Wybrany katalog
     pub select_dir: Computed<ListItem>,
@@ -27,8 +26,6 @@ pub struct TabPath {
 impl TabPath {
     pub fn new(items: &AutoMapListItem) -> TabPath {
         let router = Router::new();
-
-        let todo_only = Value::new(false);
 
         let select_dir = Computed::from({
             let router = router.clone();
@@ -82,8 +79,8 @@ impl TabPath {
         //TODO = kolor dla wciśnietego przycisku todo background-color: #00ff00b0;
     
         TabPath {
-            todo_only,
             router,
+            items: items.clone(),
             select_dir,
             select_content,
             open_links,

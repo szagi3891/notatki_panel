@@ -161,7 +161,7 @@ pub fn item_default(data: &Data, item: &ListItem, on_click: Computed<Rc<dyn Fn()
             {icon_arrow(is_select)}
             {icon::icon_render(item)}
             <span css={label_css(item.prirority())}>
-                {remove_prefix(&item.name())}
+                {item.name_without_prefix()}
             </span>
         </div>
     }
@@ -304,28 +304,3 @@ pub fn list_items_from_dir(data: &Data, select_dir: &Computed<ListItem>, mouse_o
     list_items_from_vec(data, list, mouse_over_enable)
 }
 
-fn remove_first(chars: &[char]) -> &[char] {
-    if let Some((name_item, rest_path)) = chars.split_first() {
-        if *name_item == '_' {
-            return rest_path;
-        }
-    }
-
-    chars
-}
-
-
-fn remove_prefix(name: &String) -> String {
-    let chars = name.chars().collect::<Vec<char>>();
-
-    let chars = remove_first(&chars);
-    let chars = remove_first(chars);
-
-    let mut out: String = String::new();
-
-    for char in chars {
-        out.push(*char);
-    }
-
-    out
-}
