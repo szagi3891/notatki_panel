@@ -78,12 +78,12 @@ impl AppRenameitem {
     }
 
     async fn on_save(&self, new_name: String) -> Result<(), String> {
-        let body: HandlerRenameItemBody = /* transaction(|context| */ {
+        let body: HandlerRenameItemBody = {
             HandlerRenameItemBody {
-                path: self.item.dir(),
+                path: self.item.dir().to_vec_path(),
                 prev_name: self.item.name(),
                 prev_hash: self.prev_hash.clone(),
-                new_name, //: self.new_name.get(context),
+                new_name,
             }
         };
 
@@ -138,7 +138,7 @@ impl AppRenameitem {
 
                             match response {
                                 Ok(()) => {
-                                    let redirect_path = state.item.dir();
+                                    let redirect_path = state.item.dir().to_vec_path();
                                     log::info!("Zapis udany");
                                     app.redirect_to_index_with_path(redirect_path, Some(new_name));
                                 },

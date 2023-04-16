@@ -56,6 +56,32 @@ pub enum ListItemType {
     Unknown,
 }
 
+
+// #[derive(Clone)]
+// struct Path {
+//     path: Rc<Vec<String>>,
+// }
+
+// impl Path {
+//     pub fn dir(&self) -> Vec<String> {
+//         let mut full_path = self.path.as_ref().clone();
+//         full_path.pop();
+//         full_path
+//     }
+
+//     pub fn name(&self) -> String {
+//         let mut full_path = self.path.as_ref().clone();
+//         let name = full_path.pop();
+
+//         let Some(name) = name else {
+//             return "root".into();
+//         };
+
+//         name
+//     }
+// }
+
+
 #[derive(Clone)]
 pub struct ListItem {
     auto_map: AutoMap<Rc<Vec<String>>, ListItem>,
@@ -173,10 +199,11 @@ impl ListItem {
 
     //TODO - dodać jakiesz keszowanie na nazwę pliku ?
 
-    pub fn dir(&self) -> Vec<String> {
+    pub fn dir(&self) -> ListItem {
         let mut full_path = self.full_path.as_ref().clone();
         full_path.pop();
-        full_path
+
+        self.get_from_path(&full_path)
     }
 
     pub fn name(&self) -> String {
@@ -315,13 +342,6 @@ impl ListItem {
         let path = Rc::new(Vec::from(path));
 
         self.auto_map.get(&path)
-    }
-
-    pub fn back(&self) -> ListItem {
-        let mut full_path = self.full_path.as_ref().clone();
-        full_path.pop();
-
-        self.get_from_path(&full_path)
     }
 
     pub fn push(&self, name: impl Into<String>) -> ListItem {

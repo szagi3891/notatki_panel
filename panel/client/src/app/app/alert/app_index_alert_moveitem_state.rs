@@ -21,7 +21,7 @@ pub struct AppIndexAlertMoveitem {
 
 impl AppIndexAlertMoveitem {
     pub fn new(app: &App, alert: &AppIndexAlert, item: ListItem, hash: String) -> AppIndexAlertMoveitem {
-        let target_dir = Value::new(item.back());
+        let target_dir = Value::new(item.dir());
 
         let new_path = Computed::from({
             let item = item.clone();
@@ -101,7 +101,7 @@ fn render_back(state: &AppIndexAlertMoveitem) -> DomNode {
 
                 let on_click = bind!(target, || {
                     transaction(|context| {                        
-                        let dir = target.get(context).back();
+                        let dir = target.get(context).dir();
                         target.set(dir);
                     });
                 });
@@ -198,7 +198,7 @@ fn render_button_yes(state: &AppIndexAlertMoveitem) -> DomNode {
     let state = state.clone();
 
     ButtonState::render(Computed::from(move |context| {
-        let path = state.item.back();
+        let path = state.item.dir();
 
         let target = state.target_dir.get(context);
 
