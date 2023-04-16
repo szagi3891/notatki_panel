@@ -4,7 +4,7 @@ use vertigo::{Resource, Computed, Context, transaction, bind, bind_rc};
 use super::{
     git::ListItem,
     open_links::OpenLinks,
-    calculate_next_path::calculate_next_path, ContentType, tabs_hash::Router, ListItemType, AutoMapListItem
+    calculate_next_path::calculate_next_path, ContentType, tabs_hash::Router, ListItemType, AutoMapListItem, ListItemPath
 };
 
 #[derive(Clone, PartialEq)]
@@ -44,22 +44,25 @@ impl TabPath {
 
             move |context| -> Option<ListItem> {
 
-                let mut path = router.get_dir(context);
+                let path = ListItemPath::new(router.get_dir(context));
+
+                if let Some(hover) = router.get_hover(context) {
+                    let curret_path = path.push(hover);
+                    return Some(items.items.get(&curret_path));
+                }
 
                 let current_item = router.get_item(context);
 
                 if let Some(current_item) = current_item.as_ref() {
-                    path.push(current_item.clone());
-                    return Some(items.get_from_path(&path));
+                    let curret_path = path.push(current_item.clone());
+                    return Some(items.items.get(&curret_path));
                 }
         
                 let list = select_dir.get(context).list.get(context);
 
                 if let Resource::Ready(list) = list {
                     if let Some(first) = list.first() {
-                        let name = first.name();
-                        path.push(name);
-                        return Some(items.get_from_path(&path));
+                        return Some(first.clone());
                     }
                 }
 

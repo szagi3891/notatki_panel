@@ -15,7 +15,7 @@ use vertigo::{AutoMap, Value};
 #[derive(Clone, PartialEq)]
 pub struct AutoMapListItem {
     git: Git,
-    items: AutoMap<ListItemPath, ListItem>,
+    pub items: AutoMap<ListItemPath, ListItem>,
     pub todo_only: Value<bool>,
 }
 
@@ -31,7 +31,6 @@ impl AutoMapListItem {
                 auto_map: &AutoMap<ListItemPath, ListItem>,
                 full_path: &ListItemPath,
             | -> ListItem {
-
                 ListItem::new_full(auto_map, git.clone(), full_path.clone(), todo_only.to_computed())
             }
         });
@@ -59,7 +58,6 @@ pub struct Data {
     pub git: Git,
     pub tab: TabPath,
     pub items: AutoMapListItem,
-
 }
 
 //TODO - zastanowić sie nad zamianą Rc<Vec<String>> na lzejszą strukturę

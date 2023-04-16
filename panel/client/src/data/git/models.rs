@@ -207,6 +207,7 @@ impl ListItem {
                     a.name().to_lowercase().cmp(&b.name().to_lowercase())
                 });
 
+
                 let todo_only = todo_only.get(context);
 
                 if todo_only {
