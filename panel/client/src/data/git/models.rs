@@ -3,7 +3,7 @@ use std::cmp::Ordering;
 
 use vertigo::{Resource, Context, Computed, bind, AutoMap};
 
-use super::Git;
+use super::{Git, ContentView};
 
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct TreeItem {
@@ -269,6 +269,24 @@ impl ListItem {
         };
 
         Resource::Ready(content)
+    }
+
+
+    pub fn get_content(&self, context: &Context) -> Option<ContentView> {
+        let content_type = self.get_content_type(context);
+
+        if let Resource::Ready(ContentType::Text { content }) = content_type {
+            let Resource::Ready(id) = self.id.get(context) else {
+                return None;
+            };
+
+            return Some(ContentView {
+                id,
+                content,
+            })
+        }
+
+        None
     }
 
     pub fn to_string(&self) -> String {

@@ -77,7 +77,7 @@ fn render_textarea(state: &AppRenameitem) -> DomNode {
     let state = state.clone();
 
     let content_computed = Computed::from(move |contetx| {
-        state.app.data.get_content(contetx, &state.item.full_path)
+        state.item.get_content(contetx)
     });
 
     let render = content_computed.render_value_option(|content_inner| {

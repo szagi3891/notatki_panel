@@ -12,7 +12,7 @@ pub use git::{ContentType, ContentView};
 pub use git::{ListItem, ListItemType};
 pub use open_links::OpenLinks;
 pub use tabs_hash::Router;
-use vertigo::{AutoMap, Resource, Context};
+use vertigo::AutoMap;
 
 #[derive(Clone, PartialEq)]
 pub struct AutoMapListItem {
@@ -65,33 +65,11 @@ impl Data {
 
         let tab = TabPath::new(&items);
 
-
         Data {
             git,
             tab,
             items
         }
-    }
-
-    //TODO - docelowo scalić z ListItem
-
-    pub fn get_content(&self, context: &Context, path: &[String]) -> Option<ContentView> {
-        let item = self.items.get_from_path(path);
-
-        let content_type = item.get_content_type(context);
-
-        if let Resource::Ready(ContentType::Text { content }) = content_type {
-            let Resource::Ready(id) = item.id.get(context) else {
-                return None;
-            };
-
-            return Some(ContentView {
-                id,
-                content,
-            })
-        }
-
-        None
     }
 }
 

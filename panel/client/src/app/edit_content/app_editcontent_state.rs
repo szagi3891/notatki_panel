@@ -47,7 +47,7 @@ impl AppEditcontent {
                     let edit_content = edit_content.get(context);
 
                     if let Some(edit_content) = edit_content {
-                        if let Some(ContentView { id: _, content }) = data.get_content(context, edit_item.full_path.as_ref()) {
+                        if let Some(ContentView { id: _, content }) = edit_item.get_content(context) {
                             return edit_content != *content;
                         }
                     }
@@ -76,7 +76,7 @@ impl AppEditcontent {
 
                 println!("ładowanie danych {:?}", edit_item.full_path);
 
-                if let Some(ContentView { id, content }) = data.get_content(context, &edit_item.full_path) {
+                if let Some(ContentView { id, content }) = edit_item.get_content(context) {
                     let content = (*content).clone();
 
                     return Some(EditContent {
