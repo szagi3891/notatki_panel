@@ -1,16 +1,15 @@
 use common::{HandlerRenameItemBody};
 use vertigo::{Computed, Value, get_driver, bind, transaction, bind_spawn, DomNode};
 
-use crate::{app::{App, response::check_request_response}, components::ButtonState};
+use crate::{app::{App, response::check_request_response}, components::ButtonState, data::ListItem};
 
 use super::app_renameitem_render::app_renameitem_render;
 
 #[derive(Clone, PartialEq)]
 pub struct AppRenameitem {
     pub app: App,
-    pub path: Vec<String>,          //edutowany element
-    pub prev_name: String,
-    pub prev_hash: String,               //hash poprzedniej zawartosci
+    pub item: ListItem,                 //edutowany element
+    pub prev_hash: String,              //hash poprzedniej zawartosci
 
     pub new_name: Value<String>,
     pub action_save: Value<bool>,
@@ -21,14 +20,13 @@ pub struct AppRenameitem {
 impl AppRenameitem {
     pub fn new(
         app: &App,
-        path: Vec<String>,
-        prev_name: String,
+        item: ListItem,
         prev_hash: String,
     ) -> AppRenameitem {
-        let new_name = Value::new(prev_name.clone());
+        let new_name = Value::new(item.name());
 
         let save_enable = {
-            let prev_name = prev_name.clone();
+            let prev_name = item.name();
             let new_name = new_name.to_computed();
 
             Computed::from(move |context| -> bool {
@@ -50,8 +48,7 @@ impl AppRenameitem {
 
         AppRenameitem {
             app: app.clone(),
-            path,
-            prev_name,
+            item,
             prev_hash,
 
             new_name,
@@ -66,12 +63,7 @@ impl AppRenameitem {
     }
 
     pub fn get_full_path(&self) -> String {
-        let mut path = self.path.clone();
-        let prev_name = self.prev_name.clone();
-
-        path.push(prev_name);
-
-        path.as_slice().join("/")
+        self.item.full_path.as_ref().join("/")
     }
 
     pub fn on_input(&self, new_text: String) {
@@ -90,8 +82,8 @@ impl AppRenameitem {
     async fn on_save(&self) -> Result<(), String> {
         let body: HandlerRenameItemBody = transaction(|context| {
             HandlerRenameItemBody {
-                path: self.path.clone(),
-                prev_name: self.prev_name.clone(),
+                path: self.item.dir(),
+                prev_name: self.item.name(),
                 prev_hash: self.prev_hash.clone(),
                 new_name: self.new_name.get(context),
             }
@@ -145,8 +137,8 @@ impl AppRenameitem {
                             state.action_save.set(false);
 
                             match response {
-                                Ok(()) => {  
-                                    let redirect_path = state.path.clone();
+                                Ok(()) => {
+                                    let redirect_path = state.item.dir();
                                     let redirect_new_name = transaction(|context| {
                                         state.new_name.get(context)
                                     });

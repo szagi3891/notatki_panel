@@ -40,8 +40,6 @@ impl AutoMapListItem {
         }
     }
 
-    //TODO - Tylko w ten sposób mozna tworzyc nowe struktury ListItem
-
     pub fn get_from_path(&self, path: &[String]) -> ListItem {
         let path = Rc::new(Vec::from(path));
 

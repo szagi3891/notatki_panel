@@ -171,6 +171,12 @@ impl ListItem {
 
     //TODO - dodać jakiesz keszowanie na nazwę pliku ?
 
+    pub fn dir(&self) -> Vec<String> {
+        let mut full_path = self.full_path.as_ref().clone();
+        full_path.pop();
+        full_path
+    }
+
     pub fn name(&self) -> String {
         // &self.name
         let mut full_path = self.full_path.as_ref().clone();

@@ -79,6 +79,8 @@ impl TabPath {
 
         //TODO - transaction - zminimalizować ilość tranzakcji, na rzecz renderowania przycisków
 
+        //TODO = kolor dla wciśnietego przycisku todo background-color: #00ff00b0;
+    
         TabPath {
             todo_only,
             router,

@@ -112,25 +112,19 @@ impl App {
                 let app = self.clone();
 
                 move |context| {
-                    let path = app.data.tab.select_dir.get(context).full_path;
-
-                    let Some(select_content) = app.data.tab.select_content.get(context) else {
+                    let Some(select_item) = app.data.tab.select_content.get(context) else {
                         return ButtonState::disabled("Zmień nazwę");
                     };
-                    let select_item = select_content.name();
 
-                    let Resource::Ready(id) = select_content.id.get(context) else {
+                    let Resource::Ready(id) = select_item.id.get(context) else {
                         return ButtonState::disabled("Zmień nazwę");
                     };
         
-                    ButtonState::active("Zmień nazwę", bind!(app, path, select_item, || {
-                        let base_path = path.as_ref().clone();
-            
-                        log::info!("redirect_to_rename_item {base_path:?} {select_item:?}");
+                    ButtonState::active("Zmień nazwę", bind!(app, select_item, || {            
+                        log::info!("redirect_to_rename_item {:?}", select_item.full_path);
             
                         let state = AppRenameitem::new(
                             &app,
-                            base_path,
                             select_item.clone(),
                             id.clone(),
                         );
