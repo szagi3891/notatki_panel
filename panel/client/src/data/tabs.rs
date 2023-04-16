@@ -10,8 +10,7 @@ use super::{
 #[derive(Clone, PartialEq)]
 pub struct TabPath {
 
-    //TODO - router powinien być prywatny
-    pub router: Router,
+    router: Router,
 
     pub todo_only: Value<bool>,
 
@@ -89,6 +88,18 @@ impl TabPath {
             select_content,
             open_links,
         }
+    }
+
+    pub fn hover_on(&self, name: &str) {
+        self.router.hover_on(name);
+    }
+
+    pub fn hover_off(&self, name: &str) {
+        self.router.hover_off(name);
+    }
+
+    pub fn get_hover(&self, context: &Context) -> Option<String> {
+        self.router.item_hover.get(context)
     }
 
     pub fn redirect_item_select_after_delete(&self) {

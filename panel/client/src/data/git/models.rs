@@ -61,6 +61,8 @@ pub struct ListItem {
     auto_map: AutoMap<Rc<Vec<String>>, ListItem>,
     git: Git,
 
+    //TODO - tylko prywatne ? 
+    #[deprecated]
     pub full_path: Rc<Vec<String>>,
 
     pub is_dir: Computed<ListItemType>,

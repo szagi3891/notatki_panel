@@ -69,7 +69,6 @@ impl AppNewdir {
 
             match check_request_response(response) {
                 Ok(()) => {
-                    //TODO - zamienić join("/") na to_string_path 
                     let parent_string = state.select_dir.to_string_path();
                     log::info!("Tworzenie katalogu {:?} udane -> przekierowanie na -> {:?}", new_dir_name, parent_string);
 

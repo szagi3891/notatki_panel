@@ -297,6 +297,7 @@ fn render_message(state: &AppIndexAlertMoveitem) -> DomNode {
 
         move |context| {
             let path = path.get(context);
+            //TODO - zamienić na to_string_path()
             let path = path.full_path.as_ref().join("/");
             format!("Przenoszenie -> {path} ?")
         }

@@ -127,7 +127,7 @@ pub fn item_default(data: &Data, item: &ListItem, on_click: Computed<Rc<dyn Fn()
                 return css!("");
             };
 
-            let current_hover = data.tab.router.item_hover.get(context);
+            let current_hover = data.tab.get_hover(context);
 
             let is_select = item.name() == current_item.name();
 
@@ -181,11 +181,11 @@ pub fn item_default_render(data: &Data, item: &ListItem, mouse_over_enable: bool
     let element = if mouse_over_enable {
 
         let mouse_over_enter = bind!(item, tab, || {
-            tab.router.hover_on(&item.name());
+            tab.hover_on(&item.name());
         });
 
         let mouse_over_leave = bind!(item, tab, || {
-            tab.router.hover_off(item.name().as_str());
+            tab.hover_off(item.name().as_str());
         });
 
         element

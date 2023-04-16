@@ -11,6 +11,7 @@ use super::AppIndexAlert;
 pub struct AppIndexAlertDelete {
     app: App,
     pub alert: AppIndexAlert,
+    #[deprecated]
     full_path: Vec<String>,
     progress: Value<bool>,
 }
@@ -118,6 +119,7 @@ impl AppIndexAlertDelete {
 }
 
 fn render_message(state: &AppIndexAlertDelete) -> DomNode {
+    //TODO - zamienić na to_string_path()
     let full_path = state.full_path.clone();
     let message = format!("Czy usunąć -> {} ?", full_path.join("/"));
     dom!{
