@@ -61,9 +61,7 @@ pub struct ListItem {
     auto_map: AutoMap<Rc<Vec<String>>, ListItem>,
     git: Git,
 
-    //TODO - tylko prywatne ? 
-    #[deprecated]
-    pub full_path: Rc<Vec<String>>,
+    full_path: Rc<Vec<String>>,
 
     pub is_dir: Computed<ListItemType>,
     pub id: Computed<Resource<String>>,     //hash tego elementu
@@ -180,7 +178,6 @@ impl ListItem {
     }
 
     pub fn name(&self) -> String {
-        // &self.name
         let mut full_path = self.full_path.as_ref().clone();
         let name = full_path.pop();
 

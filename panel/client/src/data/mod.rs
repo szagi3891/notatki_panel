@@ -45,6 +45,10 @@ impl AutoMapListItem {
 
         self.items.get(&path)
     }
+
+    pub fn root(&self) -> ListItem {
+        self.get_from_path(&Vec::new())
+    }
 }
 
 #[derive(Clone, PartialEq)]

@@ -100,7 +100,7 @@ impl AppNewcontent {
                 (
                     new_name.clone(),
                     HandlerCreateFileBody {
-                        path: state.select_dir.full_path.as_ref().clone(),
+                        path: state.select_dir.to_vec_path(),
                         new_name,
                         new_content: state.content.get(context),
                     }
@@ -117,7 +117,7 @@ impl AppNewcontent {
             
             match check_request_response(response) {
                 Ok(()) => {       
-                    let path_redirect = state.select_dir.full_path.as_ref().clone();
+                    let path_redirect = state.select_dir.to_vec_path();
                     log::info!("Zapis udany -> przekierowanie na -> {:?} {:?}", path_redirect, new_name);
                     state.app.redirect_to_index_with_path(path_redirect, Some(new_name));
                 },

@@ -42,12 +42,11 @@ fn css_result_icon() -> Css {
 
 fn push_list<F: Fn(&String) -> bool>(
     context: &Context,
-    data_state: &Data,
     result: &mut Vec<ListItem>,
-    base: &Vec<String>,
+    base: ListItem,
     test_name: &F
 ) -> Resource<()> {
-    let list = data_state.items.get_from_path(base.as_slice()).list.get(context)?;
+    let list = base.list.get(context)?;
 
     for item in list.iter() {
         if test_name(&item.name()) {
@@ -57,7 +56,7 @@ fn push_list<F: Fn(&String) -> bool>(
 
     for item in list {
         if item.is_dir.get(context) == ListItemType::Dir {
-            push_list(context, data_state, result, &item.full_path, test_name)?;
+            push_list(context, result, item, test_name)?;
         }
     }
 
@@ -80,7 +79,7 @@ fn new_results(data_state: &Data, phrase: Computed<String>) -> Computed<Vec<List
             name.to_lowercase().contains(phrase_value.as_str())
         };
 
-        let result_push = push_list(context, &data_state, &mut result, &Vec::new(), &test_name);
+        let result_push = push_list(context, &mut result, data_state.items.root(), &test_name);
 
         match result_push {
             Resource::Ready(()) => {},

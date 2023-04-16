@@ -56,7 +56,7 @@ impl AppNewdir {
             let new_dir_name = transaction(|context| state.new_name.name.get(context));
 
             let body = HandlerCreateDirBody {
-                path: state.select_dir.full_path.as_ref().clone(),
+                path: state.select_dir.to_vec_path(),
                 dir: new_dir_name.clone(),
             };
 
@@ -72,7 +72,7 @@ impl AppNewdir {
                     let parent_string = state.select_dir.to_string_path();
                     log::info!("Tworzenie katalogu {:?} udane -> przekierowanie na -> {:?}", new_dir_name, parent_string);
 
-                    app.redirect_to_index_with_path(state.select_dir.full_path.as_ref().clone(), Some(new_dir_name));
+                    app.redirect_to_index_with_path(state.select_dir.to_vec_path(), Some(new_dir_name));
                 },
                 Err(message) => {
                     app.show_message_error(message, Some(10000));

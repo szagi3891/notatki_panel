@@ -161,7 +161,7 @@ impl AppEditcontent {
             state.action_save.set(true);
 
             let body: HandlerSaveContentBody = HandlerSaveContentBody {
-                path: state.edit_item.full_path.as_ref().clone(),
+                path: state.edit_item.to_vec_path(),
                 prev_hash: content_edit_hash,
                 new_content: content_edit,
             };
