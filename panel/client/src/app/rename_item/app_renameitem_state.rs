@@ -64,11 +64,6 @@ impl AppRenameitem {
         app_renameitem_render(self)
     }
 
-    #[deprecated]
-    pub fn get_full_path(&self) -> String {
-        self.item.to_string_path()
-    }
-
     pub fn on_input(&self, new_text: String) {
         transaction(|context| {
             let action_save = self.action_save.get(context);

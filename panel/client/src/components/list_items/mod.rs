@@ -268,7 +268,7 @@ pub fn list_items_from_vec(data: &Data, list: Computed<Vec<ListItem>>, mouse_ove
     });
 
     list_sorted.render_list(
-        |(_, item)| item.full_path.clone(),
+        |(_, item)| item.to_string_path(),
         {
             let data = data.clone();
             move |(picture, item)| {
@@ -287,7 +287,6 @@ pub fn list_items_from_vec(data: &Data, list: Computed<Vec<ListItem>>, mouse_ove
 
 pub fn list_items_from_dir(data: &Data, select_dir: &Computed<ListItem>, mouse_over_enable: bool) -> DomNode {
     let list = Computed::from({
-        let data = data.clone();
         let select_dir = select_dir.clone();
         move |context| {
             let select_dir = select_dir.get(context);

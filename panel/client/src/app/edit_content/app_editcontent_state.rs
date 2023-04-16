@@ -71,8 +71,6 @@ impl AppEditcontent {
                     });
                 }
 
-                println!("ładowanie danych {:?}", edit_item.full_path);
-
                 if let Some(ContentView { id, content }) = edit_item.get_content(context) {
                     let content = (*content).clone();
 

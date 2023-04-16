@@ -3,7 +3,7 @@ use vertigo::{
     Value,
     bind, bind_spawn, Resource, Computed, dom, transaction, RequestBuilder, DomNode,
 };
-use crate::{components::{AlertBox, ButtonState}, app::{response::check_request_response, App}};
+use crate::{components::{AlertBox, ButtonState}, app::{response::check_request_response, App}, data::ListItem};
 
 use super::AppIndexAlert;
 
@@ -11,19 +11,18 @@ use super::AppIndexAlert;
 pub struct AppIndexAlertDelete {
     app: App,
     pub alert: AppIndexAlert,
-    #[deprecated]
-    full_path: Vec<String>,
+    select_item: ListItem,
     progress: Value<bool>,
 }
 
 impl AppIndexAlertDelete {
-    pub fn new(app: App, alert: &AppIndexAlert, full_path: &Vec<String>) -> AppIndexAlertDelete {
+    pub fn new(app: App, alert: &AppIndexAlert, select_item: ListItem) -> AppIndexAlertDelete {
         let progress: Value<bool> = Value::new(false);
 
         AppIndexAlertDelete {
             app,
             alert: alert.clone(),
-            full_path: full_path.clone(),
+            select_item,
             progress,
         }
     }
@@ -37,14 +36,12 @@ impl AppIndexAlertDelete {
             return;
         }
 
-        let current_path = self.full_path;
-
         log::info!("usuwamy ...");
         self.progress.set(true);
 
         let response = RequestBuilder::post("/delete_item")
             .body_json(HandlerDeleteItemBody {
-                path: current_path,
+                path: self.select_item.to_vec_path(),
                 hash: current_hash
                 
             })
@@ -70,10 +67,7 @@ impl AppIndexAlertDelete {
         let app = self.app.clone();
 
         ButtonState::render(Computed::from(move |context| {
-            let full_path = state.full_path.clone();
-            let item = state.alert.data.items.get_from_path(&full_path);
-
-            let id = &item.id.get(context);
+            let id = state.select_item.id.get(context);
 
             if let Resource::Ready(id) = id {
                 let action = bind_spawn!(state, app, id, async move {
@@ -119,9 +113,8 @@ impl AppIndexAlertDelete {
 }
 
 fn render_message(state: &AppIndexAlertDelete) -> DomNode {
-    //TODO - zamienić na to_string_path()
-    let full_path = state.full_path.clone();
-    let message = format!("Czy usunąć -> {} ?", full_path.join("/"));
+    let full_path = state.select_item.to_string_path();
+    let message = format!("Czy usunąć -> {full_path} ?");
     dom!{
         <div>
             { message }

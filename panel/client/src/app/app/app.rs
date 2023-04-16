@@ -121,7 +121,7 @@ impl App {
                     };
         
                     ButtonState::active("Zmień nazwę", bind!(app, select_item, || {            
-                        log::info!("redirect_to_rename_item {:?}", select_item.full_path);
+                        log::info!("redirect_to_rename_item {:?}", select_item.to_string_path());
             
                         let state = AppRenameitem::new(
                             &app,

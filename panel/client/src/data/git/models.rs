@@ -295,6 +295,14 @@ impl ListItem {
         self.full_path.join("/")
     }
 
+    pub fn to_vec_path(&self) -> Vec<String> {
+        self.full_path.as_ref().clone()
+    }
+
+    pub fn is_root(&self) -> bool {
+        self.full_path.is_empty()
+    }
+
     fn prirority_for_sort(&self, context: &Context) -> u8 {
         let mut prirority = 2 * get_list_item_prirority(&self.name());
         if self.is_dir.get(context) == ListItemType::Dir {
@@ -310,16 +318,11 @@ impl ListItem {
         self.auto_map.get(&path)
     }
 
-    pub fn back(&self) -> Option<ListItem> {
+    pub fn back(&self) -> ListItem {
         let mut full_path = self.full_path.as_ref().clone();
+        full_path.pop();
 
-        let last = full_path.pop();
-
-        if last.is_some() {
-            return Some(self.get_from_path(&full_path));
-        }
-
-        None
+        self.get_from_path(&full_path)
     }
 }
 

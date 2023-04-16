@@ -2,7 +2,7 @@ use vertigo::{Value, dom, transaction, DomNode};
 use crate::app::App;
 use crate::app::app::alert::app_index_alert_delete_state::AppIndexAlertDelete;
 use crate::app::app::alert::app_index_alert_search_state::AppIndexAlertSearch;
-use crate::data::Data;
+use crate::data::{Data, ListItem};
 
 use super::app_index_alert_moveitem_state::AppIndexAlertMoveitem;
 
@@ -42,12 +42,12 @@ impl AppIndexAlert {
         }
     }
 
-    pub fn delete(&self, app: App, path: Vec<String>) {
+    pub fn delete(&self, app: App, item: ListItem) {
         if self.is_visible() {
             return;
         }
 
-        let state = AppIndexAlertDelete::new(app, self, &path);
+        let state = AppIndexAlertDelete::new(app, self, item);
 
         self.view.set(AlertView::DeleteFile { state });
     }
@@ -61,12 +61,12 @@ impl AppIndexAlert {
         self.view.set(AlertView::SearchInPath { state });
     }
 
-    pub fn move_current(&self, app: &App, path: &Vec<String>, hash: &String) {
+    pub fn move_current(&self, app: &App, item: ListItem, hash: &String) {
         if self.is_visible() {
             return;
         }
 
-        let state = AppIndexAlertMoveitem::new(app, self, path.clone(), hash.clone());
+        let state = AppIndexAlertMoveitem::new(app, self, item, hash.clone());
         self.view.set(AlertView::MoveItem { state });
     }
 

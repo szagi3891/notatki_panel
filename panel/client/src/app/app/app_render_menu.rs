@@ -96,10 +96,8 @@ fn render_button_on_delete(state: &MenuComponent) -> DomNode {
                     return ButtonState::disabled("Usuń");
                 };
 
-                let path = select_content.full_path.as_ref().clone();
-
-                let on_delete = bind!(alert, app, path, || {
-                    alert.delete(app.clone(), path.clone());
+                let on_delete = bind!(alert, app, select_content, || {
+                    alert.delete(app.clone(), select_content.clone());
                 });
         
                 ButtonState::active("Usuń", on_delete)
@@ -149,16 +147,14 @@ fn render_button_move_item(state: &MenuComponent) -> DomNode {
             return ButtonState::disabled("Przenieś");
         };
 
-        let current_path = current_content.full_path.as_ref().clone();
-
         let hash = current_content.id.get(context);
 
         let Resource::Ready(hash) = &hash else {
             return ButtonState::disabled("Przenieś");
         };
 
-        let on_click = bind!(app, current_path, hash, || {
-            app.alert.move_current(&app, &current_path, &hash);
+        let on_click = bind!(app, current_content, hash, || {
+            app.alert.move_current(&app, current_content.clone(), &hash);
         });
 
         return ButtonState::active("Przenieś", on_click);

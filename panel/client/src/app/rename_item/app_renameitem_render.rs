@@ -101,8 +101,7 @@ fn render_textarea(state: &AppRenameitem) -> DomNode {
 }
 
 fn render_path(state: &AppRenameitem) -> DomNode {
-    let state = state.clone();
-    let path = Computed::from(move |_| state.get_full_path());
+    let path = state.item.to_string_path();
 
     dom! {
         <div css={css_header()}>
