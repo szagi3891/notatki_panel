@@ -5,7 +5,7 @@ use vertigo::{
     Resource,
     bind, DomElement, dom, Computed, DomNode, dom_element
 };
-use crate::data::{Data, ListItem};
+use crate::data::{Data, ListItem, ListItemType};
 use crate::components::icon;
 
 
@@ -134,10 +134,31 @@ pub fn item_default(data: &Data, item: &ListItem, on_click: Computed<Rc<dyn Fn()
         let data = data.clone();
         let item = item.clone();
         move |context| {
-            if let Some(current_item) = data.tab.select_content.get(context) {
+            if let Some(current_item) = data.tab.select_content_current.get(context) {
                 item.name() == current_item.name()
             } else {
                 false
+            }
+        }
+    });
+
+    let name = Computed::from({
+        let data = data.clone();
+        let item = item.clone();
+
+        move |context| {
+            let name = item.name_without_prefix();
+            let todo = data.items.todo_only.get(context);
+
+            if todo {
+                if ListItemType::Dir == item.is_dir.get(context) {
+                    let todo = item.count_todo.get(context);
+                    format!("{name} ({todo})")
+                } else {
+                    name
+                }
+            } else {
+                name
             }
         }
     });
@@ -150,7 +171,7 @@ pub fn item_default(data: &Data, item: &ListItem, on_click: Computed<Rc<dyn Fn()
             {icon_arrow(is_select)}
             {icon::icon_render(item)}
             <span css={label_css(item.prirority())}>
-                {item.name_without_prefix()}
+                {name}
             </span>
         </div>
     }
