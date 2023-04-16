@@ -139,7 +139,7 @@ impl AppIndexAlertSearch {
 fn render_results(search: &AppIndexAlertSearch) -> DomNode {
     let search = search.clone();
 
-    let list = search.results.render_list(|item| item.to_string(), {
+    let list = search.results.render_list(|item| item.to_string_path(), {
         let search = search.clone();
         move |item| {
             let redirect_to_item = search.alert.data.tab.build_redirect_to_item(item.clone());
@@ -154,7 +154,7 @@ fn render_results(search: &AppIndexAlertSearch) -> DomNode {
             }));
             
             let icon_el = icon::icon_render(item);
-            let path = item.to_string();
+            let path = item.to_string_path();
 
             dom! {
                 <div css={css_result_row()} on_click={on_click}>

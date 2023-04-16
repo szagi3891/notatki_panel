@@ -289,7 +289,7 @@ impl ListItem {
         None
     }
 
-    pub fn to_string(&self) -> String {
+    pub fn to_string_path(&self) -> String {
         self.full_path.join("/")
     }
 

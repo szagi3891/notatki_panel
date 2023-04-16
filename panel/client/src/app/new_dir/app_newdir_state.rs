@@ -13,7 +13,7 @@ pub struct AppNewdir {
     pub app: App,
     pub action_save: Value<bool>,
 
-    pub parent: Vec<String>,
+    pub select_dir: ListItem,
     pub new_name: NewName,
 
     pub save_enable: Computed<bool>,
@@ -23,18 +23,14 @@ impl AppNewdir {
     pub fn new(app: &App, select_dir: ListItem) -> AppNewdir {
         let action_save = Value::new(false);
 
-        let parent = transaction(|context| {
-            app.data.tab.router.get_dir(context)
-        });
-
-        let new_name = new_name::NewName::new(select_dir);
+        let new_name = new_name::NewName::new(select_dir.clone());
         let is_valid = new_name.is_valid.clone();
 
         AppNewdir {
             app: app.clone(),
             action_save,
 
-            parent,
+            select_dir,
             new_name,
             save_enable: is_valid,
         }
@@ -60,7 +56,7 @@ impl AppNewdir {
             let new_dir_name = transaction(|context| state.new_name.name.get(context));
 
             let body = HandlerCreateDirBody {
-                path: state.parent.clone(),
+                path: state.select_dir.full_path.as_ref().clone(),
                 dir: new_dir_name.clone(),
             };
 
@@ -72,11 +68,12 @@ impl AppNewdir {
             state.action_save.set(false);
 
             match check_request_response(response) {
-                Ok(()) => {                
-                    let parent_string = state.parent.join("/");
+                Ok(()) => {
+                    //TODO - zamienić join("/") na to_string_path 
+                    let parent_string = state.select_dir.to_string_path();
                     log::info!("Tworzenie katalogu {:?} udane -> przekierowanie na -> {:?}", new_dir_name, parent_string);
 
-                    app.redirect_to_index_with_path(state.parent.clone(), Some(new_dir_name));
+                    app.redirect_to_index_with_path(state.select_dir.full_path.as_ref().clone(), Some(new_dir_name));
                 },
                 Err(message) => {
                     app.show_message_error(message, Some(10000));

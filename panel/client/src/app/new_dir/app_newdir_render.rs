@@ -24,7 +24,7 @@ fn css_header() -> Css {
 pub fn app_newdir_render(state: AppNewdir) -> DomNode {
     let view_new_name = state.new_name.render(true);
 
-    let parent_path = state.parent.as_slice().join("/");
+    let parent_path = state.select_dir.to_string_path();
 
     let app = &state.app;
     let button_back = button("Wróć", bind!(app, || {
