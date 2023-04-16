@@ -117,7 +117,6 @@ impl ListItemPath {
 pub struct ListItem {
     auto_map: AutoMap<ListItemPath, ListItem>,
     git: Git,
-    todo_only: Computed<bool>,
 
     full_path: ListItemPath,
 
@@ -208,13 +207,27 @@ impl ListItem {
                     a.name().to_lowercase().cmp(&b.name().to_lowercase())
                 });
 
+                let todo_only = todo_only.get(context);
+
+                if todo_only {
+                    let mut result = Vec::new();
+
+                    for item in list_out {
+                        if item.count_todo.get(context) > 0 {
+                            result.push(item);
+                        }
+                    }
+
+                    return Resource::Ready(result);
+                }
+
                 Resource::Ready(list_out)
             }
         });
 
 
         let count_todo = Computed::from({
-            // let full_path = full_path.clone();
+            let full_path = full_path.clone();
             let is_dir = is_dir.clone();
             let list = list.clone();
 
@@ -223,12 +236,11 @@ impl ListItem {
 
                 match is_dir {
                     ListItemType::File => {
-                        // if is_todo_name(full_path.as_ref()) {
-                        //     1
-                        // } else {
-                        //     0
-                        // }
-                        todo!()
+                        if is_todo_name(&full_path.name()) {
+                            1
+                        } else {
+                            0
+                        }
                     },
                     ListItemType::Dir => {
                         let mut count = 0;
@@ -259,7 +271,6 @@ impl ListItem {
             is_dir,
             id,
             list,
-            todo_only,
             count_todo,
         }
     }
