@@ -90,6 +90,10 @@ impl TabPath {
         }
     }
 
+    pub fn current_item(&self, context: &Context) -> Option<String> {
+        self.router.get_item(context)
+    }
+
     pub fn hover_on(&self, name: &str) {
         self.router.hover_on(name);
     }
