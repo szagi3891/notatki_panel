@@ -81,7 +81,7 @@ impl App {
         self.view.set(View::Index);
     }
 
-    pub fn redirect_to_index_with_path(&self, new_path: Vec<String>, new_item: Option<String>) {
+    pub fn redirect_to_index_with_path(&self, new_path: ListItem, new_item: Option<String>) {
         self.redirect_to_index();
 
         self.data.tab.redirect_to(new_path, new_item);

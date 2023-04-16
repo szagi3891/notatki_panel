@@ -4,7 +4,6 @@ mod git;
 mod tabs_hash;
 mod tabs;
 mod open_links;
-mod calculate_next_path;
 
 pub use git::{ContentType, ContentView};
 pub use git::{ListItem, ListItemPath, ListItemType};

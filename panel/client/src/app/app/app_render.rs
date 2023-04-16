@@ -3,6 +3,7 @@ use vertigo::{css, bind};
 
 use crate::app::App;
 use crate::components::render_path;
+use crate::data::ListItem;
 
 use super::app_render_list::render_list;
 use super::app_render_content::render_content;
@@ -59,7 +60,7 @@ pub fn app_index_render(app: &App) -> DomNode {
     let view_menu = MenuComponent::component(app);
 
     let data = &app.data;
-    let on_click_path = bind!(data, |node_id: Vec<String>| {
+    let on_click_path = bind!(data, |node_id: ListItem| {
         data.tab.set_path(node_id);
     });
     
@@ -67,8 +68,6 @@ pub fn app_index_render(app: &App) -> DomNode {
 
     let view_list = render_list(app);
     let view_content = render_content(app);
-
-    // let app = app.clone();
 
     let hook_keydown = bind!(app, |event: vertigo::KeyDownEvent| {
         app.keydown(event.code)

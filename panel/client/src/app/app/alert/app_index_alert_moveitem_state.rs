@@ -73,9 +73,7 @@ fn render_target(state: &AppIndexAlertMoveitem) -> DomNode {
             margin-bottom: 5px;
         ")
     }
-    let on_click_path = bind!(state, |node_id: Vec<String>| {
-        let new_target = state.app.data.items.get_from_path(&node_id);
-
+    let on_click_path = bind!(state, |new_target: ListItem| {
         state.target_dir.set(new_target);
     });
     

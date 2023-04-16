@@ -1,6 +1,8 @@
 use serde::{Serialize, Deserialize};
 use vertigo::{router::Router as HashRouter, Context, transaction, Value};
 
+use super::ListItem;
+
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 struct RouterValue {
     dir: Vec<String>,
@@ -70,10 +72,10 @@ impl Router {
         });
     }
 
-    pub fn set(&self, dir: Vec<String>, item: Option<String>) {
+    pub fn set(&self, dir: ListItem, item: Option<String>) {
         transaction(|_| {
             self.route.set(RouterValue {
-                dir,
+                dir: dir.to_vec_path(),
                 item,
             });
             self.item_hover.set(None);

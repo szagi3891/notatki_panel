@@ -117,9 +117,8 @@ impl AppNewcontent {
             
             match check_request_response(response) {
                 Ok(()) => {       
-                    let path_redirect = state.select_dir.to_vec_path();
-                    log::info!("Zapis udany -> przekierowanie na -> {:?} {:?}", path_redirect, new_name);
-                    state.app.redirect_to_index_with_path(path_redirect, Some(new_name));
+                    log::info!("Zapis udany -> przekierowanie na -> {:?} {:?}", state.select_dir.to_vec_path(), new_name);
+                    state.app.redirect_to_index_with_path(state.select_dir.clone(), Some(new_name));
                 },
                 Err(message) => {
                     state.app.show_message_error(message, Some(10000));

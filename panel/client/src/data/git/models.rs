@@ -279,10 +279,6 @@ impl ListItem {
     //TODO - dodać jakiesz keszowanie na nazwę pliku ?
 
     pub fn dir(&self) -> ListItem {
-        
-        // let mut full_path = self.full_path.as_ref().clone();
-        // full_path.pop();
-
         self.get_from_path(&self.full_path.dir())
     }
 
@@ -421,6 +417,27 @@ impl ListItem {
 
     pub fn name_without_prefix(&self) -> String {
         remove_prefix(&self.name())
+    }
+
+    pub fn get_all_items(&self) -> Vec<ListItem> {
+        let mut path_items_all = Vec::new();
+
+        let mut wsk = self.clone();
+
+        loop {
+            path_items_all.push(wsk.clone());
+
+            let prev = wsk.dir();
+
+            if prev == wsk {
+                break;
+            }
+
+            wsk = prev;
+        }
+
+        path_items_all.reverse();
+        path_items_all
     }
 }
 

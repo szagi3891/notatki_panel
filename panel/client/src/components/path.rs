@@ -46,12 +46,18 @@ fn css_item(is_active: bool) -> Css {
 }
 
 fn create_link(
-    title: String,
-    node_id: Vec<String>,
+    item: ListItem,
     create_css: fn(bool) -> Css,
     is_active: bool,
-    on_click: Rc<dyn Fn(Vec<String>) + 'static>,
+    on_click: Rc<dyn Fn(ListItem) + 'static>,
 ) -> DomNode {
+    let title = if item.is_root() {
+        let home = '\u{1F3E0}'; 
+        format!("{home} root")
+    } else {
+        item.name()
+    };
+
     if is_active {
         let css = create_css(true);
 
@@ -62,8 +68,8 @@ fn create_link(
         };
     }
 
-    let on_click = bind!(on_click, node_id, || {
-        on_click(node_id.clone());
+    let on_click = bind!(on_click, item, || {
+        on_click(item.clone());
     });
 
     let css = create_css(false);
@@ -75,37 +81,20 @@ fn create_link(
     }
 }
 
-pub fn render_path(path: &Computed<ListItem>, on_click: impl Fn(Vec<String>) + 'static) -> DomNode {
+pub fn render_path(path: &Computed<ListItem>, on_click: impl Fn(ListItem) + 'static) -> DomNode {
     let on_click = Rc::new(on_click);
-
-    let path = Computed::from({
-        let path = path.clone();
-        move |context| {
-            let path = path.get(context);
-            path.to_vec_path()
-        }
-    });
 
     path.render_value({
         move |current_path| {
-            let all_items = current_path.len();
-
             let result = dom_element! {
                 <div css={css_header()} />
             };
 
-            let home = '\u{1F3E0}';         //ikonka domu
+            for item in current_path.get_all_items() {
+                let is_active = item == current_path;
 
-            let root_is_active = all_items == 0;
-            result.add_child(create_link(format!("{home} root"), Vec::new(), css_item, root_is_active, on_click.clone()));
-
-            let mut wsk_current_path = Vec::<String>::new();
-
-            for (index, item) in current_path.iter().enumerate() {
-                wsk_current_path.push(item.clone());
-
-                let is_active = index == all_items - 1;
-                result.add_child(create_link(item.clone(), wsk_current_path.clone(), css_item, is_active, on_click.clone()));
+                let link = create_link(item, css_item, is_active, on_click.clone());
+                result.add_child(link);
             }
 
             result.into()

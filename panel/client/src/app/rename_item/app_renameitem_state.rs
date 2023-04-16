@@ -138,9 +138,8 @@ impl AppRenameitem {
 
                             match response {
                                 Ok(()) => {
-                                    let redirect_path = state.item.dir().to_vec_path();
                                     log::info!("Zapis udany");
-                                    app.redirect_to_index_with_path(redirect_path, Some(new_name));
+                                    app.redirect_to_index_with_path(state.item.dir(), Some(new_name));
                                 },
                                 Err(message) => {
                                     app.show_message_error(message, Some(10000));

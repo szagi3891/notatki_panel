@@ -4,7 +4,7 @@ use vertigo::{Resource, Computed, Context, transaction, bind, bind_rc};
 use super::{
     git::ListItem,
     open_links::OpenLinks,
-    calculate_next_path::calculate_next_path, ContentType, tabs_hash::Router, ListItemType, AutoMapListItem, ListItemPath
+    ContentType, tabs_hash::Router, ListItemType, AutoMapListItem, ListItemPath
 };
 
 #[derive(Clone, PartialEq)]
@@ -145,16 +145,12 @@ impl TabPath {
             match item.is_dir.get(context) {
                 ListItemType::Dir => {
                     bind_rc!(item, self_clone, || {
-                        let path = item.to_vec_path();
-                        self_clone.router.set(path, None);
+                        self_clone.router.set(item.clone(), None);
                     })
                 },
                 ListItemType::File => {
                     bind_rc!(self_clone, item, || {
-                        let mut path = item.to_vec_path();
-                        path.pop();
-
-                        self_clone.router.set(path, Some(item.name()));
+                        self_clone.router.set(item.dir(), Some(item.name()));
                     })
                 },
                 ListItemType::Unknown => {
@@ -166,25 +162,12 @@ impl TabPath {
         }))
     }
 
-    //TODO - pierwszy argument zamienić na ListItem --- który będzie katalogiem
-
-    pub fn redirect_to(&self, dir: Vec<String>, item: Option<String>) {
+    pub fn redirect_to(&self, dir: ListItem, item: Option<String>) {
         self.router.set(dir, item);
     }
 
-    pub fn set_path(&self, path: Vec<String>) {
-        let current_path = transaction(|context| {
-            self.router.get_dir(context)
-        });
-
-        if current_path == path.as_slice() {
-            log::info!("path are equal");
-            return;
-        }
-    
-        let (new_current_path, new_current_item_value) = calculate_next_path(current_path.as_ref(), path);
-
-        self.router.set(new_current_path, new_current_item_value);
+    pub fn set_path(&self, path: ListItem) {
+        self.router.set(path, None);
     }
 
     fn find(&self, context: &Context, item_finding: &String) -> Option<isize> {
@@ -263,10 +246,8 @@ impl TabPath {
             if let Some(current_item) = self.select_content.get(context) {
                 let content = current_item.get_content_type(context);
 
-                if let Resource::Ready(ContentType::Dir { .. }) = content {
-                    let mut current = self.router.get_dir(context);
-                    current.push(current_item.name());
-                    self.set_path(current);
+                if let Resource::Ready(ContentType::Dir { item }) = content {
+                    self.router.set(item, None);
                 }    
             }
         });
@@ -274,9 +255,7 @@ impl TabPath {
 
     pub fn backspace(&self) {
         transaction(|context| {
-            let mut current_path = self.router.get_dir(context);
-            current_path.pop();
-            self.set_path(current_path);
+            self.router.set(self.select_dir.get(context).dir(), None);
         });
     }
 }
