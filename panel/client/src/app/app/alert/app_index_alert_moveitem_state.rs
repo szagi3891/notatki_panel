@@ -14,57 +14,40 @@ pub struct AppIndexAlertMoveitem {
     target_dir: Value<ListItem>,                        //nowy katalog do którego będziemy przenosić ten element
     progress: Value<bool>,
 
-    // new_path: Computed<ListItem>,                       //docelowa lokalizacja do której zostanie przeniesiony item.
+    new_path: Computed<ListItem>,                       //docelowa lokalizacja do której zostanie przeniesiony item.
 }
-
 
 impl AppIndexAlertMoveitem {
     pub fn new(app: &App, alert: &AppIndexAlert, item: ListItem, hash: String) -> AppIndexAlertMoveitem {
-        let target = item.back();
+        let target_dir = Value::new(item.back());
+
+        let new_path = Computed::from({
+            let item = item.clone();
+            let target_dir = target_dir.clone();
+
+            move |context| {
+                let name = item.name();
+                let target = target_dir.get(context);
+                target.push(name)
+            }
+        });
 
         AppIndexAlertMoveitem {
             app: app.clone(),
             alert: alert.clone(),
             item,
             hash,
-            target_dir: Value::new(target),
+            target_dir,
             progress: Value::new(false),
+            new_path,
         }
     }
 
-    fn prepare_new_path(&self) -> Option<Vec<String>> {
-        let self_clone = self.clone();
-
-        transaction(|context| {
-            let mut path = self_clone.item.to_vec_path();
-            let mut target = self_clone.target_dir.clone().get(context).full_path.as_ref().clone();
-    
-            let last = match path.pop() {
-                Some(last) => last,
-                None => {
-                    return None;
-                }
-            };
-    
-            target.push(last);
-    
-            Some(target)
-        })
-
-    }
-
-    async fn on_save(&self) -> Result<(), String> {
-        let new_path = match self.prepare_new_path() {
-            Some(new_path) => new_path,
-            None => {
-                return Err("Problem with computing a new path".into());
-            }
-        };
-
+    async fn on_save(&self, new_path: ListItem) -> Result<(), String> {
         let body: HandlerMoveItemBody = HandlerMoveItemBody {
             path: self.item.to_vec_path(),
             hash: self.hash.clone(),
-            new_path,
+            new_path: new_path.to_vec_path(),
         };
 
         let response = RequestBuilder::post("/move_item")
@@ -209,8 +192,6 @@ fn render_list(state: &AppIndexAlertMoveitem) -> DomNode {
     })
 }
 
-//TODO - dodać sprawdzenie zeby sie uprwnić, ze ListItem wskazywany new_path na pewno nie istnieje
-
 fn render_button_yes(state: &AppIndexAlertMoveitem) -> DomNode {
     let state = state.clone();
 
@@ -223,7 +204,20 @@ fn render_button_yes(state: &AppIndexAlertMoveitem) -> DomNode {
             return ButtonState::disabled("Tak");
         }
 
-        let action = bind_spawn!(state, async move {
+        let new_path = state.new_path.get(context);
+        let id = state.new_path.get(context).id.get(context);
+
+        match id {
+            Resource::Ready(_) => {
+                return ButtonState::disabled("Tak");
+            },
+            Resource::Loading => {
+                return ButtonState::disabled("Tak");
+            },
+            Resource::Error(_) => {}
+        };
+
+        let action = bind_spawn!(state, new_path, async move {
             let state = state.clone();
 
             let progress = transaction(|context| {
@@ -236,7 +230,7 @@ fn render_button_yes(state: &AppIndexAlertMoveitem) -> DomNode {
             }
 
             state.progress.set(true);
-            let response = state.on_save().await;
+            let response = state.on_save(new_path).await;
             state.progress.set(false);
 
             match response {
@@ -278,11 +272,100 @@ fn render_button_no(state: &AppIndexAlertMoveitem) -> DomNode {
 
 fn render_message(state: &AppIndexAlertMoveitem) -> DomNode {    
     let path = state.item.to_string_path();
+    let new_path = state.new_path.map(|item| item.to_string_path());
+
+    let message = Computed::from({
+        let item = state.item.clone();
+        let new_path = state.new_path.clone();
+    
+        move |context| {
+            let new_path = new_path.get(context);
+
+            if item == new_path {
+                return Some("Wybierz docelowy katalog".into());
+            }
+
+            let id = new_path.id.get(context);
+
+            match id {
+                Resource::Ready(_) => {
+                    Some(format!("W docelowym katalogu już istnieje plik o takiej nazwie \"{}\"", new_path.name()))
+                },
+                Resource::Loading => {
+                    None
+                },
+                Resource::Error(_) => {
+                    None
+                }
+            }
+        }
+    });
+
+    let message = message.render_value(|message| {
+        match message {
+            Some(message) => {
+                let css = css!("
+                    color: red;
+                    margin-top: 20px;
+                ");
+
+                dom! {
+                    <div css={css}>
+                        { message }
+                    </div>
+                }
+            },
+            None => {
+                dom! {
+                    <span />
+                }
+            }
+        }
+    });
+
+    fn wrapper_table() -> Css {
+        css!("
+            border: 1px solid #777;
+            border-collapse: collapse;
+        ")
+    }
+
+    fn wrapper_td() -> Css {
+        css!("
+            border: 1px solid #777;
+            border-collapse: collapse;
+            padding: 5px;
+        ")
+    }
+
+    let main_wrapper = css!("
+        align-items: center;
+        display: flex;
+        flex-direction: column;
+    ");
 
     dom! {
-        <div>
-            "Przenoszenie -> "
-            { path }
+        <div css={main_wrapper}>
+            <table css={wrapper_table()}>
+                <tr>
+                    <td css={wrapper_td()}>
+                        "Przenoszenie"
+                    </td>
+                    <td css={wrapper_td()}>
+                        { path }
+                    </td>
+                </tr>
+                <tr>
+                    <td css={wrapper_td()}>
+                        "Do"
+                    </td>
+                    <td css={wrapper_td()}>
+                        { new_path }
+                    </td>
+                </tr>
+            </table>
+
+            { message }
         </div>
     }
 }

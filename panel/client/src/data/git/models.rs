@@ -324,6 +324,13 @@ impl ListItem {
 
         self.get_from_path(&full_path)
     }
+
+    pub fn push(&self, name: impl Into<String>) -> ListItem {
+        let mut full_path = self.full_path.as_ref().clone();
+        full_path.push(name.into());
+
+        self.get_from_path(&full_path)
+    }
 }
 
 
