@@ -117,7 +117,7 @@ impl AppRenameitem {
 
             Computed::from(move |context| {
                 if state.action_save.get(context) {
-                    return ButtonState::Process { label: "Zapisywanie ...".into() };
+                    return ButtonState::process("Zapisywanie ...");
                 }
 
                 match state.save_enable.get(context) {
@@ -158,7 +158,7 @@ impl AppRenameitem {
                         ButtonState::active("Zapisz zmianę nazwy", action)
                     },
                     false => {
-                        ButtonState::Disabled { label: "Zapisz zmianę nazwy".into() }
+                        ButtonState::disabled("Zapisz zmianę nazwy")
                     }
                 }
             })

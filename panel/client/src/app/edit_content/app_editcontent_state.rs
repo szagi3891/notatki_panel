@@ -36,8 +36,6 @@ impl AppEditcontent {
         let edit_hash = Value::<Option<String>>::new(None);
 
         let save_enable = {
-            let data = app.data.clone();
-
             let edit_content = edit_content.to_computed();
 
             Computed::from({
@@ -58,7 +56,6 @@ impl AppEditcontent {
         };
 
         let content_view = {
-            let data = app.data.clone();
             let edit_item = edit_item.clone();
             let edit_content = edit_content.to_computed();
             let edit_hash = edit_hash.to_computed();

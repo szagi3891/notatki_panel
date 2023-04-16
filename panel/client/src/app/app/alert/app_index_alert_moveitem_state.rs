@@ -235,7 +235,7 @@ fn render_button_yes(state: &AppIndexAlertMoveitem) -> DomNode {
         let target = state.target_dir.get(context);
 
         if path == Some(target) {
-            return ButtonState::Disabled { label: "Tak".into() };
+            return ButtonState::disabled("Tak");
         }
 
         let action = bind_spawn!(state, async move {

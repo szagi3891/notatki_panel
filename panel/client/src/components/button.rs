@@ -12,6 +12,35 @@ enum ButtonType {
     Process,
 }
 
+#[derive(Clone)]
+pub struct CallbackRc {
+    id: u64,
+    callback: Rc<dyn Fn()>,
+}
+
+impl CallbackRc {
+    pub fn new(callback: impl Fn() + 'static) -> Self {
+        use std::sync::atomic::{AtomicU64, Ordering};
+        static COUNTER: AtomicU64 = AtomicU64::new(1);
+        let id = COUNTER.fetch_add(1, Ordering::Relaxed);
+
+        Self {
+            id,
+            callback: Rc::new(callback),
+        }
+    }
+
+    pub fn run(&self) {
+        (self.callback)();
+    }
+}
+
+impl PartialEq for CallbackRc {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
+}
+
 fn css_item(button_type: ButtonType) -> Css {
     let style = css!("
         display: inline-block;
@@ -50,7 +79,7 @@ pub fn button(label: &'static str, on_click: impl Fn() + 'static) -> DomNode {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum ButtonState {
     #[allow(dead_code)]
     None,
@@ -61,7 +90,7 @@ pub enum ButtonState {
     #[allow(dead_code)]
     Active {
         label: String,
-        action: Rc<dyn Fn()>,
+        action: CallbackRc,
     },
     #[allow(dead_code)]
     Process {
@@ -69,42 +98,11 @@ pub enum ButtonState {
     }
 }
 
-impl PartialEq for ButtonState {
-    fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (Self::None, Self::None) => true,
-            (
-                Self::Disabled { label: label1 },
-                Self::Disabled { label: label2 }
-            ) => {
-                label1.eq(label2)
-            },
-            (
-                Self::Active { label: label1, action: action1 },
-                Self::Active { label: label2, action: action2 },
-            ) => {
-                let compare1 = label1.eq(label2);
-                let compare2 = Rc::ptr_eq(action1, action2);
-                // let compare2 = Rc::as_ptr(action1) == Rc::as_ptr(action2);
-
-                compare1 && compare2
-            },
-            (
-                Self::Process { label: label1 },
-                Self::Process { label: label2 }
-            ) => {
-                label1.eq(label2)
-            },
-            (_, _) => false,
-        }
-    }
-}
-
 impl ButtonState {
     pub fn active(label: impl Into<String>, action: impl Fn() + 'static) -> ButtonState {
         ButtonState::Active {
             label: label.into(),
-            action: Rc::new(action)
+            action: CallbackRc::new(action)
         }
     }
 
@@ -114,9 +112,14 @@ impl ButtonState {
         }
     }
 
+    pub fn process(label: impl Into<String>) -> ButtonState {
+        ButtonState::Process {
+            label: label.into(),
+        }
+    }
 
     pub fn render(value: Computed<ButtonState>) -> DomNode {
-        let render = value.render_value_option(|value| {
+        value.render_value_option(|value| {
             match value {
                 ButtonState::None => {
                     None
@@ -128,7 +131,7 @@ impl ButtonState {
                 },
                 ButtonState::Active { label, action } => {
                     let on_click = move || {
-                        action();
+                        action.run();
                     };
 
                     Some(dom!{
@@ -141,13 +144,6 @@ impl ButtonState {
                     })
                 }
             }
-        });
-
-        //TODO - pozbyć się tego div-a
-        dom! {
-            <div>
-                {render}
-            </div>
-        }
+        })
     }
 }
