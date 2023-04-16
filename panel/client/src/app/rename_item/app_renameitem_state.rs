@@ -77,15 +77,15 @@ impl AppRenameitem {
         });
     }
 
-    async fn on_save(&self) -> Result<(), String> {
-        let body: HandlerRenameItemBody = transaction(|context| {
+    async fn on_save(&self, new_name: String) -> Result<(), String> {
+        let body: HandlerRenameItemBody = /* transaction(|context| */ {
             HandlerRenameItemBody {
                 path: self.item.dir(),
                 prev_name: self.item.name(),
                 prev_hash: self.prev_hash.clone(),
-                new_name: self.new_name.get(context),
+                new_name, //: self.new_name.get(context),
             }
-        });
+        };
 
         let response = get_driver()
             .request_post("/rename_item")
@@ -116,11 +116,13 @@ impl AppRenameitem {
                     return ButtonState::process("Zapisywanie ...");
                 }
 
+                let new_name = state.new_name.get(context);
+
                 match state.save_enable.get(context) {
                     true => {
                         let state = state.clone();
 
-                        let action = bind_spawn!(state, app, async move {
+                        let action = bind_spawn!(state, app, new_name, async move {
                             let action_save = transaction(|context| {
                                 state.action_save.get(context)
                             });
@@ -131,19 +133,14 @@ impl AppRenameitem {
                             }
 
                             state.action_save.set(true);
-                            let response = state.on_save().await;
+                            let response = state.on_save(new_name.clone()).await;
                             state.action_save.set(false);
 
                             match response {
                                 Ok(()) => {
                                     let redirect_path = state.item.dir();
-                                    let redirect_new_name = transaction(|context| {
-                                        state.new_name.get(context)
-                                    });
-
                                     log::info!("Zapis udany");
-
-                                    app.redirect_to_index_with_path(redirect_path, Some(redirect_new_name));
+                                    app.redirect_to_index_with_path(redirect_path, Some(new_name));
                                 },
                                 Err(message) => {
                                     app.show_message_error(message, Some(10000));
