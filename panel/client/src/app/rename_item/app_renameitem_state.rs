@@ -40,6 +40,8 @@ impl AppRenameitem {
                     return true;
                 }
 
+                //TODO - dodać sprawdzenie, czy ta nowa nazwa występuje w katalogu w którym jesteśmy
+
                 false
             })
         };

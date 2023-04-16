@@ -126,9 +126,8 @@ fn render_button_edit_file(state: &MenuComponent) -> DomNode {
                     return ButtonState::disabled("Edycja pliku");
                 };
 
-                let full_path = select_content.full_path.as_ref().clone();
-                let on_click = bind!(app, full_path, || {
-                    app.redirect_to_edit_content(full_path.clone());
+                let on_click = bind!(app, select_content, || {
+                    app.redirect_to_edit_content(select_content.clone());
                 });
 
                 ButtonState::active("Edycja pliku", on_click)

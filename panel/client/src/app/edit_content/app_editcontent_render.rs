@@ -92,7 +92,7 @@ pub fn app_editcontent_render(app: &App, state: &AppEditcontent) -> DomNode {
     let view_textares = render_textarea(state);
 
     let path_view = {
-        let path = state.path.as_slice().join("/");
+        let path = state.edit_item.full_path.join("/");
 
         dom! {
             <div css={css_header()}>

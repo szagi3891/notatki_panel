@@ -3,7 +3,7 @@ use std::rc::Rc;
 use vertigo::{Resource, get_driver, transaction, dom, bind, DomNode, Computed};
 use vertigo::Value;
 use crate::components::{message_box, MessageBoxType, stict_to_top, ButtonState};
-use crate::data::Data;
+use crate::data::{Data, ListItem};
 
 use crate::app::edit_content::AppEditcontent;
 use super::alert::{AppIndexAlert};
@@ -65,10 +65,10 @@ impl App {
         }
     }
 
-    pub fn redirect_to_edit_content(&self, full_path: Vec<String>) {
+    pub fn redirect_to_edit_content(&self, edit_item: ListItem) {
         let state = AppEditcontent::new(
             self,
-            full_path,
+            edit_item,
         );
 
         self.view.set(View::EditContent {

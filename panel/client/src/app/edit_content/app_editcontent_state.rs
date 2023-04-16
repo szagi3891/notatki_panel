@@ -2,7 +2,7 @@
 use common::{HandlerSaveContentBody};
 use vertigo::{Computed, Value, bind, get_driver, Context, transaction, bind_spawn, DomNode};
 
-use crate::{app::{App, response::check_request_response}, data::ContentView};
+use crate::{app::{App, response::check_request_response}, data::{ContentView, ListItem}};
 use super::app_editcontent_render::app_editcontent_render;
 
 #[derive(Clone)]
@@ -15,7 +15,7 @@ pub struct EditContent {
 #[derive(Clone, PartialEq)]
 pub struct AppEditcontent {
     app: App,
-    pub path: Vec<String>,          //edutowany element
+    pub edit_item: ListItem,          //edytowany element
 
     pub action_save: Value<bool>,
 
@@ -30,32 +30,36 @@ pub struct AppEditcontent {
 impl AppEditcontent {
     pub fn new(
         app: &App,
-        path: Vec<String>,
+        edit_item: ListItem,
     ) -> AppEditcontent {
         let edit_content = Value::<Option<String>>::new(None);
         let edit_hash = Value::<Option<String>>::new(None);
 
         let save_enable = {
             let data = app.data.clone();
-            let path = path.clone();
 
             let edit_content = edit_content.to_computed();
 
-            Computed::from(move |context| -> bool {
-                let edit_content = edit_content.get(context);
-                if let Some(edit_content) = edit_content {
-                    if let Some(ContentView { id: _, content }) = data.get_content(context, &path) {
-                        return edit_content != *content;
-                    }
-                }
+            Computed::from({
+                let edit_item = edit_item.clone();
 
-                false
+                move |context| -> bool {
+                    let edit_content = edit_content.get(context);
+
+                    if let Some(edit_content) = edit_content {
+                        if let Some(ContentView { id: _, content }) = data.get_content(context, edit_item.full_path.as_ref()) {
+                            return edit_content != *content;
+                        }
+                    }
+
+                    false
+                }
             })
         };
 
         let content_view = {
             let data = app.data.clone();
-            let path = path.clone();
+            let edit_item = edit_item.clone();
             let edit_content = edit_content.to_computed();
             let edit_hash = edit_hash.to_computed();
 
@@ -70,9 +74,9 @@ impl AppEditcontent {
                     });
                 }
 
-                println!("ładowanie danych {path:?}");
+                println!("ładowanie danych {:?}", edit_item.full_path);
 
-                if let Some(ContentView { id, content }) = data.get_content(context, &path) {
+                if let Some(ContentView { id, content }) = data.get_content(context, &edit_item.full_path) {
                     let content = (*content).clone();
 
                     return Some(EditContent {
@@ -94,7 +98,7 @@ impl AppEditcontent {
 
         AppEditcontent {
             app: app.clone(),
-            path,
+            edit_item,
 
             action_save: Value::new(false),
 
@@ -162,7 +166,7 @@ impl AppEditcontent {
             state.action_save.set(true);
 
             let body: HandlerSaveContentBody = HandlerSaveContentBody {
-                path: state.path.clone(),
+                path: state.edit_item.full_path.as_ref().clone(),
                 prev_hash: content_edit_hash,
                 new_content: content_edit,
             };
