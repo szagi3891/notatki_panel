@@ -4,7 +4,7 @@ use vertigo::{Css, css, bind, Resource, dom, Computed, DomNode, Value};
 
 use crate::app::App;
 use crate::components::list_items_from_dir;
-use crate::data::{ContentType};
+use crate::data::{ContentType, ListItem};
 use crate::{
     content::{
         parse_text,
@@ -125,8 +125,7 @@ fn render_content_text(state: &App, content: Rc<String>) -> DomNode {
     )
 }
 
-fn render_dir(state: &App, dir: &Vec<String>) -> DomNode {
-    let dir = Value::new(dir.clone()).to_computed();
+fn render_dir(state: &App, dir: Computed<ListItem>) -> DomNode {
     let result = list_items_from_dir(&state.data, &dir, false);
 
     dom! {
@@ -186,7 +185,8 @@ pub fn render_content(state: &App) -> DomNode {
                             }
                         },
                         ContentType::Dir { item } => {
-                            render_dir(&state, &item.full_path)
+                            let item = Value::new(item).to_computed();
+                            render_dir(&state, item)
                         },
                     }
                 },

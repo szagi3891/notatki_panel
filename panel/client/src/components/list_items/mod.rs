@@ -285,13 +285,13 @@ pub fn list_items_from_vec(data: &Data, list: Computed<Vec<ListItem>>, mouse_ove
     )
 }
 
-pub fn list_items_from_dir(data: &Data, dir: &Computed<Vec<String>>, mouse_over_enable: bool) -> DomNode {
+pub fn list_items_from_dir(data: &Data, select_dir: &Computed<ListItem>, mouse_over_enable: bool) -> DomNode {
     let list = Computed::from({
         let data = data.clone();
-        let dir = dir.clone();
+        let select_dir = select_dir.clone();
         move |context| {
-            let dir = dir.get(context);
-            let current = data.items.get_from_path(&dir).list.get(context);
+            let select_dir = select_dir.get(context);
+            let current = select_dir.list.get(context);
 
             match current {
                 Resource::Ready(list) => list,

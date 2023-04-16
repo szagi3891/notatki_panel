@@ -1,7 +1,7 @@
 use common::{HandlerAddFilesFile, HandlerAddFiles};
 // use vertigo::dev::NodeRefs;
 use vertigo::{
-    Computed, DomElement, bind, DropFileEvent, get_driver, RequestBody, transaction, dom_element,
+    DomElement, bind, DropFileEvent, get_driver, RequestBody, transaction, dom_element,
 };
 use vertigo::{css};
 use crate::app::App;
@@ -72,13 +72,7 @@ use crate::components::list_items_from_dir;
 // }
 
 pub fn render_list(state: &App) -> DomElement {
-    let dir = Computed::from({
-        let state = state.clone();
-        move |context| {
-            state.data.tab.router.get_dir(context)
-        }
-    });
-
+    // let select_dir = state.data.tab.select_dir;
 
     let on_dropfile = bind!(state, |event: DropFileEvent| {
         get_driver().spawn({
@@ -159,7 +153,7 @@ pub fn render_list(state: &App) -> DomElement {
 
     //TODO - ref do wrappera będzie przekazywany do funkcji list_items_from_dir
 
-    let list_view = list_items_from_dir(&state.data, &dir, true);
+    let list_view = list_items_from_dir(&state.data, &state.data.tab.select_dir, true);
 
     wrapper.add_child(list_view);
 
