@@ -51,12 +51,27 @@ fn create_link(
     is_active: bool,
     on_click: Rc<dyn Fn(ListItem) + 'static>,
 ) -> DomNode {
-    let title = if item.is_root() {
-        let home = '\u{1F3E0}'; 
-        format!("{home} root")
-    } else {
-        item.name()
-    };
+    let title = Computed::from({
+        let item = item.clone();
+
+        move |context| {
+            let title = if item.is_root() {
+                let home = '\u{1F3E0}'; 
+                format!("{home} root")
+            } else {
+                item.name()
+            };
+
+            let todo_only = item.todo_only.get(context);
+
+            if todo_only {
+                let count = item.count_todo.get(context);
+                format!("{title} ({count})")
+            } else {
+                title
+            }
+        }
+    });
 
     if is_active {
         let css = create_css(true);

@@ -123,6 +123,7 @@ pub struct ListItem {
     pub is_dir: Computed<ListItemType>,
     pub id: Computed<Resource<String>>,             //hash tego elementu
     pub list: Computed<Resource<Vec<ListItem>>>,
+    pub todo_only: Computed<bool>,
     pub count_todo: Computed<u32>,                  //ilość elementów todo, które zawiera ten element
 }
 
@@ -178,6 +179,7 @@ impl ListItem {
         }));
 
         let list = Computed::from({
+            let todo_only = todo_only.clone();
             let auto_map = auto_map.clone();
             let git = git.clone();
             let dir_path = full_path.clone();
@@ -273,6 +275,7 @@ impl ListItem {
             id,
             list,
             count_todo,
+            todo_only,
         }
     }
 
