@@ -18,22 +18,22 @@ fn css_normal(is_select: bool, is_hover: bool, is_todo: bool) -> Css {
         cursor: pointer;
     ");
 
-    let css = if is_todo {
-        css.extend(css!("
-            background: #00ff0080;
-        "))
-    } else {
-        css
-    };
-
     if is_select {
         return css.push_str("
             background-color: #c0c0c0;
         ");
-    } else if is_hover {
+    }
+    
+    if is_hover {
         return css.push_str("
             background-color: #03fc7740;
         ");
+    }
+
+    if is_todo {
+        return css.extend(css!("
+            background: #00ff0080;
+        "));
     }
 
     css
@@ -91,23 +91,23 @@ fn icon_arrow(show: Computed<bool>) -> DomNode {
     })
 }
 
-fn label_css(prirority: u8) -> Css {
-    if prirority == 2 {
+fn label_css(is_todo: bool, prirority: bool) -> Css {
+    if is_todo {
+        return css!("
+            padding-left: 3px;
+            color: red;
+        ");
+    }
+
+    if prirority {
         return css!("
             padding-left: 3px;
             color: green;
         ");
     }
 
-    if prirority == 1 {
-        return css!("
-            padding-left: 3px;
-        ");
-    }
-
     css!("
         padding-left: 3px;
-        color: red;
     ")
 }
 
@@ -119,7 +119,7 @@ pub fn item_dot_html(on_click: impl Fn() + 'static) -> DomNode {
         >
             {icon_arrow_render(false)}
             {icon::icon_dir()}
-            <span css={label_css(1)}>
+            <span css={label_css(false, false)}>
                 ".."
             </span>
         </div>
@@ -178,7 +178,7 @@ pub fn item_default(data: &Data, item: &ListItem, on_click: Computed<Rc<dyn Fn()
         >
             {icon_arrow(is_select)}
             {icon::icon_render(item)}
-            <span css={label_css(item.prirority())}>
+            <span css={label_css(item.is_todo(), item.prirority())}>
                 {name}
             </span>
         </div>

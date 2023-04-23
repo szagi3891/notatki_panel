@@ -307,8 +307,9 @@ impl ListItem {
         None
     }
 
-    pub fn prirority(&self) -> u8 {
-        get_list_item_prirority(&self.name())
+    pub fn prirority(&self) -> bool {
+        let name = self.name();
+        name.get(0..1) == Some("_")
     }
 
     //TODO - zrobić z tego computed
@@ -406,7 +407,16 @@ impl ListItem {
     }
 
     fn prirority_for_sort(&self, context: &Context) -> u8 {
-        let mut prirority = 2 * get_list_item_prirority(&self.name());
+        let mut prirority = 0;
+
+        if self.is_todo() {
+            prirority += 4;
+        }
+
+        if self.prirority() {
+            prirority += 2;
+        }
+
         if self.is_dir.get(context) == ListItemType::Dir {
             prirority += 1;
         }
@@ -467,19 +477,6 @@ impl Ord for ListItem {
     fn cmp(&self, other: &Self) -> Ordering {
         self.full_path.cmp(&other.full_path)
     }
-}
-
-
-fn get_list_item_prirority(name: &String) -> u8 {
-    if name.get(0..2) == Some("__") {
-        return 4
-    }
-
-    if name.get(0..1) == Some("_") {
-        return 2
-    }
-
-    1
 }
 
 
