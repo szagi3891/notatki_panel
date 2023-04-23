@@ -9,7 +9,7 @@ use crate::data::{Data, ListItem, ListItemType};
 use crate::components::icon;
 
 
-fn css_normal(is_select: bool, is_hover: bool) -> Css {
+fn css_normal(is_select: bool, is_hover: bool, is_todo: bool) -> Css {
     let css = css!("
         display: flex;
         border-bottom: 1px solid #c0c0c0;
@@ -17,6 +17,14 @@ fn css_normal(is_select: bool, is_hover: bool) -> Css {
 
         cursor: pointer;
     ");
+
+    let css = if is_todo {
+        css.extend(css!("
+            background: #00ff0080;
+        "))
+    } else {
+        css
+    };
 
     if is_select {
         return css.push_str("
@@ -107,7 +115,7 @@ pub fn item_dot_html(on_click: impl Fn() + 'static) -> DomNode {
     dom!{
         <div
             on_click={on_click}
-            css={css_normal(false, false)}
+            css={css_normal(false, false, false)}
         >
             {icon_arrow_render(false)}
             {icon::icon_dir()}
@@ -126,7 +134,7 @@ pub fn item_default(data: &Data, item: &ListItem, on_click: Computed<Rc<dyn Fn()
             let is_hover = Some(item.name()) == data.tab.select_content_hover.get(context).map(|item| item.name());
             let is_select = Some(item.name()) == data.tab.select_content_current.get(context).map(|item| item.name());
 
-            css_normal(is_select, is_hover)
+            css_normal(is_select, is_hover, item.is_todo())
         }
     });
 
@@ -178,15 +186,12 @@ pub fn item_default(data: &Data, item: &ListItem, on_click: Computed<Rc<dyn Fn()
 }
 
 
-pub fn item_default_render(data: &Data, item: &ListItem, mouse_over_enable: bool) -> DomElement {
-    let data = data.clone();
-    let item = item.clone();
-
+fn item_default_render(data: &Data, item: &ListItem, mouse_over_enable: bool) -> DomNode {
     let tab = &data.tab;
 
     let on_click = tab.build_redirect_to_item(item.clone());
 
-    let element = item_default(&data, &item, on_click);
+    let element = item_default(data, item, on_click);
 
     let element = if mouse_over_enable {
 
@@ -205,7 +210,7 @@ pub fn item_default_render(data: &Data, item: &ListItem, mouse_over_enable: bool
         element
     };
 
-    element
+    element.into()
 }
 
 fn css_image() -> Css {
@@ -253,42 +258,20 @@ fn item_image_render(data: &Data, item: &ListItem, ext: &String) -> DomNode {
 
 }
 
-pub fn list_items_from_vec(data: &Data, list: Computed<Vec<ListItem>>, mouse_over_enable: bool) -> DomNode {
-    let list_sorted = Computed::from({
-        move |context| {
-            let list = list.get(context);
-
-            let mut out: Vec<(Option<String>, ListItem)> = Vec::new();
-            let mut picture: Vec<(Option<String>, ListItem)> = Vec::new();
-        
-            for item in list.into_iter() {
-                if mouse_over_enable {
-                    out.push((None, item));
-                } else if let Some(ext) = item.get_picture_ext() {
-                    picture.push((Some(ext), item));
-                } else {
-                    out.push((None, item));
-                }
-            }
-        
-            out.extend(picture.into_iter());
-
-            out
-        }
-    });
-
+fn list_items_from_vec(data: &Data, list_sorted: Computed<Vec<(Option<String>, ListItem)>>, mouse_over_enable: bool) -> DomNode {
     list_sorted.render_list(
         |(_, item)| item.to_string_path(),
         {
             let data = data.clone();
             move |(picture, item)| {
 
-                if mouse_over_enable {
-                    item_default_render(&data, item, mouse_over_enable).into()
-                } else if let Some(ext) = picture {
-                    item_image_render(&data, item, ext)
-                } else {
-                    item_default_render(&data, item, mouse_over_enable).into()
+                match picture {
+                    Some(ext) => {
+                        item_image_render(&data, item, ext)
+                    },
+                    None => {
+                        item_default_render(&data, item, mouse_over_enable)
+                    }
                 }
             }
         }
@@ -311,6 +294,31 @@ pub fn list_items_from_dir(data: &Data, select_dir: &Computed<ListItem>, mouse_o
         }
     });
 
-    list_items_from_vec(data, list, mouse_over_enable)
+    let list_sorted = Computed::from({
+        move |context| {
+            let list = list.get(context);
+
+            if mouse_over_enable {
+                return list.into_iter().map(|item| (None, item)).collect::<Vec<_>>();
+            }
+
+            let mut out: Vec<(Option<String>, ListItem)> = Vec::new();
+            let mut picture: Vec<(Option<String>, ListItem)> = Vec::new();
+        
+            for item in list.into_iter() {
+                if let Some(ext) = item.get_picture_ext() {
+                    picture.push((Some(ext), item));
+                } else {
+                    out.push((None, item));
+                }
+            }
+        
+            out.extend(picture.into_iter());
+
+            out
+        }
+    });
+
+    list_items_from_vec(data, list_sorted, mouse_over_enable)
 }
 

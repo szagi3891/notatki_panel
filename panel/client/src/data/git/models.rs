@@ -401,6 +401,10 @@ impl ListItem {
         self.full_path.is_root()
     }
 
+    pub fn is_todo(&self) -> bool {
+        is_todo_name(&self.name())
+    }
+
     fn prirority_for_sort(&self, context: &Context) -> u8 {
         let mut prirority = 2 * get_list_item_prirority(&self.name());
         if self.is_dir.get(context) == ListItemType::Dir {
