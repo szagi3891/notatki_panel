@@ -206,7 +206,7 @@ impl ListItem {
                         return Ordering::Greater;
                     }
 
-                    a.name().to_lowercase().cmp(&b.name().to_lowercase())
+                    a.name_without_prefix().to_lowercase().cmp(&b.name_without_prefix().to_lowercase())
                 });
 
 
