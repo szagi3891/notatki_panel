@@ -99,14 +99,7 @@ impl TabPath {
 
         let open_links = OpenLinks::new();
 
-        //TODO - dodać opcję todo
-        //list filtrowane w zalenosci od todo_only
-        //kazdy z katalogow dociagal bedzie dodatkowa informacje o ilosci elementów w środku które posiadają todosu
-        //przycisk w menu, będzie reagował na flagę todo_only
-
         //TODO - transaction - zminimalizować ilość tranzakcji, na rzecz renderowania przycisków
-
-        //TODO = kolor dla wciśnietego przycisku todo background-color: #00ff00b0;
     
         TabPath {
             router,
@@ -272,10 +265,6 @@ impl TabPath {
         });
     }
 
-    pub fn pointer_escape(&self) {
-        self.router.set_only_item(None);
-    }
-
     pub fn pointer_enter(&self) {
         transaction(|context| {
             if let Some(current_item) = self.select_content.get(context) {
@@ -290,7 +279,8 @@ impl TabPath {
 
     pub fn backspace(&self) {
         transaction(|context| {
-            self.router.set(self.select_dir.get(context).dir(), None);
+            let select_dir = self.select_dir.get(context);
+            self.router.set(select_dir.dir(), Some(select_dir.name()));
         });
     }
 }

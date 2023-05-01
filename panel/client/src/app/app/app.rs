@@ -203,9 +203,6 @@ impl App {
         } else if code == "ArrowDown" {
             self.data.tab.pointer_down();
             return true;
-        } else if code == "Escape" {
-            self.data.tab.pointer_escape();
-            return true;
         } else if code == "ArrowRight" || code == "Enter" {
             self.data.tab.pointer_enter();
             return true;
