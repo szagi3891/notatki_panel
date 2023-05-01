@@ -337,6 +337,7 @@ impl ListItem {
             Some(ext) => {
                 match ext.as_str() {
                     "txt" => FileType::Txt,
+                    "todo" => FileType::Txt,
                     "webp" => FileType::Image { ext: "webp".into() },
                     "jpg" => FileType::Image { ext: "jpg".into() },
                     "jpeg" => FileType::Image { ext: "jpeg".into() },

@@ -239,8 +239,8 @@ impl TabPath {
 
     pub fn pointer_up(&self) {
         transaction(|context| {
-            if let Some(current_item) = self.select_content.get(context) {
-                if let Some(index) = self.find(context, &current_item.name()) {
+            if let Some(current_item) = self.router.get_item(context) {
+                if let Some(index) = self.find(context, &current_item) {
                     if !self.try_set_pointer_to(context, index - 1) {
                         self.try_set_pointer_to_end(context);
                     }
@@ -253,8 +253,8 @@ impl TabPath {
 
     pub fn pointer_down(&self) {
         transaction(|context| {
-            if let Some(current_item) = self.select_content.get(context) {
-                if let Some(index) = self.find(context, &current_item.name()) {
+            if let Some(current_item) = self.router.get_item(context) {
+                if let Some(index) = self.find(context, &current_item) {
                     if !self.try_set_pointer_to(context, index + 1) {
                         self.try_set_pointer_to(context, 0);
                     }
