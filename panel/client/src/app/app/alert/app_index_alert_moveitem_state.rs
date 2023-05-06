@@ -1,7 +1,7 @@
 use common::HandlerMoveItemBody;
 use vertigo::{Value, Resource, Computed, bind, css, Css, dom, transaction, Context, bind_spawn, RequestBuilder, DomNode, dom_element, bind_rc};
 
-use crate::{components::{AlertBox, item_default, item_dot_html, ButtonState, render_path}, data::{ListItem, ListItemType}, app::{response::check_request_response, App}};
+use crate::{components::{AlertBox, ItemDefault, item_dot_html, ButtonState, render_path}, data::{ListItem, ListItemType}, app::{response::check_request_response, App}};
 
 use super::AppIndexAlert;
 
@@ -166,7 +166,15 @@ fn render_list(state: &AppIndexAlertMoveitem) -> DomNode {
                             })
                         }));
 
-                        out.add_child(item_default(&data, &item, on_click, None, None));
+                        out.add_child(dom! {
+                            <ItemDefault
+                                data={data.clone()}
+                                item={item}
+                                on_click={on_click}
+                                mouse_over_enter={None}
+                                mouse_over_leave={None}
+                            />
+                        });
                     }
 
                     out.into()

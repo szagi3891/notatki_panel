@@ -3,7 +3,7 @@ use std::rc::Rc;
 use vertigo::{
     css, Css,
     Resource,
-    bind, dom, Computed, DomNode, dom_element, bind_rc
+    bind, dom, Computed, DomNode, dom_element, bind_rc, component
 };
 use crate::data::{Data, ListItem, ListItemType, RouterValue};
 use crate::components::icon;
@@ -149,13 +149,14 @@ impl From<Computed<Rc<dyn Fn() + 'static>>> for ItemDefaultOnClick {
     }
 }
 
-pub fn item_default(
-    data: &Data,
-    item: &ListItem,
-    on_click: impl Into<ItemDefaultOnClick>,
+#[component]
+pub fn ItemDefault(
+    data: Data,
+    item: ListItem,
+    on_click: ItemDefaultOnClick,
     mouse_over_enter: Option<Rc<dyn Fn()>>,
     mouse_over_leave: Option<Rc<dyn Fn()>>,
-) -> DomNode {
+) {
     let css_wrapper = Computed::from({
         let data = data.clone();
         let item = item.clone();
@@ -180,7 +181,6 @@ pub fn item_default(
     });
 
     let name = Computed::from({
-        let data = data.clone();
         let item = item.clone();
 
         move |context| {
@@ -212,7 +212,7 @@ pub fn item_default(
                     css={css_wrapper}
                 >
                     {icon_arrow(is_select)}
-                    {icon::icon_render(item)}
+                    {icon::icon_render(&item)}
                     <span css={label_css(item.is_todo(), item.prirority())}>
                         {name}
                     </span>
@@ -226,7 +226,7 @@ pub fn item_default(
                     css={css_wrapper}
                 >
                     {icon_arrow(is_select)}
-                    {icon::icon_render(item)}
+                    {icon::icon_render(&item)}
                     <span css={label_css(item.is_todo(), item.prirority())}>
                         {name}
                     </span>
@@ -247,7 +247,7 @@ pub fn item_default(
         element
     };
 
-    element.into()
+    element
 }
 
 
@@ -264,9 +264,25 @@ fn item_default_render(data: &Data, item: &ListItem, mouse_over_enable: bool) ->
             tab.hover_off(item.name().as_str());
         });
 
-        item_default(data, item, item.redirect_view.clone(), Some(mouse_over_enter), Some(mouse_over_leave))
+        dom! {
+            <ItemDefault
+                data={data.clone()}
+                item={item.clone()}
+                on_click={item.redirect_view.clone()}
+                mouse_over_enter={Some(mouse_over_enter)}
+                mouse_over_leave={Some(mouse_over_leave)}
+            />
+        }
     } else {
-        item_default(data, item, item.redirect_view.clone(), None, None)
+        dom! {
+            <ItemDefault
+                data={data.clone()}
+                item={item.clone()}
+                on_click={item.redirect_view.clone()}
+                mouse_over_enter={None}
+                mouse_over_leave={None}
+            />
+        }
     }
 }
 
