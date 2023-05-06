@@ -1,7 +1,7 @@
 use common::HandlerMoveItemBody;
 use vertigo::{Value, Resource, Computed, bind, css, Css, dom, transaction, Context, bind_spawn, RequestBuilder, DomNode, dom_element, bind_rc};
 
-use crate::{components::{AlertBox, ItemDefault, item_dot_html, ButtonState, render_path}, data::{ListItem, ListItemType}, app::{response::check_request_response, App}};
+use crate::{components::{AlertBox, ItemDefault, ItemDotHtml, ButtonState, render_path}, data::{ListItem, ListItemType}, app::{response::check_request_response, App}};
 
 use super::AppIndexAlert;
 
@@ -97,14 +97,18 @@ fn render_back(state: &AppIndexAlertMoveitem) -> DomNode {
             false => {
                 let target = &state.target_dir;
 
-                let on_click = bind!(target, || {
+                let on_click = bind_rc!(target, || {
                     transaction(|context| {                        
                         let dir = target.get(context).dir();
                         target.set(dir);
                     });
                 });
                 
-                Some(item_dot_html(on_click))
+                Some(dom! {
+                    <ItemDotHtml
+                        on_click={on_click}
+                    />
+                })
             }
         }  
     })
