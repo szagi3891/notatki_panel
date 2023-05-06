@@ -166,7 +166,7 @@ fn render_list(state: &AppIndexAlertMoveitem) -> DomNode {
                             })
                         }));
 
-                        out.add_child(item_default(&data, &item, on_click));
+                        out.add_child(item_default(&data, &item, on_click, None, None));
                     }
 
                     out.into()

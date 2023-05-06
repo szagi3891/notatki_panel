@@ -3,7 +3,7 @@ use std::rc::Rc;
 use vertigo::{
     css, Css,
     Resource,
-    bind, DomElement, dom, Computed, DomNode, dom_element
+    bind, dom, Computed, DomNode, dom_element, bind_rc
 };
 use crate::data::{Data, ListItem, ListItemType, RouterValue};
 use crate::components::icon;
@@ -149,7 +149,13 @@ impl From<Computed<Rc<dyn Fn() + 'static>>> for ItemDefaultOnClick {
     }
 }
 
-pub fn item_default(data: &Data, item: &ListItem, on_click: impl Into<ItemDefaultOnClick>) -> DomElement {
+pub fn item_default(
+    data: &Data,
+    item: &ListItem,
+    on_click: impl Into<ItemDefaultOnClick>,
+    mouse_over_enter: Option<Rc<dyn Fn()>>,
+    mouse_over_leave: Option<Rc<dyn Fn()>>,
+) -> DomNode {
     let css_wrapper = Computed::from({
         let data = data.clone();
         let item = item.clone();
@@ -196,7 +202,7 @@ pub fn item_default(data: &Data, item: &ListItem, on_click: impl Into<ItemDefaul
 
     let on_click = on_click.into();
 
-    match on_click {
+    let element = match on_click {
         ItemDefaultOnClick::Link(link) => {
             let link = link.map(|inner| format!("#{}", inner.to_string()));
 
@@ -227,33 +233,41 @@ pub fn item_default(data: &Data, item: &ListItem, on_click: impl Into<ItemDefaul
                 </div>
             }
         }
-    }
+    };
+
+    let element = if let Some(mouse_over_enter) = mouse_over_enter {
+        element.on_mouse_enter(mouse_over_enter)
+    } else {
+        element
+    };
+
+    let element = if let Some(mouse_over_leave) = mouse_over_leave {
+        element.on_mouse_leave(mouse_over_leave)
+    } else {
+        element
+    };
+
+    element.into()
 }
 
 
 fn item_default_render(data: &Data, item: &ListItem, mouse_over_enable: bool) -> DomNode {
     let tab = &data.tab;
 
-    let element = item_default(data, item, item.redirect_view.clone());
+    if mouse_over_enable {
 
-    let element = if mouse_over_enable {
-
-        let mouse_over_enter = bind!(item, tab, || {
+        let mouse_over_enter = bind_rc!(item, tab, || {
             tab.hover_on(&item.name());
         });
 
-        let mouse_over_leave = bind!(item, tab, || {
+        let mouse_over_leave = bind_rc!(item, tab, || {
             tab.hover_off(item.name().as_str());
         });
 
-        element
-            .on_mouse_enter(mouse_over_enter)
-            .on_mouse_leave(mouse_over_leave)
+        item_default(data, item, item.redirect_view.clone(), Some(mouse_over_enter), Some(mouse_over_leave))
     } else {
-        element
-    };
-
-    element.into()
+        item_default(data, item, item.redirect_view.clone(), None, None)
+    }
 }
 
 fn css_image() -> Css {
