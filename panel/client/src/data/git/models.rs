@@ -3,6 +3,8 @@ use std::cmp::Ordering;
 
 use vertigo::{Resource, Context, Computed, bind, AutoMap};
 
+use crate::data::tabs_hash::RouterValue;
+
 use super::{Git, ContentView};
 
 #[derive(PartialEq, Eq, Clone, Debug)]
@@ -125,6 +127,7 @@ pub struct ListItem {
     pub list: Computed<Resource<Vec<ListItem>>>,
     pub todo_only: Computed<bool>,
     pub count_todo: Computed<u32>,                  //ilość elementów todo, które zawiera ten element
+    pub redirect_view: Computed<RouterValue>,       //ten item, mona przekierować na ten stan za pomocą routera, aby go wyświetlić
 }
 
 /*
@@ -264,6 +267,24 @@ impl ListItem {
             }
         });
 
+        let redirect_view = Computed::from({
+            let full_path = full_path.clone();
+            let is_dir = is_dir.clone();
+
+            move |context| {
+                match is_dir.get(context) {
+                    ListItemType::File => {
+                        RouterValue::new(full_path.dir().to_vec_path(), Some(full_path.name()))
+                    },
+                    ListItemType::Dir => {
+                        RouterValue::new(full_path.to_vec_path(), None)
+                    },
+                    ListItemType::Unknown => {
+                        RouterValue::new(full_path.to_vec_path(), None)
+                    }
+                }
+            }
+        });
 
         Self {
             auto_map: auto_map.clone(),
@@ -276,6 +297,7 @@ impl ListItem {
             list,
             count_todo,
             todo_only,
+            redirect_view,
         }
     }
 
@@ -457,6 +479,8 @@ impl ListItem {
         path_items_all.reverse();
         path_items_all
     }
+
+    //RouterValue
 }
 
 

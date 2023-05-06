@@ -8,7 +8,7 @@ mod open_links;
 pub use git::{ContentType, ContentView};
 pub use git::{ListItem, ListItemPath, ListItemType};
 pub use open_links::OpenLinks;
-pub use tabs_hash::Router;
+pub use tabs_hash::{Router, RouterValue};
 use vertigo::{AutoMap, Value};
 
 #[derive(Clone, PartialEq)]

@@ -5,7 +5,7 @@ use vertigo::{
     Resource,
     bind, DomElement, dom, Computed, DomNode, dom_element
 };
-use crate::data::{Data, ListItem, ListItemType};
+use crate::data::{Data, ListItem, ListItemType, RouterValue};
 use crate::components::icon;
 
 
@@ -14,8 +14,14 @@ fn css_normal(is_select: bool, is_hover: bool, is_todo: bool) -> Css {
         display: flex;
         border-bottom: 1px solid #c0c0c0;
         padding: 3px 0;
+        text-decoration: none;
+        color: black;
 
         cursor: pointer;
+
+        :visited {
+            text-decoration: none;
+        }
     ");
 
     if is_select {
@@ -126,7 +132,24 @@ pub fn item_dot_html(on_click: impl Fn() + 'static) -> DomNode {
     }
 }
 
-pub fn item_default(data: &Data, item: &ListItem, on_click: Computed<Rc<dyn Fn() + 'static>>) -> DomElement {
+pub enum ItemDefaultOnClick {
+    Link(Computed<RouterValue>),
+    Click(Computed<Rc<dyn Fn() + 'static>>)
+}
+
+impl From<Computed<RouterValue>> for ItemDefaultOnClick {
+    fn from(value: Computed<RouterValue>) -> Self {
+        ItemDefaultOnClick::Link(value)
+    }
+}
+
+impl From<Computed<Rc<dyn Fn() + 'static>>> for ItemDefaultOnClick {
+    fn from(value: Computed<Rc<dyn Fn() + 'static>>) -> Self {
+        ItemDefaultOnClick::Click(value)
+    }
+}
+
+pub fn item_default(data: &Data, item: &ListItem, on_click: impl Into<ItemDefaultOnClick>) -> DomElement {
     let css_wrapper = Computed::from({
         let data = data.clone();
         let item = item.clone();
@@ -171,17 +194,39 @@ pub fn item_default(data: &Data, item: &ListItem, on_click: Computed<Rc<dyn Fn()
         }
     });
 
-    dom_element!{
-        <div
-            on_click={on_click}
-            css={css_wrapper}
-        >
-            {icon_arrow(is_select)}
-            {icon::icon_render(item)}
-            <span css={label_css(item.is_todo(), item.prirority())}>
-                {name}
-            </span>
-        </div>
+    let on_click = on_click.into();
+
+    match on_click {
+        ItemDefaultOnClick::Link(link) => {
+            let link = link.map(|inner| format!("#{}", inner.to_string()));
+
+            dom_element!{
+                <a
+                    href={link}
+                    css={css_wrapper}
+                >
+                    {icon_arrow(is_select)}
+                    {icon::icon_render(item)}
+                    <span css={label_css(item.is_todo(), item.prirority())}>
+                        {name}
+                    </span>
+                </a>
+            }
+        }
+        ItemDefaultOnClick::Click(on_click) => {
+            dom_element!{
+                <div
+                    on_click={on_click}
+                    css={css_wrapper}
+                >
+                    {icon_arrow(is_select)}
+                    {icon::icon_render(item)}
+                    <span css={label_css(item.is_todo(), item.prirority())}>
+                        {name}
+                    </span>
+                </div>
+            }
+        }
     }
 }
 
@@ -189,9 +234,7 @@ pub fn item_default(data: &Data, item: &ListItem, on_click: Computed<Rc<dyn Fn()
 fn item_default_render(data: &Data, item: &ListItem, mouse_over_enable: bool) -> DomNode {
     let tab = &data.tab;
 
-    let on_click = tab.build_redirect_to_item(item.clone());
-
-    let element = item_default(data, item, on_click);
+    let element = item_default(data, item, item.redirect_view.clone());
 
     let element = if mouse_over_enable {
 

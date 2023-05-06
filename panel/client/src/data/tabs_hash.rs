@@ -4,9 +4,18 @@ use vertigo::{router::Router as HashRouter, Context, transaction, Value};
 use super::ListItem;
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
-struct RouterValue {
+pub struct RouterValue {
     dir: Vec<String>,
     item: Option<String>,
+}
+
+impl RouterValue {
+    pub fn new(dir: Vec<String>, item: Option<String>) -> Self {
+        Self {
+            dir,
+            item
+        }
+    }
 }
 
 impl From<String> for RouterValue {
@@ -53,6 +62,10 @@ impl Router {
             route,
             item_hover: Value::default(),
         }
+    }
+
+    pub fn redirect_to(&self, new_view: RouterValue) {
+        self.route.set(new_view);
     }
 
     pub fn get_dir(&self, context: &Context) -> Vec<String> {

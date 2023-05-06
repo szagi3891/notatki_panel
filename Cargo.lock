@@ -1932,8 +1932,8 @@ checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
 
 [[package]]
 name = "vertigo"
-version = "0.2.0"
-source = "git+https://github.com/vertigo-web/vertigo?branch=other#2e9c0ee671f9df1b9d4d8359008278a3eca076c2"
+version = "0.3.0"
+source = "git+https://github.com/vertigo-web/vertigo?branch=hashrouter_fix#f86868deb2fcb32da4343abde5d565d19e29d294"
 dependencies = [
  "log",
  "vertigo-macro",
@@ -1941,8 +1941,8 @@ dependencies = [
 
 [[package]]
 name = "vertigo-macro"
-version = "0.2.0"
-source = "git+https://github.com/vertigo-web/vertigo?branch=other#2e9c0ee671f9df1b9d4d8359008278a3eca076c2"
+version = "0.3.0"
+source = "git+https://github.com/vertigo-web/vertigo?branch=hashrouter_fix#f86868deb2fcb32da4343abde5d565d19e29d294"
 dependencies = [
  "hex",
  "itertools",
