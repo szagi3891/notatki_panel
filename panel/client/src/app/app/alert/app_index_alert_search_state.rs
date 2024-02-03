@@ -63,20 +63,62 @@ fn push_list<F: Fn(&String) -> bool>(
     Resource::Ready(())
 }
 
+#[test]
+fn chunks() {
+    let mut iter = " Mary   had\ta\u{2009}little  \n\t lamb   ".split_whitespace();
+    assert_eq!(Some("Mary"), iter.next());
+    assert_eq!(Some("had"), iter.next());
+    assert_eq!(Some("a"), iter.next());
+    assert_eq!(Some("little"), iter.next());
+    assert_eq!(Some("lamb"), iter.next());
+    assert_eq!(None, iter.next());
+}
+
+fn search(name: &String, phrase: &Vec<String>) -> bool {
+    let name = name.to_lowercase();
+    
+    for chunk in phrase {
+        if !name.contains(chunk) {
+            return false;
+        }
+    }
+    
+    true
+}
+
+#[test]
+fn search_test() {
+    assert_eq!(search(&"rrrr eee aaa".to_string(), &vec!("dddd".to_string())), false);
+
+    assert_eq!(search(&"rrrr eee aaa".to_string(), &vec!("eee".to_string())), true);
+    assert_eq!(search(&"rrrr eee aaa".to_string(), &vec!("eee".to_string(), "kkk".to_string())), false);
+    assert_eq!(search(&"rrrr eee aaa".to_string(), &vec!("aaa".to_string(), "rrr".to_string())), true);
+}
+
+fn split_phrase(phrase: String) -> Vec<String> {
+    phrase
+        .to_lowercase()
+        .split_whitespace()
+        .map(|item| item.to_string())
+        .filter(|item| item.len() >= 2)
+        .collect::<Vec<String>>()
+}
+
+
 fn new_results(data_state: &Data, phrase: Computed<String>) -> Computed<Vec<ListItem>> {
     let data_state = data_state.clone();
 
     Computed::from(move |context| {
         let mut result = Vec::<ListItem>::new();
 
-        let phrase_value = phrase.get(context).to_lowercase();
+        let phrase_value = split_phrase(phrase.get(context));
 
-        if phrase_value.len() < 2 {
+        if phrase_value.len() < 1 {
             return result;
         }
 
         let test_name = move |name: &String| -> bool {
-            name.to_lowercase().contains(phrase_value.as_str())
+            search(name, &phrase_value)
         };
 
         let result_push = push_list(context, &mut result, data_state.items.root(), &test_name);
